@@ -80,7 +80,7 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
     auto min_aspect_ratio = source_evaluator.min_aspect_ratio();
     auto max_width = source_evaluator.max_width();
     auto max_height = source_evaluator.max_height();
-`
+
     // Calculate the maximum resized width and height to be set to output image
     std::vector<unsigned> out_size(dim, 0);
     for (int i = 0; i < dim; i++)
@@ -524,6 +524,7 @@ raliResize(
         output->reset_image_roi();
 
         std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({input}, {output});
+        resize_node->init(dest_width, dest_height, scaling_mode, max_size);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
     }
