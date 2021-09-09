@@ -59,6 +59,8 @@ public:
     virtual void set_prefetch_queue_depth(size_t prefetch_queue_depth) = 0;
     // introduce meta data reader
     virtual void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) = 0;
+    virtual ReaderConfig get_reader_config() = 0;
+    virtual DecoderConfig get_decoder_config() = 0;
 };
 
 using pLoaderModule = std::shared_ptr<LoaderModule>;

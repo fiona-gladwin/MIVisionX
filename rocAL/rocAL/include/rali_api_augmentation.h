@@ -33,7 +33,9 @@ THE SOFTWARE.
 /// \return
 extern "C"  RaliImage  RALI_API_CALL raliResize(RaliContext context, RaliImage input,
                                                 unsigned dest_width, unsigned dest_height,
-                                                bool is_output );
+                                                bool is_output, 
+                                                RaliResizeScalingMode scaling_mode = RaliResizeScalingMode::RALI_SCALING_MODE_STRETCH,
+                                                unsigned max_size = 0);
 
 /// Accepts U8 and RGB24 input.
 /// \param context

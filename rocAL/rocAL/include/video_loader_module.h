@@ -41,6 +41,8 @@ public:
     std::vector<long long unsigned> timing() override {return {0}; }
     void stop() override  {}
     void get_id() { return 0; }
+    ReaderConfig get_reader_config() override {};
+    DecoderConfig get_decoder_config() override {};
 private:
     std::shared_ptr<VideoFileNode> _video_node;
 };

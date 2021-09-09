@@ -64,8 +64,53 @@ THE SOFTWARE.
 #include "commons.h"
 #include "context.h"
 #include "rali_api.h"
+#include "image_source_evaluator.h"
 
 
+std::vector<unsigned>
+get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_cfg,
+                                std::vector<unsigned> dst_size, RaliResizeScalingMode mode,
+                                std::vector<unsigned> max_size, int dim = 2)
+{
+    ImageSourceEvaluator source_evaluator;
+    source_evaluator.set_size_evaluation_policy(MaxSizeEvaluationPolicy::MAXIMUM_FOUND_SIZE);
+    if(source_evaluator.create(reader_cfg, decoder_cfg) != ImageSourceEvaluatorStatus::OK)
+        THROW("Initializing file source input evaluator failed ")
+    auto max_aspect_ratio = source_evaluator.max_aspect_ratio();
+    auto min_aspect_ratio = source_evaluator.min_aspect_ratio();
+    auto max_width = source_evaluator.max_width();
+    auto max_height = source_evaluator.max_height();
+`
+    // Calculate the maximum resized width and height to be set to output image
+    std::vector<unsigned> out_size(dim, 0);
+    for (int i = 0; i < dim; i++)
+    {
+        if (max_size.size() > 0)
+        {
+            if (max_size[i] > 0)
+                out_size[i] = max_size[i];
+        }
+        else 
+        {
+            if ((dst_size[i] > 0 && mode != RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER) || 
+                (dst_size[i] > 0 && mode == RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER && dst_size[(i + 1) % 2] == 0))
+                out_size[i] = dst_size[i];
+            else if (mode == RaliResizeScalingMode::RALI_SCALING_MODE_STRETCH)
+                out_size[i] = (i == 0) ? max_width : max_height;
+            else
+            {
+                out_size[i] = (i == 0) ? std::round(max_aspect_ratio * dst_size[1]) : std::round((1 / min_aspect_ratio) * dst_size[0]);
+                if (mode == RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER && (out_size[i] < dst_size[i]))
+                    out_size[i] = dst_size[i];
+            }
+        }
+    }
+    if (max_width == 0 ||max_height  == 0)
+        THROW("Cannot find size of the images or images cannot be accessed")
+
+    LOG("Maximum input image dimension [ "+ TOSTR(max_width) + " x " + TOSTR(max_height)+" ] for images in "+source_path)
+    return out_size;
+};
 
 RaliImage  RALI_API_CALL
 raliRotate(
@@ -439,19 +484,39 @@ raliResize(
         RaliImage p_input,
         unsigned dest_width,
         unsigned dest_height,
-        bool is_output)
+        bool is_output,
+        RaliResizeScalingMode scaling_mode,
+        unsigned max_size)
 {
     Image* output = nullptr;
-    if(!p_input || !p_context || dest_width == 0 || dest_height == 0)
+    if(!p_input || !p_context)
         THROW("Null values passed as input")
     auto context = static_cast<Context*>(p_context);
     auto input = static_cast<Image*>(p_input);
     try
     {
+        if(dest_width == 0 && dest_height == 0) // When both are zero max_width and max_height should be set and no resize to be performed
+            THROW("The destination width and height are passed as NULL values")
         // For the resize node, user can create an image with a different width and height
         ImageInfo output_info = input->info();
-        output_info.width(dest_width);
-        output_info.height(dest_height);
+        auto src_width = output_info.width();
+        auto src_height = output_info.height_single();
+        std::vector<unsigned> src_size{src_width, src_height};
+        std::vector<unsigned> dst_size{dest_width, dest_height};
+        std::vector<unsigned> maximum_size;
+        if (max_size > 0)
+        {
+            output_info.width(max_size);
+            output_info.height(max_size);
+        }
+        else
+        {
+            auto reader_config = context->master_graph->get_reader_config();
+            auto decoder_config = context->master_graph->get_decoder_config();
+            auto output_size = get_max_resize_width_and_height(reader_config, decoder_config, dst_size, scaling_mode, maximum_size);
+            output_info.width(output_size[0]);
+            output_info.height(output_size[1]);
+        }
 
         output = context->master_graph->create_image(output_info, is_output);
 

@@ -87,6 +87,8 @@ public:
     std::shared_ptr<MetaDataGraph> meta_data_graph() { return _meta_data_graph; }
     std::shared_ptr<MetaDataReader> meta_data_reader() { return _meta_data_reader; }
     bool is_random_bbox_crop() {return _is_random_bbox_crop; }
+    ReaderConfig get_reader_config() { return _loader_module->get_reader_config(); }
+    DecoderConfig get_decoder_config() { return _loader_module->get_decoder_config(); }
 private:
     Status update_node_parameters();
     Status allocate_output_tensor();

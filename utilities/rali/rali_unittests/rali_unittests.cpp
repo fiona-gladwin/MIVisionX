@@ -43,7 +43,7 @@ using namespace cv;
 // #define TF_READER_DETECTION
 // #define CAFFE2_READER
 // #define CAFFE2_READER_DETECTION
-//  #define CAFFE_READER
+// #define CAFFE_READER
 // #define CAFFE_READER_DETECTION
 
 //#define RANDOMBBOXCROP
@@ -225,7 +225,7 @@ int test(int test_case, const char *path, const char *outName, int rgb, int gpu,
 
     int resize_w = width, resize_h = height; // height and width
 
-    RaliImage image0 = raliResize(handle, input1, resize_w, resize_h, false);
+    RaliImage image0 = raliResize(handle, input1, resize_w, resize_h, false, RaliResizeScalingMode::RALI_SCALING_MODE_DEFAULT);
 
     RaliImage image1;
 
