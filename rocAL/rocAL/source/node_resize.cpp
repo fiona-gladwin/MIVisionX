@@ -114,7 +114,7 @@ void ResizeNode::adjust_out_roi_size()
     for (unsigned i=0; i < dim; i++) {
         has_dst_size_dim[i] = (_src_roi_size[i] != 0) && (_dst_roi_size[i] != 0);
         sizes_provided += has_dst_size_dim[i];
-        scale[i] = _src_roi_size[i] ? (_dst_roi_size[i] / (float)_src_roi_size[i]) : 1;
+        scale[i] = _src_roi_size[i] ? (_dst_roi_size[i] / static_cast<double>(_src_roi_size[i])) : 1;
     }
     if (_scaling_mode == RaliResizeScalingMode::RALI_SCALING_MODE_STRETCH) {
         if (sizes_provided < dim) {
@@ -141,7 +141,7 @@ void ResizeNode::adjust_out_roi_size()
                 average_scale = std::pow(average_scale, 1.0 / sizes_provided);
             for(unsigned i=0; i < dim; i++) {
                 if(!has_dst_size_dim[i])
-                    _dst_roi_size[i] = _src_roi_size[i] * average_scale;      
+                    _dst_roi_size[i] = std::round(_src_roi_size[i] * average_scale);   
             }    
         }
         if (has_max_size) {
@@ -156,7 +156,7 @@ void ResizeNode::adjust_out_roi_size()
         bool first = true;
         for (unsigned i=0; i < dim; i++) {
             if (has_dst_size_dim[i]) {
-                float s = scale[i];
+                double s = scale[i];
                 if (first ||
                     (_scaling_mode == RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER && s > final_scale) || 
                     (_scaling_mode == RaliResizeScalingMode::RALI_SCALING_MODE_NOT_LARGER && s < final_scale))
@@ -175,7 +175,7 @@ void ResizeNode::adjust_out_roi_size()
         }
         for (unsigned i=0; i < dim; i++) {
             if(!has_dst_size_dim[i] || (scale[i] != final_scale)) {
-                _dst_roi_size[i] = _src_roi_size[i] * final_scale;
+                _dst_roi_size[i] = std::round(_src_roi_size[i] * final_scale);
             }
         }
     }
