@@ -105,7 +105,7 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
             }
         }
     }
-    if (max_width == 0 ||max_height  == 0)
+    if (max_width == 0 || max_height  == 0)
         THROW("Cannot find size of the images or images cannot be accessed")
 
     LOG("Maximum input image dimension [ "+ TOSTR(max_width) + " x " + TOSTR(max_height)+" ] for images in "+source_path)
@@ -499,9 +499,6 @@ raliResize(
             THROW("The destination width and height are passed as NULL values")
         // For the resize node, user can create an image with a different width and height
         ImageInfo output_info = input->info();
-        auto src_width = output_info.width();
-        auto src_height = output_info.height_single();
-        std::vector<unsigned> src_size{src_width, src_height};
         std::vector<unsigned> dst_size{dest_width, dest_height};
         std::vector<unsigned> maximum_size;
         if (max_size > 0)

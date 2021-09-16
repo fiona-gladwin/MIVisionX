@@ -41,10 +41,11 @@ protected:
 private:
     vx_array  _dst_roi_width, _dst_roi_height;
     unsigned _dest_width, _dest_height;
+    unsigned _dim = 2; // Denotes 2D images
     RaliResizeScalingMode _scaling_mode;
     std::vector<uint32_t> _src_roi_size;
     std::vector<uint32_t> _dst_roi_size;
     std::vector<uint32_t> _max_roi_size;
-    std::vector<uint32_t> _dst_width;
-    std::vector<uint32_t> _dst_height;
+    std::vector<uint32_t> _dst_roi_width_vec;
+    std::vector<uint32_t> _dst_roi_height_vec;
 };
