@@ -35,7 +35,9 @@ extern "C"  RaliImage  RALI_API_CALL raliResize(RaliContext context, RaliImage i
                                                 unsigned dest_width, unsigned dest_height,
                                                 bool is_output, 
                                                 RaliResizeScalingMode scaling_mode = RaliResizeScalingMode::RALI_SCALING_MODE_STRETCH,
-                                                unsigned max_size = 0);
+                                                unsigned max_size = 0,
+                                                unsigned resize_shorter = 0,
+                                                unsigned resize_longer = 0);
 
 /// Accepts U8 and RGB24 input.
 /// \param context

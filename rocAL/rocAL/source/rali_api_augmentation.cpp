@@ -486,7 +486,9 @@ raliResize(
         unsigned dest_height,
         bool is_output,
         RaliResizeScalingMode scaling_mode,
-        unsigned max_size)
+        unsigned max_size,
+        unsigned resize_shorter, 
+        unsigned resize_longer)
 {
     Image* output = nullptr;
     if(!p_input || !p_context)
@@ -495,12 +497,34 @@ raliResize(
     auto input = static_cast<Image*>(p_input);
     try
     {
-        if(dest_width == 0 && dest_height == 0) // When both are zero max_width and max_height should be set and no resize to be performed
-            THROW("The destination width and height are passed as NULL values")
+        if(dest_width == 0 && dest_height == 0 && resize_longer == 0 && resize_shorter == 0) // When both are zero max_width and max_height should be set and no resize to be performed
+            THROW("Atleast one size 'dest_width' or 'dest_height' or 'resize_shorter' or 'resize_longer' must be specified")
+        if((dest_width != 0 || dest_height != 0) && (resize_longer != 0 || resize_shorter != 0))
+            THROW("Only one method of specifying size can be used \ndest_width and/or dest_height\nresize_shorter\nresize_longer")
+        if(resize_longer != 0 && resize_shorter != 0)
+            THROW("'resize_longer' and 'resize_shorter' cannot be passed together. They are mutually exclusive.")
         // For the resize node, user can create an image with a different width and height
         ImageInfo output_info = input->info();
-        std::vector<unsigned> dst_size{dest_width, dest_height};
-        std::vector<unsigned> maximum_size;
+        unsigned dst_width, dst_height;
+        std::vector<unsigned> dst_size, maximum_size;
+        RaliResizeScalingMode resize_scaling_mode;
+        if(resize_shorter > 0)
+        {
+            resize_scaling_mode = RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER;
+            dst_width = dst_height = resize_shorter;
+        }
+        else if(resize_longer > 0)
+        {
+            resize_scaling_mode = RaliResizeScalingMode::RALI_SCALING_MODE_NOT_LARGER;
+            dst_width = dst_height = resize_longer;
+        }
+        else
+        {
+            resize_scaling_mode = scaling_mode;
+            dst_width = dest_width;
+            dst_height = dest_height;
+        }
+        dst_size = {dst_width, dst_height};
         if (max_size > 0)
         {
             output_info.width(max_size);
@@ -510,7 +534,7 @@ raliResize(
         {
             auto reader_config = context->master_graph->get_reader_config();
             auto decoder_config = context->master_graph->get_decoder_config();
-            auto output_size = get_max_resize_width_and_height(reader_config, decoder_config, dst_size, scaling_mode, maximum_size);
+            auto output_size = get_max_resize_width_and_height(reader_config, decoder_config, dst_size, resize_scaling_mode, maximum_size);
             output_info.width(output_size[0]);
             output_info.height(output_size[1]);
         }
@@ -521,7 +545,7 @@ raliResize(
         output->reset_image_roi();
 
         std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({input}, {output});
-        resize_node->init(dest_width, dest_height, scaling_mode, max_size);
+        resize_node->init(dst_width, dst_height, resize_scaling_mode, max_size);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
     }
