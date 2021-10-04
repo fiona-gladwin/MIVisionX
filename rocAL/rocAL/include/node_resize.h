@@ -33,7 +33,7 @@ public:
     unsigned int get_dst_height() { return _outputs[0]->info().height_single(); }
     vx_array get_src_width() { return _src_roi_width; }
     vx_array get_src_height() { return _src_roi_height; }
-    void init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size);
+    void init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size, RaliResizeInterpolationType interp_type);
     void adjust_out_roi_size();
 protected:
     void create_node() override;
@@ -42,6 +42,7 @@ private:
     vx_array  _dst_roi_width, _dst_roi_height;
     unsigned _dest_width, _dest_height;
     unsigned _dim = 2; // Denotes 2D images
+    vx_int32 _interp_type;
     RaliResizeScalingMode _scaling_mode;
     std::vector<uint32_t> _src_roi_size;
     std::vector<uint32_t> _dst_roi_size;

@@ -225,7 +225,7 @@ int test(int test_case, const char *path, const char *outName, int rgb, int gpu,
 
     int resize_w = width, resize_h = height; // height and width
 
-    RaliImage image0 = raliResize(handle, input1, resize_w, resize_h, false, RaliResizeScalingMode::RALI_SCALING_MODE_DEFAULT, 0, 0, 0);
+    RaliImage image0 = raliResize(handle, input1, resize_w, resize_h, false, RaliResizeScalingMode::RALI_SCALING_MODE_DEFAULT, 0, 0, 0, RaliResizeInterpolationType::RALI_NEAREST_NEIGHBOR_INTERPOLATION);
 
     RaliImage image1;
 
