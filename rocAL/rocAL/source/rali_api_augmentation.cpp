@@ -70,7 +70,8 @@ THE SOFTWARE.
 std::vector<unsigned>
 get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_cfg,
                                 std::vector<unsigned> dst_size, RaliResizeScalingMode mode,
-                                std::vector<unsigned> max_size, int dim = 2)
+                                std::vector<unsigned> max_size, std::vector<float> crop_size,
+                                bool is_relative_roi, int dim = 2)
 {
     ImageSourceEvaluator source_evaluator;
     source_evaluator.set_size_evaluation_policy(MaxSizeEvaluationPolicy::MAXIMUM_FOUND_SIZE);
@@ -80,6 +81,19 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
     auto min_aspect_ratio = source_evaluator.min_aspect_ratio();
     auto max_width = source_evaluator.max_width();
     auto max_height = source_evaluator.max_height();
+
+    // Calculate the max_width, max_height, max_aspect_ratio, min_aspect_ratio if crop is passed
+    // 
+    if(crop_size.size() > 0)
+    {
+        max_width = static_cast<unsigned>(is_relative_roi ? (crop_size[0] * max_width) : crop_size[0]);
+        max_height = static_cast<unsigned>(is_relative_roi ? (crop_size[1] * max_height) : crop_size[1]);
+        std::cerr << "Max width : " << max_width << "Max height " << max_height << "\n";
+        std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
+        max_aspect_ratio = is_relative_roi ? max_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
+        min_aspect_ratio = is_relative_roi ? min_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
+        std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
+    }
 
     // Calculate the maximum resized width and height to be set to output image
     std::vector<unsigned> out_size(dim, 0);
@@ -489,7 +503,10 @@ raliResize(
         unsigned max_size,
         unsigned resize_shorter, 
         unsigned resize_longer,
-        RaliResizeInterpolationType interpolation_type)
+        RaliResizeInterpolationType interpolation_type,
+        float crop_x, float crop_y,
+        float crop_width, float crop_height,
+        bool is_relative_roi)
 {
     Image* output = nullptr;
     if(!p_input || !p_context)
@@ -508,7 +525,9 @@ raliResize(
         ImageInfo output_info = input->info();
         unsigned dst_width, dst_height;
         std::vector<unsigned> dst_size, maximum_size;
+        std::vector<float> crop_size;
         RaliResizeScalingMode resize_scaling_mode;
+        // Change the scaling mode if resize_shorter or resize_longer is specified
         if(resize_shorter > 0)
         {
             resize_scaling_mode = RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER;
@@ -525,6 +544,10 @@ raliResize(
             dst_width = dest_width;
             dst_height = dest_height;
         }
+
+        // Check if ROI is passed
+        if(crop_width > 0 || crop_height > 0)
+            crop_size = {crop_width, crop_height};
         dst_size = {dst_width, dst_height};
         if (max_size > 0)
         {
@@ -535,9 +558,10 @@ raliResize(
         {
             auto reader_config = context->master_graph->get_reader_config();
             auto decoder_config = context->master_graph->get_decoder_config();
-            auto output_size = get_max_resize_width_and_height(reader_config, decoder_config, dst_size, resize_scaling_mode, maximum_size);
+            auto output_size = get_max_resize_width_and_height(reader_config, decoder_config, dst_size, resize_scaling_mode, maximum_size, crop_size, is_relative_roi);
             output_info.width(output_size[0]);
             output_info.height(output_size[1]);
+            std::cerr << "MAX SIZE : W " << output_size[0] << " H " << output_size[1] << "\n";
         }
 
         output = context->master_graph->create_image(output_info, is_output);
@@ -546,7 +570,8 @@ raliResize(
         output->reset_image_roi();
 
         std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({input}, {output});
-        resize_node->init(dst_width, dst_height, resize_scaling_mode, max_size, interpolation_type);
+        resize_node->init(dst_width, dst_height, resize_scaling_mode, max_size, interpolation_type,
+                          crop_x, crop_y, crop_width, crop_height, is_relative_roi);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
     }

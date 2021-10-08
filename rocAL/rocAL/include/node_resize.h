@@ -33,20 +33,22 @@ public:
     unsigned int get_dst_height() { return _outputs[0]->info().height_single(); }
     vx_array get_src_width() { return _src_roi_width; }
     vx_array get_src_height() { return _src_roi_height; }
-    void init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size, RaliResizeInterpolationType interp_type);
+    void init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size, RaliResizeInterpolationType interp_type,
+              float crop_x, float crop_y, float crop_width, float crop_height, float is_relative_roi);
     void adjust_out_roi_size();
 protected:
     void create_node() override;
     void update_node() override;
 private:
-    vx_array  _dst_roi_width, _dst_roi_height;
+    vx_array  _dst_roi_width, _dst_roi_height, _crop_x1, _crop_y1, _crop_x2, _crop_y2;
     unsigned _dest_width, _dest_height;
+    float _crop_x, _crop_y, _crop_width, _crop_height;
+    bool _is_relative_roi;
+    bool _has_roi = false;
     unsigned _dim = 2; // Denotes 2D images
     vx_int32 _interp_type;
     RaliResizeScalingMode _scaling_mode;
-    std::vector<uint32_t> _src_roi_size;
-    std::vector<uint32_t> _dst_roi_size;
-    std::vector<uint32_t> _max_roi_size;
-    std::vector<uint32_t> _dst_roi_width_vec;
-    std::vector<uint32_t> _dst_roi_height_vec;
+    std::vector<uint32_t> _src_roi_size, _dst_roi_size, _max_roi_size, _dst_roi_width_vec, _dst_roi_height_vec;
+    std::vector<uint32_t> _x1_arr_val, _y1_arr_val, _croph_arr_val, _cropw_arr_val, _x2_arr_val, _y2_arr_val;
+    vx_array _x1_arr, _y1_arr, _croph_arr, _cropw_arr, _x2_arr, _y2_arr;
 };

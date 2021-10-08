@@ -38,7 +38,10 @@ extern "C"  RaliImage  RALI_API_CALL raliResize(RaliContext context, RaliImage i
                                                 unsigned max_size = 0,
                                                 unsigned resize_shorter = 0,
                                                 unsigned resize_longer = 0,
-                                                RaliResizeInterpolationType interpolation_type = RaliResizeInterpolationType::RALI_LINEAR_INTERPOLATION);
+                                                RaliResizeInterpolationType interpolation_type = RaliResizeInterpolationType::RALI_LINEAR_INTERPOLATION,
+                                                float crop_x = 0, float crop_y = 0,
+                                                float crop_width = 0, float crop_height = 0,
+                                                bool is_relative_roi = false);
 
 /// Accepts U8 and RGB24 input.
 /// \param context
