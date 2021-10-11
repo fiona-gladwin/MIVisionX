@@ -92,6 +92,8 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
         std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
         max_aspect_ratio = is_relative_roi ? max_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
         min_aspect_ratio = is_relative_roi ? min_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
+        if(max_aspect_ratio < min_aspect_ratio)
+            std::swap(max_aspect_ratio, min_aspect_ratio);
         std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
     }
 

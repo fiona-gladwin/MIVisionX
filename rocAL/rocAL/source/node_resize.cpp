@@ -29,14 +29,12 @@ THE SOFTWARE.
 ResizeNode::ResizeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
         Node(inputs, outputs)
 {
-    std::cerr << "================ RESIZE NODE =====================\n";
 }
 
 void ResizeNode::create_node()
 {
     if(_node)
         return;
-    std::cerr << "================ CREATE RESIZE NODE =====================\n";
     std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().width());
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().height_single());
 
@@ -84,7 +82,8 @@ void ResizeNode::create_node()
     if(status != 0)
         THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(status))
 
-   _node = vxExtrppNode_ResizebatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width, _dst_roi_height, _interp_type, _batch_size);
+    _node = vxExtrppNode_ResizeCropbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width,
+                                           _dst_roi_height, _x1_arr, _y1_arr, _x2_arr, _y2_arr, _interp_type, _batch_size);
 
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the resize (vxExtrppNode_ResizebatchPD) node failed: "+ TOSTR(status))
@@ -142,9 +141,8 @@ void ResizeNode::update_node()
 }
 
 void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size, RaliResizeInterpolationType interp_type,
-                      float crop_x, float crop_y, float crop_width, float crop_height, float is_relative_roi)
+                      float crop_x, float crop_y, float crop_width, float crop_height, bool is_relative_roi)
 {
-    std::cerr << "================ INITIALIZE RESIZE NODE =====================\n";
     _scaling_mode = scaling_mode;
     _dest_width = dest_width;
     _dest_height = dest_height;
