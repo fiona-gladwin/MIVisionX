@@ -28,6 +28,7 @@ struct ResizeCropbatchPDLocalData
     rppHandle_t rppHandle;
     Rpp32u device_type;
     Rpp32u nbatchSize;
+    Rpp32s interpolationType;
     RppiSize *srcDimensions;
     RppiSize maxSrcDimensions;
     Rpp32u *srcBatch_width;
@@ -99,11 +100,14 @@ static vx_status VX_CALLBACK validateResizeCropbatchPD(vx_node node, const vx_re
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[10], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
-    if (scalar_type != VX_TYPE_UINT32)
+    if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #10 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[11], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_UINT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #11 type=%d (must be size)\n", scalar_type);
+    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[12], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
+    if (scalar_type != VX_TYPE_UINT32)
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #12 type=%d (must be size)\n", scalar_type);
     // Check for input parameters
     vx_parameter input_param;
     vx_image input;
@@ -150,22 +154,22 @@ static vx_status VX_CALLBACK processResizeCropbatchPD(vx_node node, const vx_ref
         refreshResizeCropbatchPD(node, parameters, num, data);
         if (df_image == VX_DF_IMAGE_U8)
         {
-            rpp_status = rppi_resize_crop_u8_pln1_batchPD_gpu((void *)data->cl_pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->cl_pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->rppHandle);
+            rpp_status = rppi_resize_crop_u8_pln1_batchPD_gpu((void *)data->cl_pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->cl_pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, data->interpolationType, output_format_toggle, data->nbatchSize, data->rppHandle);
         }
         else if (df_image == VX_DF_IMAGE_RGB)
         {
-            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_gpu((void *)data->cl_pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->cl_pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->rppHandle);
+            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_gpu((void *)data->cl_pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->cl_pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, data->interpolationType, output_format_toggle, data->nbatchSize, data->rppHandle);
         }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #elif ENABLE_HIP
         refreshResizeCropbatchPD(node, parameters, num, data);
         if (df_image == VX_DF_IMAGE_U8)
         {
-            rpp_status = rppi_resize_crop_u8_pln1_batchPD_gpu((void *)data->hip_pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->hip_pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->rppHandle);
+            rpp_status = rppi_resize_crop_u8_pln1_batchPD_gpu((void *)data->hip_pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->hip_pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, data->interpolationType, output_format_toggle, data->nbatchSize, data->rppHandle);
         }
         else if (df_image == VX_DF_IMAGE_RGB)
         {
-            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_gpu((void *)data->hip_pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->hip_pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->rppHandle);
+            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_gpu((void *)data->hip_pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->hip_pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, data->interpolationType, output_format_toggle, data->nbatchSize, data->rppHandle);
         }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
@@ -175,11 +179,11 @@ static vx_status VX_CALLBACK processResizeCropbatchPD(vx_node node, const vx_ref
         refreshResizeCropbatchPD(node, parameters, num, data);
         if (df_image == VX_DF_IMAGE_U8)
         {
-            rpp_status = rppi_resize_crop_u8_pln1_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->rppHandle);
+            rpp_status = rppi_resize_crop_u8_pln1_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, data->interpolationType, output_format_toggle, data->nbatchSize, data->rppHandle);
         }
         else if (df_image == VX_DF_IMAGE_RGB)
         {
-            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->rppHandle);
+            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, data->interpolationType, output_format_toggle, data->nbatchSize, data->rppHandle);
         }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
@@ -195,8 +199,9 @@ static vx_status VX_CALLBACK initializeResizeCropbatchPD(vx_node node, const vx_
 #elif ENABLE_HIP
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_HIP_STREAM, &data->handle.hipstream, sizeof(data->handle.hipstream)));
 #endif
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[11], &data->device_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[10], &data->nbatchSize));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[12], &data->device_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[11], &data->nbatchSize));
+    STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[10], &data->interpolationType));
     data->x1 = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->nbatchSize);
     data->y1 = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->nbatchSize);
     data->x2 = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->nbatchSize);
@@ -276,7 +281,7 @@ vx_status ResizeCropbatchPD_Register(vx_context context)
     vx_kernel kernel = vxAddUserKernel(context, "org.rpp.ResizeCropbatchPD",
                                        VX_KERNEL_RPP_RESIZECROPBATCHPD,
                                        processResizeCropbatchPD,
-                                       12,
+                                       13,
                                        validateResizeCropbatchPD,
                                        initializeResizeCropbatchPD,
                                        uninitializeResizeCropbatchPD);
@@ -307,6 +312,7 @@ vx_status ResizeCropbatchPD_Register(vx_context context)
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 9, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 10, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 11, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
+        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 12, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxFinalizeKernel(kernel));
     }
     if (status != VX_SUCCESS)
