@@ -29,12 +29,16 @@ THE SOFTWARE.
 ResizeNode::ResizeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
         Node(inputs, outputs)
 {
+    _crop_param = std::make_shared<RaliCropParam>(_batch_size);
 }
 
 void ResizeNode::create_node()
 {
     if(_node)
         return;
+    
+    _crop_param->create_array(_graph);
+
     std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().width());
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().height_single());
 
@@ -42,49 +46,15 @@ void ResizeNode::create_node()
     _dst_roi_height = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
 
     vx_status width_status, height_status;
-
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
      if(width_status != 0 || height_status != 0)
         THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
-    
-    // Initialize the crop array and vectors
-    vx_status status;
-    _x1_arr_val.resize(_batch_size);
-    _cropw_arr_val.resize(_batch_size);
-    _y1_arr_val.resize(_batch_size);
-    _croph_arr_val.resize(_batch_size);
-    _x2_arr_val.resize(_batch_size);
-    _y2_arr_val.resize(_batch_size);
-
-    _x1_arr =    vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
-    _cropw_arr = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
-    _y1_arr =    vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
-    _croph_arr = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
-    _x2_arr =    vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
-    _y2_arr =    vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
-    status = vxAddArrayItems(_x1_arr, _batch_size, _x1_arr_val.data(), sizeof(vx_uint32));
-    if(status != 0)
-        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(status))
-    status = vxAddArrayItems(_y1_arr, _batch_size, _y1_arr_val.data(), sizeof(vx_uint32));
-    if(status != 0)
-        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(status))
-    status = vxAddArrayItems(_cropw_arr, _batch_size, _cropw_arr_val.data(), sizeof(vx_uint32));
-    if(status != 0)
-        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(status))
-    status = vxAddArrayItems(_croph_arr, _batch_size, _croph_arr_val.data(), sizeof(vx_uint32));
-    if(status != 0)
-            THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(status))
-    status = vxAddArrayItems(_x2_arr, _batch_size, _x2_arr_val.data(), sizeof(vx_uint32));
-    if(status != 0)
-        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(status))
-    status = vxAddArrayItems(_y2_arr, _batch_size, _y2_arr_val.data(), sizeof(vx_uint32));
-    if(status != 0)
-        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(status))
 
     _node = vxExtrppNode_ResizeCropbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width,
-                                           _dst_roi_height, _x1_arr, _y1_arr, _x2_arr, _y2_arr, _interp_type, _batch_size);
+                                           _dst_roi_height, _crop_param->x1_arr, _crop_param->y1_arr, _crop_param->x2_arr, _crop_param->y2_arr, _interp_type, _batch_size);
 
+    vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the resize (vxExtrppNode_ResizebatchPD) node failed: "+ TOSTR(status))
 
@@ -92,50 +62,31 @@ void ResizeNode::create_node()
 
 void ResizeNode::update_node()
 {
-    vx_status width_status, height_status;
-    vx_size stride = sizeof(uint32_t);
-    uint32_t *src_width = NULL;
-    uint32_t *src_height = NULL;
-    width_status = vxAccessArrayRange(_src_roi_width, 0, _batch_size, &stride, (void**)&src_width, VX_READ_ONLY);
-    height_status = vxAccessArrayRange(_src_roi_height, 0, _batch_size, &stride, (void**)&src_height, VX_READ_ONLY);
-    if(width_status != 0 || height_status != 0)
-        THROW(" vxAccessArrayRange failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
-    width_status = vxCommitArrayRange(_src_roi_width, 0, _batch_size, src_width);
-    height_status = vxCommitArrayRange(_src_roi_height, 0, _batch_size, src_height);
-    if(width_status != 0 || height_status != 0)
-        THROW(" vxCommitArrayRange failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
+    
+    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi_width_vec(), _inputs[0]->info().get_roi_height_vec());
+    _crop_param->update_array();
+    
+    std::vector<uint32_t> crop_h_dims, crop_w_dims;
+    _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
     for (unsigned i = 0; i < _batch_size; i++)
     {
-        // Adjust crop coordinates
-        _x1_arr_val[i] = static_cast<uint32_t>((_crop_x > 0) ? _is_relative_roi ?  (_crop_x * src_width[i]) : _crop_x : 0);
-        _y1_arr_val[i] = static_cast<uint32_t>((_crop_y > 0) ? _is_relative_roi ?  (_crop_y * src_height[i]) : _crop_y : 0);
-        _cropw_arr_val[i] = static_cast<uint32_t>((_crop_width > 0) ? _is_relative_roi ?  (_crop_width * src_width[i]) : _crop_width : src_width[i]);
-        _croph_arr_val[i] = static_cast<uint32_t>((_crop_height > 0) ? _is_relative_roi ? (_crop_height * src_height[i]) : _crop_height : src_height[i]);
-        _x2_arr_val[i] = _x1_arr_val[i] + _cropw_arr_val[i];
-        _y2_arr_val[i] = _y1_arr_val[i] + _croph_arr_val[i];
-
-        _src_roi_size[0] = _cropw_arr_val[i];
-        _src_roi_size[1] = _croph_arr_val[i];
+        _src_roi_size[0] = crop_w_dims[i];
+        _src_roi_size[1] = crop_h_dims[i];
         _dst_roi_size[0] = _dest_width;
         _dst_roi_size[1] = _dest_height;
         adjust_out_roi_size();
         _dst_roi_width_vec.push_back(_dst_roi_size[0]);
         _dst_roi_height_vec.push_back(_dst_roi_size[1]);
-        std::cerr << "\nAFTER DST W : " << _dst_roi_size[0] << " DST H : " << _dst_roi_size[1];
-        std::cerr << " CROP X1 : " << _x1_arr_val[i] << " Y1 " << _y1_arr_val[i] << " X2 " << _x2_arr_val[i] << " Y2 " << _y2_arr_val[i] << "\n";
+        // std::cerr << "\nAFTER DST W : " << _dst_roi_size[0] << " DST H : " << _dst_roi_size[1];
+        // std::cerr << " CROP X1 : " << _x1_arr_val[i] << " Y1 " << _y1_arr_val[i] << " X2 " << _x2_arr_val[i] << " Y2 " << _y2_arr_val[i] << "\n";
+        // std::cerr << " CROP W : " << crop_w_dims[i] << " H " << crop_h_dims[i] << "\n";
     }
+    vx_status width_status, height_status;
     width_status = vxCopyArrayRange((vx_array)_dst_roi_width, 0, _batch_size, sizeof(vx_uint32), _dst_roi_width_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     height_status = vxCopyArrayRange((vx_array)_dst_roi_height, 0, _batch_size, sizeof(vx_uint32), _dst_roi_height_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     if(width_status != 0 || height_status != 0)
         WRN("ERROR: vxCopyArrayRange _dst_roi_width or _dst_roi_height failed " + TOSTR(width_status) + "  "+ TOSTR(height_status));
-    width_status = vxCopyArrayRange((vx_array)_x1_arr, 0, _batch_size, sizeof(vx_uint32), _x1_arr_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    height_status = vxCopyArrayRange((vx_array)_y1_arr, 0, _batch_size, sizeof(vx_uint32), _y1_arr_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    if(width_status != 0 || height_status != 0)
-        WRN("ERROR: vxCopyArrayRange _x1_arr or _y1_arr failed " + TOSTR(width_status) + "  "+ TOSTR(height_status));
-    width_status = vxCopyArrayRange((vx_array)_x2_arr, 0, _batch_size, sizeof(vx_uint32), _x2_arr_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    height_status = vxCopyArrayRange((vx_array)_y2_arr, 0, _batch_size, sizeof(vx_uint32), _y2_arr_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    if(width_status != 0 || height_status != 0)
-        WRN("ERROR: vxCopyArrayRange _x2_arr or _y2_arr failed " + TOSTR(width_status) + "  "+ TOSTR(height_status));
+    _outputs[0]->update_image_roi(_dst_roi_width_vec, _dst_roi_height_vec);
     _dst_roi_width_vec.clear();
     _dst_roi_height_vec.clear();
 }
@@ -154,11 +105,22 @@ void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScali
         _max_roi_size.push_back(max_size);
         _max_roi_size.push_back(max_size);
     }
-    _crop_x = crop_x;
-    _crop_y = crop_y;
-    _crop_width = crop_width;
-    _crop_height = crop_height;
     _is_relative_roi = is_relative_roi;
+    if(!_is_relative_roi)
+    {
+        _crop_param->crop_w = crop_width;
+        _crop_param->crop_h = crop_height;
+        _crop_param->x1     = crop_x; 
+        _crop_param->y1     = crop_y;
+    }
+    else
+    {
+        _crop_param->set_relative_roi();
+        _crop_param->crop_w_factor = crop_width;
+        _crop_param->crop_h_factor = crop_height;
+        _crop_param->x1_factor     = crop_x; 
+        _crop_param->y1_factor     = crop_y;
+    }
 }
 
 void ResizeNode::adjust_out_roi_size()
