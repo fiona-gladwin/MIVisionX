@@ -56,10 +56,20 @@ void RaliCropParam::fill_crop_dims()
         if(!(_random))
         {
             // Evaluating user given crop
-            (crop_w > in_width[img_idx]) ? (cropw_arr_val[img_idx] = in_width[img_idx]) : (cropw_arr_val[img_idx] = crop_w);
-            (crop_h > in_height[img_idx]) ? (croph_arr_val[img_idx] = in_height[img_idx]) : (croph_arr_val[img_idx] = crop_h);
-            (x1 >= in_width[img_idx]) ? (x1_arr_val[img_idx] = 0) : (x1_arr_val[img_idx] = x1);
-            (y1 >= in_height[img_idx]) ? (y1_arr_val[img_idx] = 0) : (y1_arr_val[img_idx] = y1);
+            if(!_relative_roi)
+            {
+                cropw_arr_val[img_idx] = (crop_w <= in_width[img_idx] && crop_w > 0) ? crop_w : in_width[img_idx];
+                croph_arr_val[img_idx] = (crop_h <= in_height[img_idx] && crop_h > 0) ? crop_h : in_height[img_idx];
+                x1_arr_val[img_idx] = (x1 < in_width[img_idx] && x1 > 0) ? x1 : 0;
+                y1_arr_val[img_idx] = (y1 < in_height[img_idx] && y1 > 0) ? y1 : 0;
+            }
+            else
+            {
+                cropw_arr_val[img_idx] = (crop_w_factor > 0) ? (crop_w_factor * in_width[img_idx]) :  in_width[img_idx];
+                croph_arr_val[img_idx] = (crop_h_factor > 0) ? (crop_h_factor * in_height[img_idx]) : in_height[img_idx];
+                x1_arr_val[img_idx] = (x1_factor > 0) ? (x1_factor * in_width[img_idx]) : 0;
+                y1_arr_val[img_idx] = (y1_factor > 0) ? (y1_factor * in_height[img_idx]) : 0;
+            }
         }
         else
         {
@@ -81,8 +91,10 @@ void RaliCropParam::fill_crop_dims()
         x2_arr_val[img_idx] = x1_arr_val[img_idx] + cropw_arr_val[img_idx];
         y2_arr_val[img_idx] = y1_arr_val[img_idx] + croph_arr_val[img_idx];
         // Evaluating the crop 
-        (x2_arr_val[img_idx] > in_width[img_idx]) ? x2_arr_val[img_idx] = in_width[img_idx] : x2_arr_val[img_idx] = x2_arr_val[img_idx];
-        (y2_arr_val[img_idx] > in_height[img_idx]) ? y2_arr_val[img_idx] = in_height[img_idx] : y2_arr_val[img_idx] = y2_arr_val[img_idx];
+        x2_arr_val[img_idx] = (x2_arr_val[img_idx] > in_width[img_idx]) ? in_width[img_idx] : x2_arr_val[img_idx];
+        y2_arr_val[img_idx] = (y2_arr_val[img_idx] > in_height[img_idx]) ? in_height[img_idx] : y2_arr_val[img_idx];
+
+        // std::cerr << " CROP X1 : " << x1_arr_val[img_idx] << " Y1 " << y1_arr_val[img_idx] << " X2 " << x2_arr_val[img_idx] << " Y2 " << y2_arr_val[img_idx] << "\n";
     } 
 }
 
