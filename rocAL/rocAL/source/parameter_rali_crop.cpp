@@ -56,7 +56,7 @@ void RaliCropParam::fill_crop_dims()
         if(!(_random))
         {
             // Evaluating user given crop
-            if(!_relative_roi)
+            if(!_normalized_roi)
             {
                 cropw_arr_val[img_idx] = (crop_w <= in_width[img_idx] && crop_w > 0) ? crop_w : in_width[img_idx];
                 croph_arr_val[img_idx] = (crop_h <= in_height[img_idx] && crop_h > 0) ? crop_h : in_height[img_idx];
@@ -77,7 +77,7 @@ void RaliCropParam::fill_crop_dims()
             crop_height_factor->renew();
             crop_h_factor_ = crop_height_factor->get();
             crop_width_factor->renew();
-            crop_w_factor_ = crop_width_factor->get();   
+            crop_w_factor_ = crop_width_factor->get();
             cropw_arr_val[img_idx] = static_cast<size_t> (crop_w_factor_ * in_width[img_idx]);
             croph_arr_val[img_idx] = static_cast<size_t> (crop_h_factor_ * in_height[img_idx]);
             x_drift_factor->renew();
@@ -90,12 +90,12 @@ void RaliCropParam::fill_crop_dims()
         }
         x2_arr_val[img_idx] = x1_arr_val[img_idx] + cropw_arr_val[img_idx];
         y2_arr_val[img_idx] = y1_arr_val[img_idx] + croph_arr_val[img_idx];
-        // Evaluating the crop 
+        // Evaluating the crop
         x2_arr_val[img_idx] = (x2_arr_val[img_idx] > in_width[img_idx]) ? in_width[img_idx] : x2_arr_val[img_idx];
         y2_arr_val[img_idx] = (y2_arr_val[img_idx] > in_height[img_idx]) ? in_height[img_idx] : y2_arr_val[img_idx];
 
         // std::cerr << " CROP X1 : " << x1_arr_val[img_idx] << " Y1 " << y1_arr_val[img_idx] << " X2 " << x2_arr_val[img_idx] << " Y2 " << y2_arr_val[img_idx] << "\n";
-    } 
+    }
 }
 
 Parameter<float> *RaliCropParam::default_crop_height_factor()

@@ -41,11 +41,11 @@ THE SOFTWARE.
 /// \param crop_y ROI start
 /// \param crop_width ROI width
 /// \param crop_height ROI height
-/// \param is_relative_roi If set to true the crop coordinates are considered as relative coordinates
+/// \param is_normalized_roi If set to true the crop coordinates are considered as normalized/relative coordinates
 /// \return
 extern "C"  RaliImage  RALI_API_CALL raliResize(RaliContext context, RaliImage input,
                                                 unsigned dest_width, unsigned dest_height,
-                                                bool is_output, 
+                                                bool is_output,
                                                 RaliResizeScalingMode scaling_mode = RaliResizeScalingMode::RALI_SCALING_MODE_STRETCH,
                                                 unsigned max_size = 0,
                                                 unsigned resize_shorter = 0,
@@ -53,7 +53,7 @@ extern "C"  RaliImage  RALI_API_CALL raliResize(RaliContext context, RaliImage i
                                                 RaliResizeInterpolationType interpolation_type = RaliResizeInterpolationType::RALI_LINEAR_INTERPOLATION,
                                                 float crop_x = 0, float crop_y = 0,
                                                 float crop_width = 0, float crop_height = 0,
-                                                bool is_relative_roi = false);
+                                                bool is_normalized_roi = false);
 
 /// Accepts U8 and RGB24 input.
 /// \param context

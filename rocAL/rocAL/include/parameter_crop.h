@@ -58,7 +58,7 @@ public:
         in_height = in_height_;
     }
     void set_random() {_random = true;}
-    void set_relative_roi() { _relative_roi = true; }
+    void set_normalized_roi() { _normalized_roi = true; }
     void set_x_drift_factor(Parameter<float>* x_drift);
     void set_y_drift_factor(Parameter<float>* y_drift);
     std::vector<uint32_t> in_width, in_height;
@@ -85,7 +85,7 @@ protected:
     Parameter<float>* default_y_drift_factor();
     std::vector<uint32_t> x1_arr_val, y1_arr_val, croph_arr_val, cropw_arr_val, x2_arr_val, y2_arr_val;
     bool _random;
-    bool _relative_roi = false;
+    bool _normalized_roi = false;
     virtual void fill_crop_dims(){};
     void update_crop_array();
 };

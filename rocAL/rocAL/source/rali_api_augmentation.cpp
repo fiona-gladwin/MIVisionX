@@ -71,7 +71,7 @@ std::vector<unsigned>
 get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_cfg,
                                 std::vector<unsigned> dst_size, RaliResizeScalingMode mode,
                                 std::vector<unsigned> max_size, std::vector<float> crop_size,
-                                bool is_relative_roi, int dim = 2)
+                                bool is_normalized_roi, int dim = 2)
 {
     ImageSourceEvaluator source_evaluator;
     source_evaluator.set_size_evaluation_policy(MaxSizeEvaluationPolicy::MAXIMUM_FOUND_SIZE);
@@ -83,15 +83,15 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
     auto max_height = source_evaluator.max_height();
 
     // Calculate the max_width, max_height, max_aspect_ratio, min_aspect_ratio if crop is passed
-    // 
+    //
     if(crop_size.size() > 0)
     {
-        max_width = static_cast<unsigned>(is_relative_roi ? (crop_size[0] * max_width) : crop_size[0]);
-        max_height = static_cast<unsigned>(is_relative_roi ? (crop_size[1] * max_height) : crop_size[1]);
+        max_width = static_cast<unsigned>(is_normalized_roi ? (crop_size[0] * max_width) : crop_size[0]);
+        max_height = static_cast<unsigned>(is_normalized_roi ? (crop_size[1] * max_height) : crop_size[1]);
         std::cerr << "Max width : " << max_width << "Max height " << max_height << "\n";
         std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
-        max_aspect_ratio = is_relative_roi ? max_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
-        min_aspect_ratio = is_relative_roi ? min_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
+        max_aspect_ratio = is_normalized_roi ? max_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
+        min_aspect_ratio = is_normalized_roi ? min_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
         if(max_aspect_ratio < min_aspect_ratio)
             std::swap(max_aspect_ratio, min_aspect_ratio);
         std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
@@ -106,9 +106,9 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
             if (max_size[i] > 0)
                 out_size[i] = max_size[i];
         }
-        else 
+        else
         {
-            if ((dst_size[i] > 0 && mode != RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER) || 
+            if ((dst_size[i] > 0 && mode != RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER) ||
                 (dst_size[i] > 0 && mode == RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER && dst_size[(i + 1) % 2] == 0))
                 out_size[i] = dst_size[i];
             else if (mode == RaliResizeScalingMode::RALI_SCALING_MODE_STRETCH)
@@ -503,12 +503,12 @@ raliResize(
         bool is_output,
         RaliResizeScalingMode scaling_mode,
         unsigned max_size,
-        unsigned resize_shorter, 
+        unsigned resize_shorter,
         unsigned resize_longer,
         RaliResizeInterpolationType interpolation_type,
         float crop_x, float crop_y,
         float crop_width, float crop_height,
-        bool is_relative_roi)
+        bool is_normalized_roi)
 {
     Image* output = nullptr;
     if(!p_input || !p_context)
@@ -560,7 +560,7 @@ raliResize(
         {
             auto reader_config = context->master_graph->get_reader_config();
             auto decoder_config = context->master_graph->get_decoder_config();
-            auto output_size = get_max_resize_width_and_height(reader_config, decoder_config, dst_size, resize_scaling_mode, maximum_size, crop_size, is_relative_roi);
+            auto output_size = get_max_resize_width_and_height(reader_config, decoder_config, dst_size, resize_scaling_mode, maximum_size, crop_size, is_normalized_roi);
             output_info.width(output_size[0]);
             output_info.height(output_size[1]);
             std::cerr << "MAX SIZE : W " << output_size[0] << " H " << output_size[1] << "\n";
@@ -573,7 +573,7 @@ raliResize(
 
         std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({input}, {output});
         resize_node->init(dst_width, dst_height, resize_scaling_mode, max_size, interpolation_type,
-                          crop_x, crop_y, crop_width, crop_height, is_relative_roi);
+                          crop_x, crop_y, crop_width, crop_height, is_normalized_roi);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
     }

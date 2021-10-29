@@ -36,7 +36,7 @@ void ResizeNode::create_node()
 {
     if(_node)
         return;
-    
+
     _crop_param->create_array(_graph);
 
     std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().width());
@@ -62,10 +62,10 @@ void ResizeNode::create_node()
 
 void ResizeNode::update_node()
 {
-    
+
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi_width_vec(), _inputs[0]->info().get_roi_height_vec());
     _crop_param->update_array();
-    
+
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
     for (unsigned i = 0; i < _batch_size; i++)
@@ -92,7 +92,7 @@ void ResizeNode::update_node()
 }
 
 void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size, RaliResizeInterpolationType interp_type,
-                      float crop_x, float crop_y, float crop_width, float crop_height, bool is_relative_roi)
+                      float crop_x, float crop_y, float crop_width, float crop_height, bool is_normalized_roi)
 {
     _scaling_mode = scaling_mode;
     _dest_width = dest_width;
@@ -105,20 +105,20 @@ void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScali
         _max_roi_size.push_back(max_size);
         _max_roi_size.push_back(max_size);
     }
-    _is_relative_roi = is_relative_roi;
-    if(!_is_relative_roi)
+    _is_normalized_roi = is_normalized_roi;
+    if(!_is_normalized_roi)
     {
         _crop_param->crop_w = crop_width;
         _crop_param->crop_h = crop_height;
-        _crop_param->x1     = crop_x; 
+        _crop_param->x1     = crop_x;
         _crop_param->y1     = crop_y;
     }
     else
     {
-        _crop_param->set_relative_roi();
+        _crop_param->set_normalized_roi();
         _crop_param->crop_w_factor = crop_width;
         _crop_param->crop_h_factor = crop_height;
-        _crop_param->x1_factor     = crop_x; 
+        _crop_param->x1_factor     = crop_x;
         _crop_param->y1_factor     = crop_y;
     }
 }
@@ -159,8 +159,8 @@ void ResizeNode::adjust_out_roi_size()
                 average_scale = std::pow(average_scale, 1.0 / sizes_provided);
             for(unsigned i=0; i < _dim; i++) {
                 if(!has_size[i])
-                    _dst_roi_size[i] = std::round(_src_roi_size[i] * average_scale);   
-            }    
+                    _dst_roi_size[i] = std::round(_src_roi_size[i] * average_scale);
+            }
         }
         if (has_max_size) {
             for (unsigned i=0; i < _dim; i++) {
@@ -176,7 +176,7 @@ void ResizeNode::adjust_out_roi_size()
             if (has_size[i]) {
                 double s = scale[i];
                 if (first ||
-                    (_scaling_mode == RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER && s > final_scale) || 
+                    (_scaling_mode == RaliResizeScalingMode::RALI_SCALING_MODE_NOT_SMALLER && s > final_scale) ||
                     (_scaling_mode == RaliResizeScalingMode::RALI_SCALING_MODE_NOT_LARGER && s < final_scale))
                     final_scale = s;
                 first = false;
