@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018 - 2020 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2018 - 2022 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -123,13 +123,15 @@ int main(int argc, const char ** argv)
 
     if(video_mode != 0)
     {
+        unsigned sequence_length = 3;
+        unsigned frame_step = 3;
+        unsigned frame_stride = 1;
         if (decode_height <= 0 || decode_width <= 0)
         {
             std::cout << "Output width and height is needed for video decode\n";
             return -1;
         }
-        input1 = raliVideoFileSource(handle, folderPath1, color_format, ((video_mode == 1) ? RaliDecodeDevice::RALI_HW_DECODE:RaliDecodeDevice::RALI_SW_DECODE)
-                , true, decode_width, decode_height, false);
+        input1 = raliVideoFileSource(handle, folderPath1, color_format, ((video_mode == 1) ? RaliDecodeDevice::RALI_HW_DECODE:RaliDecodeDevice::RALI_SW_DECODE), shard_count, sequence_length, frame_step, frame_stride, shuffle, true, false);
     }
     else
     {

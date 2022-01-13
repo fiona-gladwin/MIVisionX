@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2020 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -92,7 +92,6 @@ Decoder::Status FusedCropTJDecoder::decode(unsigned char *input_buffer, size_t i
         y1 = std::lround(_bbox_coord[1] * original_image_height);
         crop_width = std::lround((_bbox_coord[2]) * original_image_width);
         crop_height = std::lround((_bbox_coord[3]) * original_image_height);
-
     }
     else
     {

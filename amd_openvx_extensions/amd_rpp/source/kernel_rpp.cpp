@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2020 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1802,6 +1802,30 @@ VX_API_CALL vx_node VX_API_CALL vxExtrppNode_Nop(vx_graph graph, vx_image pSrc, 
         node = createNode(graph, VX_KERNEL_RPP_NOP, params, 3);
     }
     return node;
+}
+
+VX_API_CALL vx_node VX_API_CALL  vxExtrppNode_SequenceRearrange(vx_graph graph,vx_image pSrc,vx_image pDst, vx_array newOrder, vx_uint32 newSequenceLength, vx_uint32 sequenceLength, vx_uint32 sequenceCount)
+{
+	vx_node node = NULL;
+	vx_context context = vxGetContext((vx_reference)graph);
+	if(vxGetStatus((vx_reference)context) == VX_SUCCESS) {
+		vx_uint32 dev_type = getGraphAffinity(graph);
+		vx_scalar DEV_TYPE = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &dev_type);
+		vx_scalar NEWSEQUENCELENGTH = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &newSequenceLength);
+		vx_scalar SEQUENCELENGTH = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &sequenceLength);
+		vx_scalar SEQUENCECOUNT = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &sequenceCount);
+		vx_reference params[] = {
+			(vx_reference) pSrc,
+			(vx_reference) pDst,
+			(vx_reference) newOrder,
+			(vx_reference) NEWSEQUENCELENGTH,
+			(vx_reference) SEQUENCELENGTH,
+			(vx_reference) SEQUENCECOUNT,
+			(vx_reference) DEV_TYPE
+		};
+		 node = createNode(graph, VX_KERNEL_RPP_SEQUENCEREARRANGE, params, 7);
+	}
+	return node;
 }
 
 // utility functions

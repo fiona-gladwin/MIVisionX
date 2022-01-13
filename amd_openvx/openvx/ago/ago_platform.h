@@ -1,5 +1,5 @@
 /* 
-Copyright (c) 2015 - 2020 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2015 - 2022 Advanced Micro Devices, Inc. All rights reserved.
  
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,6 @@ THE SOFTWARE.
 #include <functional>
 #include <chrono>
 #include <thread>
-using namespace std;
 
 #if _WIN32
 #include <Windows.h>
@@ -68,6 +67,7 @@ using namespace std;
 #define _strnicmp strncasecmp
 #define _stricmp  strcasecmp
 #endif
+using namespace std;
 
 #if ENABLE_OPENCL
 #if __APPLE__
@@ -78,8 +78,8 @@ using namespace std;
 #endif
 
 #if ENABLE_HIP
-#ifndef __HIP_PLATFORM_HCC__
-#define __HIP_PLATFORM_HCC__
+#ifndef __HIP_PLATFORM_AMD__
+#define __HIP_PLATFORM_AMD__
 #endif
 #define HIPRTC_GET_TYPE_NAME
 #include "hip/hip_runtime_api.h"

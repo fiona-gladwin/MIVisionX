@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2020 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@ THE SOFTWARE.
 #include <memory>
 #include "reader_factory.h"
 #include "file_source_reader.h"
+#include "sequence_file_source_reader.h"
 #include "coco_file_source_reader.h"
 #include "cifar10_data_reader.h"
 #include "tf_record_reader.h"
@@ -35,6 +36,14 @@ std::shared_ptr<Reader> create_reader(ReaderConfig config) {
         case StorageType ::FILE_SYSTEM:
         {
             auto ret = std::make_shared<FileSourceReader>();
+            if(ret->initialize(config) != Reader::Status::OK)
+                throw std::runtime_error("File reader cannot access the storage");
+            return ret;
+        }
+        break;
+        case StorageType ::SEQUENCE_FILE_SYSTEM:
+        {
+            auto ret = std::make_shared<SequenceFileSourceReader>();
             if(ret->initialize(config) != Reader::Status::OK)
                 throw std::runtime_error("File reader cannot access the storage");
             return ret;

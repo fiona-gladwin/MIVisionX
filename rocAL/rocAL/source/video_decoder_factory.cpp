@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2020 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,41 +19,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+#include "video_decoder_factory.h"
+#include <video_decoder.h>
+#include <ffmpeg_video_decoder.h>
+#include "commons.h"
 
-
-#include "video_loader_module.h"
 #ifdef RALI_VIDEO
-VideoLoaderModule::VideoLoaderModule(std::shared_ptr<VideoFileNode> video_node):_video_node(std::move(video_node))
+std::shared_ptr<VideoDecoder> create_video_decoder(VideoDecoderConfig config)
 {
-}
-
-LoaderModuleStatus 
-VideoLoaderModule::load_next()
-{
-    // Do nothing since call to process graph suffices (done externally)
-    return LoaderModuleStatus::OK;
-}
-
-void
-VideoLoaderModule::set_output_image (Image* output_image)
-{
-}
-
-void
-VideoLoaderModule::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RaliMemType mem_type, unsigned batch_size)
-{
-}
-
-size_t VideoLoaderModule::count()
-{
-    // TODO: use FFMPEG to find the total number of frames and keep counting 
-    // how many times laod_next() is called successfully, subtract them and 
-    // that would be the count of frames remained to be decoded
-    return 9999999;
-}
-
-void VideoLoaderModule::reset()
-{
-    // Functionality not there yet in the OpenVX API
+    switch (config.type())
+    {
+        case VideoDecoderType::FFMPEG_VIDEO:
+            return std::make_shared<FFmpegVideoDecoder>();
+        default:
+            THROW("Unsupported decoder type " + TOSTR(config.type()));
+    }
 }
 #endif
