@@ -34,7 +34,7 @@ public:
     unsigned int get_dst_height() { return _outputs[0]->info().height_single(); }
     vx_array get_src_width() { return _src_roi_width; }
     vx_array get_src_height() { return _src_roi_height; }
-    void init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size, RaliResizeInterpolationType interp_type,
+    void init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size,
               float crop_x, float crop_y, float crop_width, float crop_height, bool is_normalized_roi);
     void adjust_out_roi_size();
 protected:
@@ -46,7 +46,6 @@ private:
     bool _is_normalized_roi;
     bool _has_roi = false;
     unsigned _dim = 2; // Denotes 2D images
-    vx_int32 _interp_type;
     RaliResizeScalingMode _scaling_mode;
     std::vector<uint32_t> _src_roi_size, _dst_roi_size, _max_roi_size, _dst_roi_width_vec, _dst_roi_height_vec;
     std::shared_ptr<RaliCropParam> _crop_param;

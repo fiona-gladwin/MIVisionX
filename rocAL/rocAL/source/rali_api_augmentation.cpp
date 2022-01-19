@@ -572,7 +572,6 @@ raliResize(
         unsigned max_size,
         unsigned resize_shorter,
         unsigned resize_longer,
-        RaliResizeInterpolationType interpolation_type,
         float crop_x, float crop_y,
         float crop_width, float crop_height,
         bool is_normalized_roi)
@@ -647,7 +646,7 @@ raliResize(
         output->reset_image_roi();
 
         std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({input}, {output});
-        resize_node->init(dst_width, dst_height, resize_scaling_mode, max_size, interpolation_type,
+        resize_node->init(dst_width, dst_height, resize_scaling_mode, max_size,
                           crop_x, crop_y, crop_width, crop_height, is_normalized_roi);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);

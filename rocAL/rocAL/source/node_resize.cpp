@@ -52,7 +52,7 @@ void ResizeNode::create_node()
         THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
 
     _node = vxExtrppNode_ResizeCropbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width,
-                                           _dst_roi_height, _crop_param->x1_arr, _crop_param->y1_arr, _crop_param->x2_arr, _crop_param->y2_arr, _interp_type, _batch_size);
+                                           _dst_roi_height, _crop_param->x1_arr, _crop_param->y1_arr, _crop_param->x2_arr, _crop_param->y2_arr, _batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
@@ -91,7 +91,7 @@ void ResizeNode::update_node()
     _dst_roi_height_vec.clear();
 }
 
-void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size, RaliResizeInterpolationType interp_type,
+void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size,
                       float crop_x, float crop_y, float crop_width, float crop_height, bool is_normalized_roi)
 {
     _scaling_mode = scaling_mode;
@@ -99,7 +99,6 @@ void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScali
     _dest_height = dest_height;
     _src_roi_size.resize(2);
     _dst_roi_size.resize(2);
-    _interp_type = (int)interp_type;
     if(max_size > 0)
     {
         _max_roi_size.push_back(max_size);
