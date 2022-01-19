@@ -100,6 +100,8 @@ public:
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
     void set_sequence_batch_ratio() { _sequence_batch_ratio = _sequence_batch_size / _internal_batch_size; }
+    ReaderConfig get_reader_config() { return _loader_module->get_reader_config(); }
+    DecoderConfig get_decoder_config() { return _loader_module->get_decoder_config(); }
 private:
     Status update_node_parameters();
     Status allocate_output_tensor();
