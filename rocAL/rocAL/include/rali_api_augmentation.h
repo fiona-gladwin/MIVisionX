@@ -51,6 +51,7 @@ extern "C"  RaliImage  RALI_API_CALL raliSequenceRearrange(RaliContext context, 
 /// \param max_size Limits the size of the resized image.
 /// \param resize_shorter The length of the shorter dimension of the image.
 /// \param resize_longer The length of the larger dimension of the image.
+/// \param interpolation_type The type of interpolation to be used for resize.
 /// \param crop_x ROI start
 /// \param crop_y ROI start
 /// \param crop_width ROI width
@@ -60,10 +61,11 @@ extern "C"  RaliImage  RALI_API_CALL raliSequenceRearrange(RaliContext context, 
 extern "C"  RaliImage  RALI_API_CALL raliResize(RaliContext context, RaliImage input,
                                                 unsigned dest_width, unsigned dest_height,
                                                 bool is_output,
-                                                RaliResizeScalingMode scaling_mode = RaliResizeScalingMode::RALI_SCALING_MODE_STRETCH,
+                                                RaliResizeScalingMode scaling_mode = RALI_SCALING_MODE_STRETCH,
                                                 unsigned max_size = 0,
                                                 unsigned resize_shorter = 0,
                                                 unsigned resize_longer = 0,
+                                                RaliResizeInterpolationType interpolation_type = RALI_LINEAR_INTERPOLATION,
                                                 float crop_x = 0, float crop_y = 0,
                                                 float crop_width = 0, float crop_height = 0,
                                                 bool is_normalized_roi = false);

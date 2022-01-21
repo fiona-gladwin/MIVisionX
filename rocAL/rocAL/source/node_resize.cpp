@@ -91,12 +91,14 @@ void ResizeNode::update_node()
     _dst_roi_height_vec.clear();
 }
 
-void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size,
-                      float crop_x, float crop_y, float crop_width, float crop_height, bool is_normalized_roi)
+void ResizeNode::init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode, unsigned max_size, 
+                      RaliResizeInterpolationType interpolation_type, float crop_x, float crop_y,
+                      float crop_width, float crop_height, bool is_normalized_roi)
 {
     _scaling_mode = scaling_mode;
     _dest_width = dest_width;
     _dest_height = dest_height;
+    _interpolation_type = (int)interpolation_type;
     _src_roi_size.resize(2);
     _dst_roi_size.resize(2);
     if(max_size > 0)
