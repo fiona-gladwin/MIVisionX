@@ -35,8 +35,8 @@ public:
     vx_array get_src_width() { return _src_roi_width; }
     vx_array get_src_height() { return _src_roi_height; }
     void init(unsigned dest_width, unsigned dest_height, RaliResizeScalingMode scaling_mode,
-              unsigned max_size, RaliResizeInterpolationType interpolation_type, float crop_x, float crop_y,
-              float crop_width, float crop_height, bool is_normalized_roi);
+              std::vector<unsigned> max_size, RaliResizeInterpolationType interpolation_type,
+              float crop_x, float crop_y, float crop_width, float crop_height, bool is_normalized_roi);
     void adjust_out_roi_size();
 protected:
     void create_node() override;

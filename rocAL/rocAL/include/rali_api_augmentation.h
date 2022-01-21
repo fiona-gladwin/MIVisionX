@@ -62,7 +62,7 @@ extern "C"  RaliImage  RALI_API_CALL raliResize(RaliContext context, RaliImage i
                                                 unsigned dest_width, unsigned dest_height,
                                                 bool is_output,
                                                 RaliResizeScalingMode scaling_mode = RALI_SCALING_MODE_STRETCH,
-                                                unsigned max_size = 0,
+                                                std::vector<unsigned> max_size = {},
                                                 unsigned resize_shorter = 0,
                                                 unsigned resize_longer = 0,
                                                 RaliResizeInterpolationType interpolation_type = RALI_LINEAR_INTERPOLATION,
