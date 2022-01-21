@@ -82,23 +82,26 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
     auto min_aspect_ratio = source_evaluator.min_aspect_ratio();
     auto max_width = source_evaluator.max_width();
     auto max_height = source_evaluator.max_height();
+    if (max_width == 0 || max_height  == 0)
+        THROW("Cannot find size of the images or images cannot be accessed")
+    LOG("Maximum input image dimension [ "+ TOSTR(max_width) + " x " + TOSTR(max_height)+" ] for images in "+source_path)
 
     // Calculate the max_width, max_height, max_aspect_ratio, min_aspect_ratio if crop is passed
-    //
     if(crop_size.size() > 0)
     {
-        max_width = static_cast<unsigned>(is_normalized_roi ? (crop_size[0] * max_width) : crop_size[0]);
-        max_height = static_cast<unsigned>(is_normalized_roi ? (crop_size[1] * max_height) : crop_size[1]);
+        float scale = crop_size[0] / crop_size[1];
+        max_width = static_cast<unsigned>(is_normalized_roi ? std::round(crop_size[0] * max_width) : crop_size[0]);
+        max_height = static_cast<unsigned>(is_normalized_roi ? std::round(crop_size[1] * max_height) : crop_size[1]);
         std::cerr << "Max width : " << max_width << "Max height " << max_height << "\n";
         std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
-        max_aspect_ratio = is_normalized_roi ? max_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
-        min_aspect_ratio = is_normalized_roi ? min_aspect_ratio * (crop_size[0] / crop_size[1]) : (crop_size[0] / crop_size[1]);
+        max_aspect_ratio = is_normalized_roi ? max_aspect_ratio * scale : scale;
+        min_aspect_ratio = is_normalized_roi ? min_aspect_ratio * scale : scale;
         if(max_aspect_ratio < min_aspect_ratio)
             std::swap(max_aspect_ratio, min_aspect_ratio);
         std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
     }
 
-    // Calculate the maximum resized width and height to be set to output image
+    // Calculate the maximum resized width and height to be set to output image info
     std::vector<unsigned> out_size(dim, 0);
     for (int i = 0; i < dim; i++)
     {
@@ -122,10 +125,6 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
             }
         }
     }
-    if (max_width == 0 || max_height  == 0)
-        THROW("Cannot find size of the images or images cannot be accessed")
-
-    LOG("Maximum input image dimension [ "+ TOSTR(max_width) + " x " + TOSTR(max_height)+" ] for images in "+source_path)
     return out_size;
 };
 
@@ -592,12 +591,14 @@ raliResize(
             THROW("Only one method of specifying size can be used \ndest_width and/or dest_height\nresize_shorter\nresize_longer")
         if(resize_longer != 0 && resize_shorter != 0)
             THROW("'resize_longer' and 'resize_shorter' cannot be passed together. They are mutually exclusive.")
+        if((crop_width != 0 && crop_height == 0) || (crop_width == 0 && crop_height != 0))
+            THROW("'crop_width' and 'crop_height' must be specified together.")
+
         // For the resize node, user can create an image with a different width and height
         ImageInfo output_info = input->info();
         unsigned dst_width, dst_height;
-        std::vector<unsigned> dst_size, maximum_size;
-        std::vector<float> crop_size;
         RaliResizeScalingMode resize_scaling_mode;
+
         // Change the scaling mode if resize_shorter or resize_longer is specified
         if(resize_shorter > 0)
         {
@@ -616,19 +617,34 @@ raliResize(
             dst_height = dest_height;
         }
 
-        // Check if ROI is passed
-        if(crop_width > 0 || crop_height > 0)
-            crop_size = {crop_width, crop_height};
-        dst_size = {dst_width, dst_height};
+        // Determine the max width and height to be set to the output info
         if (max_size > 0)
         {
+            // If max_size is passed by the user, the resized images cannot exceed the max size,
+            // hence set the max width and height in the output info
             output_info.width(max_size);
             output_info.height(max_size);
+        }
+        else if((dest_width != 0 && dest_height != 0) &&
+                (resize_scaling_mode == RALI_SCALING_MODE_DEFAULT || resize_scaling_mode == RALI_SCALING_MODE_STRETCH))
+        {
+            // If both dst width and height is passed by the user, the resized images cannot exceed the given size,
+            // hence set the width and height in the output info
+            output_info.width(dest_width);
+            output_info.height(dest_height);
         }
         else
         {
             auto reader_config = context->master_graph->get_reader_config();
             auto decoder_config = context->master_graph->get_decoder_config();
+            std::vector<unsigned> maximum_size;
+            std::vector<float> crop_size;
+            std::vector<unsigned> dst_size = {dst_width, dst_height};
+            // Check if ROI is passed
+            if(crop_width > 0 && crop_height > 0)
+                crop_size = {crop_width, crop_height};
+
+            // compute the output info width and height wrt the scaling modes and roi passed
             auto output_size = get_max_resize_width_and_height(reader_config, decoder_config, dst_size, resize_scaling_mode, maximum_size, crop_size, is_normalized_roi);
             output_info.width(output_size[0]);
             output_info.height(output_size[1]);

@@ -65,10 +65,10 @@ void RaliCropParam::fill_crop_dims()
             }
             else
             {
-                cropw_arr_val[img_idx] = (crop_w_factor > 0) ? (crop_w_factor * in_width[img_idx]) :  in_width[img_idx];
-                croph_arr_val[img_idx] = (crop_h_factor > 0) ? (crop_h_factor * in_height[img_idx]) : in_height[img_idx];
-                x1_arr_val[img_idx] = (x1_factor > 0) ? (x1_factor * in_width[img_idx]) : 0;
-                y1_arr_val[img_idx] = (y1_factor > 0) ? (y1_factor * in_height[img_idx]) : 0;
+                cropw_arr_val[img_idx] = (crop_w_factor > 0) ? std::round(crop_w_factor * in_width[img_idx]) :  in_width[img_idx];
+                croph_arr_val[img_idx] = (crop_h_factor > 0) ? std::round(crop_h_factor * in_height[img_idx]) : in_height[img_idx];
+                x1_arr_val[img_idx] = (x1_factor > 0) ? std::round(x1_factor * in_width[img_idx]) : 0;
+                y1_arr_val[img_idx] = (y1_factor > 0) ? std::round(y1_factor * in_height[img_idx]) : 0;
             }
         }
         else
