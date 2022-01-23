@@ -43,6 +43,11 @@ struct ResizeTensorData
     vx_uint32 *y1;
     vx_uint32 *x2;
     vx_uint32 *y2;
+    RpptDesc srcDesc, dstDesc;
+    RpptDescPtr srcDescPtr, dstDescPtr;
+    RpptROIPtr roiTensorPtrSrc;
+    RpptRoiType roiType;
+    RpptImagePatchPtr dstImgSize;
 #if ENABLE_OPENCL
     cl_mem cl_pSrc;
     cl_mem cl_pDst;
@@ -60,12 +65,12 @@ static vx_status VX_CALLBACK refreshResizeTensor(vx_node node, const vx_referenc
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[7], 0, data->nbatchSize, sizeof(vx_uint32), data->y1, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[8], 0, data->nbatchSize, sizeof(vx_uint32), data->x2, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[9], 0, data->nbatchSize, sizeof(vx_uint32), data->y2, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[0], VX_IMAGE_HEIGHT, &data->maxSrcDimensions.height, sizeof(data->maxSrcDimensions.height)));
-    STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[0], VX_IMAGE_WIDTH, &data->maxSrcDimensions.width, sizeof(data->maxSrcDimensions.width)));
-    data->maxSrcDimensions.height = data->maxSrcDimensions.height / data->nbatchSize;
-    STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[3], VX_IMAGE_HEIGHT, &data->maxDstDimensions.height, sizeof(data->maxDstDimensions.height)));
-    STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[3], VX_IMAGE_WIDTH, &data->maxDstDimensions.width, sizeof(data->maxDstDimensions.width)));
-    data->maxDstDimensions.height = data->maxDstDimensions.height / data->nbatchSize;
+    // STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[0], VX_IMAGE_HEIGHT, &data->maxSrcDimensions.height, sizeof(data->maxSrcDimensions.height)));
+    // STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[0], VX_IMAGE_WIDTH, &data->maxSrcDimensions.width, sizeof(data->maxSrcDimensions.width)));
+    // data->maxSrcDimensions.height = data->maxSrcDimensions.height / data->nbatchSize;
+    // STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[3], VX_IMAGE_HEIGHT, &data->maxDstDimensions.height, sizeof(data->maxDstDimensions.height)));
+    // STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[3], VX_IMAGE_WIDTH, &data->maxDstDimensions.width, sizeof(data->maxDstDimensions.width)));
+    // data->maxDstDimensions.height = data->maxDstDimensions.height / data->nbatchSize;
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[1], 0, data->nbatchSize, sizeof(Rpp32u), data->srcBatch_width, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[2], 0, data->nbatchSize, sizeof(Rpp32u), data->srcBatch_height, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->nbatchSize, sizeof(Rpp32u), data->dstBatch_width, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -74,8 +79,13 @@ static vx_status VX_CALLBACK refreshResizeTensor(vx_node node, const vx_referenc
     {
         data->srcDimensions[i].width = data->srcBatch_width[i];
         data->srcDimensions[i].height = data->srcBatch_height[i];
-        data->dstDimensions[i].width = data->dstBatch_width[i];
-        data->dstDimensions[i].height = data->dstBatch_height[i];
+        data->dstImgSize[i].width = data->dstDimensions[i].width = data->dstBatch_width[i];
+        data->dstImgSize[i].height = data->dstDimensions[i].height = data->dstBatch_height[i];
+
+        data->roiTensorPtrSrc[i].xywhROI.roiWidth = data->x2[i] - data->x1[i];
+        data->roiTensorPtrSrc[i].xywhROI.roiHeight = data->y2[i] - data->y1[i];
+        data->roiTensorPtrSrc[i].xywhROI.xy.x = data->x1[i];
+        data->roiTensorPtrSrc[i].xywhROI.xy.y = data->y1[i];
     }
     if (data->device_type == AGO_TARGET_AFFINITY_GPU)
     {
@@ -183,7 +193,7 @@ static vx_status VX_CALLBACK processResizeTensor(vx_node node, const vx_referenc
         }
         else if (df_image == VX_DF_IMAGE_RGB)
         {
-            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->rppHandle);
+            rpp_status = rppt_resize_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->dstImgSize, (RpptInterpolationType)data->interpolationType, data->roiTensorPtrSrc, data->roiType, data->rppHandle);
         }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
@@ -212,6 +222,65 @@ static vx_status VX_CALLBACK initializeResizeTensor(vx_node node, const vx_refer
     data->srcBatch_height = (Rpp32u *)malloc(sizeof(Rpp32u) * data->nbatchSize);
     data->dstBatch_width = (Rpp32u *)malloc(sizeof(Rpp32u) * data->nbatchSize);
     data->dstBatch_height = (Rpp32u *)malloc(sizeof(Rpp32u) * data->nbatchSize);
+    data->dstImgSize = (RpptImagePatch *)malloc(sizeof(RpptImagePatch) * data->nbatchSize);
+    STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[0], VX_IMAGE_HEIGHT, &data->maxSrcDimensions.height, sizeof(data->maxSrcDimensions.height)));
+    STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[0], VX_IMAGE_WIDTH, &data->maxSrcDimensions.width, sizeof(data->maxSrcDimensions.width)));
+    data->maxSrcDimensions.height = data->maxSrcDimensions.height / data->nbatchSize;
+    STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[3], VX_IMAGE_HEIGHT, &data->maxDstDimensions.height, sizeof(data->maxDstDimensions.height)));
+    STATUS_ERROR_CHECK(vxQueryImage((vx_image)parameters[3], VX_IMAGE_WIDTH, &data->maxDstDimensions.width, sizeof(data->maxDstDimensions.width)));
+    data->maxDstDimensions.height = data->maxDstDimensions.height / data->nbatchSize;
+
+    // Initializing tensor config parameters.
+
+    uint ip_channel = 3;
+    data->srcDescPtr = &data->srcDesc;
+    data->dstDescPtr = &data->dstDesc;
+    data->srcDescPtr->layout = RpptLayout::NHWC;
+    data->dstDescPtr->layout = RpptLayout::NHWC;
+
+    data->srcDescPtr->dataType = RpptDataType::U8;
+    data->dstDescPtr->dataType = RpptDataType::U8;
+
+    // Set numDims, offset, n/c/h/w values for src/dst
+    data->srcDescPtr->numDims = 4;
+    data->dstDescPtr->numDims = 4;
+
+    data->srcDescPtr->offsetInBytes = 0;
+    data->dstDescPtr->offsetInBytes = 0;
+
+    data->srcDescPtr->n = data->nbatchSize;
+    data->srcDescPtr->h = data->maxSrcDimensions.height;
+    data->srcDescPtr->w = data->maxSrcDimensions.width;
+    data->srcDescPtr->c = ip_channel;
+
+    data->dstDescPtr->n = data->nbatchSize;
+    data->dstDescPtr->h = data->maxDstDimensions.height;
+    data->dstDescPtr->w = data->maxDstDimensions.width;
+    data->dstDescPtr->c = ip_channel;
+
+    // Optionally set w stride as a multiple of 8 for src/dst
+
+    // data->srcDescPtr->w = ((data->srcDescPtr->w / 8) * 8) + 8;
+    // data->dstDescPtr->w = ((data->dstDescPtr->w / 8) * 8) + 8;
+
+    // Set n/c/h/w strides for src/dst
+
+    data->srcDescPtr->strides.nStride = ip_channel * data->srcDescPtr->w * data->srcDescPtr->h;
+    data->srcDescPtr->strides.hStride = ip_channel * data->srcDescPtr->w;
+    data->srcDescPtr->strides.wStride = ip_channel;
+    data->srcDescPtr->strides.cStride = 1;
+
+    data->dstDescPtr->strides.nStride = ip_channel * data->dstDescPtr->w * data->dstDescPtr->h;
+    data->dstDescPtr->strides.hStride = ip_channel * data->dstDescPtr->w;
+    data->dstDescPtr->strides.wStride = ip_channel;
+    data->dstDescPtr->strides.cStride = 1;
+
+    // Initialize ROI tensors for src/dst
+    data->roiTensorPtrSrc  = (RpptROI *) calloc(data->nbatchSize, sizeof(RpptROI));
+
+    // Set ROI tensors types for src/dst
+    data->roiType = RpptRoiType::XYWH;
+
     refreshResizeTensor(node, parameters, num, data);
 #if ENABLE_OPENCL
     if (data->device_type == AGO_TARGET_AFFINITY_GPU)
@@ -247,6 +316,7 @@ static vx_status VX_CALLBACK uninitializeResizeTensor(vx_node node, const vx_ref
     free(data->x2);
     free(data->y1);
     free(data->y2);
+    free(data->roiTensorPtrSrc);
     delete (data);
     return VX_SUCCESS;
 }

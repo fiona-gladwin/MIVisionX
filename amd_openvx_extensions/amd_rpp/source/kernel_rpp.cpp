@@ -1848,7 +1848,7 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtrppNode_ResizeTensor(vx_graph graph, vx_im
             (vx_reference)INTERPOLATION_TYPE,
             (vx_reference)NBATCHSIZE,
             (vx_reference)DEV_TYPE};
-        node = createNode(graph, VX_KERNEL_RPP_RESIZECROPBATCHPD, params, 13);
+        node = createNode(graph, VX_KERNEL_RPP_RESIZETENSOR, params, 13);
     }
     return node;
 }
