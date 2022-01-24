@@ -77,9 +77,6 @@ void ResizeNode::update_node()
         adjust_out_roi_size();
         _dst_roi_width_vec.push_back(_dst_roi_size[0]);
         _dst_roi_height_vec.push_back(_dst_roi_size[1]);
-        // std::cerr << "\nAFTER DST W : " << _dst_roi_size[0] << " DST H : " << _dst_roi_size[1];
-        // std::cerr << " CROP X1 : " << _x1_arr_val[i] << " Y1 " << _y1_arr_val[i] << " X2 " << _x2_arr_val[i] << " Y2 " << _y2_arr_val[i] << "\n";
-        // std::cerr << " CROP W : " << crop_w_dims[i] << " H " << crop_h_dims[i] << "\n";
     }
     vx_status width_status, height_status;
     width_status = vxCopyArrayRange((vx_array)_dst_roi_width, 0, _batch_size, sizeof(vx_uint32), _dst_roi_width_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);

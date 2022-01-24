@@ -93,8 +93,6 @@ void RaliCropParam::fill_crop_dims()
         // Evaluating the crop
         x2_arr_val[img_idx] = (x2_arr_val[img_idx] > in_width[img_idx]) ? in_width[img_idx] : x2_arr_val[img_idx];
         y2_arr_val[img_idx] = (y2_arr_val[img_idx] > in_height[img_idx]) ? in_height[img_idx] : y2_arr_val[img_idx];
-
-        // std::cerr << " CROP X1 : " << x1_arr_val[img_idx] << " Y1 " << y1_arr_val[img_idx] << " X2 " << x2_arr_val[img_idx] << " Y2 " << y2_arr_val[img_idx] << "\n";
     }
 }
 

@@ -92,13 +92,10 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
         float scale = crop_size[0] / crop_size[1];
         max_width = static_cast<unsigned>(is_normalized_roi ? std::round(crop_size[0] * max_width) : crop_size[0]);
         max_height = static_cast<unsigned>(is_normalized_roi ? std::round(crop_size[1] * max_height) : crop_size[1]);
-        std::cerr << "Max width : " << max_width << "Max height " << max_height << "\n";
-        std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
         max_aspect_ratio = is_normalized_roi ? max_aspect_ratio * scale : scale;
         min_aspect_ratio = is_normalized_roi ? min_aspect_ratio * scale : scale;
         if(max_aspect_ratio < min_aspect_ratio)
             std::swap(max_aspect_ratio, min_aspect_ratio);
-        std::cerr << "Max aspect ratio : " << max_aspect_ratio << "Min aspect ratio " << min_aspect_ratio << "\n";
     }
 
     // Calculate the maximum resized width and height to be set to output image info
@@ -657,7 +654,6 @@ raliResize(
         // set the width and height in the output info
         output_info.width(output_info_size[0]);
         output_info.height(output_info_size[1]);
-        std::cerr << "MAX SIZE : W " << output_info_size[0] << " H " << output_info_size[1] << "\n";
 
         output = context->master_graph->create_image(output_info, is_output);
 
