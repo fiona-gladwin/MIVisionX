@@ -133,6 +133,8 @@ void ImageLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg,
     _loop = reader_cfg.loop();
     _decoder_keep_original = decoder_keep_original;
     _image_loader = std::make_shared<ImageReadAndDecode>();
+    _reader_config = reader_cfg;
+    _decoder_config = decoder_cfg;
     try
     {
         _image_loader->create(reader_cfg, decoder_cfg, _batch_size);
@@ -326,4 +328,13 @@ decoded_image_info ImageLoader::get_decode_image_info()
 crop_image_info ImageLoader::get_crop_image_info()
 {
     return _output_cropped_img_info;
+}
+
+ReaderConfig ImageLoader::get_reader_config()
+{
+    return _reader_config;
+}
+DecoderConfig ImageLoader::get_decoder_config()
+{
+    return _decoder_config;
 }

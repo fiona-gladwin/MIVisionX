@@ -100,6 +100,8 @@ public:
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
     void set_sequence_batch_ratio() { _sequence_batch_ratio = _sequence_batch_size / _internal_batch_size; }
+    ReaderConfig get_reader_config() { return _loader_module->get_reader_config(); }
+    DecoderConfig get_decoder_config() { return _loader_module->get_decoder_config(); }
 private:
     Status update_node_parameters();
     Status allocate_output_tensor();
@@ -169,7 +171,7 @@ private:
     size_t _sequence_batch_ratio; //!< Indicates the _user_to_internal_batch_ratio when sequence reader outputs are required
     bool _is_sequence_reader_output = false; //!< Set to true if Sequence Reader is invoked.
     // box encoder variables
-    bool _is_box_encoder = false; //bool variable to set the box encoder 
+    bool _is_box_encoder = false; //bool variable to set the box encoder
     std::vector<float>_anchors; // Anchors to be used for encoding, as the array of floats is in the ltrb format of size 8732x4
     float _criteria = 0.5; // Threshold IoU for matching bounding boxes with anchors. The value needs to be between 0 and 1.
     float _scale; // Rescales the box and anchor values before the offset is calculated (for example, to return to the absolute values).
