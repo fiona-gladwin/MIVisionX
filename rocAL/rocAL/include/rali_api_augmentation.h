@@ -40,15 +40,35 @@ extern "C"  RaliImage  RALI_API_CALL raliSequenceRearrange(RaliContext context, 
                                                 unsigned int sequence_length, bool is_output );
 
 /// Accepts U8 and RGB24 input.
-/// \param context
-/// \param input
-/// \param dest_width
-/// \param dest_height
-/// \param is_output
+/// \param context Rali context
+/// \param input Input Rali Image
+/// \param dest_width The output width
+/// \param dest_height The output height
+/// \param is_output True: the output image is needed by user and will be copied to output buffers using the data
+/// transfer API calls. False: the output image is just an intermediate image, user is not interested in
+/// using it directly. This option allows certain optimizations to be achieved.
+/// \param scaling_mode The resize scaling_mode to resize the image.
+/// \param max_size Limits the size of the resized image.
+/// \param resize_shorter The length of the shorter dimension of the image.
+/// \param resize_longer The length of the larger dimension of the image.
+/// \param interpolation_type The type of interpolation to be used for resize.
+/// \param crop_x ROI start
+/// \param crop_y ROI start
+/// \param crop_width ROI width
+/// \param crop_height ROI height
+/// \param is_normalized_roi If set to true the crop coordinates are considered as normalized/relative coordinates
 /// \return
 extern "C"  RaliImage  RALI_API_CALL raliResize(RaliContext context, RaliImage input,
                                                 unsigned dest_width, unsigned dest_height,
-                                                bool is_output );
+                                                bool is_output,
+                                                RaliResizeScalingMode scaling_mode = RALI_SCALING_MODE_STRETCH,
+                                                std::vector<unsigned> max_size = {},
+                                                unsigned resize_shorter = 0,
+                                                unsigned resize_longer = 0,
+                                                RaliResizeInterpolationType interpolation_type = RALI_LINEAR_INTERPOLATION,
+                                                float crop_x = 0, float crop_y = 0,
+                                                float crop_width = 0, float crop_height = 0,
+                                                bool is_normalized_roi = false);
 
 /// Accepts U8 and RGB24 input.
 /// \param context

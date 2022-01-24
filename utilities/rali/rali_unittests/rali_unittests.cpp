@@ -43,7 +43,7 @@ using namespace cv;
 // #define TF_READER_DETECTION
 // #define CAFFE2_READER
 // #define CAFFE2_READER_DETECTION
-//  #define CAFFE_READER
+// #define CAFFE_READER
 // #define CAFFE_READER_DETECTION
 
 //#define RANDOMBBOXCROP
@@ -211,10 +211,10 @@ int test(int test_case, const char *path, const char *outName, int rgb, int gpu,
         input1 = raliJpegCOCOFileSourcePartial(handle, path, json_path, color_format, num_threads, false, true, false);
 #else
     if (decode_max_height <= 0 || decode_max_width <= 0)
-        input1 = raliJpegFileSource(handle, path, color_format, num_threads, false, true);
+        input1 = raliJpegFileSource(handle, path, color_format, num_threads, false, true, false, RALI_USE_MAX_SIZE_RESTRICTED);
     else
         input1 = raliJpegFileSource(handle, path, color_format, num_threads, false, false, false,
-                                    RALI_USE_USER_GIVEN_SIZE, decode_max_width, decode_max_height);
+                                    RALI_USE_MAX_SIZE_RESTRICTED, decode_max_width, decode_max_height);
 #endif
 
     if (raliGetStatus(handle) != RALI_OK)
@@ -226,6 +226,7 @@ int test(int test_case, const char *path, const char *outName, int rgb, int gpu,
     int resize_w = width, resize_h = height; // height and width
 
     RaliImage image0 = raliResize(handle, input1, resize_w, resize_h, false);
+    // RaliImage image0 = raliResize(handle, input1, resize_w, resize_h, false, RaliResizeScalingMode::RALI_SCALING_MODE_DEFAULT, {}, 0, 0, RALI_LINEAR_INTERPOLATION, 0, 0, 0.4, 1.0, true);
 
     RaliImage image1;
 

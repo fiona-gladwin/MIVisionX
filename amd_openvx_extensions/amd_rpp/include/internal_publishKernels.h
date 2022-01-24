@@ -97,6 +97,7 @@ vx_status RandomCropLetterBoxbatchPD_Register(vx_context);
 vx_status RandomShadowbatchPD_Register(vx_context);
 vx_status remap_Register(vx_context);
 vx_status ResizebatchPD_Register(vx_context);
+vx_status ResizeTensor_Register(vx_context);
 vx_status ResizeCropbatchPD_Register(vx_context);
 vx_status ResizeCropMirrorPD_Register(vx_context);
 vx_status RotatebatchPD_Register(vx_context);
@@ -197,5 +198,6 @@ vx_status WarpPerspectivebatchPD_Register(vx_context);
 #define VX_KERNEL_RPP_CROPPD_NAME   							"org.rpp.CropPD"
 #define VX_KERNEL_RPP_RESIZECROPMIRRORPD_NAME      				"org.rpp.ResizeCropMirrorPD"
 #define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                    "org.rpp.SequenceRearrange"
+#define VX_KERNEL_RPP_RESIZETENSOR_NAME      					"org.rpp.ResizeTensor"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
