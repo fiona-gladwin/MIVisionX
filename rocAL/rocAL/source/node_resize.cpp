@@ -66,12 +66,24 @@ void ResizeNode::update_node()
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi_width_vec(), _inputs[0]->info().get_roi_height_vec());
     _crop_param->update_array();
 
+    std::vector<float> crop_fh_dims, crop_fw_dims;
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
-    _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
+    if(_is_normalized_roi)
+        _crop_param->get_crop_dimensions(crop_fw_dims, crop_fh_dims);
+    else
+        _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
     for (unsigned i = 0; i < _batch_size; i++)
     {
-        _src_roi_size[0] = crop_w_dims[i];
-        _src_roi_size[1] = crop_h_dims[i];
+        if(_is_normalized_roi)
+        {
+            _src_roi_size[0] = crop_fw_dims[i];
+            _src_roi_size[1] = crop_fh_dims[i];
+        }
+        else
+        {
+            _src_roi_size[0] = crop_w_dims[i];
+            _src_roi_size[1] = crop_h_dims[i];
+        }
         _dst_roi_size[0] = _dest_width;
         _dst_roi_size[1] = _dest_height;
         adjust_out_roi_size();

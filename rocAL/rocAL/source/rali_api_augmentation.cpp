@@ -90,8 +90,8 @@ get_max_resize_width_and_height(ReaderConfig reader_cfg, DecoderConfig decoder_c
     if(crop_size.size() > 0)
     {
         float scale = crop_size[0] / crop_size[1];
-        max_width = static_cast<unsigned>(is_normalized_roi ? std::round(crop_size[0] * max_width) : crop_size[0]);
-        max_height = static_cast<unsigned>(is_normalized_roi ? std::round(crop_size[1] * max_height) : crop_size[1]);
+        max_width = static_cast<unsigned>(is_normalized_roi ? std::ceil(crop_size[0] * max_width) : crop_size[0]);
+        max_height = static_cast<unsigned>(is_normalized_roi ? std::ceil(crop_size[1] * max_height) : crop_size[1]);
         max_aspect_ratio = is_normalized_roi ? max_aspect_ratio * scale : scale;
         min_aspect_ratio = is_normalized_roi ? min_aspect_ratio * scale : scale;
         if(max_aspect_ratio < min_aspect_ratio)

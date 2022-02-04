@@ -49,6 +49,7 @@ private:
     unsigned _dim = 2; // Denotes 2D images
     int _interpolation_type;
     RaliResizeScalingMode _scaling_mode;
-    std::vector<uint32_t> _src_roi_size, _dst_roi_size, _max_roi_size, _dst_roi_width_vec, _dst_roi_height_vec;
+    std::vector<float> _src_roi_size;
+    std::vector<uint32_t> _dst_roi_size, _max_roi_size, _dst_roi_width_vec, _dst_roi_height_vec;
     std::shared_ptr<RaliCropParam> _crop_param;
 };
