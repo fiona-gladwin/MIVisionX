@@ -77,6 +77,7 @@ public:
     std::vector<uint32_t> get_croph_arr_val() {return croph_arr_val;}
     std::vector<uint32_t> get_cropw_arr_val() {return cropw_arr_val;}
     void get_crop_dimensions(std::vector<uint32_t> &crop_w_dim, std::vector<uint32_t> &crop_h_dim);
+    void get_crop_dimensions(std::vector<float> &crop_w_dim, std::vector<float> &crop_h_dim);
 protected:
     constexpr static float CROP_X_DRIFT_RANGE [2]  = {0.01, 0.99};
     constexpr static float CROP_Y_DRIFT_RANGE [2]  = {0.01, 0.99};
@@ -84,6 +85,7 @@ protected:
     Parameter<float>* default_x_drift_factor();
     Parameter<float>* default_y_drift_factor();
     std::vector<uint32_t> x1_arr_val, y1_arr_val, croph_arr_val, cropw_arr_val, x2_arr_val, y2_arr_val;
+    std::vector<float> croph_float_arr_val, cropw_float_arr_val;
     bool _random;
     bool _normalized_roi = false;
     virtual void fill_crop_dims(){};
