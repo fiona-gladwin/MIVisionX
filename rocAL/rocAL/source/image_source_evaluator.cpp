@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "reader_factory.h"
 void ImageSourceEvaluator::set_size_evaluation_policy(MaxSizeEvaluationPolicy arg)
 {
-    _width_max.set_policy (arg); 
+    _width_max.set_policy (arg);
     _height_max.set_policy (arg);
 }
 
@@ -37,7 +37,7 @@ size_t ImageSourceEvaluator::max_width()
 size_t ImageSourceEvaluator::max_height()
 {
     return _height_max.get_max();
-}  
+}
 
 float ImageSourceEvaluator::max_aspect_ratio()
 {
@@ -49,13 +49,13 @@ float ImageSourceEvaluator::min_aspect_ratio()
     return _min_aspect_ratio;
 }
 
-ImageSourceEvaluatorStatus 
+ImageSourceEvaluatorStatus
 ImageSourceEvaluator::create(ReaderConfig reader_cfg, DecoderConfig decoder_cfg)
 {
     ImageSourceEvaluatorStatus status = ImageSourceEvaluatorStatus::OK;
 
     // Can initialize it to any decoder types if needed
-    
+
 
     // _header_buff.resize(COMPRESSED_SIZE);
     _decoder = create_decoder(std::move(decoder_cfg));
@@ -64,12 +64,12 @@ ImageSourceEvaluator::create(ReaderConfig reader_cfg, DecoderConfig decoder_cfg)
     return status;
 }
 
-void 
+void
 ImageSourceEvaluator::find_max_dimension()
 {
     _reader->reset();
 
-    while( _reader->count_items() ) 
+    while( _reader->count_items() )
     {
         size_t fsize = _reader->open();
         if( (fsize) == 0 )
@@ -77,28 +77,28 @@ ImageSourceEvaluator::find_max_dimension()
         _header_buff.resize(fsize);
         auto actual_read_size = _reader->read_data(_header_buff.data(), fsize);
         _reader->close();
-        
+
         int width, height, jpeg_sub_samp;
         if(_decoder->decode_info(_header_buff.data(), actual_read_size, &width, &height, &jpeg_sub_samp ) != Decoder::Status::OK)
         {
             WRN("Could not decode the header of the: "+ _reader->id())
             continue;
         }
-        
+
         if(width <= 0 || height <=0)
             continue;
 
         _width_max.process_sample(width);
         _height_max.process_sample(height);
         float aspect_ratio = width/(float)height;
-        _max_aspect_ratio = (aspect_ratio > _max_aspect_ratio || _max_aspect_ratio == 0) ? aspect_ratio : _max_aspect_ratio;
-        _min_aspect_ratio = (aspect_ratio < _min_aspect_ratio || _min_aspect_ratio == 0) ? aspect_ratio : _min_aspect_ratio;
+        _max_aspect_ratio = std::max(aspect_ratio, _max_aspect_ratio);
+        _min_aspect_ratio = std::min(aspect_ratio, _min_aspect_ratio);
     }
     // return the reader read pointer to the begining of the resource
     _reader->reset();
 }
 
-void 
+void
 ImageSourceEvaluator::FindMaxSize::process_sample(unsigned val)
 {
     if(_policy == MaxSizeEvaluationPolicy::MAXIMUM_FOUND_SIZE)
@@ -122,6 +122,6 @@ ImageSourceEvaluator::FindMaxSize::process_sample(unsigned val)
         {
             _max = val;
             _max_count = new_count;
-        }        
+        }
     }
 }

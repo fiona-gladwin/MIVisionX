@@ -30,7 +30,7 @@ THE SOFTWARE.
 enum class ImageSourceEvaluatorStatus
 {
     OK = 0,
-    UNSUPPORTED_DECODER_TYPE, 
+    UNSUPPORTED_DECODER_TYPE,
     UNSUPPORTED_STORAGE_TYPE,
 };
 enum class MaxSizeEvaluationPolicy
@@ -62,8 +62,8 @@ private:
         std::map<unsigned,unsigned> _hist;
         unsigned _max = 0;
         unsigned _max_count = 0;
-    }; 
-    FindMaxSize _width_max; 
+    };
+    FindMaxSize _width_max;
     FindMaxSize _height_max;
     DecoderConfig _decoder_cfg_cv;
     std::shared_ptr<Decoder> _decoder;
@@ -71,7 +71,7 @@ private:
     std::shared_ptr<MetaDataReader> _meta_data_reader;
     std::vector<unsigned char> _header_buff;
     static const size_t COMPRESSED_SIZE = 1024 * 1024; // 1 MB
-    float _max_aspect_ratio = 0;
-    float _min_aspect_ratio = 0;
+    float _max_aspect_ratio = -1;
+    float _min_aspect_ratio = 1000;
 };
 
