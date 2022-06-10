@@ -224,35 +224,36 @@ static vx_status VX_CALLBACK initializeResizebatchPD(vx_node node, const vx_refe
     data->dstDescPtr->w = data->maxDstDimensions.width;
     data->dstDescPtr->c = ip_channel;
     // Set layout and n/c/h/w strides for src/dst
-    // Uncomment for Classification training
-    /* data->srcDescPtr->layout = RpptLayout::NCHW;
-    data->dstDescPtr->layout = RpptLayout::NCHW;
+    if(df_image == VX_DF_IMAGE_U8) // For PLN1 images
+    {
+        data->srcDescPtr->layout = RpptLayout::NCHW;
+        data->dstDescPtr->layout = RpptLayout::NCHW;
 
-    data->srcDescPtr->strides.nStride = ip_channel * data->srcDescPtr->w * data->srcDescPtr->h;
-    data->srcDescPtr->strides.cStride = data->srcDescPtr->w * data->srcDescPtr->h;
-    data->srcDescPtr->strides.hStride = data->srcDescPtr->w;
-    data->srcDescPtr->strides.wStride = 1;
+        data->srcDescPtr->strides.nStride = ip_channel * data->srcDescPtr->w * data->srcDescPtr->h;
+        data->srcDescPtr->strides.cStride = data->srcDescPtr->w * data->srcDescPtr->h;
+        data->srcDescPtr->strides.hStride = data->srcDescPtr->w;
+        data->srcDescPtr->strides.wStride = 1;
 
-    data->dstDescPtr->strides.nStride = ip_channel * data->dstDescPtr->w * data->dstDescPtr->h;
-    data->dstDescPtr->strides.cStride = data->dstDescPtr->w * data->dstDescPtr->h;
-    data->dstDescPtr->strides.hStride = data->dstDescPtr->w;
-    data->dstDescPtr->strides.wStride = 1; */
+        data->dstDescPtr->strides.nStride = ip_channel * data->dstDescPtr->w * data->dstDescPtr->h;
+        data->dstDescPtr->strides.cStride = data->dstDescPtr->w * data->dstDescPtr->h;
+        data->dstDescPtr->strides.hStride = data->dstDescPtr->w;
+        data->dstDescPtr->strides.wStride = 1;
+    }
+    else // For RGB (NHWC/NCHW) images
+    {
+        data->srcDescPtr->layout = RpptLayout::NHWC;
+        data->dstDescPtr->layout = RpptLayout::NHWC;
 
+        data->srcDescPtr->strides.nStride = ip_channel * data->srcDescPtr->w * data->srcDescPtr->h;
+        data->srcDescPtr->strides.hStride = ip_channel * data->srcDescPtr->w;
+        data->srcDescPtr->strides.wStride = ip_channel;
+        data->srcDescPtr->strides.cStride = 1;
 
-    /* For SSD and Mask trainings only */
-    data->srcDescPtr->layout = RpptLayout::NHWC;
-    data->dstDescPtr->layout = RpptLayout::NHWC;
-
-    data->srcDescPtr->strides.nStride = ip_channel * data->srcDescPtr->w * data->srcDescPtr->h;
-    data->srcDescPtr->strides.hStride = ip_channel * data->srcDescPtr->w;
-    data->srcDescPtr->strides.wStride = ip_channel;
-    data->srcDescPtr->strides.cStride = 1;
-
-    data->dstDescPtr->strides.nStride = ip_channel * data->dstDescPtr->w * data->dstDescPtr->h;
-    data->dstDescPtr->strides.hStride = ip_channel * data->dstDescPtr->w;
-    data->dstDescPtr->strides.wStride = ip_channel;
-    data->dstDescPtr->strides.cStride = 1;
-    // */
+        data->dstDescPtr->strides.nStride = ip_channel * data->dstDescPtr->w * data->dstDescPtr->h;
+        data->dstDescPtr->strides.hStride = ip_channel * data->dstDescPtr->w;
+        data->dstDescPtr->strides.wStride = ip_channel;
+        data->dstDescPtr->strides.cStride = 1;
+    }
 
     // Initialize ROI tensors for src/dst
     data->roiTensorPtrSrc  = (RpptROI *) calloc(data->nbatchSize, sizeof(RpptROI));
