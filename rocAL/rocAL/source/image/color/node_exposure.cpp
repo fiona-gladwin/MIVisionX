@@ -35,19 +35,20 @@ void ExposureNode::create_node()
         THROW("Adding the Exposure_batch (vxExtrppNode_Exposure) node failed: "+ TOSTR(status))
 }
 
-void ExposureNode::init( float shift, int layout)
+void ExposureNode::init( float shift)
 {
     _shift.set_param(shift);
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 
 }
 
-void ExposureNode::init( FloatParam* shift, int layout)
+void ExposureNode::init( FloatParam* shift)
 {
     _shift.set_param(core(shift));
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 

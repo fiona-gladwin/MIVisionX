@@ -33,8 +33,8 @@ public:
     ExposureNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     ExposureNode() = delete;
 
-    void init( float shift, int layout);
-    void init( FloatParam* shift, int layout);
+    void init( float shift);
+    void init( FloatParam* shift);
 
 protected:
     void create_node() override ;

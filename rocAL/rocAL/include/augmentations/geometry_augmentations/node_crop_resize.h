@@ -21,21 +21,39 @@ THE SOFTWARE.
 */
 
 #pragma once
-
 #include "node.h"
-#include "graph.h"
+#include "parameter_factory.h"
+#include "parameter_crop_factory.h"
+#include "parameter_vx.h"
 
 
-class FisheyeNode : public Node
+class CropResizeNode : public Node
 {
 public:
-    FisheyeNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
-    FisheyeNode() = delete;
-    void init();
-
+    CropResizeNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
+    CropResizeNode() = delete;
+    void init(int  area, int aspect_ratio, int x_center_drift, int y_center_drift, int outputtoggleformat, int layout);
+    void init(IntParam* area, IntParam* aspect_ratio, IntParam *x_center_drift, IntParam *y_center_drift, int outputtoggleformat, int layout);
+    unsigned int get_dst_width() { return _outputs[0]->info().get_width(); }
+    unsigned int get_dst_height() { return _outputs[0]->info().get_height(); }
+    std::shared_ptr<RocalRandomCropParam> get_crop_param() { return _crop_param; }
 protected:
     void create_node() override;
     void update_node() override;
 private:
-    int _layout,_roi_type;
+    size_t _dest_width;
+    size_t _dest_height;
+    int _layout,_roi_type,_outputtoggleformat;
+    ParameterVX<int> _x1_arr;
+    ParameterVX<int> _x2_arr;
+    ParameterVX<int> _x3_arr;
+    ParameterVX<int> _x4_arr;
+    
+    std::shared_ptr<RocalRandomCropParam> _crop_param;
+    vx_array _dst_roi_width ,_dst_roi_height;
+    constexpr static int X1_RANGE [2] = {0, 100};
+
 };
+
+
+

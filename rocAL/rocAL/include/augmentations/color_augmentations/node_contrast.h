@@ -32,8 +32,8 @@ public:
     ContrastNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     ContrastNode() = delete;
 
-    void init( float c_factor, float c_center, int layout);
-    void init( FloatParam* c_factor_param, FloatParam* c_center_param, int layout);
+    void init( float c_factor, float c_center);
+    void init( FloatParam* c_factor_param, FloatParam* c_center_param);
 
 protected:
     void create_node() override ;

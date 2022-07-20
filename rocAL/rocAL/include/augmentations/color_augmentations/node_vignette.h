@@ -31,8 +31,8 @@ class VignetteNode : public Node
 public:
     VignetteNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     VignetteNode () = delete;
-    void init(float sdev, int layout );
-    void init(FloatParam *sdev, int layout);
+    void init(float sdev);
+    void init(FloatParam *sdev);
 protected:
     void create_node() override;
     void update_node() override;

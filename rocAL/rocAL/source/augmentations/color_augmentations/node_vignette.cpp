@@ -52,18 +52,20 @@ void VignetteNode::create_node()
         THROW("Adding the vignette (vxExtrppNode_VignettebatchPD) node failed: "+ TOSTR(status))
 }
 
-void VignetteNode::init(float sdev, int layout)
+void VignetteNode::init(float sdev)
 {
     _sdev.set_param(sdev);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void VignetteNode::init(FloatParam* sdev, int layout)
+void VignetteNode::init(FloatParam* sdev)
 {
     _sdev.set_param(core(sdev));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 void VignetteNode::update_node()

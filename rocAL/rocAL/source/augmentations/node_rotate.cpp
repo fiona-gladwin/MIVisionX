@@ -67,20 +67,22 @@ std::cerr<<"dest width <<<<<<<<<<<<<<<<<<<<<<<<<< "<<dst_roi_width[0]<<"  "<<dst
 
 }
 
-void RotateNode::init(float angle,int outputtoggleformat, int layout)
+void RotateNode::init(float angle,int outputtoggleformat)
 {
     _angle.set_param(angle);
      _outputtoggleformat=outputtoggleformat;
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void RotateNode::init(FloatParam* angle, int outputtoggleformat, int layout)
+void RotateNode::init(FloatParam* angle, int outputtoggleformat)
 {
     _angle.set_param(core(angle));
     _outputtoggleformat=outputtoggleformat;
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 void RotateNode::update_node()

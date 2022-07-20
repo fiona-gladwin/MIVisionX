@@ -32,7 +32,7 @@ public:
     SpatterNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     SpatterNode() = delete;
 
-    void init( int red, int blue, int green, int layout );
+    void init( int red, int blue, int green);
 
 protected:
     void create_node() override ;

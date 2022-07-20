@@ -31,8 +31,8 @@ class JitterNode : public Node
 public:
     JitterNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     JitterNode() = delete;
-    void init(int kernel_size, int layout);
-    void init(IntParam *kernel_size, int layout);
+    void init(int kernel_size);
+    void init(IntParam *kernel_size);
 protected:
     void create_node() override;
     void update_node() override;

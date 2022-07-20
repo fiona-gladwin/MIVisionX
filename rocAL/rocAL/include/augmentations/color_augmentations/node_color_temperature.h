@@ -32,8 +32,8 @@ public:
     ColorTemperatureNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
 
     ColorTemperatureNode() = delete;
-    void init(int adjustment, int layout);
-    void init(IntParam *adjustment, int layout);
+    void init(int adjustment);
+    void init(IntParam *adjustment);
 
 protected:
     void create_node() override ;

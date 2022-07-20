@@ -498,8 +498,20 @@ case 29:
         image1 = rocalRotate(handle, input1, tensorLayout, tensorOutputType, true,300, 300,0);
     }
 break;
-
-
+case 30:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalresizecrop" << std::endl;
+        image1 = rocalCropResize(handle, input1, tensorLayout, tensorOutputType, true,300, 300,0);
+    }
+break;
+// case 31:
+//     {
+//         std::cout << ">>>>>>> Running "
+//                   << "rocalresizecropmirror" << std::endl;
+//         image1 = rocalResizeCropMirror(handle, input1, tensorLayout, tensorOutputType, true,300, 300,0);
+//     }
+// break;
     default:
         std::cout << "Not a valid option! Exiting!\n";
         return -1;

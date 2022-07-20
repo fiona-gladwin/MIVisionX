@@ -47,10 +47,11 @@ void PixelateNode::create_node()
         THROW("Adding the pixelate (vxExtrppNode_Pixelate) node failed: "+ TOSTR(status))
 
 }
-void PixelateNode::init(int layout)
+void PixelateNode::init()
 {
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 
 }
 void PixelateNode::update_node()

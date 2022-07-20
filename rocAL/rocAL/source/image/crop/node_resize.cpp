@@ -67,10 +67,8 @@ void ResizeNode::create_node()
 void ResizeNode::update_node()
 {
 }
-void ResizeNode::init(int interpolation_type, int layout)
+void ResizeNode::init(int interpolation_type)
 {
   _interpolation_type=interpolation_type;
-  _layout=layout;
-    // _layout = (unsigned) _outputs[0]->layout();
-
+  _layout = (unsigned) _outputs[0]->info().layout();
 }

@@ -160,6 +160,9 @@ list(APPEND SOURCES
         source/tensor/LensCorrection.cpp
         source/tensor/Pixelate.cpp
         source/tensor/Rotate.cpp
+        source/tensor/ResizeCrop.cpp
+        # source/tensor/ResizeCropMirror.cpp
+
 
 
 

@@ -32,8 +32,8 @@ public:
     BrightnessNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     BrightnessNode() = delete;
 
-    void init( float alpha, float beta, int layout);
-    void init( FloatParam* alpha_param, FloatParam* beta_param, int layout);
+    void init( float alpha, float beta);
+    void init( FloatParam* alpha_param, FloatParam* beta_param);
 
 protected:
     void create_node() override ;

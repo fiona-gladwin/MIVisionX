@@ -10,7 +10,7 @@ class ResizeNode : public Node
 public:
     ResizeNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     ResizeNode() = delete;
-    void init(int interpolation_type, int layout);
+    void init(int interpolation_type);
 
     unsigned int get_dst_width() { return 100; }
     unsigned int get_dst_height() { return 100; }

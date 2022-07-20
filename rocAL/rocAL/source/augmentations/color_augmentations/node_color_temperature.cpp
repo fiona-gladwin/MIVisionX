@@ -53,18 +53,20 @@ void ColorTemperatureNode::create_node()
 
 }
 
-void ColorTemperatureNode::init(int adjustment, int layout)
+void ColorTemperatureNode::init(int adjustment)
 {
     _adj_value_param.set_param(adjustment);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void ColorTemperatureNode::init(IntParam* adjustment, int layout)
+void ColorTemperatureNode::init(IntParam* adjustment)
 {
     _adj_value_param.set_param(core(adjustment));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 void ColorTemperatureNode::update_node()

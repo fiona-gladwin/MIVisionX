@@ -40,25 +40,25 @@ void ColorCastNode::create_node()
         THROW("Adding the colorcast_batch (vxExtrppNode_ColotCast) node failed: "+ TOSTR(status))
 }
 
-void ColorCastNode::init( float red, float green, float blue , float alpha, int layout)
+void ColorCastNode::init( float red, float green, float blue , float alpha )
 {
     _red.set_param(red);
     _green.set_param(green);
     _blue.set_param(blue);
     _alpha.set_param(alpha);
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 
-void ColorCastNode::init( FloatParam* red, FloatParam* green, FloatParam* blue, FloatParam* alpha, int layout)
+void ColorCastNode::init( FloatParam* red, FloatParam* green, FloatParam* blue, FloatParam* alpha )
 {
     _red.set_param(core(red));
     _green.set_param(core(green));
     _blue.set_param(core(blue));
     _alpha.set_param(core(alpha));
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 

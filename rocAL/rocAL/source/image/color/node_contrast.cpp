@@ -56,21 +56,21 @@ void ContrastNode::create_node()
         THROW("Adding the Contrast_batch (vxExtrppNode_Contrast) node failed: "+ TOSTR(status))
 }
 
-void ContrastNode::init( float c_factor, float c_center, int layout)
+void ContrastNode::init( float c_factor, float c_center)
 {
     _factor.set_param(c_factor);
     _center.set_param(c_center);
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 
-void ContrastNode::init( FloatParam* c_factor, FloatParam* c_center, int layout)
+void ContrastNode::init( FloatParam* c_factor, FloatParam* c_center)
 {
     _factor.set_param(core(c_factor));
     _center.set_param(core(c_center));
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 

@@ -68,6 +68,9 @@ vx_status Rain_Register(vx_context);
 vx_status LensCorrection_Register(vx_context);
 vx_status Pixelate_Register(vx_context);
 vx_status Rotate_Register(vx_context);
+vx_status ResizeCrop_Register(vx_context);
+// vx_status ResizeCropMirror_Register(vx_context);
+
 
 
 
@@ -210,6 +213,10 @@ vx_status WarpPerspectivebatchPD_Register(vx_context);
 #define VX_KERNEL_RPP_LENSCORRECTION_NAME                                    "org.rpp.LensCorrection"
 #define VX_KERNEL_RPP_PIXELATE_NAME                                          "org.rpp.Pixelate"
 #define VX_KERNEL_RPP_ROTATE_NAME                                            "org.rpp.Rotate"
+#define VX_KERNEL_RPP_RESIZECROP_NAME                                        "org.rpp.ResizeCrop"
+// #define VX_KERNEL_RPP_RESIZECROPmIRROR_NAME                                  "org.rpp.ResizeCropMirror"
+
+
 
 
 

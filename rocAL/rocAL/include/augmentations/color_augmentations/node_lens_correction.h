@@ -32,8 +32,8 @@ class LensCorrectionNode : public Node
 public:
     LensCorrectionNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     LensCorrectionNode() = delete;
-    void init(float strength, float zoom, int layout);
-    void init(FloatParam *strength, FloatParam *zoom, int layout);
+    void init(float strength, float zoom);
+    void init(FloatParam *strength, FloatParam *zoom);
 protected:
     void create_node() override;
     void update_node() override;

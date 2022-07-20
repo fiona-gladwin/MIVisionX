@@ -52,18 +52,20 @@ void FogNode::create_node()
         THROW("Adding the fog (vxExtrppNode_Fog) node failed: "+ TOSTR(status))
 }
 
-void FogNode::init(float fog_param, int layout)
+void FogNode::init(float fog_param)
 {
     _fog_param.set_param(fog_param);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void FogNode::init(FloatParam* fog_param, int layout)
+void FogNode::init(FloatParam* fog_param)
 {
     _fog_param.set_param(core(fog_param));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 void FogNode::update_node()
 {

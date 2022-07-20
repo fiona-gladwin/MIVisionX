@@ -54,18 +54,20 @@ void SnowNode::create_node()
         THROW("Adding the snow (vxExtrppNode_Snow) node failed: "+ TOSTR(status))
 }
 
-void SnowNode::init(float shfit,int layout)
+void SnowNode::init(float shfit)
 {
     _shift.set_param(shfit);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void SnowNode::init(FloatParam* shfit, int layout)
+void SnowNode::init(FloatParam* shfit)
 {
     _shift.set_param(core(shfit));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 void SnowNode::update_node()

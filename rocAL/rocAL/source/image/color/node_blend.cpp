@@ -63,19 +63,19 @@ void BlendNode::create_node()
 
 }
 
-void BlendNode::init(float shfit, int layout)
+void BlendNode::init(float shfit)
 {
     _shift.set_param(shfit);
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 
-void BlendNode::init(FloatParam* shfit, int layout)
+void BlendNode::init(FloatParam* shfit)
 {
     _shift.set_param(core(shfit));
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 

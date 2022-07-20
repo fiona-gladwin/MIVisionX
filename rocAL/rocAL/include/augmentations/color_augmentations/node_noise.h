@@ -32,8 +32,8 @@ public:
     NoiseTensorNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     NoiseTensorNode() = delete;
 
-    void init( float _noise_prob, float _salt_prob,float hue , float _noise_value,int _salt_value, int layout);
-    void init( FloatParam* _noise_prob_param, FloatParam* _salt_prob_param,  FloatParam* _noise_value_param,  FloatParam* _salt_value_param, int seed, int layout );
+    void init( float _noise_prob, float _salt_prob,float hue , float _noise_value,int _salt_value);
+    void init( FloatParam* _noise_prob_param, FloatParam* _salt_prob_param,  FloatParam* _noise_value_param,  FloatParam* _salt_value_param, int seednode_nois);
 
 protected:
     void create_node() override ;

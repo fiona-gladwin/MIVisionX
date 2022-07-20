@@ -79,7 +79,7 @@ void WarpAffineNode::update_affine_array()
         THROW(" vxCopyArrayRange failed in the WarpAffine(vxExtrppNode_WarpAffinePD) node: "+ TOSTR(affine_status))
 }
 
-void WarpAffineNode::init(float x0, float x1, float y0, float y1, float o0, float o1,int interpolation_type, int layout )
+void WarpAffineNode::init(float x0, float x1, float y0, float y1, float o0, float o1,int interpolation_type)
 {
     std::cerr<<"WarpAffineNode::init\n\n";
     _x0.set_param(x0);
@@ -89,9 +89,11 @@ void WarpAffineNode::init(float x0, float x1, float y0, float y1, float o0, floa
     _o0.set_param(o0);
     _o1.set_param(o1);
     _interpolation_type=interpolation_type;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void WarpAffineNode::init(FloatParam* x0, FloatParam* x1, FloatParam* y0, FloatParam* y1, FloatParam* o0, FloatParam* o1,int interpolation_type, int layout)
+void WarpAffineNode::init(FloatParam* x0, FloatParam* x1, FloatParam* y0, FloatParam* y1, FloatParam* o0, FloatParam* o1,int interpolation_type)
 {
     _x0.set_param(core(x0));
     _x1.set_param(core(x1));
@@ -100,6 +102,8 @@ void WarpAffineNode::init(FloatParam* x0, FloatParam* x1, FloatParam* y0, FloatP
     _o0.set_param(core(o0));
     _o1.set_param(core(o1));
     _interpolation_type=interpolation_type;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 void WarpAffineNode::update_node()

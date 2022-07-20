@@ -164,6 +164,9 @@ extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Rain(vx_graph graph, v
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_LensCorrection(vx_graph graph, vx_tensor pSrc, vx_array srcROI, vx_tensor pDst, vx_array strength, vx_array zoom, vx_scalar layout, vx_scalar roiType, vx_uint32 nbatchSize);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Pixelate(vx_graph graph, vx_tensor pSrc, vx_array srcROI, vx_tensor pDst, vx_scalar layout, vx_scalar roiType, vx_uint32 nbatchSize);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Rotate(vx_graph graph, vx_tensor pSrc, vx_array srcROI, vx_tensor pDst, vx_array dst_width,vx_array dst_height,vx_array angle,vx_scalar toggleformat,vx_scalar layout, vx_scalar roiType, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ResizeCrop(vx_graph graph, vx_tensor pSrc, vx_array srcROI, vx_tensor pDst, vx_array dst_width,vx_array dst_height,vx_array x1,vx_array x2,vx_array x3,vx_array x4,vx_scalar toggleformat,vx_scalar layout, vx_scalar roiType, vx_uint32 nbatchSize);
+// extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ResizeCropMirror(vx_graph graph, vx_tensor pSrc, vx_array srcROI, vx_tensor pDst, vx_array dst_width,vx_array dst_height,vx_array x1,vx_array x2,vx_array x3,vx_array x4,vx_array mirror,vx_scalar toggleformat,vx_scalar layout, vx_scalar roiType, vx_uint32 nbatchSize);
+
 
 
 #ifdef __cplusplus

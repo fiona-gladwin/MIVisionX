@@ -62,20 +62,20 @@ void GammaNode::create_node()
 
 }
 
-void GammaNode::init(float shfit, int layout)
+void GammaNode::init(float shfit)
 {
     _shift.set_param(shfit);
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 
 }
 
-void GammaNode::init(FloatParam* shfit, int layout)
+void GammaNode::init(FloatParam* shfit)
 {
     _shift.set_param(core(shfit));
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 

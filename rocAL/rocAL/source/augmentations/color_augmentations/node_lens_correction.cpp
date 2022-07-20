@@ -56,20 +56,22 @@ void LensCorrectionNode::create_node()
 
 }
 
-void LensCorrectionNode::init(float strength, float zoom, int layout)
+void LensCorrectionNode::init(float strength, float zoom)
 {
     _strength.set_param(strength);
     _zoom.set_param(zoom);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void LensCorrectionNode::init(FloatParam* strength, FloatParam* zoom , int layout)
+void LensCorrectionNode::init(FloatParam* strength, FloatParam* zoom )
 {
     _strength.set_param(core(strength));
     _zoom.set_param(core(zoom));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 void LensCorrectionNode::update_node()

@@ -53,18 +53,18 @@ void SatNode::create_node()
 }
 
 
-void SatNode::init(float sat, int layout)
+void SatNode::init(float sat)
 {
     _sat.set_param(sat);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 }
 
-void SatNode::init(FloatParam* sat, int layout)
+void SatNode::init(FloatParam* sat)
 {
     _sat.set_param(core(sat));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 }
 
 void SatNode::update_node()

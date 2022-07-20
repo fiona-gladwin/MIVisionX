@@ -53,19 +53,21 @@ void HueNode::create_node()
 
 }
 
-void HueNode::init(float hue, int layout)
+void HueNode::init(float hue)
 {
     std::cerr<<"HueNode::init\n\n";
     _hue.set_param(hue);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void HueNode::init(FloatParam* hue, int layout)
+void HueNode::init(FloatParam* hue)
 {
     _hue.set_param(core(hue));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 void HueNode::update_node()

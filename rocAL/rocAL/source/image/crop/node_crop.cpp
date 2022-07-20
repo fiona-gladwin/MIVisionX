@@ -65,11 +65,10 @@ void CropNode::update_node()
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
 }
 
-void CropNode::init(int crop_h, int crop_w, float start_x, float start_y,int layout)
+void CropNode::init(int crop_h, int crop_w, float start_x, float start_y)
 {
     _crop_param->crop_h = crop_h;
     _crop_param->crop_w = crop_w;
-    _layout=layout; 
-    // _layout = (unsigned) _outputs[0]->layout();
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }

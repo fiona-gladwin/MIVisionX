@@ -81,13 +81,11 @@ void ResizeMirrorNormalizeNode::update_node()
 {
     _mirror.update_array();
 }
-void ResizeMirrorNormalizeNode::init(int interpolation_type,std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror, int layout)
+void ResizeMirrorNormalizeNode::init(int interpolation_type,std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror)
 {
   _interpolation_type=interpolation_type;
   _mean   = mean;
   _std_dev = std_dev;
   _mirror.set_param(core(mirror));
-  _layout=layout;
-    // _layout = (unsigned) _outputs[0]->layout();
-
+  _layout = (unsigned) _outputs[0]->info().layout();
 }

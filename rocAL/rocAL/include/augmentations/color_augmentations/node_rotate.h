@@ -31,8 +31,8 @@ class RotateNode : public Node
 public:
     RotateNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     RotateNode() = delete;
-    void init(float angle,int outputtoggleformat, int layout);
-    void init(FloatParam *angle,int outputtoggleformat, int layout);
+    void init(float angle,int outputtoggleformat);
+    void init(FloatParam *angle,int outputtoggleformat);
     // unsigned int get_dst_width() { return _outputs[0]->info().get_width; }
     // unsigned int get_dst_height() { return _outputs[0]->info().get_height; }
     vx_array get_src_width() { return _src_roi_width; }

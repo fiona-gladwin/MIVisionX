@@ -51,19 +51,21 @@ void BlurNode::create_node()
 
 }
 
-void BlurNode::init(int sdev, int layout)
+void BlurNode::init(int sdev)
 {
     _sdev.set_param(sdev);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 
 }
 
-void BlurNode::init(IntParam* sdev, int layout)
+void BlurNode::init(IntParam* sdev)
 {
     _sdev.set_param(core(sdev));
-    _layout=layout;
     _roi_type = 0;
+     _layout = (unsigned) _outputs[0]->info().layout();
+
 
 }
 

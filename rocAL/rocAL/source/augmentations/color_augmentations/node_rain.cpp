@@ -59,24 +59,26 @@ void RainNode::create_node()
 
 }
 
-void RainNode::init(float rain_value, int rain_width, int rain_height, float rain_transparency, int layout)
+void RainNode::init(float rain_value, int rain_width, int rain_height, float rain_transparency)
 {
     _rain_value.set_param(rain_value);
     _rain_width.set_param(rain_width);
     _rain_height.set_param(rain_height);
     _rain_transparency.set_param(rain_transparency);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void RainNode::init(FloatParam *rain_value, IntParam *rain_width, IntParam *rain_height, FloatParam *rain_transparency, int layout)
+void RainNode::init(FloatParam *rain_value, IntParam *rain_width, IntParam *rain_height, FloatParam *rain_transparency)
 {
     _rain_value.set_param(core(rain_value));
     _rain_width.set_param(core(rain_width));
     _rain_height.set_param(core(rain_height));
     _rain_transparency.set_param(core(rain_transparency));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 

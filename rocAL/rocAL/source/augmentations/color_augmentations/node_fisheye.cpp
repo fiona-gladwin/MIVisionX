@@ -48,10 +48,11 @@ void FisheyeNode::create_node()
 
 
 }
-void FisheyeNode::init(int layout)
+void FisheyeNode::init()
 {
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 
 }
 

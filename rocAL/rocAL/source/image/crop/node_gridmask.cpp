@@ -66,15 +66,15 @@ void GridmaskNode::create_node()
 
 }
 
-void GridmaskNode::init(int tile_width, float grid_ratio, float grid_angle,int shift_x,int shift_y, int layout)
+void GridmaskNode::init(int tile_width, float grid_ratio, float grid_angle,int shift_x,int shift_y)
 {
     _tile_width=tile_width;
     _grid_ratio=grid_ratio;
     _grid_angle=grid_angle; 
     _shift_x=shift_x;
     _shift_y=shift_y;  
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 

@@ -29,8 +29,8 @@ class FogNode : public Node
 public:
     FogNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     FogNode() = delete;
-    void init(float fog_param,int layout);
-    void init(FloatParam *fog_param, int layout);
+    void init(float fog_param);
+    void init(FloatParam *fog_param);
 protected:
     void create_node() override;
     void update_node() override;

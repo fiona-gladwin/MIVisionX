@@ -30,8 +30,8 @@ class GammaNode : public Node
 public:
     GammaNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     GammaNode() = delete;
-    void init(float shift, int layout);
-    void init(FloatParam *shift, int layout);
+    void init(float shift);
+    void init(FloatParam *shift);
 
 protected:
     void update_node() override;

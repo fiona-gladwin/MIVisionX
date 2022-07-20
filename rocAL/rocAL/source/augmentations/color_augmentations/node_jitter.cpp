@@ -50,18 +50,20 @@ void JitterNode::create_node()
         THROW("Adding the jitter (vxExtrppNode_Jitter) node failed: "+ TOSTR(status))
 }
 
-void JitterNode::init(int kernel_size, int layout)
+void JitterNode::init(int kernel_size)
 {
     _kernel_size.set_param(kernel_size);
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
-void JitterNode::init(IntParam *kernel_size, int layout)
+void JitterNode::init(IntParam *kernel_size)
 {
     _kernel_size.set_param(core(kernel_size));
-    _layout=layout;
     _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
+
 }
 
 void JitterNode::update_node()

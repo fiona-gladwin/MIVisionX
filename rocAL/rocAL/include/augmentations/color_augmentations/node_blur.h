@@ -31,8 +31,8 @@ class BlurNode : public Node
 public:
     BlurNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     BlurNode() = delete;
-    void init(int sdev, int layout);
-    void init(IntParam *sdev, int layout);
+    void init(int sdev);
+    void init(IntParam *sdev);
 
 protected:
     void update_node() override;

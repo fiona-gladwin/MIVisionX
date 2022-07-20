@@ -43,31 +43,30 @@ void NoiseTensorNode::create_node()
         THROW("Adding the Noise_batch (vxExtrppNode_Noise) node failed: "+ TOSTR(status))
 }
 
-void NoiseTensorNode::init( float noise_prob, float salt_prob, float noise_value , float salt_value,int seed, int layout)
+void NoiseTensorNode::init( float noise_prob, float salt_prob, float noise_value , float salt_value,int seed)
 {
     _noise_prob.set_param(noise_prob);
     _salt_prob.set_param(salt_prob);
     _noise_value.set_param(noise_value);
     _salt_value.set_param(salt_value);
     _seed=seed;
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 
 }
 
-void NoiseTensorNode::init( FloatParam* noise_prob, FloatParam* salt_prob, FloatParam* noise_value, FloatParam* salt_value, int seed, int layout)
+void NoiseTensorNode::init( FloatParam* noise_prob, FloatParam* salt_prob, FloatParam* noise_value, FloatParam* salt_value, int seed)
 {
     _noise_prob.set_param(core(noise_prob));
     _salt_prob.set_param(core(salt_prob));
     _noise_value.set_param(core(noise_value));
     _salt_value.set_param(core(salt_value));
     _seed=seed;
-    _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _roi_type = 0;
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
-
 
 void NoiseTensorNode::update_node()
 {

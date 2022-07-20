@@ -41,25 +41,25 @@ void ColorTwistNode::create_node()
         THROW("Adding the colortwist_batch (vxExtrppNode_ColotTwsit) node failed: "+ TOSTR(status))
 }
 
-void ColorTwistNode::init( float alpha, float beta, float hue , float sat, int layout)
+void ColorTwistNode::init( float alpha, float beta, float hue , float sat)
 {
     _alpha.set_param(alpha);
     _beta.set_param(beta);
     _hue.set_param(hue);
     _sat.set_param(sat);
     _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 
-void ColorTwistNode::init( FloatParam* alpha, FloatParam* beta, FloatParam* hue, FloatParam* sat, int layout)
+void ColorTwistNode::init( FloatParam* alpha, FloatParam* beta, FloatParam* hue, FloatParam* sat)
 {
     _alpha.set_param(core(alpha));
     _beta.set_param(core(beta));
     _hue.set_param(core(hue));
     _sat.set_param(core(sat));
     _layout = _roi_type = 0;
-    // _layout = (unsigned) _outputs[0]->layout();
+    _layout = (unsigned) _outputs[0]->info().layout();
 
 }
 

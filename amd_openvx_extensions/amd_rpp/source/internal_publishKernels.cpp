@@ -156,6 +156,9 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERENEL(LensCorrection_Register));
     STATUS_ERROR_CHECK(ADD_KERENEL(Pixelate_Register));
     STATUS_ERROR_CHECK(ADD_KERENEL(Rotate_Register));
+    STATUS_ERROR_CHECK(ADD_KERENEL(ResizeCrop_Register));
+    // STATUS_ERROR_CHECK(ADD_KERENEL(ResizeCropMirror_Register));
+
 
 
 

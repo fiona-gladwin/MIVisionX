@@ -62,6 +62,50 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRotate(RocalContext p_context,
                                                 unsigned int dest_height=0,
                                                 int outputformat=0,
                                                 RocalFloatParam p_angle=NULL);
+                
+
+extern "C" RocalTensor ROCAL_API_CALL rocalResizeCrop(RocalContext p_context,
+                                                RocalTensor p_input,
+                                                RocalTensorLayout rocal_tensor_layout,
+                                                RocalTensorOutputType rocal_tensor_output_type,
+                                                bool is_output,
+                                                
+                                                unsigned int dest_width=0,
+                                                unsigned int dest_height=0,
+                                                int outputformat=0,
+                                                RocalFloatParam p_x1=NULL,
+                                                RocalFloatParam p_x2=NULL,
+                                                RocalFloatParam p_x3=NULL,
+                                                RocalFloatParam p_x4=NULL);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalCropResize(RocalContext p_context,
+                                                RocalTensor p_input,
+                                                RocalTensorLayout rocal_tensor_layout,
+                                                RocalTensorOutputType rocal_tensor_output_type,
+                                                bool is_output,
+                                                
+                                                unsigned int dest_width=0,
+                                                unsigned int dest_height=0,
+                                                int outputformat=0,
+                                                RocalFloatParam p_x1=NULL,
+                                                RocalFloatParam p_x2=NULL,
+                                                RocalFloatParam p_x3=NULL,
+                                                RocalFloatParam p_x4=NULL);
+
+// extern "C" RocalTensor ROCAL_API_CALL rocalResizeCrop(RocalContext p_context,
+//                                                 RocalTensor p_input,
+//                                                 RocalTensorLayout rocal_tensor_layout,
+//                                                 RocalTensorOutputType rocal_tensor_output_type,
+//                                                 bool is_output,
+                                                
+//                                                 unsigned int dest_width=0,
+//                                                 unsigned int dest_height=0,
+//                                                 int outputformat=0,
+//                                                 RocalFloatParam p_x1=NULL,
+//                                                 RocalFloatParam p_x2=NULL,
+//                                                 RocalFloatParam p_x3=NULL,
+//                                                 RocalFloatParam p_x4=NULL,
+//                                                 RocalFloatParam p_mirror=NULL);
 
 extern "C" RocalTensor ROCAL_API_CALL rocalBlur(RocalContext p_context,
                                                 RocalTensor p_input,

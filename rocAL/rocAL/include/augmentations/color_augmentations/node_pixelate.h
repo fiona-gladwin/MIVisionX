@@ -32,7 +32,7 @@ class PixelateNode : public Node
 public:
     PixelateNode(const std::vector<rocALTensor *> &inputs, const std::vector<rocALTensor *> &outputs);
     PixelateNode() = delete;
-    void init(int layout);
+    void init();
 protected:
     void create_node() override;
     void update_node() override;
