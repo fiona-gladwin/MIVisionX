@@ -1,10 +1,10 @@
 import torch
 import numpy as np
-import rali_pybind as b
-import amd.rali.types as types
+import rocal_pybind as b
+import amd.rocal.types as types
 import ctypes
 
-# class RALIGenericImageIterator(object):
+# class ROCALGenericImageIterator(object):
 #     def __init__(self, pipeline):
 #         self.loader = pipeline
 #         self.w = b.getOutputWidth(self.loader._handle)
@@ -44,20 +44,23 @@ import ctypes
 #             return self.out_image , self.out_tensor
 
 #     def reset(self):
-#         b.raliResetLoaders(self.loader._handle)
+#         b.rocalResetLoaders(self.loader._handle)
 
 #     def __iter__(self):
 #         return self
 
 
-class RALIGenericIterator(object):
-    def __init__(self, pipeline, tensor_layout = types.NCHW, reverse_channels = False, multiplier = [1.0,1.0,1.0], offset = [0.0, 0.0, 0.0], tensor_dtype=types.FLOAT):
+class ROCALGenericIterator(object):
+    def __init__(self, pipeline, tensor_layout = types.NCHW, reverse_channels = False, multiplier = [1.0,1.0,1.0], offset = [0.0, 0.0, 0.0], tensor_dtype=types.FLOAT, display=False, device="cpu", device_id =0):
         self.loader = pipeline
         self.tensor_format =tensor_layout
         self.multiplier = multiplier
         self.offset = offset
+        self.device= device
+        self.device_id = device_id
         self.reverse_channels = reverse_channels
         self.tensor_dtype = tensor_dtype
+        self.display = display
         self.len = b.getRemainingImages(self.loader._handle)
 
 
@@ -65,12 +68,10 @@ class RALIGenericIterator(object):
         return self.__next__()
 
     def __next__(self):
-        print("Comes to next")
         if(b.isEmpty(self.loader._handle)):
             raise StopIteration
 
         if self.loader.rocalRun() != 0:
-            print("Stop Iteration")
             raise StopIteration
         else:
             self.output_tensor_list = self.loader.rocalGetOutputTensors()
@@ -116,30 +117,30 @@ class RALIGenericIterator(object):
         b.rocalRelease(self.loader._handle)
 
 
-class RALIClassificationIterator(RALIGenericIterator):
+class ROCALClassificationIterator(ROCALGenericIterator):
     """
-    RALI iterator for classification tasks for PyTorch. It returns 2 outputs
+    ROCAL iterator for classification tasks for PyTorch. It returns 2 outputs
     (data and label) in the form of PyTorch's Tensor.
 
     Calling
 
     .. code-block:: python
 
-       RALIClassificationIterator(pipelines, size)
+       ROCALClassificationIterator(pipelines, size)
 
     is equivalent to calling
 
     .. code-block:: python
 
-       RALIGenericIterator(pipelines, ["data", "label"], size)
+       ROCALGenericIterator(pipelines, ["data", "label"], size)
 
     Please keep in mind that Tensors returned by the iterator are
-    still owned by RALI. They are valid till the next iterator call.
+    still owned by ROCAL. They are valid till the next iterator call.
     If the content needs to be preserved please copy it to another tensor.
 
     Parameters
     ----------
-    pipelines : list of amd.raliLI.pipeline.Pipeline
+    pipelines : list of amd.rocal.pipeline.Pipeline
                 List of pipelines to use
     size : int
            Number of samples in the epoch (Usually the size of the dataset).
@@ -153,12 +154,12 @@ class RALIClassificationIterator(RALIGenericIterator):
                  Setting this flag to False will cause the iterator to return
                  exactly 'size' entries.
     dynamic_shape: bool, optional, default = False
-                 Whether the shape of the output of the RALI pipeline can
+                 Whether the shape of the output of the ROCAL pipeline can
                  change during execution. If True, the pytorch tensor will be resized accordingly
-                 if the shape of RALI returned tensors changes during execution.
+                 if the shape of ROCAL returned tensors changes during execution.
                  If False, the iterator will fail in case of change.
     last_batch_padded : bool, optional, default = False
-                 Whether the last batch provided by RALI is padded with the last sample
+                 Whether the last batch provided by ROCAL is padded with the last sample
                  or it just wraps up. In the conjunction with `fill_last_batch` it tells
                  if the iterator returning last batch with data only partially filled with
                  data from the current epoch is dropping padding samples or samples from
@@ -180,15 +181,18 @@ class RALIClassificationIterator(RALIGenericIterator):
                  auto_reset=False,
                  fill_last_batch=True,
                  dynamic_shape=False,
-                 last_batch_padded=False):
+                 last_batch_padded=False,
+                 display=False,
+                 device="cpu",
+                 device_id =0):
         pipe = pipelines
-        super(RALIClassificationIterator, self).__init__(pipe, tensor_layout = pipe._tensor_layout, tensor_dtype = pipe._tensor_dtype,
-                                                            multiplier=pipe._multiplier, offset=pipe._offset)
+        super(ROCALClassificationIterator, self).__init__(pipe, tensor_layout = pipe._tensor_layout, tensor_dtype = pipe._tensor_dtype,
+                                                            multiplier=pipe._multiplier, offset=pipe._offset,display=display, device=device, device_id = device_id)
 
 
-# class RALI_iterator(RALIGenericImageIterator):
+# class ROCAL_iterator(ROCALGenericImageIterator):
 #     """
-#     RALI iterator for classification tasks for PyTorch. It returns 2 outputs
+#     ROCAL iterator for classification tasks for PyTorch. It returns 2 outputs
 #     (data and label) in the form of PyTorch's Tensor.
 
 #     """
@@ -200,4 +204,14 @@ class RALIClassificationIterator(RALIGenericIterator):
 #                  dynamic_shape=False,
 #                  last_batch_padded=False):
 #         pipe = pipelines
-#         super(RALI_iterator, self).__init__(pipe)
+#         super(ROCAL_iterator, self).__init__(pipe)
+
+def draw_patches(img,idx, bboxes):
+    #image is expected as a tensor, bboxes as numpy
+    import cv2
+    img=img.cpu()
+    image = img.detach().numpy()
+    image = image.transpose([1,2,0])
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR )
+    image = cv2.UMat(image).get()
+    cv2.imwrite(str(idx)+"_"+"train"+".png", image)

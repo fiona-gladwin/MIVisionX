@@ -1,5 +1,5 @@
-import rali_pybind as b
-import amd.rali.types as types
+import rocal_pybind as b
+import amd.rocal.types as types
 
 class Node:
     def __init__(self):

@@ -4,12 +4,11 @@ from __future__ import print_function
 import random
 import itertools
 
-from amd.rali.plugin.pytorch import RALIClassificationIterator
 import torch
 import numpy as np
-from amd.rali.pipeline import Pipeline
-import amd.rali.fn as fn
-import amd.rali.types as types
+from amd.rocal.pipeline import Pipeline
+import amd.rocal.fn as fn
+import amd.rocal.types as types
 # import rali_pybind.tensor
 import sys
 import cv2
@@ -108,7 +107,8 @@ class ROCALCOCOIterator(object):
         image_size_tensor = torch.tensor(self.img_size, device=torch_gpu_device).view(-1, self.bs, 2)
         print("Image ID :",image_id_tensor)
         print("Image SIZE :",image_size_tensor)
-        # exit(0)
+
+        img = self.out
         for i in range(self.bs):
             index_list = []
             actual_bboxes = []
@@ -118,15 +118,12 @@ class ROCALCOCOIterator(object):
                     index_list.append(idx)
                     actual_bboxes.append(encoded_bboxes_tensor[i][idx].tolist())
                     actual_labels.append(encodded_labels_tensor[i][idx].tolist())
+            if self.display:
+                draw_patches(img[i], self.image_id[i],
+                                actual_bboxes, self.device)
         print(actual_labels)
         print(actual_bboxes)
-        # exit(0)
 
-        if self.display:
-            img = self.out
-            draw_patches(img[i], self.image_id[i],
-                            actual_bboxes, self.device)
-        # exit(0)
         return (self.out), encoded_bboxes_tensor, encodded_labels_tensor, image_id_tensor, image_size_tensor
         return self.out
 
@@ -234,7 +231,7 @@ def main():
     coco_train_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=random_seed, rocal_cpu=_rali_cpu)
 
     with coco_train_pipeline:
-        jpegs, bboxes, labels = fn.readers.coco(annotations_file=annotation_path, random_shuffle=False, seed=random_seed, is_box_encoder=True)
+        jpegs, bboxes, labels = fn.readers.coco(file_root=image_path ,annotations_file=annotation_path, random_shuffle=False, seed=random_seed, is_box_encoder=True)
         crop_begin, crop_size, bboxes, labels = fn.random_bbox_crop(bboxes, labels,
                                                                     device="cpu",
                                                                     aspect_ratio=[
@@ -243,12 +240,12 @@ def main():
                                                                         0, 0.1, 0.3, 0.5, 0.7, 0.9],
                                                                     scaling=[
                                                                         0.3, 1.0],
-                                                                    bbox_layout="xyXY",
+                                                                    ltrb=True,
                                                                     allow_no_crop=True,
                                                                     num_attempts=50)
         images_decoded = fn.decoders.image_slice(jpegs, crop_begin, crop_size, device="mixed", output_type=types.RGB, file_root=image_path,
                                                  annotations_file=annotation_path, random_shuffle=False, seed=random_seed, num_shards=world_size, shard_id=local_rank)
-        res = fn.resize(images_decoded, resize_width=224, resize_height=224, rocal_tensor_layout = types.NHWC, rocal_tensor_output_type = types.UINT8)
+        res = fn.resize(images_decoded, resize_x=224, resize_y=224, rocal_tensor_layout = types.NHWC, rocal_tensor_output_type = types.UINT8)
         saturation = fn.uniform(rng_range=[0.5, 1.5])
         contrast = fn.uniform(rng_range=[0.5, 1.5])
         brightness = fn.uniform(rng_range=[0.875, 1.125])

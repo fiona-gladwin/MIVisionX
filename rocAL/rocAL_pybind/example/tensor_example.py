@@ -2,11 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import random
-from amd.rali.plugin.pytorch import RALIClassificationIterator
+from amd.rocal.plugin.pytorch import ROCALClassificationIterator
 
-from amd.rali.pipeline import Pipeline
-import amd.rali.fn as fn
-import amd.rali.types as types
+from amd.rocal.pipeline import Pipeline
+import amd.rocal.fn as fn
+import amd.rocal.types as types
 # import rali_pybind.tensor
 import sys
 import cv2
@@ -123,7 +123,7 @@ def main():
         image_classification_val_pipeline.set_outputs(cmnp)
 
     image_classification_val_pipeline.build()
-    imageIteratorPipeline = RALIClassificationIterator(image_classification_val_pipeline)
+    imageIteratorPipeline = ROCALClassificationIterator(image_classification_val_pipeline)
     cnt = 0
     for e in range(3):
         for i , it in enumerate(imageIteratorPipeline):

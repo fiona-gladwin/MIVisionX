@@ -1,13 +1,13 @@
 
-from amd.rali import readers
-from amd.rali import decoders
-from amd.rali import random
-# from amd.rali import noise
-# from amd.rali import reductions
+from amd.rocal import readers
+from amd.rocal import decoders
+from amd.rocal import random
+# from amd.rocal import noise
+# from amd.rocal import reductions
 
-import amd.rali.types as types
-import rali_pybind as b
-from amd.rali.pipeline import Pipeline
+import amd.rocal.types as types
+import rocal_pybind as b
+from amd.rocal.pipeline import Pipeline
 
 
 def brightness(*inputs, brightness=1.0, bytes_per_sample_hint=0, image_type=0,
@@ -24,10 +24,10 @@ def brightness_fixed(*inputs, alpha=None, beta=None, seed=-1, device=None):
     return (brightness_image)
 
 def resize(*inputs, bytes_per_sample_hint=0, image_type=0, interp_type=1, mag_filter= 1, max_size = [0.0, 0.0], min_filter = 1,
-            minibatch_size=32, preserve=False, resize_longer=0.0, resize_shorter= 0.0, resize_depth = 0, resize_width = 0, resize_height = 0,
+            minibatch_size=32, preserve=False, resize_longer=0.0, resize_shorter= 0.0, resize_depth = 0, resize_x = 0.0, resize_y = 0.0,
             save_attrs=False, seed=1, rocal_tensor_layout=types.NCHW, rocal_tensor_output_type=types.FLOAT, interpolation_type = 4, temp_buffer_hint=0, device = None):
     # pybind call arguments
-    kwargs_pybind = {"input_image0": inputs[0], "rocal_tensor_layout" : rocal_tensor_layout, "rocal_tensor_output_type" : rocal_tensor_output_type,  "resize_depth:" : resize_depth , "resize_height": resize_height, "resize_width": resize_width, "interpolation_type" : interpolation_type,
+    kwargs_pybind = {"input_image0": inputs[0], "rocal_tensor_layout" : rocal_tensor_layout, "rocal_tensor_output_type" : rocal_tensor_output_type, "resize_depth" : resize_depth, "resize_height": resize_y, "resize_width": resize_x, "interpolation_type" : interpolation_type,
                      "is_output": False}
     resized_image = b.Resize(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
     return (resized_image)
@@ -68,13 +68,6 @@ def crop_mirror_normalize(*inputs, bytes_per_sample_hint=0, crop=[0, 0], crop_d=
     Pipeline._current_pipeline._offset = list(map(lambda x,y: -(x/y), mean, std))
     return (cmn)
 
-def resize_shorter(*inputs, resize_size=0, rocal_tensor_layout=types.NHWC, rocal_tensor_output_type=types.UINT8):
-    # pybind call arguments
-    kwargs_pybind = {"input_image0": inputs[0], "rocal_tensor_layout": rocal_tensor_layout, "rocal_tensor_output_type" :rocal_tensor_output_type, "resize_size": resize_size,
-                     "is_output": False}
-    resized_image = b.ResizeShorter(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
-    return (resized_image)
-
 def centre_crop(*inputs, bytes_per_sample_hint=0, crop=[100, 100], crop_d=1, crop_h= 0, crop_pos_x = 0.5, crop_pos_y = 0.5, crop_pos_z = 0.5,
                  crop_w=0, image_type=0, output_dtype=types.FLOAT, preserve = False, seed = 1,rocal_tensor_layout=types.NHWC, rocal_tensor_output_type=types.UINT8,  device = None):
 
@@ -93,36 +86,13 @@ def centre_crop(*inputs, bytes_per_sample_hint=0, crop=[100, 100], crop_d=1, cro
     #Set Seed
     b.setSeed(seed)
     # pybind call arguments
-    kwargs_pybind = {"input_image0": inputs[0], "rocal_tensor_layout": rocal_tensor_layout, "rocal_tensor_output_type" :rocal_tensor_output_type, "crop_width":crop_width, "crop_height":crop_height, "crop_depth":crop_depth, "is_output": False}
+    kwargs_pybind = {"input_image0": inputs[0], "rocal_tensor_layout": rocal_tensor_layout, "rocal_tensor_output_type" :rocal_tensor_output_type, "crop_width":crop_width, "crop_height":crop_height, "crop_depth":crop_depth, 
+                     "is_output": False}
     centre_cropped_image = b.CenterCropFixed(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
+
     return (centre_cropped_image)
 
-def random_bbox_crop(*inputs,all_boxes_above_threshold = True, allow_no_crop =True, aspect_ratio = None, bbox_layout = "", bytes_per_sample_hint = 0,
-                crop_shape = None, input_shape = None, ltrb = True, num_attempts = 1 ,scaling =  None,  preserve = False, seed = 1, shape_layout = "",
-                threshold_type ="iou", thresholds = None, total_num_attempts = 0, device = None, labels = None ):
-    aspect_ratio = aspect_ratio if aspect_ratio else [1.0, 1.0]
-    crop_shape = [] if crop_shape is None else crop_shape
-    scaling = scaling if scaling else [1.0, 1.0]
-    if(len(crop_shape) == 0):
-        has_shape = False
-        crop_width = 0
-        crop_height = 0
-    else:
-        has_shape = True
-        crop_width = crop_shape[0]
-        crop_height = crop_shape[1]
-    scaling = b.CreateFloatUniformRand(scaling[0], scaling[1])
-    aspect_ratio = b.CreateFloatUniformRand(aspect_ratio[0], aspect_ratio[1])
 
-    # pybind call arguments
-    kwargs_pybind = {"all_boxes_above_threshold":all_boxes_above_threshold, "no_crop": allow_no_crop, "p_aspect_ratio":aspect_ratio, "has_shape":has_shape, "crop_width":crop_width, "crop_height":crop_height, "num_attemps":num_attempts, "p_scaling":scaling, "total_num_attempts":total_num_attempts, "seed":seed }
-    random_bbox_crop = b.RandomBBoxCrop(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
-
-    return (random_bbox_crop,[],[],[])
-
-def uniform(*inputs,rng_range=[-1, 1], device=None):
-    output_param = b.CreateFloatUniformRand(rng_range[0], rng_range[1])
-    return output_param
 
 def color_twist(*inputs, brightness=1.0, bytes_per_sample_hint=0, contrast=1.0, hue=0.0, image_type=0,
                 preserve=False, saturation=1.0, seed=-1,rocal_tensor_layout=types.NHWC, rocal_tensor_output_type=types.UINT8, device=None):
@@ -139,6 +109,35 @@ def color_twist(*inputs, brightness=1.0, bytes_per_sample_hint=0, contrast=1.0, 
     color_twist_image = b.ColorTwist(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
     return (color_twist_image)
 
+def uniform(*inputs,rng_range=[-1, 1], device=None):
+    output_param = b.CreateFloatUniformRand(rng_range[0], rng_range[1])
+    return output_param
+
+def random_bbox_crop(*inputs,all_boxes_above_threshold = True, allow_no_crop =True, aspect_ratio = None, bbox_layout = "", bytes_per_sample_hint = 0,
+                crop_shape = None, input_shape = None, ltrb = True, num_attempts = 1 ,scaling =  None,  preserve = False, seed = -1, shape_layout = "",
+                threshold_type ="iou", thresholds = None, total_num_attempts = 0, device = None, labels = None ):
+    aspect_ratio = aspect_ratio if aspect_ratio else [1.0, 1.0]
+    crop_shape = [] if crop_shape is None else crop_shape
+    scaling = scaling if scaling else [1.0, 1.0]
+    if(len(crop_shape) == 0):
+        has_shape = False
+        crop_width = 0
+        crop_height = 0
+    else:
+        has_shape = True
+        crop_width = crop_shape[0]
+        crop_height = crop_shape[1]
+    scaling = b.CreateFloatUniformRand(scaling[0], scaling[1])
+    aspect_ratio = b.CreateFloatUniformRand(aspect_ratio[0], aspect_ratio[1])
+
+    # pybind call arguments
+    kwargs_pybind = {"all_boxes_above_threshold":all_boxes_above_threshold, "no_crop": allow_no_crop, "p_aspect_ratio":aspect_ratio, "has_shape":has_shape, "crop_width":crop_width, "crop_height":crop_height, "num_attemps":num_attempts, "p_scaling":scaling, "total_num_attempts":total_num_attempts, 'seed' : seed}
+    random_bbox_crop = b.RandomBBoxCrop(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
+
+    return (random_bbox_crop,[],[],[])
+
+
+
 def box_encoder(*inputs, anchors, bytes_per_sample_hint=0, criteria=0.5, means=None, offset=False, preserve=False, scale=1.0, seed=-1, stds=None ,device = None):
     means = means if means else [0.0, 0.0, 0.0, 0.0]
     stds = stds if stds else [1.0, 1.0, 1.0, 1.0]
@@ -146,3 +145,10 @@ def box_encoder(*inputs, anchors, bytes_per_sample_hint=0, criteria=0.5, means=N
     box_encoder = b.BoxEncoder(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
     Pipeline._current_pipeline._BoxEncoder = True
     return (box_encoder , [])
+
+def resize_shorter(*inputs, resize_size=0, rocal_tensor_layout=types.NHWC, rocal_tensor_output_type=types.UINT8):
+    # pybind call arguments
+    kwargs_pybind = {"input_image0": inputs[0], "rocal_tensor_layout": rocal_tensor_layout, "rocal_tensor_output_type" :rocal_tensor_output_type, "resize_size": resize_size,
+                     "is_output": False}
+    resized_image = b.ResizeShorter(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
+    return (resized_image)

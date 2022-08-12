@@ -1,8 +1,8 @@
 import sys
-from amd.rali.plugin.pytorch import RALIClassificationIterator
-from amd.rali.pipeline import Pipeline
-import amd.rali.ops as ops
-import amd.rali.types as types
+from amd.rocal.plugin.pytorch import ROCALClassificationIterator
+from amd.rocal.pipeline import Pipeline
+import amd.rocal.ops as ops
+import amd.rocal.types as types
 import os
 
 class HybridTrainPipe(Pipeline):

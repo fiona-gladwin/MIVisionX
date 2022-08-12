@@ -6,9 +6,9 @@ import torch
 import random
 import itertools
 
-from amd.rali.pipeline import Pipeline
-import amd.rali.ops as ops
-import amd.rali.types as types
+from amd.rocal.pipeline import Pipeline
+import amd.rocal.ops as ops
+import amd.rocal.types as types
 import sys
 import numpy as np
 
@@ -106,7 +106,7 @@ class RALICOCOIterator(object):
 
     Parameters
     ----------
-    pipelines : list of amd.rali.pipeline.Pipeline
+    pipelines : list of amd.rocal.pipeline.Pipeline
                 List of pipelines to use
     size : int
            Epoch size.
