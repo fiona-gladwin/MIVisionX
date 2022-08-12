@@ -33,7 +33,7 @@ THE SOFTWARE.
 #endif
 #endif
 
-#include <half.hpp>
+#include <half/half.hpp>
 using half_float::half;
 #include "tensor.h"
 
