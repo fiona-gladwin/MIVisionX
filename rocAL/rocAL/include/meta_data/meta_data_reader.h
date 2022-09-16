@@ -39,8 +39,10 @@ enum class MetaDataReaderType
     CAFFE2_META_DATA_READER,
     CAFFE2_DETECTION_META_DATA_READER,
     TF_DETECTION_META_DATA_READER,
+    VIDEO_LABEL_READER,
     MXNET_META_DATA_READER,
-    VIDEO_LABEL_READER
+    EXTERNAL_SOURCE_LABEL_READER,
+    EXTERNAL_SOURCE_DETECTION_META_DATA_READER
 };
 enum class MetaDataType
 {
@@ -61,8 +63,8 @@ private:
     unsigned _frame_step;
     unsigned _frame_stride;
 public:
-    MetaDataConfig(const MetaDataType& type, const MetaDataReaderType& reader_type, const std::string& path, const std::map<std::string, std::string> &feature_key_map=std::map<std::string, std::string>(), const std::string file_prefix=std::string(), const bool mask = 0, const unsigned& sequence_length = 3, const unsigned& frame_step = 3, const unsigned& frame_stride = 1)
-                    :_type(type), _reader_type(reader_type),  _path(path), _feature_key_map(feature_key_map), _file_prefix(file_prefix), _mask(mask), _sequence_length(sequence_length), _frame_step(frame_step), _frame_stride(frame_stride) {}
+    MetaDataConfig(const MetaDataType& type, const MetaDataReaderType& reader_type, const std::string& path = std::string(), const std::map<std::string, std::string> &feature_key_map=std::map<std::string, std::string>(), const std::string file_prefix=std::string(), const unsigned& sequence_length = 3, const unsigned& frame_step = 3, const unsigned& frame_stride = 1)
+                    :_type(type), _reader_type(reader_type),  _path(path), _feature_key_map(feature_key_map), _file_prefix(file_prefix), _sequence_length(sequence_length), _frame_step(frame_step), _frame_stride(frame_stride){}
     MetaDataConfig() = delete;
     MetaDataType type() const { return _type; }
     MetaDataReaderType reader_type() const { return _reader_type; }
@@ -87,6 +89,7 @@ public:
     virtual void init(const MetaDataConfig& cfg) = 0;
     virtual void read_all(const std::string& path) = 0;// Reads all the meta data information
     virtual void lookup(const std::vector<std::string>& image_names) = 0;// finds meta_data info associated with given names and fills the output
+    virtual void add_labels(std::vector<std::string> image_name, std::vector<int> label) = 0;
     virtual void release() = 0; // Deletes the loaded information
     virtual MetaDataBatch * get_output()= 0;
     virtual const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content()=0;

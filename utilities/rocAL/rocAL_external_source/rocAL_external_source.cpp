@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include <cstring>
 #include <chrono>
 #include <cstdio>
-
+#include <dirent.h>
 #include <opencv2/opencv.hpp>
 
 #include "rocal_api.h"
@@ -160,6 +160,27 @@ int main(int argc, const char ** argv)
         std::cerr << "JPEG source could not initialize : "<<rocalGetErrorMessage(handle) << std::endl;
         return -1;
     }
+        DIR *_src_dir;
+    struct dirent *_entity;
+    std::vector<std::string> file_names;
+    if((_src_dir = opendir (folderPath1)) == nullptr)
+    {
+            std::cerr<<"\n ERROR: Failed opening the directory at "<<folderPath1;
+            exit(0);
+    }
+
+    while((_entity = readdir (_src_dir)) != nullptr)
+    {
+        if(_entity->d_type != DT_REG)
+            continue;
+
+        std::string file_path = folderPath1;
+        // file_path.append("/");
+        file_path.append(_entity->d_name);
+        std::cerr<<"\n _entity->d_name:: "<<file_path;
+        file_names.push_back(file_path);
+    }
+    std::cerr<<"\n file names count :: "<<file_names.size();
 
 
 #if 0
@@ -236,9 +257,10 @@ int main(int argc, const char ** argv)
     {
         index++;
         std::vector<std::string> input_images;
+        std::vector<int> label;
         for(int i = 0; i < inputBatchSize; i++)
         {
-            input_images.push_back(std::string(folderPath1) + file_names.back());
+            input_images.push_back(file_names.back());
             file_names.pop_back();
             std::cerr<<"\n Input images :: "<<input_images[i];
         }
@@ -249,7 +271,7 @@ int main(int argc, const char ** argv)
         if(index <= (total_images / inputBatchSize))
         {
             std::cerr<<"\n************************** Gonna process Batch *************************"<<index;
-            rocalExternalSourceFeedInput(handle, input_images, input_images, NULL, {}, {}, 1, 1, RocalExtSourceMode (0), RocalTensorLayout (0), eos);
+            rocalExternalSourceFeedInput(handle, input_images, label, NULL, {}, {}, 1, 1, RocalExtSourceMode (0), RocalTensorLayout (0), eos);
         }
         if(rocalRun(handle) != 0)
             break;

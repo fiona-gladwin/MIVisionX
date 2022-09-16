@@ -58,7 +58,7 @@ public:
     virtual crop_image_info get_crop_image_info() = 0;
     virtual void set_prefetch_queue_depth(size_t prefetch_queue_depth) = 0;
     virtual void shut_down() = 0;
-    // External Source reader
+        // External Source reader
     virtual void feed_external_input(std::vector<std::string> input_images, std::vector<int> labels, unsigned char *input_buffer,
                                      std::vector<unsigned> roi_width, std::vector<unsigned> roi_height, unsigned int max_width, unsigned int max_height, FileMode mode, bool eos) = 0;
     // introduce meta data reader
