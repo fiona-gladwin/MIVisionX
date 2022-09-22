@@ -29,7 +29,8 @@ from builtins import str
 from builtins import range
 import os, sys, struct
 import datetime, pytz
-from nnir import *
+import nnir as ir
+import numpy as np
 
 tensor_type_nnir2openvx = {
     'F032' : 'VX_TYPE_FLOAT32',
@@ -112,7 +113,7 @@ cmake_minimum_required (VERSION 3.0)
 
 project (annmodule)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 set(ROCM_PATH /opt/rocm CACHE PATH "ROCm Installation Path")
 
@@ -223,7 +224,7 @@ else()
         $ENV{AMDAPPSDKROOT}/include
         $ENV{CUDA_PATH}/include
         PATHS
-        ${ROCM_PATH}/opencl/include
+        ${ROCM_PATH}/include
         /usr/include
         /usr/local/include
         /usr/local/cuda/include
@@ -242,7 +243,7 @@ else()
             DOC "OpenCL dynamic library path"
             PATH_SUFFIXES x86_64 x64 x86_64/sdk
             PATHS
-            ${ROCM_PATH}/opencl/lib/
+            ${ROCM_PATH}/lib/
             /usr/lib
             /usr/local/cuda/lib
             /opt/cuda/lib
@@ -257,7 +258,7 @@ else()
             DOC "OpenCL dynamic library path"
             PATH_SUFFIXES x86 Win32
             PATHS
-            ${ROCM_PATH}/opencl/lib/
+            ${ROCM_PATH}/lib/
             /usr/lib
             /usr/local/cuda/lib
             /opt/cuda/lib
@@ -273,12 +274,12 @@ else()
     set(OpenCL_LIBRARIES ${OPENCL_LIBRARIES} CACHE INTERNAL "")
     set(OpenCL_INCLUDE_DIRS ${OPENCL_INCLUDE_DIRS} CACHE INTERNAL "")
 
-    if(EXISTS "${ROCM_PATH}/opencl/lib/libOpenCL.so")
-        if(NOT "${OPENCL_LIBRARIES}" STREQUAL "${ROCM_PATH}/opencl/lib/libOpenCL.so")
+    if(EXISTS "${ROCM_PATH}/lib/libOpenCL.so")
+        if(NOT "${OPENCL_LIBRARIES}" STREQUAL "${ROCM_PATH}/lib/libOpenCL.so")
             message("-- OpenCL Found - ${OPENCL_LIBRARIES}")
             message("-- ROCm OpenCL Found - Force OpenCL_LIBRARIES & OpenCL_INCLUDE_DIRS to use ROCm OpenCL")
-            set(OpenCL_LIBRARIES ${ROCM_PATH}/opencl/lib/libOpenCL.so CACHE INTERNAL "")
-            set(OpenCL_INCLUDE_DIRS ${ROCM_PATH}/opencl/include CACHE INTERNAL "")
+            set(OpenCL_LIBRARIES ${ROCM_PATH}/lib/libOpenCL.so CACHE INTERNAL "")
+            set(OpenCL_INCLUDE_DIRS ${ROCM_PATH}/include CACHE INTERNAL "")
         endif()
     else()
         message("-- ROCm OpenCL Not Found}")
@@ -953,7 +954,7 @@ static vx_status initializeTensor(vx_context context, vx_tensor tensor, FILE * f
     }    
 """ % (node.inputs[0], node.outputs[0]))
                 else:
-                    raise ValueError("Unsupported scaling factor: {}".format(factor))
+                    raise ValueError("Unsupported scaling factor: {}".format(zoom_factor))
             elif node.type == 'crop':
                 offset = node.attr.get('offset')
                 f.write( \
@@ -1238,7 +1239,7 @@ def generatePythonH(graph, fileName, virtual_tensor_flag):
 #include <VX/vx.h>
 #include <map>
 #include <string>
-#include <half.hpp>
+#include <half/half.hpp>
 using half_float::half;
 
 ////
@@ -1264,7 +1265,7 @@ typedef struct pyif_ann_handle_t {
 extern "C" VX_API_ENTRY const char *    VX_API_CALL annQueryInference();
 """)
         if virtual_tensor_flag == 0:
-        	f.write( \
+            f.write( \
 """extern "C" VX_API_ENTRY const char *    VX_API_CALL annQueryLocals();
 """)
         f.write( \
@@ -1278,7 +1279,7 @@ extern "C" VX_API_ENTRY int             VX_API_CALL annCopyFromInferenceOutput(p
 """extern "C" VX_API_ENTRY int             VX_API_CALL annCopyFromInferenceOutput_%d(pyif_ann_handle handle, float * out_ptr, size_t out_size);
 """ % (i))
         if virtual_tensor_flag == 0:
-        	f.write( \
+            f.write( \
 """extern "C" VX_API_ENTRY int             VX_API_CALL annCopyFromInferenceLocal(pyif_ann_handle handle, const char *tensorName, float * out_ptr, size_t out_size);
 """)
         f.write( \
@@ -1819,7 +1820,7 @@ VX_API_ENTRY int VX_API_CALL annCopyFromInferenceLocal(pyif_ann_handle handle, c
     }
 """ % (input_shape[0]))
                 elif input_data_type == "F016":
-	                f.write (\
+                    f.write (\
 """     else if(out_size/(2*%d) != stride[3]) {
         status = VX_FAILURE;
         printf("ERROR: annCopyFromInferenceLocal: invalid output buffer size (must be %%d) -- got %%d\\n", (int)stride[3],(int)out_size);
@@ -1871,7 +1872,7 @@ class AnnAPI:
         self.annQueryInference.argtypes = []
 """)
         if virtual_tensor_flag == 0:
-        	f.write( \
+            f.write( \
 """        self.annQueryLocals = self.lib.annQueryLocals
         self.annQueryLocals.restype = ctypes.c_char_p
         self.annQueryLocals.argtypes = []
@@ -1891,7 +1892,7 @@ class AnnAPI:
         self.annCopyFromInferenceOutput.argtypes = [ctypes.c_void_p, ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), ctypes.c_size_t]
 """)
         if virtual_tensor_flag == 0:
-        	f.write( \
+            f.write( \
 """        self.annCopyFromInferenceLocal = self.lib.annCopyFromInferenceLocal
         self.annCopyFromInferenceLocal.restype = ctypes.c_int
         self.annCopyFromInferenceLocal.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ndpointer(ctypes.c_float, flags="C_CONTIGUOUS"), ctypes.c_size_t]
@@ -1980,7 +1981,7 @@ def generateTestCPP(graph,argmaxOutput,fileName,virtual_tensor_flag):
 #include <chrono>
 #include <unistd.h>
 #include <math.h>
-#include <half.hpp>
+#include <half/half.hpp>
 #include <immintrin.h>
 #include <map>
 using half_float::half;
@@ -2692,7 +2693,7 @@ int main(int argc, const char ** argv)
 """ % (tensor.name, tensor.name, tensor.name, tensor.name))
         if virtual_tensor_flag == 0:
             for tensor in graph.locals:
-            	f.write( \
+                f.write( \
 """
     // save tensor %s
     auto it_%s = tensorMap.find("%s");
@@ -2813,7 +2814,7 @@ Usage: python nnir_to_openvx.py [OPTIONS] <nnirInputFolder> <outputFolder>
     inputFolder = sys.argv[pos]
     outputFolder = sys.argv[pos+1]
     print('reading IR model from ' + inputFolder + ' ...')
-    graph = IrGraph(True)
+    graph = ir.IrGraph(True)
     graph.fromFile(inputFolder)
     for tensor in graph.outputs:
         if len(tensor.shape) == 1:
