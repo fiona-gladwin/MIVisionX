@@ -60,19 +60,12 @@ void CropMirrorNormalizeNode::create_node()
     _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
     if(status != 0)
         THROW(" vxAddArrayItems failed in the crop resize node (vxExtrppNode_CropMirrorNormalizeCropbatchPD    )  node: "+ TOSTR(status) + "  "+ TOSTR(status))
-    unsigned int chnShift = 0;
-    vx_scalar  chnToggle = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_UINT32,&chnShift);
-    bool packed;
-    if(_inputs[0]->info().color_format() != RocalColorFormat::RGB_PLANAR)
-    {
-        packed = true;
-    }
-    vx_scalar is_packed = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_BOOL,&packed);
+
     vx_scalar layout = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_UINT32,&_layout);
     vx_scalar roi_type = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_UINT32,&_roi_type);
     _node = vxExtrppNode_CropMirrorNormalize(_graph->get(), _inputs[0]->handle(),
                                                    _src_tensor_roi, _outputs[0]->handle(),_src_tensor_roi,_crop_param->cropw_arr, _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr,
-                                                    _mean_array, _std_dev_array, _mirror.default_array() , is_packed, chnToggle,layout, roi_type, _batch_size);
+                                                    _mean_array, _std_dev_array, _mirror.default_array(), layout, roi_type, _batch_size);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the crop mirror normalize tensor (vxExtrppNode_CropMirrorNormalizeCropbatchPD    ) failed: "+TOSTR(status))
 
