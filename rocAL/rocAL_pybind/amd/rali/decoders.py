@@ -58,9 +58,9 @@ def image_slice(*inputs,file_root='',path='',annotations_file='',shard_id = 0, n
             'is_output': False,
             "shuffle": random_shuffle,
             "loop": False,
-            "decode_size_policy": types.MAX_SIZE,
-            "max_width": 1200, #TODO: what happens when we give user given size = multiplier * max_decoded_width
-            "max_height":1200, #TODO: what happens when we give user given size = multiplier * max_decoded_width
+            "decode_size_policy": types.USER_GIVEN_SIZE,
+            "max_width": 640, #TODO: what happens when we give user given size = multiplier * max_decoded_width
+            "max_height":640, #TODO: what happens when we give user given size = multiplier * max_decoded_width
             "area_factor": None,
             "aspect_ratio": None,
             "x_drift_factor": None,

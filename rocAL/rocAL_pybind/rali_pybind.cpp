@@ -149,7 +149,7 @@ namespace rali
             "copy_data", [](rocalTensor &output_tensor, py::object p)
             {
             auto ptr = ctypes_void_ptr(p);
-            output_tensor.copy_data(ptr, 0);
+            output_tensor.copy_data(ptr);
             }
             )
             .def(
@@ -291,7 +291,7 @@ namespace rali
         m.def("COCOReader", &rocalCreateCOCOReader, py::return_value_policy::reference);
         // rocal_api_meta_data.h
         m.def("RandomBBoxCrop", &rocalRandomBBoxCrop);
-        m.def("BoxEncoder",&rocalBoxEncoder);
+        m.def("BoxEncoder",&rocalBoxEncoder, py::return_value_policy::reference);
         m.def("getImageId", [](RocalContext context, py::array_t<int> array)
         {
             auto buf = array.request();
