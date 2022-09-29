@@ -188,10 +188,12 @@ Decoder::Status FusedCropTJDecoder::decode(unsigned char *input_buffer, size_t i
         {
             memcpy(dst_ptr_temp, src_ptr_temp + xoffs, elements_in_crop_row * sizeof(unsigned char));
             //memset(dst_ptr_temp + elements_in_crop_row, 0, remainingElements * sizeof(unsigned char));
-            src_ptr_temp +=  xoffs + elements_in_crop_row;
-            dst_ptr_temp +=  xoffs + elements_in_crop_row;
+            src_ptr_temp +=  elements_in_row;
+            dst_ptr_temp +=  elements_in_row;
         }
     }
+
+
     actual_decoded_width = crop_width;
     actual_decoded_height = crop_height;
 

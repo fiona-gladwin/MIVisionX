@@ -66,7 +66,7 @@ private:
     LoaderModuleStatus load_routine();
     rocalTensor* _output_tensor;
     std::vector<std::string> _output_names;//!< image name/ids that are stores in the _output_image
-    size_t _output_mem_size;
+    uint64_t _output_mem_size;
     MetaDataBatch* _meta_data = nullptr;//!< The output of the meta_data_graph,
     std::vector<std::vector <float>> _bbox_coords;
     bool _internal_thread_running;

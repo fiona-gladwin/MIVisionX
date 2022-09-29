@@ -91,6 +91,7 @@ private:
     std::vector<void*> _host_master_buffers;
     std::vector<std::vector<void*>> _host_sub_buffers;
     std::vector<std::vector<void*>> _host_meta_data_buffers;
+    std::vector<std::vector<void*>> _host_meta_data_buffers_size;
     std::vector<void *> _dev_bbox_buffer;
     std::vector<void *> _dev_labels_buffer;
     bool _dont_block = false;

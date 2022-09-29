@@ -53,7 +53,7 @@ public:
     CircularBuffer(DeviceResources ocl);
 #endif
     ~CircularBuffer();
-    void init(RocalMemType output_mem_type, size_t output_mem_size, size_t buff_depth);
+    void init(RocalMemType output_mem_type, uint64_t output_mem_size, size_t buff_depth);
     void release(); // release resources
     void sync();// Syncs device buffers with host
     void unblock_reader();// Unblocks the thread currently waiting on a call to get_read_buffer
@@ -103,7 +103,7 @@ private:
     std::condition_variable _wait_for_unload;
     std::mutex _lock;
     RocalMemType _output_mem_type;
-    size_t _output_mem_size;
+    uint64_t _output_mem_size;
     bool _initialized = false;
     const size_t MEM_ALIGNMENT = 256;
     size_t _write_ptr;

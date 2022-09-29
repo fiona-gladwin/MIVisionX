@@ -272,12 +272,24 @@ void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bb
         if(_meta_data_sub_buffer_count < 2)
             THROW("Insufficient HOST metadata buffers for Box Encoder");
         // Check if sufficient data has been allocated for the labels and bbox host buffers if not reallocate
+        /*for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
+        {
+            /*std::cerr << " \nHost : labels size : _host_meta_data_buffers_size[BUFF_DEPTH][0] :" << _host_meta_data_buffers_size[BUFF_DEPTH][0] << std::endl;
+            std::cerr << "\n encoded_labels_size :" << encoded_labels_size << std::endl;
+            std::cerr << " \nHost : bbox size : _host_meta_data_buffers_size[BUFF_DEPTH][1] :" << _host_meta_data_buffers_size[BUFF_DEPTH][1] << std::endl;
+            std::cerr << " \n encoded_bbox size : " << encoded_bbox_size << std::endl;
+            exit(0);
+            if(_host_meta_data_buffers_size[BUFF_DEPTH][0] < encoded_labels_size)
+                rellocate_meta_data_buffer(_host_meta_data_buffers[BUFF_DEPTH][0], encoded_labels_size 0);
+            if(_host_meta_data_buffers_size[BUFF_DEPTH][1] < encoded_bbox_size)
+                rellocate_meta_data_buffer(_host_meta_data_buffers[BUFF_DEPTH][1], encoded_bbox_size, 1);
+        }*/
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
-            if(_meta_data_sub_buffer_size[0] != encoded_labels_size)
-                rellocate_meta_data_buffer(_host_meta_data_buffers[BUFF_DEPTH][0], _meta_data_sub_buffer_size[0], 0);
-            if(_meta_data_sub_buffer_size[1] != encoded_bbox_size)
-                rellocate_meta_data_buffer(_host_meta_data_buffers[BUFF_DEPTH][1], _meta_data_sub_buffer_size[1], 1);
+            if(_meta_data_sub_buffer_size[0] < encoded_labels_size)
+                rellocate_meta_data_buffer(_host_meta_data_buffers[BUFF_DEPTH][0], encoded_labels_size, 0);
+            if(_meta_data_sub_buffer_size[1] < encoded_bbox_size)
+                rellocate_meta_data_buffer(_host_meta_data_buffers[BUFF_DEPTH][1], encoded_bbox_size, 1);
         }
     }
 #endif
@@ -301,8 +313,11 @@ void RingBuffer::init_metadata(RocalMemType mem_type, std::vector<size_t> sub_bu
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
             _host_meta_data_buffers[buffIdx].resize(sub_buffer_count);
-            for(size_t sub_buff_idx = 0; sub_buff_idx < sub_buffer_count; sub_buff_idx++)
+            //_host_meta_data_buffers_size[buffIdx].resize(sub_buffer_count);
+            for(size_t sub_buff_idx = 0; sub_buff_idx < sub_buffer_count; sub_buff_idx++) {
                 _host_meta_data_buffers[buffIdx][sub_buff_idx] = malloc(sub_buffer_size[sub_buff_idx]);
+                //_host_meta_data_buffers_size[buffIdx][sub_buff_idx] = sub_buffer_size[sub_buff_idx];
+            }
         }
     }
 }
@@ -439,6 +454,7 @@ void RingBuffer::rellocate_meta_data_buffer(void * buffer, size_t buffer_size, u
     if(buffer == nullptr)
         THROW("Metadata ring buffer reallocation failed")
     _host_meta_data_buffers[_write_ptr][buff_idx] = new_ptr;
+    //_host_meta_data_buffers_size[_write_ptr][buff_idx] = buffer_size;
 }
 
 MetaDataNamePair& RingBuffer::get_meta_data()

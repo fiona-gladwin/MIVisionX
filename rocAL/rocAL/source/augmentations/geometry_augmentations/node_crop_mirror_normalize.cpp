@@ -84,6 +84,8 @@ void CropMirrorNormalizeNode::update_node()
 
 void CropMirrorNormalizeNode::init(int crop_h, int crop_w, float start_x, float start_y, std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror,int layout)
 {
+    _crop_param->x1 = 0;
+    _crop_param->y1 = 0;
     _crop_param->crop_h = crop_h;
     _crop_param->crop_w = crop_w;
     _mean   = mean;
