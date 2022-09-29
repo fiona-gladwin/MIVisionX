@@ -145,6 +145,27 @@ int test(int test_case, const char* path, int rgb, int processing_device, int wi
         return -1;
     }
 
+    RocalFloatParam alpha = rocalCreateFloatParameter(1.0);
+    RocalFloatParam beta = rocalCreateFloatParameter(12.5);
+    RocalFloatParam gamma = rocalCreateFloatParameter(5.0);
+    RocalIntParam contrast_min = rocalCreateIntParameter(15);
+    RocalIntParam contrast_max = rocalCreateIntParameter(75);
+    RocalIntParam flip_h = rocalCreateIntParameter(0);
+    RocalIntParam flip_v = rocalCreateIntParameter(0);
+    RocalFloatParam noise_val = rocalCreateFloatParameter(0.25);
+    RocalFloatParam exposure_val = rocalCreateFloatParameter(0.50);
+    RocalIntParam blend_pt = rocalCreateIntParameter(0.5);
+    RocalFloatParam color_twist_alpha = rocalCreateFloatParameter(1.0);
+    RocalFloatParam color_twist_beta = rocalCreateFloatParameter(15.2);
+    RocalFloatParam color_twist_hue = rocalCreateFloatParameter(150);
+    RocalFloatParam color_twist_saturation = rocalCreateFloatParameter(0.3);
+    RocalFloatParam crop_width = rocalCreateFloatParameter(100);
+    RocalFloatParam crop_height = rocalCreateFloatParameter(100);
+    RocalFloatParam crop_depth = rocalCreateFloatParameter(0);
+    RocalFloatParam crop_x = rocalCreateFloatParameter(0);
+    RocalFloatParam crop_y = rocalCreateFloatParameter(0);
+    RocalFloatParam crop_z = rocalCreateFloatParameter(0);
+    
 
     int resize_w = width, resize_h = height;
 
@@ -156,123 +177,123 @@ int test(int test_case, const char* path, int rgb, int processing_device, int wi
             break;
         case 1: {
             std::cout << ">>>>>>> Running " << "rocalCropResize" << std::endl;
-            rocalCropResize(handle, image0, resize_w, resize_h, true, rand_crop_area);
+            // rocalCropResize(handle, image0, resize_w, resize_h, true, rand_crop_area);
         }
             break;
         case 2: {
             std::cout << ">>>>>>> Running " << "rocalRotate" << std::endl;
-            rocalRotate(handle, image0, true, rand_angle);
+            // rocalRotate(handle, image0, true, rand_angle);
         }
             break;
         case 3: {
             std::cout << ">>>>>>> Running " << "rocalBrightness" << std::endl;
-            rocalBrightness(handle, image0, true);
+            rocalBrightness(handle, image0, true,alpha,beta);
         }
             break;
         case 4: {
             std::cout << ">>>>>>> Running " << "rocalGamma" << std::endl;
-            rocalGamma(handle, image0, true);
+            rocalGamma(handle, image0, true,gamma);
         }
             break;
         case 5: {
             std::cout << ">>>>>>> Running " << "rocalContrast" << std::endl;
-            rocalContrast(handle, image0, true);
+            rocalContrast(handle, image0, true,contrast_min,contrast_max);
         }
             break;
         case 6: {
             std::cout << ">>>>>>> Running " << "rocalFlip" << std::endl;
-            rocalFlip(handle, image0, true);
+            rocalFlip(handle, image0, true,flip_h);
         }
             break;
         case 7: {
             std::cout << ">>>>>>> Running " << "rocalBlur" << std::endl;
-            rocalBlur(handle, image0, true);
+            // rocalBlur(handle, image0, true);
         }
             break;
         case 8: {
             std::cout << ">>>>>>> Running " << "rocalBlend" << std::endl;
-            image0_b = rocalRotateFixed(handle, image0, 30, false);
-            rocalBlend(handle, image0, image0_b, true);
+            image0_b = rocalContrast(handle, image0, true,contrast_min,contrast_max);
+            rocalBlend(handle, image0, image0_b, true,blend_pt);
         }
             break;
         case 9: {
             std::cout << ">>>>>>> Running " << "rocalWarpAffine" << std::endl;
-            rocalWarpAffine(handle, image0, true);
+            // rocalWarpAffine(handle, image0, true);
         }
             break;
         case 10: {
             std::cout << ">>>>>>> Running " << "rocalFishEye" << std::endl;
-            rocalFishEye(handle, image0, true);
+            // rocalFishEye(handle, image0, true);
         }
             break;
         case 11: {
             std::cout << ">>>>>>> Running " << "rocalVignette" << std::endl;
-            rocalVignette(handle, image0, true);
+            // rocalVignette(handle, image0, true);
         }
             break;
         case 12: {
             std::cout << ">>>>>>> Running " << "rocalJitter" << std::endl;
-            rocalJitter(handle, image0, true);
+            // rocalJitter(handle, image0, true);
         }
             break;
         case 13: {
             std::cout << ">>>>>>> Running " << "rocalSnPNoise" << std::endl;
-            rocalSnPNoise(handle, image0, true);
+            rocalSnPNoise(handle, image0, true,noise_val);
         }
             break;
         case 14: {
             std::cout << ">>>>>>> Running " << "rocalSnow" << std::endl;
-            rocalSnow(handle, image0, true);
+            // rocalSnow(handle, image0, true);
         }
             break;
         case 15: {
             std::cout << ">>>>>>> Running " << "rocalRain" << std::endl;
-            rocalRain(handle, image0, true);
+            // rocalRain(handle, image0, true);
         }
             break;
         case 16: {
             std::cout << ">>>>>>> Running " << "rocalColorTemp" << std::endl;
-            rocalColorTemp(handle, image0, true, color_temp_adj);
+            // rocalColorTemp(handle, image0, true, color_temp_adj);
         }
             break;
         case 17: {
             std::cout << ">>>>>>> Running " << "rocalFog" << std::endl;
-            rocalFog(handle, image0, true);
+            // rocalFog(handle, image0, true);
         }
             break;
         case 18: {
             std::cout << ">>>>>>> Running " << "rocalLensCorrection" << std::endl;
-            rocalLensCorrection(handle, image0, true);
+            // rocalLensCorrection(handle, image0, true);
         }
             break;
         case 19: {
             std::cout << ">>>>>>> Running " << "rocalPixelate" << std::endl;
-            rocalPixelate(handle, image0, true);
+            // rocalPixelate(handle, image0, true);
         }
             break;
         case 20: {
             std::cout << ">>>>>>> Running " << "rocalExposure" << std::endl;
-            rocalExposure(handle, image0, true);
+            rocalExposure(handle, image0, true,exposure_val);
         }
             break;
         case 21: {
             std::cout << ">>>>>>> Running " << "rocalHue" << std::endl;
-            rocalHue(handle, image0, true);
+            // rocalHue(handle, image0, true);
         }
             break;
         case 22: {
             std::cout << ">>>>>>> Running " << "rocalSaturation" << std::endl;
-            rocalSaturation(handle, image0, true);
+            // rocalSaturation(handle, image0, true);
         }
             break;
         case 23: {
             std::cout << ">>>>>>> Running " << "rocalCopy" << std::endl;
-            rocalCopy(handle, image0, true);
+            // rocalCopy(handle, image0, true);
         }
             break;
         case 24: {
             std::cout << ">>>>>>> Running " << "rocalColorTwist" << std::endl;
-            rocalColorTwist(handle, image0, true);
+            rocalColorTwist(handle, image0, true,color_twist_alpha,color_twist_beta,color_twist_hue,color_twist_saturation);
         }
             break;
         case 25: {
@@ -289,12 +310,12 @@ int test(int test_case, const char* path, int rgb, int processing_device, int wi
             break;
         case 27: {
             std::cout << ">>>>>>> Running " << "rocalResizeCropMirror" << std::endl;
-            rocalResizeCropMirror(handle, image0, resize_w, resize_h, true);
+            // rocalResizeCropMirror(handle, image0, resize_w, resize_h, true);
         }
             break;
         case 28: {
             std::cout << ">>>>>>> Running " << "No-Op" << std::endl;
-            rocalNop(handle, image0, true);
+            // rocalNop(handle, image0, true);
         }
             break;
 	default:

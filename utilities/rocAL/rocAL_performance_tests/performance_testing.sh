@@ -1,5 +1,9 @@
 echo This is my first shell script
-# mkdir output_folder
+folder=./
+if test -d "$folder"; then 
+    rm -rf ./output_folder
+fi
+mkdir output_folder
 #########################
 
 # sudo rm -rvf build*
@@ -10,12 +14,12 @@ echo This is my first shell script
 
 ###########################
 cd build
-INPUTPATH='/media/MIVisionX-data/rocal_data/images_jpg/labels_folder/0/'
-width=300
-height=300
+INPUTPATH=$1
+width=$2
+height=$3
 testcase=0
-batch_size=1
-device=0
+batch_size=$4
+device=$5
 rgb=1
 shard_count=1
 shuffle=0
@@ -47,7 +51,7 @@ do
    ;;
    "6") file_name=rocalFlip.txt
    ;;
-   "7") file_name=rocalFlip.txt
+   "7") file_name=rocalBlur.txt
    ;;
    "8") file_name=rocalBlend.txt 
    ;;
