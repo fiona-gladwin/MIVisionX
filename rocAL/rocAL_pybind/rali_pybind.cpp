@@ -287,6 +287,20 @@ namespace rali
             .value("DECODER_VIDEO_FFMPEG_SW",ROCAL_DECODER_VIDEO_FFMPEG_SW)
             .value("DECODER_VIDEO_FFMPEG_HW",ROCAL_DECODER_VIDEO_FFMPEG_HW)
             .export_values();
+        py::enum_<RocalResizeScalingMode>(types_m,"RocalResizeScalingMode","Decode size policies")
+            .value("SCALING_MODE_DEFAULT",ROCAL_SCALING_MODE_DEFAULT)
+            .value("SCALING_MODE_STRETCH",ROCAL_SCALING_MODE_STRETCH)
+            .value("SCALING_MODE_NOT_SMALLER",ROCAL_SCALING_MODE_NOT_SMALLER)
+            .value("SCALING_MODE_NOT_LARGER",ROCAL_SCALING_MODE_NOT_LARGER)
+            .export_values();
+        py::enum_<RocalResizeInterpolationType>(types_m,"RocalResizeInterpolationType","Decode size policies")
+            .value("NEAREST_NEIGHBOR_INTERPOLATION",ROCAL_NEAREST_NEIGHBOR_INTERPOLATION)
+            .value("LINEAR_INTERPOLATION",ROCAL_LINEAR_INTERPOLATION)
+            .value("CUBIC_INTERPOLATION",ROCAL_CUBIC_INTERPOLATION)
+            .value("LANCZOS_INTERPOLATION",ROCAL_LANCZOS_INTERPOLATION)
+            .value("GAUSSIAN_INTERPOLATION",ROCAL_GAUSSIAN_INTERPOLATION)
+            .value("TRIANGULAR_INTERPOLATION",ROCAL_TRIANGULAR_INTERPOLATION)
+            .export_values();
         // rocal_api_info.h
         m.def("getRemainingImages", &rocalGetRemainingImages);
         m.def("isEmpty", &rocalIsEmpty);

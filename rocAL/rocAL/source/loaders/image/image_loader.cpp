@@ -115,7 +115,7 @@ ImageLoader::load_next()
 void ImageLoader::set_output (rocalTensor* output_tensor)
 {
     _output_tensor = output_tensor;
-    _output_mem_size = _output_tensor->info().data_size();
+    _output_mem_size = ((_output_tensor->info().data_size()/ 8) * 8 + 8);
 }
 
 void ImageLoader::set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader)

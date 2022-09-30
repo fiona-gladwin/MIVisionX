@@ -50,7 +50,7 @@ vx_enum vx_mem_type(RocalMemType mem);
  * @param RocalTensorDataType input data type
  * @return the OpenVX data type size associated with input argument
  */
-vx_size tensor_data_size(RocalTensorDataType data_type);
+vx_uint64 tensor_data_size(RocalTensorDataType data_type);
 
 /*! \brief Holds the information about a rocalTensor */
 class rocalTensorInfo {
@@ -121,7 +121,7 @@ public:
     }
     unsigned num_of_dims() const { return _num_of_dims; }
     unsigned batch_size() const { return _batch_size; }
-    size_t data_size() const { return _data_size; }
+    uint64_t data_size() const { return _data_size; }
     std::vector<size_t> max_dims() const { return _max_dims; }
     std::vector<size_t> dims() const { return _dims; }
     RocalMemType mem_type() const { return _mem_type; }
@@ -131,7 +131,7 @@ public:
     std::shared_ptr<std::vector<RocalROI>> get_roi() const { return _roi; }
     RocalColorFormat color_format() const { return _color_format; }
     Type type() const { return _type; }
-    size_t data_type_size() {
+    uint64_t data_type_size() {
         _data_type_size = tensor_data_size(_data_type);
         return _data_type_size;
     }
@@ -150,8 +150,8 @@ private:
     RocalTensorlayout _layout = RocalTensorlayout::NONE;     //!< layout of the tensor
     RocalColorFormat _color_format;  //!< color format of the image
     std::shared_ptr<std::vector<RocalROI>> _roi;
-    size_t _data_type_size = tensor_data_size(_data_type);
-    size_t _data_size = 0;
+    uint64_t _data_type_size = tensor_data_size(_data_type);
+    uint64_t _data_size = 0;
     std::vector<size_t> _max_dims;  //!< stores the the width and height dimensions in the tensor
     void reallocate_tensor_roi_buffers();
     bool _is_image = false;
@@ -206,14 +206,14 @@ private:
 /*! \brief Contains a list of rocalTensors */
 class rocalTensorList {
 public:
-    size_t size() { return _tensor_list.size(); }
+    uint64_t size() { return _tensor_list.size(); }
     bool empty() { return _tensor_list.empty(); }
     rocalTensor* front() { return _tensor_list.front(); }
     void push_back(rocalTensor* tensor) {
         _tensor_list.emplace_back(tensor);
         _tensor_data_size.emplace_back(tensor->info().data_size());
     }
-    std::vector<size_t> data_size() { return _tensor_data_size; }
+    std::vector<uint64_t> data_size() { return _tensor_data_size; }
     void release() {
         for (auto& tensor : _tensor_list) delete tensor;
     }
@@ -230,5 +230,5 @@ public:
 
 private:
     std::vector<rocalTensor*> _tensor_list;
-    std::vector<size_t> _tensor_data_size;
+    std::vector<uint64_t> _tensor_data_size;
 };
