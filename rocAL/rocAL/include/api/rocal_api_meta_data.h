@@ -29,14 +29,23 @@ THE SOFTWARE.
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateLabelReader(RocalContext rocal_context, const char* source_path);
 
-#if 0 // Commented for now
+///
+/// \param rocal_context
+/// \param source_path path to the folder that contains the dataset or metadata file
+/// \param sequence_length The number of frames in a sequence.
+/// \param frame_step Frame interval between each sequence.
+/// \param frame_stride Frame interval between frames in a sequence.
+/// \param file_list_frame_num True : when the inputs from text file is to be considered as frame numbers.
+/// False : when the inputs from text file is to considered as timestamps.
+/// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
+extern "C" RocalMetaData ROCAL_API_CALL rocalCreateVideoLabelReader(RocalContext rocal_context, const char* source_path, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
+
 ///
 /// \param rocal_context
 /// \param source_path path to the coco json file
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReader(RocalContext rocal_context, const char* source_path, bool is_output,
     const char* user_key_for_label, const char* user_key_for_filename);
-
 
 ///
 /// \param rocal_context
@@ -46,7 +55,6 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
     const char* user_key_for_label, const char* user_key_for_text,
     const char* user_key_for_xmin, const char* user_key_for_ymin, const char* user_key_for_xmax, const char* user_key_for_ymax,
     const char* user_key_for_filename);
-#endif
 
 ///
 /// \param rocal_context
@@ -54,18 +62,20 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool mask, bool is_box_encoder = false);
 
-#if 0 // Commented for now
+
 ///
 /// \param rocal_context
 /// \param source_path path to the file that contains the metadata file
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTextFileBasedLabelReader(RocalContext rocal_context, const char* source_path);
 
+
 ///
 /// \param rocal_context
 /// \param source_path path to the Caffe LMDB records for Classification
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCaffeLMDBLabelReader(RocalContext rocal_context, const char* source_path);
+
 
 ///
 /// \param rocal_context
@@ -75,7 +85,7 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCaffeLMDBReaderDetection(Roca
 
 ///
 /// \param rocal_context
-/// \param source_path path to the Caffe2LMDB records for Classification
+/// \param source_path path to the Caffe LMDB records for Object Detection
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCaffe2LMDBLabelReader(RocalContext rocal_context, const char* source_path, bool is_output);
@@ -86,8 +96,12 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCaffe2LMDBLabelReader(RocalCo
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCaffe2LMDBReaderDetection(RocalContext rocal_context, const char* source_path, bool is_output);
-#endif
 
+///
+/// \param rocal_context
+/// \param source_path path to the MXNet recordio files for Classification
+/// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
+extern "C" RocalMetaData ROCAL_API_CALL rocalCreateMXNetReader(RocalContext rocal_context, const char* source_path, bool is_output);
 ///
 /// \param rocal_context
 /// \param buf user buffer provided to be filled with output image names for images in the output batch.
@@ -143,12 +157,12 @@ extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext rocal_context,
 /// \param bufcount The user's buffer that will be filled with poylgon size for the mask info
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext rocal_context, int* bufcount);
 
-
-#if 0 // Commented for now
 ///
 /// \param rocal_context
 /// \param source_path path to the file that contains the metadata file
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTextCifar10LabelReader(RocalContext rocal_context, const char* source_path, const char* file_prefix);
+
+#if 0
 /// \param meta_data RocalMetaData object that contains info about the images and labels
 /// \param numOfClasses the number of classes for a image dataset
 /// \param buf user's buffer that will be filled with labels. Its needs to be at least of size batch_size.

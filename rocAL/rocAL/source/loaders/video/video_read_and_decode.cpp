@@ -26,7 +26,7 @@ THE SOFTWARE.
 
 namespace filesys = boost::filesystem;
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 std::tuple<VideoDecoder::ColorFormat, unsigned, AVPixelFormat>
 video_interpret_color_format(RocalColorFormat color_format)
 {

@@ -27,7 +27,7 @@ THE SOFTWARE.
 // VideoLoaderSharded Can be used to run load and decode in multiple shards, each shard by a single loader instance,
 // It improves load and decode performance since each loader loads the sequences in parallel using an internal thread
 //
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 class VideoLoaderSharded : public LoaderModule
 {
 public:

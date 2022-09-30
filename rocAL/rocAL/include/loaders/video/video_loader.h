@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "circular_buffer.h"
 #include "video_read_and_decode.h"
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 
 //
 // VideoLoader runs an internal thread for loading an decoding of sequences asynchronously

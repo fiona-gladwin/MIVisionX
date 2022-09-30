@@ -27,13 +27,13 @@ THE SOFTWARE.
 size_t  ROCAL_API_CALL
 rocalGetRemainingImages(RocalContext p_context)
 {
-    auto context = static_cast<Context*>(p_context);
+    auto context = static_cast<Context *>(p_context);
     size_t count = 0;
     try
     {
-        count = context->master_graph->remaining_images_count();
+        count = context->master_graph->remaining_count();
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
         context->capture_error(e.what());
         ERR(e.what());
@@ -43,28 +43,29 @@ rocalGetRemainingImages(RocalContext p_context)
 
 RocalStatus ROCAL_API_CALL rocalGetStatus(RocalContext p_context)
 {
-    if(!p_context)
+    if (!p_context)
         return ROCAL_CONTEXT_INVALID;
-    auto context = static_cast<Context*>(p_context);
+    auto context = static_cast<Context *>(p_context);
 
-    if(context->no_error())
+    if (context->no_error())
         return ROCAL_OK;
 
     return ROCAL_RUNTIME_ERROR;
 }
 
-const char* ROCAL_API_CALL rocalGetErrorMessage(RocalContext p_context)
+const char *ROCAL_API_CALL rocalGetErrorMessage(RocalContext p_context)
 {
-    auto context = static_cast<Context*>(p_context);
+    auto context = static_cast<Context *>(p_context);
     return context->error_msg();
 }
 TimingInfo
 ROCAL_API_CALL rocalGetTimingInfo(RocalContext p_context)
 {
-    auto context = static_cast<Context*>(p_context);
+    auto context = static_cast<Context *>(p_context);
     auto info = context->timing();
-    //INFO("shuffle time "+ TOSTR(info.shuffle_time)); to display time taken for shuffling dataset
-    //INFO("bbencode time "+ TOSTR(info.bb_process_time)); //to display time taken for bbox encoder
+    // INFO("shuffle time "+ TOSTR(info.shuffle_time)); to display time taken for shuffling dataset
+    // INFO("bbencode time "+ TOSTR(info.bb_process_time)); //to display time taken for bbox encoder
+
     return {info.image_read_time, info.image_decode_time, info.image_process_time, info.copy_to_output};
 }
 
@@ -86,13 +87,13 @@ size_t ROCAL_API_CALL rocalIsEmpty(RocalContext p_context)
 {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalIsEmpty")
-    auto context = static_cast<Context*>(p_context);
+    auto context = static_cast<Context *>(p_context);
     size_t ret = 0;
     try
     {
         ret = context->master_graph->empty();
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
         context->capture_error(e.what());
         ERR(e.what());

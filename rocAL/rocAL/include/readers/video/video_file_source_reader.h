@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "commons.h"
 #include "timing_debug.h"
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 class VideoFileSourceReader : public VideoReader
 {
 public:

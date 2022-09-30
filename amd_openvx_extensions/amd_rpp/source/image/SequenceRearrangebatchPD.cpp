@@ -1,20 +1,20 @@
 /*
-SequenceRearrangeright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
+SequenceRearrangebatchPDright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a SequenceRearrange
+Permission is hereby granted, free of charge, to any person obtaining a SequenceRearrangebatchPD
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
-to use, SequenceRearrange, modify, merge, publish, distribute, sublicense, and/or sell
+to use, SequenceRearrangebatchPD, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
-The above SequenceRearrangeright notice and this permission notice shall be included in
+The above SequenceRearrangebatchPDright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-AUTHORS OR SequenceRearrangeRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+AUTHORS OR SequenceRearrangebatchPDRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
@@ -22,7 +22,7 @@ THE SOFTWARE.
 
 #include "internal_publishKernels.h"
 
-struct SequenceRearrangeLocalData
+struct SequenceRearrangebatchPDLocalData
 {
     RPPCommonHandle handle;
     RppiSize dimensions;
@@ -42,7 +42,7 @@ struct SequenceRearrangeLocalData
 #endif
 };
 
-static vx_status VX_CALLBACK validateSequenceRearrange(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[])
+static vx_status VX_CALLBACK validateSequenceRearrangebatchPD(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[])
 {
     // check scalar alpha and beta type
     vx_status status = VX_SUCCESS;
@@ -76,9 +76,9 @@ static vx_status VX_CALLBACK validateSequenceRearrange(vx_node node, const vx_re
     return status;
 }
 
-static vx_status VX_CALLBACK processSequenceRearrange(vx_node node, const vx_reference *parameters, vx_uint32 num)
+static vx_status VX_CALLBACK processSequenceRearrangebatchPD(vx_node node, const vx_reference *parameters, vx_uint32 num)
 {
-    SequenceRearrangeLocalData *data = NULL;
+    SequenceRearrangebatchPDLocalData *data = NULL;
     vx_status return_status = VX_SUCCESS;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     vx_df_image df_image = VX_DF_IMAGE_VIRT;
@@ -226,9 +226,9 @@ static vx_status VX_CALLBACK processSequenceRearrange(vx_node node, const vx_ref
     return return_status;
 }
 
-static vx_status VX_CALLBACK initializeSequenceRearrange(vx_node node, const vx_reference *parameters, vx_uint32 num)
+static vx_status VX_CALLBACK initializeSequenceRearrangebatchPD(vx_node node, const vx_reference *parameters, vx_uint32 num)
 {
-    SequenceRearrangeLocalData *data = new SequenceRearrangeLocalData;
+    SequenceRearrangebatchPDLocalData *data = new SequenceRearrangebatchPDLocalData;
     memset(data, 0, sizeof(*data));
 #if ENABLE_OPENCL
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_OPENCL_COMMAND_QUEUE, &data->handle.cmdq, sizeof(data->handle.cmdq)));
@@ -254,22 +254,22 @@ static vx_status VX_CALLBACK initializeSequenceRearrange(vx_node node, const vx_
     return VX_SUCCESS;
 }
 
-static vx_status VX_CALLBACK uninitializeSequenceRearrange(vx_node node, const vx_reference *parameters, vx_uint32 num)
+static vx_status VX_CALLBACK uninitializeSequenceRearrangebatchPD(vx_node node, const vx_reference *parameters, vx_uint32 num)
 {
     return VX_SUCCESS;
 }
 
-vx_status SequenceRearrange_Register(vx_context context)
+vx_status SequenceRearrangebatchPD_Register(vx_context context)
 {
     vx_status status = VX_SUCCESS;
     // add kernel to the context with callbacks
-    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.SequenceRearrange",
-                                       VX_KERNEL_RPP_SEQUENCEREARRANGE,
-                                       processSequenceRearrange,
+    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.SequenceRearrangebatchPD",
+                                       VX_KERNEL_RPP_SEQUENCEREARRANGEBATCHPD,
+                                       processSequenceRearrangebatchPD,
                                        7,
-                                       validateSequenceRearrange,
-                                       initializeSequenceRearrange,
-                                       uninitializeSequenceRearrange);
+                                       validateSequenceRearrangebatchPD,
+                                       initializeSequenceRearrangebatchPD,
+                                       uninitializeSequenceRearrangebatchPD);
     ERROR_CHECK_OBJECT(kernel);
     AgoTargetAffinityInfo affinity;
     vxQueryContext(context, VX_CONTEXT_ATTRIBUTE_AMD_AFFINITY, &affinity, sizeof(affinity));

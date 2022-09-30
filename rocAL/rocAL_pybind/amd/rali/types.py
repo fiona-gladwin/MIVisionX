@@ -39,7 +39,12 @@ from rali_pybind.types import NCHW
 from rali_pybind.types import HARDWARE_DECODE
 from rali_pybind.types import SOFTWARE_DECODE
 
-
+#     RocalDecodeDevice
+from rali_pybind.types import DECODER_TJPEG
+from rali_pybind.types import DECODER_OPENCV
+from rali_pybind.types import DECODER_HW_JEPG
+from rali_pybind.types import DECODER_VIDEO_FFMPEG_SW
+from rali_pybind.types import DECODER_VIDEO_FFMPEG_HW
 
 
 _known_types={
@@ -72,7 +77,13 @@ _known_types={
     RGB_PLANAR : ("RGB_PLANAR", RGB_PLANAR),
 
     HARDWARE_DECODE : ("HARDWARE_DECODE", HARDWARE_DECODE),
-    SOFTWARE_DECODE : ("SOFTWARE_DECODE", SOFTWARE_DECODE)
+    SOFTWARE_DECODE : ("SOFTWARE_DECODE", SOFTWARE_DECODE),
+    
+    DECODER_TJPEG : ("DECODER_TJPEG", DECODER_TJPEG),
+    DECODER_OPENCV : ("DECODER_OPENCV", DECODER_OPENCV),
+    DECODER_HW_JEPG : ("DECODER_HW_JEPG", DECODER_HW_JEPG),
+    DECODER_VIDEO_FFMPEG_SW : ("DECODER_VIDEO_FFMPEG_SW", DECODER_VIDEO_FFMPEG_SW),
+    DECODER_VIDEO_FFMPEG_HW : ("DECODER_VIDEO_FFMPEG_HW", DECODER_VIDEO_FFMPEG_HW)
 }
 
 

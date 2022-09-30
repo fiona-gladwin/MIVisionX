@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "video_properties.h"
 #include <cmath>
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 void substring_extraction(std::string const &str, const char delim, std::vector<std::string> &out)
 {
     size_t start;

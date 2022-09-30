@@ -56,13 +56,11 @@ void RingBuffer:: block_if_full()
         _wait_for_unload.wait(lock);
     }
 }
-
 std::vector<void*> RingBuffer::get_read_buffers()
 {
     block_if_empty();
     if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
         return _dev_sub_buffer[_read_ptr];
-
     return _host_sub_buffers[_read_ptr];
 }
 

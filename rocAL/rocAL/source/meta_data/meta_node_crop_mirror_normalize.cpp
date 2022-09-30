@@ -93,6 +93,7 @@ void CropMirrorNormalizeMetaNode::update_parameters(MetaDataBatch* input_meta_da
         // the following shouldn't happen since all crops should atleast have one bbox
         if(bb_coords.size() == 0)
         {
+            std::cerr <<"Crop mirror Normalize - Zero Bounding boxes" << std::endl;
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }

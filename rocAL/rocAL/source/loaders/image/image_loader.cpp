@@ -56,6 +56,7 @@ void ImageLoader::shut_down()
     _circ_buff.release();
 }
 
+
 void ImageLoader::set_prefetch_queue_depth(size_t prefetch_queue_depth)
 {
     if(prefetch_queue_depth <= 0)

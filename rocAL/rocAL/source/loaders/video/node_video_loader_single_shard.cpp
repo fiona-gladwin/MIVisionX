@@ -22,7 +22,7 @@ THE SOFTWARE.
 
 #include "node_video_loader_single_shard.h"
 #include "exception.h"
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 #if ENABLE_HIP
 VideoLoaderSingleShardNode::VideoLoaderSingleShardNode(rocalTensor *output, DeviceResourcesHip device_resources):
 #else

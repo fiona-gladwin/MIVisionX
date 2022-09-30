@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 
 #include "node.h"
-
 Node::~Node()
 {
 
@@ -60,8 +59,8 @@ Node::create(std::shared_ptr<Graph> graph)
 void
 Node::update_parameters()
 {
-    update_node();
     update_src_roi();
+    update_node();
 }
 
 void
@@ -69,12 +68,10 @@ Node::update_src_roi()
 {
     if(_inputs[0]->info().is_image() && _outputs[0]->info().is_image())
     {
-        vx_status roi_status;
-        roi_status = vxCopyArrayRange((vx_array)_src_tensor_roi, 0, _batch_size * 4, sizeof(vx_uint32), _inputs[0]->info().get_roi()->data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-        if(roi_status != 0)
-            THROW(" Failed calling vxCopyArrayRange for width / height status : "+ TOSTR(roi_status))
-        roi_status = vxCopyArrayRange((vx_array)_dst_tensor_roi, 0, _batch_size * 4, sizeof(vx_uint32), _outputs[0]->info().get_roi()->data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-        if(roi_status != 0)
-            THROW(" Failed calling vxCopyArrayRange for width / height status : "+ TOSTR(roi_status))
+        vx_status src_roi_status, dst_roi_status;
+        src_roi_status = vxCopyArrayRange((vx_array)_src_tensor_roi, 0, _batch_size * 4, sizeof(vx_uint32), _inputs[0]->info().get_roi()->data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+        dst_roi_status = vxCopyArrayRange((vx_array)_dst_tensor_roi, 0, _batch_size * 4, sizeof(vx_uint32), _outputs[0]->info().get_roi()->data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+        if(src_roi_status != 0 || dst_roi_status != 0)
+            THROW(" Failed calling vxCopyArrayRange for src / dst roi status : "+ TOSTR(src_roi_status) + " / "+ TOSTR(dst_roi_status))
     }
 }

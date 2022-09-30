@@ -103,7 +103,7 @@ vx_status ResizeCropMirrorPD_Register(vx_context);
 vx_status RotatebatchPD_Register(vx_context);
 vx_status SaturationbatchPD_Register(vx_context);
 vx_status ScalebatchPD_Register(vx_context);
-vx_status SequenceRearrange_Register(vx_context);
+vx_status SequenceRearrangebatchPD_Register(vx_context);
 vx_status SnowbatchPD_Register(vx_context);
 vx_status SobelbatchPD_Register(vx_context);
 vx_status SubtractbatchPD_Register(vx_context);
@@ -127,7 +127,7 @@ vx_status Resize_Register(vx_context);
 vx_status Crop_Register(vx_context);
 vx_status ColorTwist_Register(vx_context);
 vx_status ResizeMirrorNormalize_Register(vx_context);
-
+vx_status SequenceRearrange_Register(vx_context);
 
 // Image kernel names
 #define VX_KERNEL_RPP_NOPBATCHPD_NAME                                         "org.rpp.NopbatchPD"
@@ -209,7 +209,7 @@ vx_status ResizeMirrorNormalize_Register(vx_context);
 #define VX_KERNEL_RPP_CROPMIRRORNORMALIZEBATCHPD_NAME                         "org.rpp.CropMirrorNormalizebatchPD"
 #define VX_KERNEL_RPP_CROPPD_NAME                                             "org.rpp.CropPD"
 #define VX_KERNEL_RPP_RESIZECROPMIRRORPD_NAME                                 "org.rpp.ResizeCropMirrorPD"
-#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                  "org.rpp.SequenceRearrange"
+#define VX_KERNEL_RPP_SEQUENCEREARRANGEBATCHPD_NAME                           "org.rpp.SequenceRearrangebatchPD"
 
 // Tensor kernel names
 #define VX_KERNEL_RPP_NOP_NAME                                               "org.rpp.Nop"
@@ -221,4 +221,5 @@ vx_status ResizeMirrorNormalize_Register(vx_context);
 #define VX_KERNEL_RPP_CROP_NAME                                              "org.rpp.Crop"
 #define VX_KERNEL_RPP_COLORTWIST_NAME                                        "org.rpp.ColorTwist"
 #define VX_KERNEL_RPP_RESIZEMIRROR_NAME                                      "org.rpp.ResizeMirrorNormalize"
+#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_

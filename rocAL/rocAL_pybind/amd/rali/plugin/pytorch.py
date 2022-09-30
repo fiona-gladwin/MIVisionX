@@ -65,35 +65,26 @@ class RALIGenericIterator(object):
         return self.__next__()
 
     def __next__(self):
-        print("Comes to next")
         if(b.isEmpty(self.loader._handle)):
             raise StopIteration
 
         if self.loader.rocalRun() != 0:
-            print("Stop Iteration")
             raise StopIteration
         else:
             self.output_tensor_list = self.loader.rocalGetOutputTensors()
 
         #From init
 
-        print(self.output_tensor_list)
         self.augmentation_count = len(self.output_tensor_list)
-        # print("AUG COUNT", self.augmentation_count)
         self.w = self.output_tensor_list[0].batch_width()
         self.h = self.output_tensor_list[0].batch_height()
         self.batch_size = self.output_tensor_list[0].batch_size()
-        print("\n Batch Size",self.batch_size)
         self.color_format = self.output_tensor_list[0].color_format()
-        print(self.color_format)
-        print(self.batch_size * self.h * self.color_format * self.w)
         #NHWC default for now
         # if self.tensor_format == types.NHWC:
         self.output = torch.empty((self.batch_size, self.h, self.w, self.color_format,), dtype=torch.uint8)
         self.out = torch.permute(self.output, (0,3,1,2)) #NCHW expected by classification
 
-        #     self.out = torch.empty((self.batch_size, self.color_format, self.h, self.w, ), dtype=torch.uint8)
-        # next
         self.output_tensor_list[0].copy_data(ctypes.c_void_p(self.out.data_ptr()))
         self.labels = self.loader.rocalGetImageLabels()
         self.labels_tensor = torch.from_numpy(self.labels).type(torch.LongTensor)

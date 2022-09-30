@@ -116,12 +116,27 @@ enum RocalDecoderType
     ROCAL_DECODER_HW_JEPG = 2,
     ROCAL_DECODER_VIDEO_FFMPEG_SW = 3,
     ROCAL_DECODER_VIDEO_FFMPEG_HW = 4,
-    ROCAL_DECODER_AUDIO_SNDFILE = 5
 };
 
 // rocal external memcpy flags
 #define    ROCAL_MEMCPY_TO_HOST      1      // force copy to user provided host memory
 #define    ROCAL_MEMCPY_TO_DEVICE    2      // force copy to user provided device memory (gpu)
 #define    ROCAL_MEMCPY_IS_PINNED    4      // for future use
+
+enum RocalResizeScalingMode {
+    ROCAL_SCALING_MODE_DEFAULT = 0,     // scales wrt specified size, if only resize width/height is provided the other dimension is scaled according to aspect ratio
+    ROCAL_SCALING_MODE_STRETCH = 1,     // scales wrt specified size, if only resize width/height is provided the other dimension is not scaled
+    ROCAL_SCALING_MODE_NOT_SMALLER = 2, // scales wrt to aspect ratio, so that resize width/height is not lesser than the specified size
+    ROCAL_SCALING_MODE_NOT_LARGER = 3   // scales wrt to aspect ratio, so that resize width/height does not exceed specified size
+};
+
+enum RocalResizeInterpolationType {
+    ROCAL_NEAREST_NEIGHBOR_INTERPOLATION = 0,
+    ROCAL_LINEAR_INTERPOLATION = 1,
+    ROCAL_CUBIC_INTERPOLATION = 2,
+    ROCAL_LANCZOS_INTERPOLATION = 3,
+    ROCAL_GAUSSIAN_INTERPOLATION = 4,
+    ROCAL_TRIANGULAR_INTERPOLATION = 5
+};
 
 #endif //MIVISIONX_ROCAL_API_TYPES_H

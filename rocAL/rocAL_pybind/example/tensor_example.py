@@ -20,7 +20,7 @@ def draw_patches(img, idx, device):
     else:
         image = img.cpu().numpy()
     image = image.transpose([1, 2, 0])
-    print(img.shape)
+    # print(img.shape)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/FILE_READER/" + "brightness" + "/" + str(idx)+"_"+"train"+".png", image * 255)
 
@@ -83,7 +83,7 @@ def main():
     #                                     file_root=data_path, shard_id=local_rank, num_shards=world_size, random_shuffle=True)
     #     res = fn.resize(decode, resize_width=224, resize_height=224, rocal_tensor_layout = types.NHWC, rocal_tensor_output_type = types.UINT8)
     #     flip_coin = fn.random.coin_flip(probability=0.5)
-    #     cmnp = fn.crop_mirror_normalize(centrecrop, device="gpu",
+    #     cmnp = fn.crop_mirror_normalize(res, device="gpu",
     #                                         rocal_tensor_layout = types.NHWC,
     #                                         rocal_tensor_output_type = types.UINT8,
     #                                         crop=(224, 224),
@@ -129,7 +129,7 @@ def main():
         for i , it in enumerate(imageIteratorPipeline):
             print("************************************** i *************************************",i)
             for img in it[0]:
-                print(img.shape)
+                # print(img.shape)
                 cnt = cnt + 1
                 draw_patches(img, cnt, "cpu")
         imageIteratorPipeline.reset()

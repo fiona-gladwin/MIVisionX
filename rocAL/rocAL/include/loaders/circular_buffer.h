@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include <vector>
 #include <condition_variable>
 #if !ENABLE_HIP
-#include <CL/cl.h>
+    #include <CL/cl.h>
 #endif
 #include <queue>
 #include "device_manager.h"

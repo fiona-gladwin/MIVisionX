@@ -29,7 +29,7 @@ int handleError( int status, const char* func_name,
             int line, void* userdata )
 {
     //TODO: add proper error handling here
-    return 0;
+    return 0;   
 }
 
 CVDecoder::CVDecoder() {
@@ -70,7 +70,7 @@ Decoder::Status CVDecoder::decode(unsigned char *input_buffer, size_t input_size
     }
     cv::Mat mat_rgb;
     cv::cvtColor(m_mat_orig, mat_rgb, cv::COLOR_BGR2RGB, 0);
-    cv::Mat mat_scaled = cv::Mat(max_decoded_width, max_decoded_height, CV_8UC3, output_buffer);
+    cv::Mat mat_scaled = cv::Mat(max_decoded_width, max_decoded_height, CV_8UC3, output_buffer); 
     cv::resize(mat_rgb, mat_scaled, cv::Size(max_decoded_width, max_decoded_height), cv::INTER_LINEAR);
     if(mat_scaled.rows == 0 || mat_scaled.cols == 0) {
         actual_decoded_width = m_mat_orig.cols;

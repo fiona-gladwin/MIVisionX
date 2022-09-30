@@ -62,14 +62,83 @@ void ResizeNode::create_node()
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the resize (vxExtrppNode_Resize) node failed: "+ TOSTR(status))
 }
-void ResizeNode::update_node()
-{
 
+void ResizeNode::update_node() {
+    std::shared_ptr<std::vector<RocalROI>> src_roi = _inputs[0]->info().get_roi();
+    for (unsigned i = 0; i < _batch_size; i++) {
+        _src_width = src_roi->at(i).x2;
+        _src_height = src_roi->at(i).y2;
+        _dst_width = _out_width;
+        _dst_height = _out_height;
+        adjust_out_roi_size();
+        _dst_width = std::min(_dst_width, (unsigned)_outputs[0]->info().max_dims()[0]);
+        _dst_height = std::min(_dst_height, (unsigned)_outputs[0]->info().max_dims()[1]);
+        _dst_roi_width_vec.push_back(_dst_width);
+        _dst_roi_height_vec.push_back(_dst_height);
+    }
+    vx_status width_status, height_status;
+    width_status = vxCopyArrayRange((vx_array)_dst_roi_width, 0, _batch_size, sizeof(vx_uint32), _dst_roi_width_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+    height_status = vxCopyArrayRange((vx_array)_dst_roi_height, 0, _batch_size, sizeof(vx_uint32), _dst_roi_height_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+    if(width_status != 0 || height_status != 0)
+        WRN("ERROR: vxCopyArrayRange _dst_roi_width or _dst_roi_height failed " + TOSTR(width_status) + "  " + TOSTR(height_status));
+    _outputs[0]->update_tensor_roi(_dst_roi_width_vec, _dst_roi_height_vec);
+    _dst_roi_width_vec.clear();
+    _dst_roi_height_vec.clear();
 }
 
-void ResizeNode::init(int interpolation_type, int layout)
+void ResizeNode::init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode,
+                      std::vector<unsigned> max_size, RocalResizeInterpolationType interpolation_type, int layout)
 {
-  _interpolation_type=interpolation_type;
+    _interpolation_type = (int)interpolation_type;
+    _scaling_mode = scaling_mode;
+    _out_width = dest_width;
+    _out_height = dest_height;
+    if(max_size.size() > 0) {
+        _max_width = max_size[0];
+        _max_height = max_size[1];
+    }
   _layout=layout;
     // _layout = (unsigned) _outputs[0]->layout();
+}
+
+void ResizeNode::adjust_out_roi_size() {
+    bool has_max_size = (_max_width | _max_height) > 0;
+
+    if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_STRETCH) {
+        if (_dst_width == 0) _dst_width = _src_width;
+        if (_dst_height == 0) _dst_height = _src_height;
+
+        if (has_max_size) {
+            if (_max_width != 0) _dst_width = std::min(_dst_width, _max_width);
+            if (_max_height != 0) _dst_height = std::min(_dst_height, _max_height);
+        }
+    } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_DEFAULT) {
+        if (_dst_width == 0 && _dst_height != 0) {  // Only height is passed
+            _dst_width = std::lround(_src_width * (static_cast<float>(_dst_height) / _src_height));
+        } else if (_dst_height == 0 && _dst_width != 0) {  // Only width is passed
+            _dst_height = std::lround(_src_height * (static_cast<float>(_dst_width) / _src_width));
+        }
+
+        if (has_max_size) {
+            if (_max_width != 0) _dst_width = std::min(_dst_width, _max_width);
+            if (_max_height != 0) _dst_height = std::min(_dst_height, _max_height);
+        }
+    } else {
+        float scale = 1.0f;
+        float scale_w = static_cast<float>(_dst_width) / _src_width;
+        float scale_h = static_cast<float>(_dst_height) / _src_height;
+        if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_SMALLER) {
+            scale = std::max(scale_w, scale_h);
+        } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_LARGER) {
+            scale = (scale_w > 0 && scale_h > 0) ? std::min(scale_w, scale_h) : ((scale_w > 0) ? scale_w : scale_h);
+        }
+
+        if (has_max_size) {
+            if (_max_width != 0) scale = std::min(scale, static_cast<float>(_max_width) / _src_width);
+            if (_max_height != 0) scale = std::min(scale, static_cast<float>(_max_height) / _src_height);
+        }
+
+        if ((scale_w != scale) || (_dst_width == 0)) _dst_width = std::lround(_src_width * scale);
+        if ((scale_h != scale) || (_dst_height == 0)) _dst_height = std::lround(_src_height * scale);
+    }
 }

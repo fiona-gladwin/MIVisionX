@@ -44,7 +44,7 @@ void CropParam::set_y_drift_factor(Parameter<float>* y_drift)
 }
 
 void CropParam::get_crop_dimensions(std::vector<uint32_t> &crop_w_dim, std::vector<uint32_t> &crop_h_dim)
-{
+{   
     crop_h_dim = croph_arr_val;
     crop_w_dim = cropw_arr_val;
 }
@@ -99,7 +99,6 @@ void CropParam::update_crop_array()
     status = vxCopyArrayRange((vx_array)y2_arr, 0, batch_size, sizeof(vx_uint32), y2_arr_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     if(status != VX_SUCCESS)
         WRN("ERROR: vxCopyArrayRange x1_arr failed " +TOSTR(status));
-
 }
 
 Parameter<float> *CropParam::default_x_drift_factor()

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "graph.h"
 #include <tuple>
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 class VideoLoaderNode : public Node
 {
 public:

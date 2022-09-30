@@ -23,7 +23,6 @@ THE SOFTWARE.
 #include "node_image_loader_single_shard.h"
 #include "exception.h"
 
-
 #if ENABLE_HIP
 ImageLoaderSingleShardNode::ImageLoaderSingleShardNode(rocalTensor *output, DeviceResourcesHip device_resources):
 #else
@@ -35,9 +34,9 @@ ImageLoaderSingleShardNode::ImageLoaderSingleShardNode(rocalTensor *output, Devi
 }
 
 void
-ImageLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, const std::string &source_path, const std::string &json_path,
-                                 StorageType storage_type, DecoderType decoder_type, bool shuffle, bool loop,
-                                 size_t load_batch_count, RocalMemType mem_type, std::shared_ptr<MetaDataReader> meta_data_reader, bool decoder_keep_original, const std::map<std::string, std::string> feature_key_map)
+ImageLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, const std::string &source_path, const std::string &json_path, StorageType storage_type, DecoderType decoder_type,
+                                 bool shuffle, bool loop, size_t load_batch_count, RocalMemType mem_type, std::shared_ptr<MetaDataReader> meta_data_reader,
+                                 bool decoder_keep_original, const std::map<std::string, std::string> feature_key_map, unsigned sequence_length, unsigned step, unsigned stride)
 {
     if(!_loader_module)
         THROW("ERROR: loader module is not set for ImageLoaderNode, cannot initialize")
@@ -52,6 +51,10 @@ ImageLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, const 
     reader_cfg.set_shard_id(shard_id);
     reader_cfg.set_batch_count(load_batch_count);
     reader_cfg.set_meta_data_reader(meta_data_reader);
+    //  sequence_length, step and stride parameters used only for SequenceReader
+    reader_cfg.set_sequence_length(sequence_length);
+    reader_cfg.set_frame_step(step);
+    reader_cfg.set_frame_stride(stride);
     _loader_module->initialize(reader_cfg, DecoderConfig(decoder_type),
                                mem_type,
                                _batch_size, decoder_keep_original);

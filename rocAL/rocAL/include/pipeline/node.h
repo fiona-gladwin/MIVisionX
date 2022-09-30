@@ -24,9 +24,8 @@ THE SOFTWARE.
 #include <set>
 #include <memory>
 #include "graph.h"
-#include "meta_data_graph.h"
 #include "tensor.h"
-
+#include "meta_data_graph.h"
 class Node
 {
 public:
@@ -42,10 +41,9 @@ public:
     void add_next(const std::shared_ptr<rocalTensor>& node) {} // To be implemented
     void add_previous(const std::shared_ptr<rocalTensor>& node) {} //To be implemented
     std::shared_ptr<Graph> graph() { return _graph; }
-    bool _is_ssd = false;
     void set_meta_data(MetaDataBatch* meta_data_info){_meta_data_info = meta_data_info;}
-
-    protected:
+    bool _is_ssd = false;
+protected:
     virtual void create_node() = 0;
     virtual void update_node() = 0;
     virtual void update_src_roi();

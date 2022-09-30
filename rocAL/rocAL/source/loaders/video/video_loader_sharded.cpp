@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 
 #include "video_loader_sharded.h"
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 #if ENABLE_HIP
 VideoLoaderSharded::VideoLoaderSharded(DeviceResourcesHip dev_resources):
 #else

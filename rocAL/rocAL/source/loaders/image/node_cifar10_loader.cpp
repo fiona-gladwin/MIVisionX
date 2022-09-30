@@ -20,47 +20,44 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "node_audio_loader.h"
+#include "node_cifar10_loader.h"
 #include "exception.h"
 
+
 #if ENABLE_HIP
-AudioLoaderNode::AudioLoaderNode(rocalTensor *output, DeviceResourcesHip device_resources):
+Cifar10LoaderNode::Cifar10LoaderNode(rocalTensor *output, DeviceResourcesHip device_resources):
 #else
-AudioLoaderNode::AudioLoaderNode(rocalTensor *output, DeviceResources device_resources):
+Cifar10LoaderNode::Cifar10LoaderNode(rocalTensor *output, DeviceResources device_resources):
 #endif
         Node({}, {output})
 {
-    _loader_module = std::make_shared<AudioLoaderSharded>(device_resources);
+    _loader_module = std::make_shared<CIFAR10DataLoader>(device_resources);
 }
 
-
-void AudioLoaderNode::init(unsigned internal_shard_count, const std::string &source_path, StorageType storage_type,
-                           DecoderType decoder_type, bool shuffle, bool loop, size_t load_batch_count, RocalMemType mem_type, std::shared_ptr<MetaDataReader> meta_data_reader)
+void Cifar10LoaderNode::init(const std::string &source_path, const std::string &json_path, StorageType storage_type,
+                           bool loop, size_t load_batch_count, RocalMemType mem_type, const std::string &file_prefix)
 {
     if(!_loader_module)
-        THROW("ERROR: loader module is not set for AudioLoaderNode, cannot initialize")
-    if(internal_shard_count < 1)
-        THROW("Shard count should be greater than or equal to one")
+        THROW("ERROR: loader module is not set for Cifar10LoaderNode, cannot initialize")
     _loader_module->set_output(_outputs[0]);
-    // Set reader and decoder config accordingly for the AudioLoaderNode
-    auto reader_cfg = ReaderConfig(storage_type, source_path, "", std::map<std::string, std::string>(), shuffle, loop);
-    reader_cfg.set_shard_count(internal_shard_count);
+    // Set reader and decoder config accordingly for the Cifar10LoaderNode
+    auto reader_cfg = ReaderConfig(storage_type, source_path, json_path, std::map<std::string, std::string>(), loop);
     reader_cfg.set_batch_count(load_batch_count);
-    reader_cfg.set_meta_data_reader(meta_data_reader);
-    _loader_module->initialize(reader_cfg, DecoderConfig(decoder_type),
-             mem_type,
-             _batch_size, false);
+    reader_cfg.set_file_prefix(file_prefix);
+    // DecoderConfig will be ignored in loader. Just passing it for api match
+    _loader_module->initialize(reader_cfg, DecoderConfig(DecoderType::TURBO_JPEG),
+             mem_type, _batch_size);
     _loader_module->start_loading();
 }
 
-std::shared_ptr<LoaderModule> AudioLoaderNode::get_loader_module()
+std::shared_ptr<LoaderModule> Cifar10LoaderNode::get_loader_module()
 {
     if(!_loader_module)
-        WRN("AudioLoaderNode's loader module is null, not initialized")
+        WRN("Cifar10LoaderNode's loader module is null, not initialized")
     return _loader_module;
 }
 
-AudioLoaderNode::~AudioLoaderNode()
+Cifar10LoaderNode::~Cifar10LoaderNode()
 {
     _loader_module = nullptr;
 }

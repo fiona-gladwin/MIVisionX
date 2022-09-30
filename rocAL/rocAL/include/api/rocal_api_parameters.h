@@ -120,9 +120,4 @@ extern "C"  RocalFloatParam  ROCAL_API_CALL rocalCreateFloatRand(const float *va
 /// \return
 extern "C"  RocalStatus ROCAL_API_CALL rocalUpdateFloatRand(const float *values, const double *frequencies, unsigned size, RocalFloatParam updating_obj);
 
-///
-/// \param mu
-/// \param sigma
-/// \return
-extern "C"  RocalFloatParam  ROCAL_API_CALL rocalCreateFloatNormalRand(float mean, float sigma);
 #endif //MIVISIONX_ROCAL_API_PARAMETERS_H

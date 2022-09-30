@@ -280,6 +280,13 @@ namespace rali
             .value("HARDWARE_DECODE", ROCAL_HW_DECODE)
             .value("SOFTWARE_DECODE", ROCAL_SW_DECODE)
             .export_values();
+        py::enum_<RocalDecoderType>(types_m,"RocalDecoderType", "Rocal Decoder Type")
+            .value("DECODER_TJPEG",ROCAL_DECODER_TJPEG)
+            .value("DECODER_OPENCV",ROCAL_DECODER_OPENCV)
+            .value("DECODER_HW_JEPG",ROCAL_DECODER_HW_JEPG)
+            .value("DECODER_VIDEO_FFMPEG_SW",ROCAL_DECODER_VIDEO_FFMPEG_SW)
+            .value("DECODER_VIDEO_FFMPEG_HW",ROCAL_DECODER_VIDEO_FFMPEG_HW)
+            .export_values();
         // rocal_api_info.h
         m.def("getRemainingImages", &rocalGetRemainingImages);
         m.def("isEmpty", &rocalIsEmpty);
@@ -417,7 +424,8 @@ namespace rali
               py::arg("loop") = false,
               py::arg("decode_size_policy") = ROCAL_USE_MOST_FREQUENT_SIZE,
               py::arg("max_width") = 0,
-              py::arg("max_height") = 0);
+              py::arg("max_height") = 0,
+              py::arg("dec_type") = 0);
         m.def("FusedDecoderCropShard",&rocalFusedJpegCropSingleShard,"Reads file from the source and decodes them partially to output random crops",
             py::return_value_policy::reference);
         m.def("COCO_ImageDecoderShard",&rocalJpegCOCOFileSourceSingleShard,"Reads file from the source given and decodes it according to the shard id and number of shards",

@@ -21,46 +21,23 @@ THE SOFTWARE.
 */
 
 #pragma once
-
-#include <cstddef>
-#include <iostream>
-#include <vector>
+#include "node.h"
 #include "parameter_factory.h"
-#include "sndfile.h"
+#include "parameter_vx.h"
+#include "graph.h"
 
-enum class AudioDecoderType
-{
-    SOFTWARE_DECODE = 0
-};
-
-class AudioDecoderConfig
+class SequenceRearrangeNode : public Node
 {
 public:
-    AudioDecoderConfig() {}
-    explicit AudioDecoderConfig(AudioDecoderType type) : _type(type) {}
-    virtual AudioDecoderType type() { return _type; };
-    AudioDecoderType _type = AudioDecoderType::SOFTWARE_DECODE;
-};
-
-class AudioDecoder
-{
-public:
-    enum class Status
-    {
-        OK = 0,
-        HEADER_DECODE_FAILED,
-        CONTENT_DECODE_FAILED,
-        UNSUPPORTED,
-        FAILED,
-        NO_MEMORY
-    };
-    virtual AudioDecoder::Status initialize(const char *src_filename) = 0;
-    virtual AudioDecoder::Status decode(float* buffer) = 0; //to pass buffer & number of frames/samples to decode
-    virtual AudioDecoder::Status decode_info(int* samples, int* channels) = 0; //to decode info about the audio samples
-    virtual void release() = 0;
-    virtual ~AudioDecoder() = default;
+    SequenceRearrangeNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
+    SequenceRearrangeNode() = delete;
+    void init(unsigned int* new_order, unsigned int new_sequence_length, unsigned int sequence_length, unsigned int sequence_count);
 protected:
-    const char *_src_filename = NULL;
-    SF_INFO _sfinfo;
-    SNDFILE* _sf_ptr;
+    void create_node() override;
+    void update_node() override;
+private:
+    std::vector<unsigned int> _new_order;
+    unsigned int  _new_sequence_length, _sequence_length, _sequence_count;
+    vx_array _sequence_array;
+    unsigned _layout = 2;
 };

@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include <commons.h>
 #include "ffmpeg_video_decoder.h"
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 FFmpegVideoDecoder::FFmpegVideoDecoder(){};
 
 int FFmpegVideoDecoder::seek_frame(AVRational avg_frame_rate, AVRational time_base, unsigned frame_number)

@@ -26,6 +26,6 @@ THE SOFTWARE.
 #include "video_reader.h"
 #include "reader.h"
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 std::shared_ptr<VideoReader> create_video_reader(ReaderConfig config);
 #endif

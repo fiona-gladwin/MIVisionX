@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "node_crop.h"
 #include "node_copy.h"
 #include "node_nop.h"
+#include "node_sequence_rearrange.h"
 #include "meta_node_crop_mirror_normalize.h"
 #include "node_resize.h"
 #include "node_crop.h"
@@ -43,6 +44,7 @@ THE SOFTWARE.
 #include "commons.h"
 #include "context.h"
 #include "rocal_api.h"
+#define MAX_ASPECT_RATIO 3.0f
 
 void get_rocal_tensor_layout(RocalTensorLayout &tensor_layout, RocalTensorlayout &op_tensor_layout, int &layout)
 {
@@ -79,6 +81,46 @@ void get_rocal_tensor_data_type(RocalTensorOutputType &tensor_output_type, Rocal
     }
 }
 
+
+RocalTensor  ROCAL_API_CALL
+rocalSequenceRearrange(
+            RocalContext p_context,
+            RocalTensor input,
+            unsigned int* new_order,
+            unsigned int  new_sequence_length,
+            unsigned int sequence_length,
+            bool is_output )
+{
+    rocalTensor* output = nullptr;
+
+    if ((p_context == nullptr) || (input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input image")
+        return output;
+    }
+    auto context = static_cast<Context*>(p_context);
+    try
+    {
+
+        if(sequence_length == 0)
+            THROW("sequence_length passed should be bigger than 0")
+
+        rocalTensorInfo output_info = input->info();
+        std::vector<size_t> new_dims;
+        new_dims = output_info.dims();
+        new_dims[1] = new_sequence_length;
+        output_info.set_dims(new_dims);
+
+        output = context->master_graph->create_tensor(output_info, is_output);
+        std::shared_ptr<SequenceRearrangeNode> sequence_rearrange_node =  context->master_graph->add_node<SequenceRearrangeNode>({input}, {output});
+        sequence_rearrange_node->init(new_order, new_sequence_length, sequence_length, context->user_batch_size());
+    }
+    catch(const std::exception& e)
+    {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
 
 RocalTensor ROCAL_API_CALL
 rocalBrightness(
@@ -454,11 +496,14 @@ rocalResize(RocalContext p_context,
             RocalTensor p_input,
             RocalTensorLayout rocal_tensor_layout,
             RocalTensorOutputType rocal_tensor_output_type,
-            unsigned resize_depth,
-            unsigned resize_height,
-            unsigned resize_width,
-            int interpolation_type,
-            bool is_output)
+            unsigned dest_width,
+            unsigned dest_height,
+            bool is_output,
+            RocalResizeScalingMode scaling_mode,
+            std::vector<unsigned> max_size,
+            unsigned resize_shorter,
+            unsigned resize_longer,
+            RocalResizeInterpolationType interpolation_type)
 {
     rocalTensor* output = nullptr;
     auto context = static_cast<Context*>(p_context);
@@ -467,8 +512,63 @@ rocalResize(RocalContext p_context,
     RocalTensorDataType op_tensorDataType;
     try
     {
-        if(!input || !context || resize_width == 0 || resize_height == 0)
-            THROW("Null values passed as input")
+        if((dest_width | dest_height | resize_longer | resize_shorter) == 0)
+            THROW("Atleast one size 'dest_width' or 'dest_height' or 'resize_shorter' or 'resize_longer' must be specified")
+        if((dest_width | dest_height) && (resize_longer | resize_shorter))
+            THROW("Only one method of specifying size can be used \ndest_width and/or dest_height\nresize_shorter\nresize_longer")
+        if(resize_longer && resize_shorter)
+            THROW("'resize_longer' and 'resize_shorter' cannot be passed together. They are mutually exclusive.")
+
+        unsigned out_width, out_height;
+        RocalResizeScalingMode resize_scaling_mode;
+
+        // Change the scaling mode if resize_shorter or resize_longer is specified
+        if(resize_shorter) {
+            resize_scaling_mode = RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_SMALLER;
+            out_width = out_height = resize_shorter;
+        } else if(resize_longer) {
+            resize_scaling_mode = RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_LARGER;
+            out_width = out_height = resize_longer;
+        } else {
+            resize_scaling_mode = scaling_mode;
+            out_width = dest_width;
+            out_height = dest_height;
+        }
+
+        std::vector<unsigned> maximum_size;
+        if (max_size.size()) {
+            if(max_size.size() == 1) {
+                maximum_size = {max_size[0], max_size[0]};
+            } else if(max_size.size() == 2) {
+                maximum_size = {max_size[0], max_size[1]}; // {width, height}
+            } else {
+                THROW("The length of max_size vector exceeds the image dimension.")
+            }
+        }
+
+        // Determine the max width and height to be set to the output info
+        unsigned max_out_width, max_out_height;
+        if (maximum_size.size() && maximum_size[0] != 0 && maximum_size[1] != 0) {
+            // If max_size is passed by the user, the resized images cannot exceed the max size,
+            max_out_width = maximum_size[0];
+            max_out_height = maximum_size[1];
+        } else {
+            // compute the output info width and height wrt the scaling modes and roi passed
+            if(resize_scaling_mode == ROCAL_SCALING_MODE_STRETCH) {
+                max_out_width = out_width ? out_width : input->info().max_dims()[0];
+                max_out_height = out_height ? out_height : input->info().max_dims()[1];
+            } else if(resize_scaling_mode == ROCAL_SCALING_MODE_NOT_SMALLER) {
+                max_out_width = (out_width ? out_width : out_height) * MAX_ASPECT_RATIO;
+                max_out_height = (out_height ? out_height : out_width) * MAX_ASPECT_RATIO;
+            } else {
+                max_out_width = out_width ? out_width : out_height * MAX_ASPECT_RATIO;
+                max_out_height = out_height ? out_height : out_width * MAX_ASPECT_RATIO;
+            }
+            if(maximum_size.size() == 2) {
+                max_out_width = maximum_size[0] ? maximum_size[0] : max_out_width;
+                max_out_height = maximum_size[1] ? maximum_size[1] : max_out_height;
+            }
+        }
 
         int layout=0;
         get_rocal_tensor_layout(rocal_tensor_layout, op_tensorLayout, layout);
@@ -479,19 +579,19 @@ rocalResize(RocalContext p_context,
         std::vector<size_t> out_dims = output_info.dims();
         if(op_tensorLayout == RocalTensorlayout::NHWC)
         {
-            out_dims[1] = resize_height;
-            out_dims[2] = resize_width;
+            out_dims[1] = max_out_height;
+            out_dims[2] = max_out_width;
         }
         else if(op_tensorLayout == RocalTensorlayout::NCHW)
         {
-            out_dims[2] = resize_height;
-            out_dims[3] = resize_width;
+            out_dims[2] = max_out_height;
+            out_dims[3] = max_out_width;
         }
         output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
         std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({input}, {output});
-        resize_node->init( interpolation_type, layout);
+        resize_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type, layout);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
     }

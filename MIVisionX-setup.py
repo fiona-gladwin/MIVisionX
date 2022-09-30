@@ -387,12 +387,6 @@ else:
                 '(cd '+deps_dir+'; git clone -b 2.0.6.2 https://github.com/rrawther/libjpeg-turbo.git )')
             os.system('(cd '+deps_dir+'/libjpeg-turbo; mkdir build; cd build; '+linuxCMake +
                       ' -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RELEASE -DENABLE_STATIC=FALSE -DCMAKE_INSTALL_DEFAULT_LIBDIR=lib ..; make -j 4; sudo make install )')
-            #dependencies for snd file
-            os.system('sudo '+linuxFlag+' '+linuxSystemInstall+' ' +
-                      linuxSystemInstall_check+' install autogen build-essential libasound2-dev libflac-dev libogg-dev libvorbis-dev libopus-dev')
-            os.system(
-                '(cd '+deps_dir+'; git clone https://github.com/libsndfile/libsndfile.git)')
-            os.system('(cd '+deps_dir+'/libsndfile;./autogen.sh; ./configure --enable-werror; make -j 4; sudo make install )')
             # RPP
             # Remove Previous Install - RPP
             os.system('sudo -v')

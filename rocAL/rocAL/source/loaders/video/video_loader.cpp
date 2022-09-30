@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "video_read_and_decode.h"
 #include "vx_ext_amd.h"
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 #if ENABLE_HIP
 VideoLoader::VideoLoader(DeviceResourcesHip dev_resources):
 #else
@@ -51,14 +51,12 @@ VideoLoader::~VideoLoader()
 
 void VideoLoader::shut_down()
 {
-    if(_internal_thread_running)
-        stop_internal_thread();
     _circ_buff.release();
 }
 
 void VideoLoader::set_prefetch_queue_depth(size_t prefetch_queue_depth)
 {
-    if(prefetch_queue_depth <= 0)
+    if (prefetch_queue_depth <= 0)
         THROW("Prefetch quque depth value cannot be zero or negative");
     _prefetch_queue_depth = prefetch_queue_depth;
 }
@@ -128,10 +126,8 @@ void VideoLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg,
 {
     if (_is_initialized)
         WRN("initialize() function is already called and loader module is initialized")
-
     if (_output_mem_size == 0)
         THROW("output image size is 0, set_output_image() should be called before initialize for loader modules")
-
     _mem_type = mem_type;
     _batch_size = batch_size;
     _loop = reader_cfg.loop();

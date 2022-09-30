@@ -25,6 +25,6 @@ THE SOFTWARE.
 #include "video_decoder.h"
 #include "decoder.h"
 
-#ifdef RALI_VIDEO
+#ifdef ROCAL_VIDEO
 std::shared_ptr<VideoDecoder> create_video_decoder(DecoderConfig config);
 #endif

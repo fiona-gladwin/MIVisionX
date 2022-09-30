@@ -6,7 +6,7 @@ PYTHON_LIB_PATH=`python3 -c "from distutils.sysconfig import get_python_lib; pri
 INSTALL_FILE_PATH_ROCAL="/amd_rocal-1.1.0.dist-info/"
 ROCAL_PYTHON_LIB_PATH=$PYTHON_LIB_PATH$INSTALL_FILE_PATH_ROCAL
 sudo rm -r "$ROCAL_PYTHON_LIB_PATH"
-sudo rm -r ./amd_rali.egg-info/
+sudo rm -r ./amd_rocal.egg-info/
 sudo rm -r ./build
 sudo rm -r ./dist
 
@@ -47,3 +47,4 @@ else
   done
   pip$PYTHON_VERSION install $WHEEL_NAME
 fi
+
