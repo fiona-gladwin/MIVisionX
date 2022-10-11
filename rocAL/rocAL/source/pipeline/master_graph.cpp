@@ -917,7 +917,6 @@ void MasterGraph::output_routine()
             auto write_buffers = _ring_buffer.get_write_buffers();
             _rb_block_if_full_time.end();
 
-            _process_time.start();
             // When executing on CPU the internal batch count can be smaller than the user batch count
             // In that case the user_batch_size will be an integer multiple of the _internal_batch_size
             // Multiple cycles worth of internal_batch_size images should be processed to complete a full _user_batch_size
@@ -985,7 +984,9 @@ void MasterGraph::output_routine()
                     else
                         full_batch_meta_data = _augmented_meta_data->clone();
                 }
+                _process_time.start();
                 _graph->process();
+                _process_time.end();
             }
             _bencode_time.start();
             if(_is_box_encoder )
@@ -1004,7 +1005,6 @@ void MasterGraph::output_routine()
             _ring_buffer.set_meta_data(full_batch_image_names, full_batch_meta_data);
             _ring_buffer.push(); // Image data and metadata is now stored in output the ring_buffer, increases it's level by 1
         }
-        _process_time.end();
 
     }
     catch (const std::exception &e)
