@@ -305,7 +305,8 @@ int test(int test_case, const char* path, int rgb, int processing_device, int wi
             break;
         case 26: {
             std::cout << ">>>>>>> Running " << "rocalCrop " << std::endl;
-            rocalCrop(handle, image0, true);
+            rocalCropCenterFixed(handle, image0, 100, 100, 3 ,true);
+            
         }
             break;
         case 27: {
@@ -342,16 +343,13 @@ int test(int test_case, const char* path, int rgb, int processing_device, int wi
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
     int i = 0;
-    for(int epoch = 0; epoch < 3; epoch++)
+    for(int epoch = 0; epoch < 1; epoch++)
     {
         while (rocalGetRemainingImages(handle) >= inputBatchSize) {
             if (rocalRun(handle) != 0) {
-                rocalResetLoaders(handle);
                 break;
             }
         }
-        rocalResetLoaders(handle);
-
     }
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto dur = duration_cast<microseconds>(t2 - t1).count();
