@@ -142,7 +142,7 @@ for image_type in range(2):
                             tot_list.append([new_list[-1],new_list1[-1],new_list2[-1],new_list3[-1],new_list4[-1],new_list5[-1]])
                         print(tot_list)
                         
-                with open('tensor_performance_'+str(batch_size)+'_'+str(d_type)+'_'+$PIPELINE+'.csv', 'w', encoding='UTF8') as f:
+                with open('tensor_performance_'+str(batch_size)+'_'+str(d_type)+'_'+ PIPELINE+'.csv', 'w', encoding='UTF8') as f:
                     writer = csv.writer(f)
 
                     # write the header
