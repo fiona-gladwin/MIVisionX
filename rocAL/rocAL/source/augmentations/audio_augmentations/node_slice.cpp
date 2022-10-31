@@ -65,6 +65,24 @@ void SliceNode::create_node()
 
 }
 
+void applyPolicy(RocalOutOfBoundsPolicy policyType, float &anchor, float &sliceShape, float &srcBufferLength) {
+    switch (policyType) {
+        case RocalOutOfBoundsPolicy::PAD:
+            break;
+        case RocalOutOfBoundsPolicy::TRIMTOSHAPE:
+            anchor = std::min(std::max(anchor, 0.0f), srcBufferLength);
+            sliceShape = std::min(std::max(anchor + sliceShape, 0.0f), srcBufferLength);
+            break;
+        case RocalOutOfBoundsPolicy::ERROR:
+        default:
+            bool anchorCheck = (anchor < 0) || (anchor > srcBufferLength);
+            bool shapeCheck = ((anchor + sliceShape) < 0) || ((anchor + sliceShape) > srcBufferLength);
+            if(anchorCheck || shapeCheck)
+                THROW("Invalid values passed");
+            break;
+    }
+}
+
 void SliceNode::update_node()
 {
     // std::cerr<<"\n SliceNode::update_node()";
@@ -75,12 +93,15 @@ void SliceNode::update_node()
     for(unsigned i = 0; i < _batch_size; i++) {
         int idx = i * _num_of_dims;
         for(unsigned d = 0; d < _num_of_dims; d++) {
-            _anchor_vec[idx + d] = _anchor[d];
-            if(_shape.size() && _shape[d] > 0) {
-                _shape_vec[idx + d] = _shape[d];
+            float src_dim = static_cast<float>((d == 0) ? audio_roi->at(i).x1 : audio_roi->at(i).y1);
+            _anchor_vec[idx + d] = _normalized_anchor ? std::round(_anchor[d] * src_dim) : _anchor[d];
+            
+            if (_shape.size() && _shape[d] > 0) {
+                _shape_vec[idx + d] = _normalized_shape ? std::round(_shape[d] * src_dim) : _shape[d];
             } else {
-                _shape_vec[idx + d] = (d == 0) ? audio_roi->at(i).x1 : audio_roi->at(i).y1;
+                _shape_vec[idx + d] = src_dim;
             }
+            applyPolicy(_policy, _anchor_vec[idx + d], _shape_vec[idx + d], src_dim);
             _fill_values_vec[idx + d] = _fill_values[0];
             // std::cerr << _anchor_vec[idx + d] << " : " << _shape_vec[idx + d] << " : " << _fill_values_vec[idx + d] << "\t";
         }
@@ -103,7 +124,7 @@ void SliceNode::init(std::vector<float> &anchor, std::vector<float> &shape, std:
     _normalized_anchor = normalized_anchor;
     _normalized_shape = normalized_shape;
     _policy = policy;
-    _num_of_dims = _inputs[0]->info().num_of_dims() - 1;
+    _num_of_dims = 2; // _inputs[0]->info().dims()[2] >= 2 ? 2 : 1;
     _anchor = anchor;
     _shape = shape;
     _fill_values = fill_values;

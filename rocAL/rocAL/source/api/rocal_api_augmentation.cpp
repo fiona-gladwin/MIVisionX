@@ -1023,18 +1023,11 @@ RocalTensor rocalSlice(RocalContext p_context,
 
         rocalTensorInfo output_info = input->info();
         output_info.set_tensor_layout(RocalTensorlayout::NONE);
+        get_rocal_tensor_data_type(rocal_tensor_output_type, op_tensorDataType);
         output_info.set_data_type(op_tensorDataType);
-
         output = context->master_graph->create_tensor(output_info, is_output);
 
-        // rocalTensorInfo output_info = input->info();
-        // get_rocal_tensor_data_type(rocal_tensor_output_type, op_tensorDataType);
-        // std::vector<size_t> dims = output_info.dims();
-        // // dims[1] = 200; // shobi
-        // output_info.set_dims(dims);
-
-        // output_info.set_tensor_layout(RocalTensorlayout::NONE);
-        // output_info.set_data_type(op_tensorDataType);
+        std::vector<size_t> dims = output_info.dims();
 
         // output = context->master_graph->create_tensor(output_info, is_output);
         std::vector<float> anchors(2, 0);
@@ -1042,22 +1035,23 @@ RocalTensor rocalSlice(RocalContext p_context,
             if(anchor.size() == 1) {
                 anchors = {anchor[0], 0};
             } else if(anchor.size() == 2) {
-                anchors = anchor; // {width, height}
+                anchors = anchor;
             } else {
-                THROW("The length of max_size vector exceeds the image dimension.")
+                THROW("The length of anchors vector exceeds the image dimension.")
             }
         }
         
         std::vector<float> shapes;
         if (shape.size()) {
             if(shape.size() == 1) {
-                shapes = {shape[0], 0};
+                shapes = {shape[0], dims[2]};
             } else if(shape.size() == 2) {
-                shapes = shape; // {width, height}
+                shapes = shape;
             } else {
-                THROW("The length of max_size vector exceeds the image dimension.")
+                THROW("The length of shape vector exceeds the image dimension.")
             }
         }
+
         context->master_graph->add_node<SliceNode>({input}, {output})->init(anchors, shapes, fill_values,
                                                                             axes, normalized_anchor, normalized_shape, policy);
     }
