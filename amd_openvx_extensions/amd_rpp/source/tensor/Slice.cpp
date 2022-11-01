@@ -58,7 +58,6 @@ struct SliceLocalData
 #elif ENABLE_HIP
     void *hip_pSrc;
     void *hip_pDst;
-    // RpptROI *hip_roi_tensor_ptr;
 #endif
 };
 
@@ -66,10 +65,10 @@ static vx_status VX_CALLBACK refreshSlice(vx_node node, const vx_reference *para
 {
     vx_status status = VX_SUCCESS;
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[2], 0, data->nbatchSize * 4, sizeof(unsigned), data->roi_tensor_ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    for(uint i = 0; i < data->nbatchSize * 2; i+=2)
+    for(uint i = 0, j = 0; i < data->nbatchSize; i++, j += 2)
     {
-        data->srcDims[i] = data->roi_tensor_ptr[i].xywhROI.xy.x;
-        data->srcDims[i+1] = data->roi_tensor_ptr[i].xywhROI.xy.y;
+        data->srcDims[j] = data->roi_tensor_ptr[i].xywhROI.xy.x;
+        data->srcDims[j+1] = data->roi_tensor_ptr[i].xywhROI.xy.y;
     }
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->nbatchSize * data->numDims, sizeof(float), data->anchor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->nbatchSize * data->numDims, sizeof(float), data->shape, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -146,7 +145,7 @@ static vx_status VX_CALLBACK processSlice(vx_node node, const vx_reference *para
     {
 #if ENABLE_HIP
         refreshSlice(node, parameters, num, data);
-        // rpp_status = rppt_Slice_gpu((void *)data->hip_pSrc, data->src_desc_ptr, (void *)data->hip_pDst, data->src_desc_ptr,  data->alpha, data->beta, data->hip_roi_tensor_ptr, data->roiType, data->rppHandle);
+        rpp_status = rppt_slice_gpu((void *)data->hip_pSrc, data->src_desc_ptr, (void *)data->hip_pDst, data->dst_desc_ptr,  data->srcDims, data->anchor, data->shape, data->fill_values, data->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     }
@@ -200,8 +199,8 @@ static vx_status VX_CALLBACK initializeSlice(vx_node node, const vx_reference *p
 
     // source_description_ptr
     data->src_desc_ptr->n = data->in_tensor_dims[0];
-    data->src_desc_ptr->h = data->in_tensor_dims[2];
-    data->src_desc_ptr->w = data->in_tensor_dims[1];
+    data->src_desc_ptr->h = data->in_tensor_dims[1];
+    data->src_desc_ptr->w = data->in_tensor_dims[2];
     data->src_desc_ptr->c = 1;
     data->src_desc_ptr->strides.nStride = data->src_desc_ptr->c * data->src_desc_ptr->w * data->src_desc_ptr->h;
     data->src_desc_ptr->strides.hStride = data->src_desc_ptr->c * data->src_desc_ptr->w;
@@ -212,8 +211,8 @@ static vx_status VX_CALLBACK initializeSlice(vx_node node, const vx_reference *p
 
     // source_description_ptr
     data->dst_desc_ptr->n = data->out_tensor_dims[0];
-    data->dst_desc_ptr->w = data->out_tensor_dims[1];
-    data->dst_desc_ptr->h = data->out_tensor_dims[2];;
+    data->dst_desc_ptr->h = data->out_tensor_dims[1];
+    data->dst_desc_ptr->w = data->out_tensor_dims[2];
     data->dst_desc_ptr->c = 1;
     data->dst_desc_ptr->strides.nStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w * data->dst_desc_ptr->h;
     data->dst_desc_ptr->strides.hStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w;
@@ -228,10 +227,6 @@ static vx_status VX_CALLBACK initializeSlice(vx_node node, const vx_reference *p
     data->fill_values = (float *) calloc(data->src_desc_ptr->n * data->numDims, sizeof(float));
 
 
-// #if ENABLE_HIP
-//     if (data->deviceType == AGO_TARGET_AFFINITY_GPU)
-//         hipMalloc(&data->hip_roi_tensor_ptr, data->src_desc_ptr->n * sizeof(RpptROI));
-// #endif
 //     data->roi_tensor_ptr = (RpptROI *)calloc(data->src_desc_ptr->n, sizeof(RpptROI));
 std::cerr<<"\n Gonna call refresh slice in initialize";
     refreshSlice(node, parameters, num, data);

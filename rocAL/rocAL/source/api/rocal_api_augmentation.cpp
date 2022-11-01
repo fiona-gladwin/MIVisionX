@@ -1025,8 +1025,6 @@ RocalTensor rocalSlice(RocalContext p_context,
         output_info.set_tensor_layout(RocalTensorlayout::NONE);
         get_rocal_tensor_data_type(rocal_tensor_output_type, op_tensorDataType);
         output_info.set_data_type(op_tensorDataType);
-        output = context->master_graph->create_tensor(output_info, is_output);
-
         std::vector<size_t> dims = output_info.dims();
 
         // output = context->master_graph->create_tensor(output_info, is_output);
@@ -1051,7 +1049,18 @@ RocalTensor rocalSlice(RocalContext p_context,
                 THROW("The length of shape vector exceeds the image dimension.")
             }
         }
-
+        
+        if(shapes.size()) {
+            if (policy == RocalOutOfBoundsPolicy::TRIMTOSHAPE) {
+                dims[1] = anchors[0] + shapes[0] > dims[1] ? dims[1] : shapes[0];
+                dims[2] = anchors[1] + shapes[1] > dims[2] ? dims[2] : shapes[1];                
+            }   else {
+                dims[1] = shapes[0];
+                dims[2] = shapes[1];
+            }
+        }
+        output_info.set_dims(dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
         context->master_graph->add_node<SliceNode>({input}, {output})->init(anchors, shapes, fill_values,
                                                                             axes, normalized_anchor, normalized_shape, policy);
     }

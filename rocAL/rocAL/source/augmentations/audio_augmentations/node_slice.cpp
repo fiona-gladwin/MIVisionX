@@ -90,6 +90,7 @@ void SliceNode::update_node()
     if(src_roi_status != 0)
         THROW(" Failed calling vxCopyArrayRange for src / dst roi status : "+ TOSTR(src_roi_status))
     auto audio_roi = _inputs[0]->info().get_roi();
+    std::vector<unsigned> roi_x1(_batch_size), roi_y1(_batch_size);
     for(unsigned i = 0; i < _batch_size; i++) {
         int idx = i * _num_of_dims;
         for(unsigned d = 0; d < _num_of_dims; d++) {
@@ -105,6 +106,8 @@ void SliceNode::update_node()
             _fill_values_vec[idx + d] = _fill_values[0];
             // std::cerr << _anchor_vec[idx + d] << " : " << _shape_vec[idx + d] << " : " << _fill_values_vec[idx + d] << "\t";
         }
+        roi_x1[i] = _shape_vec[idx];
+        roi_y1[i] = _shape_vec[idx + 1];
         // std::cerr << "\n";
     }
     
@@ -114,6 +117,7 @@ void SliceNode::update_node()
     status |= vxCopyArrayRange((vx_array)_fill_values_array, 0, _batch_size * _num_of_dims, sizeof(vx_float32), _fill_values_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     if(status != 0)
         WRN("ERROR: vxCopyArrayRange failed in the normalize node (vxExtrppNode_Normalize)  node: "+ TOSTR(status))
+    _outputs[0]->update_tensor_roi(roi_x1, roi_y1);
     _anchor_vec.clear();
     _shape_vec.clear();
     _fill_values_vec.clear();
