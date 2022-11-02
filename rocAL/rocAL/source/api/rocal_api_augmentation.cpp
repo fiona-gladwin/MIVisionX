@@ -758,7 +758,7 @@ rocalPad(RocalContext p_context,
     auto input = static_cast<rocalTensor*>(p_input);
     try {
         rocalTensorInfo output_info = input->info();
-
+        output_info.set_tensor_layout(RocalTensorlayout::NONE);
         // Commented as it is not used in FAMBench Pipeline trainings
         // std::vector<int> alignment;
         // if(align.size() == 1 && output_info.num_of_dims() == 3)

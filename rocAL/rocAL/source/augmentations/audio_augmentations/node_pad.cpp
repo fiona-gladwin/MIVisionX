@@ -63,15 +63,17 @@ void PadNode::update_node() {
     vx_status src_roi_status = vxCopyArrayRange((vx_array)_src_tensor_roi, 0, _batch_size * 4, sizeof(vx_uint32), _inputs[0]->info().get_roi()->data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     if(src_roi_status != 0)
         THROW(" Failed calling vxCopyArrayRange for src / dst roi status : "+ TOSTR(src_roi_status))
-    auto audio_roi = _inputs[0]->info().get_roi();
+    std::vector<unsigned> roi_x1(_batch_size), roi_y1(_batch_size);
     bool has_same_dim = true;
     for(unsigned i = 0; i < _batch_size; i++) {
         int idx = i * _num_of_dims;
         for(unsigned d = 0; d < _num_of_dims; d++) {
             _anchor_vec[idx + d] = 0;
-            _shape_vec[idx + d] = (d == 0) ? audio_roi->at(i).x1 : audio_roi->at(i).y1;
+            _shape_vec[idx + d] = (d == 0) ? _inputs[0]->info().max_dims()[0] : _inputs[0]->info().max_dims()[1];
             _fill_values_vec[idx + d] = _fill_value;
         }
+        roi_x1[i] = _shape_vec[idx];
+        roi_y1[i] = _shape_vec[idx + 1];
     }
 
     if(!has_same_dim && _batch_size)
@@ -83,6 +85,7 @@ void PadNode::update_node() {
     status |= vxCopyArrayRange((vx_array)_fill_values_array, 0, _batch_size * _num_of_dims, sizeof(vx_float32), _fill_values_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     if(status != 0)
         WRN("ERROR: vxCopyArrayRange failed in the normalize node (vxExtrppNode_Normalize)  node: "+ TOSTR(status))
+    _outputs[0]->update_tensor_roi(roi_x1, roi_y1);
     _anchor_vec.clear();
     _shape_vec.clear();
     _fill_values_vec.clear();
