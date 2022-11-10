@@ -9,7 +9,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 import torchvision.models as models
-import matplotlib.pyplot as plt
 import time
 import math
 import tqdm as tqdm
@@ -31,57 +30,17 @@ data_dir = os.listdir("./Flower102/split_data/")
 
 data_dir = './Flower102/split_data/'
 train_dir = data_dir + '/train'
-valid_dir = data_dir + '/val'
+val_dir = data_dir + '/val'
 test_dir = data_dir + '/test'
 
-def pil_loader(path):
-    with open(path, 'rb') as f:
-        img = Image.open(f)
-        return img.convert('RGB')
-
-def draw_patches(img, idx, device):
-    #image is expected as a tensor, bboxes as numpy
-    import cv2
-
-    image = img.detach().numpy()
-    image = img.cpu().numpy()
-    image = image.transpose([1, 2, 0])
- 
-    image = (image).astype('uint8')
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    cv2.imwrite("OUTPUT_IMAGES_PYTHON/" + str(idx)+"_"+"val"+".png", image)
-
-class TestDataset(torch.utils.data.Dataset):
-    def __init__(self, path, transform=None):
-        self.path = path
-        self.files = []
-        for (dirpath, _, filenames) in os.walk(self.path):
-            for f in filenames:
-                if f.endswith('.jpg'):
-                    p = {}
-                    p['img_path'] = dirpath + '/' + f
-                    self.files.append(p)
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.files)
-
-    def __getitem__(self, idx):
-        img_path = self.files[idx]['img_path']
-        img_name = img_path.split('/')[-1]
-        image = pil_loader(img_path)
-        if self.transform:
-            image = self.transform(image)
-        return image, 0, img_name
-
 def train_pipeline(data_path, batch_size, num_classes, one_hot, local_rank, world_size, num_thread, crop, rocal_cpu, fp16):
-    pipe = Pipeline(batch_size=batch_size, num_threads=num_thread, device_id=local_rank, seed=local_rank+10, rocal_cpu=rocal_cpu, tensor_dtype = types.FLOAT16 if fp16 else types.FLOAT, tensor_layout=types.NCHW, prefetch_queue_depth = 6)
+    pipe = Pipeline(batch_size=batch_size, num_threads=num_thread, device_id=local_rank, rocal_cpu=rocal_cpu, tensor_dtype = types.FLOAT16 if fp16 else types.FLOAT, tensor_layout=types.NCHW, prefetch_queue_depth = 6)
     with pipe:
         jpegs, labels = fn.readers.file(file_root=data_path, shard_id=local_rank, num_shards=world_size, random_shuffle=True, seed=local_rank+10)
         rocal_device = 'cpu' if rocal_cpu else 'gpu'
-        decode = fn.decoders.image_slice(jpegs, output_type=types.RGB,
+        decode = fn.decoders.image_random_crop(jpegs, output_type=types.RGB,
                                                     file_root=data_path, shard_id=1, num_shards=10, random_shuffle=True, seed=local_rank+10)
-        res = fn.resize(decode, resize_x=224, resize_y=224, seed=local_rank+10,  interpolation_type=types.TRIANGULAR_INTERPOLATION)
+        res = fn.resize(decode, resize_x=224, resize_y=224, interpolation_type=types.TRIANGULAR_INTERPOLATION)
 
         cmnp = fn.crop_mirror_normalize(res, device="gpu",
                                             output_dtype=types.FLOAT,
@@ -98,18 +57,17 @@ def train_pipeline(data_path, batch_size, num_classes, one_hot, local_rank, worl
     return pipe
 
 def val_pipeline(data_path, batch_size, num_classes, one_hot, local_rank, world_size, num_thread, crop, rocal_cpu, fp16):
-    pipe = Pipeline(batch_size=batch_size, num_threads=num_thread, device_id=local_rank, seed=local_rank + 10, rocal_cpu=rocal_cpu, tensor_dtype = types.FLOAT16 if fp16 else types.FLOAT, tensor_layout=types.NCHW, prefetch_queue_depth = 2)
+    pipe = Pipeline(batch_size=batch_size, num_threads=num_thread, device_id=local_rank, rocal_cpu=rocal_cpu, tensor_dtype = types.FLOAT16 if fp16 else types.FLOAT, tensor_layout=types.NCHW, prefetch_queue_depth = 2)
     with pipe:
-        jpegs, labels = fn.readers.file(file_root=data_path, seed=local_rank+10)
+        jpegs, labels = fn.readers.file(file_root=data_path)
         rocal_device = 'cpu' if rocal_cpu else 'gpu'
-        decode = fn.decoders.image_slice(jpegs, output_type=types.RGB,file_root=data_path, shard_id=1, num_shards=10, random_shuffle=False, seed=local_rank+10)
-        res = fn.resize(decode, resize_x=224, resize_y=224, seed=local_rank+10,  interpolation_type=types.TRIANGULAR_INTERPOLATION)
+        decode = fn.decoders.image_random_crop(jpegs, output_type=types.RGB,file_root=data_path, shard_id=1, num_shards=10, random_shuffle=False, seed=local_rank+10)
+        res = fn.resize(decode, resize_x=224, resize_y=224,   interpolation_type=types.TRIANGULAR_INTERPOLATION)
         cmnp = fn.crop_mirror_normalize(res , device="cpu",
                                             output_dtype=types.FLOAT16 if fp16 else types.FLOAT,
                                             output_layout=types.NCHW,
                                             crop=(224, 224),
                                             mirror=0,
-                                            seed = local_rank+10,
                                             image_type=types.RGB,
                                             mean=[0,0,0],
                                             std=[1,1,1])
@@ -123,9 +81,9 @@ pipe = train_pipeline(data_path=train_dir, batch_size=64, num_classes=1, one_hot
 pipe.build()
 trainloader = ROCALClassificationIterator(pipe)
 
-pipe = val_pipeline(data_path=valid_dir, batch_size=64, num_classes=1, one_hot=0, local_rank=1 , world_size=1 , num_thread=3, crop=10, rocal_cpu='cpu', fp16=False)
+pipe = val_pipeline(data_path=val_dir, batch_size=64, num_classes=1, one_hot=0, local_rank=1 , world_size=1 , num_thread=3, crop=10, rocal_cpu='cpu', fp16=False)
 pipe.build()
-validloader = ROCALClassificationIterator(pipe)
+valloader = ROCALClassificationIterator(pipe)
 
 
 def accuracy(output, target, is_test=False):
@@ -401,7 +359,7 @@ def test(model=None):
         global val_accs, val_losses
         running_loss = 0.
         avg_beta = 0.98
-        for i, data in enumerate(validloader):
+        for i, data in enumerate(valloader):
             input =data[0]
             target =data[1]
             bt_start = time.time()
@@ -418,7 +376,7 @@ def test(model=None):
         
             val_losses.append(smoothed_loss)
             val_accs.append(prec)
-        validloader.reset()
+        valloader.reset()
 
 
 def fit(model=None, sched=None, optimizer=None):
