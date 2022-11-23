@@ -19,5 +19,5 @@ python download_and_preprocess_dataset.py
 
 To run this example for the first run or subsequent runs, just execute:
 ```
-python3.9 Classification_training_flowerdataset.py
+python3.9 classification_training_flowerdataset.py
 ```
