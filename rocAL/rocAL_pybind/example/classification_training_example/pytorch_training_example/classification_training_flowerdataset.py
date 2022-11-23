@@ -13,7 +13,8 @@ import time
 import math
 import tqdm as tqdm
 import os
-import time 
+import time
+import matplotlib.pyplot as plt
 from amd.rocal.plugin.pytorch import ROCALClassificationIterator
 from amd.rocal.pipeline import Pipeline
 import amd.rocal.fn as fn
