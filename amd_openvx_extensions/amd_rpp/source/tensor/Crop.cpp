@@ -345,7 +345,7 @@ static vx_status VX_CALLBACK initializeCrop(vx_node node, const vx_reference *pa
         data->src_desc_ptr->strides.wStride = data->src_desc_ptr->c;
         data->src_desc_ptr->strides.cStride = 1;
         data->src_desc_ptr->layout = RpptLayout::NHWC;
-    
+
         data->dst_desc_ptr->n = data->out_tensor_dims[0] * data->out_tensor_dims[1];
         data->dst_desc_ptr->h = data->out_tensor_dims[2];
         data->dst_desc_ptr->w = data->out_tensor_dims[3];
@@ -368,7 +368,7 @@ static vx_status VX_CALLBACK initializeCrop(vx_node node, const vx_reference *pa
         data->src_desc_ptr->strides.wStride = 1;
         data->src_desc_ptr->layout = RpptLayout::NCHW;
 
-        data->dst_desc_ptr->n = data->out_tensor_dims[0]*data->out_tensor_dims[1];
+        data->dst_desc_ptr->n = data->out_tensor_dims[0] * data->out_tensor_dims[1];
         data->dst_desc_ptr->h = data->out_tensor_dims[3];
         data->dst_desc_ptr->w = data->out_tensor_dims[4];
         data->dst_desc_ptr->c = data->out_tensor_dims[2];

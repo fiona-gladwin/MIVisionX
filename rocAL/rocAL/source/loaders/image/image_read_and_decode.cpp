@@ -184,7 +184,7 @@ ImageReadAndDecode::load(unsigned char* buff,
     const Decoder::ColorFormat decoder_color_format = std::get<0>(ret);
     const unsigned output_planes = std::get<1>(ret);
     const bool keep_original = decoder_keep_original;
-    const size_t image_size = max_decoded_width * max_decoded_height * output_planes * sizeof(unsigned char);
+    const uint64_t image_size = max_decoded_width * max_decoded_height * output_planes * sizeof(unsigned char);
 
     // Decode with the height and size equal to a single image
     // File read is done serially since I/O parallelization does not work very well.
@@ -193,7 +193,7 @@ ImageReadAndDecode::load(unsigned char* buff,
         while ((file_counter != _batch_size) && _reader->count_items() > 0)
         {
             auto read_ptr = buff + image_size * file_counter;
-            size_t fsize = _reader->open();
+            uint64_t fsize = _reader->open();
             if (fsize == 0) {
                 WRN("Opened file " + _reader->id() + " of size 0");
                 continue;
@@ -218,7 +218,8 @@ ImageReadAndDecode::load(unsigned char* buff,
     }
     else {
         while ((file_counter != _batch_size) && _reader->count_items() > 0) {
-            size_t fsize = _reader->open();
+
+            uint64_t fsize = _reader->open();
             if (fsize == 0) {
                 WRN("Opened file " + _reader->id() + " of size 0");
                 continue;

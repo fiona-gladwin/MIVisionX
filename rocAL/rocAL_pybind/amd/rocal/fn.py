@@ -1,13 +1,13 @@
 
-from amd.rali import readers
-from amd.rali import decoders
-from amd.rali import random
-# from amd.rali import noise
-# from amd.rali import reductions
+from amd.rocal import readers
+from amd.rocal import decoders
+from amd.rocal import random
+# from amd.rocal import noise
+# from amd.rocal import reductions
 
-import amd.rali.types as types
-import rali_pybind as b
-from amd.rali.pipeline import Pipeline
+import amd.rocal.types as types
+import rocal_pybind as b
+from amd.rocal.pipeline import Pipeline
 
 
 def brightness(*inputs, brightness=1.0, bytes_per_sample_hint=0, image_type=0,
@@ -23,12 +23,12 @@ def brightness_fixed(*inputs, alpha=None, beta=None, seed=-1, device=None):
     brightness_image = b.Brightness(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
     return (brightness_image)
 
-def resize(*inputs, bytes_per_sample_hint=0, image_type=0, interp_type=1, mag_filter= 1, max_size = [0.0, 0.0], min_filter = 1,
-            minibatch_size=32, preserve=False, resize_longer=0.0, resize_shorter= 0.0, resize_depth = 0, resize_width = 0, resize_height = 0,
-            save_attrs=False, seed=1, rocal_tensor_layout=types.NCHW, rocal_tensor_output_type=types.FLOAT, interpolation_type = 4, temp_buffer_hint=0, device = None):
+def resize(*inputs, bytes_per_sample_hint=0, image_type=0, interp_type=1, mag_filter= 1, max_size = [], min_filter = 1,
+            minibatch_size=32, preserve=False, resize_longer=0, resize_shorter= 0, resize_depth = 0, resize_width = 0, resize_height = 0,  scaling_mode=types.SCALING_MODE_DEFAULT, interpolation_type=types.LINEAR_INTERPOLATION,
+            save_attrs=False, seed=1, rocal_tensor_layout=types.NCHW, rocal_tensor_output_type=types.FLOAT, temp_buffer_hint=0, device = None):
     # pybind call arguments
-    kwargs_pybind = {"input_image0": inputs[0], "rocal_tensor_layout" : rocal_tensor_layout, "rocal_tensor_output_type" : rocal_tensor_output_type,  "resize_depth:" : resize_depth , "resize_height": resize_height, "resize_width": resize_width, "interpolation_type" : interpolation_type,
-                     "is_output": False}
+    kwargs_pybind = {"input_image0": inputs[0], "rocal_tensor_layout" : rocal_tensor_layout, "rocal_tensor_output_type" : rocal_tensor_output_type,  "dest_width:" : resize_width , "dest_height": resize_height, "is_output": False, "scaling_mode": scaling_mode, "max_size": max_size, "resize_shorter": resize_shorter, 
+                     "resize_longer": resize_longer, "interpolation_type": interpolation_type}
     resized_image = b.Resize(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
     return (resized_image)
 

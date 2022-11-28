@@ -1,7 +1,7 @@
 import torch
 import numpy as np
-import rali_pybind as b
-import amd.rali.types as types
+import rocal_pybind as b
+import amd.rocal.types as types
 import ctypes
 
 # class RALIGenericImageIterator(object):
@@ -50,14 +50,17 @@ import ctypes
 #         return self
 
 
-class RALIGenericIterator(object):
-    def __init__(self, pipeline, tensor_layout = types.NCHW, reverse_channels = False, multiplier = [1.0,1.0,1.0], offset = [0.0, 0.0, 0.0], tensor_dtype=types.FLOAT):
+class ROCALGenericIterator(object):
+    def __init__(self, pipeline, tensor_layout = types.NCHW, reverse_channels = False, multiplier = [1.0,1.0,1.0], offset = [0.0, 0.0, 0.0], tensor_dtype=types.FLOAT, device="cpu", device_id=0):
         self.loader = pipeline
         self.tensor_format =tensor_layout
         self.multiplier = multiplier
         self.offset = offset
         self.reverse_channels = reverse_channels
         self.tensor_dtype = tensor_dtype
+        self.device = device
+        self.device_id = device_id
+        print("self.device", self.device)
         self.len = b.getRemainingImages(self.loader._handle)
 
 
@@ -65,41 +68,38 @@ class RALIGenericIterator(object):
         return self.__next__()
 
     def __next__(self):
-        print("Comes to next")
         if(b.isEmpty(self.loader._handle)):
             raise StopIteration
 
         if self.loader.rocalRun() != 0:
-            print("Stop Iteration")
             raise StopIteration
         else:
             self.output_tensor_list = self.loader.rocalGetOutputTensors()
 
         #From init
-
-        print(self.output_tensor_list)
         self.augmentation_count = len(self.output_tensor_list)
-        # print("AUG COUNT", self.augmentation_count)
         self.w = self.output_tensor_list[0].batch_width()
         self.h = self.output_tensor_list[0].batch_height()
         self.batch_size = self.output_tensor_list[0].batch_size()
-        print("\n Batch Size",self.batch_size)
         self.color_format = self.output_tensor_list[0].color_format()
-        print(self.color_format)
-        print(self.batch_size * self.h * self.color_format * self.w)
         #NHWC default for now
-        # if self.tensor_format == types.NHWC:
-        self.output = torch.empty((self.batch_size, self.h, self.w, self.color_format,), dtype=torch.uint8)
+        if self.device == "cpu":
+            if self.tensor_dtype == types.FLOAT:
+                self.output = torch.empty((self.batch_size, self.h, self.w, self.color_format,), dtype=torch.float32)
+            else:
+                self.output = torch.empty((self.batch_size, self.h, self.w, self.color_format,), dtype=torch.uint8)
+        else:
+            torch_gpu_device = torch.device('cuda', self.device_id)
+            if self.tensor_dtype == types.FLOAT:
+                self.output = torch.empty((self.batch_size, self.h, self.w, self.color_format,), dtype=torch.float32, device=torch_gpu_device)
+            else:
+                self.output = torch.empty((self.batch_size, self.h, self.w, self.color_format,), dtype=torch.uint8, device=torch_gpu_device)
         self.out = torch.permute(self.output, (0,3,1,2)) #NCHW expected by classification
-
-        #     self.out = torch.empty((self.batch_size, self.color_format, self.h, self.w, ), dtype=torch.uint8)
-        # next
         self.output_tensor_list[0].copy_data(ctypes.c_void_p(self.out.data_ptr()))
         self.labels = self.loader.rocalGetImageLabels()
-        self.labels_tensor = torch.from_numpy(self.labels).type(torch.LongTensor)
-
+        self.labels_tensor = torch.from_numpy(self.labels).type(torch.LongTensor)        
         if self.tensor_dtype == types.FLOAT:
-            return self.out.to(torch.float), self.labels_tensor
+            return self.out, self.labels_tensor
         elif self.tensor_dtype == types.FLOAT16:
             return (self.out.astype(np.float16)), self.labels_tensor
 
@@ -116,7 +116,7 @@ class RALIGenericIterator(object):
         b.rocalRelease(self.loader._handle)
 
 
-class RALIClassificationIterator(RALIGenericIterator):
+class ROCALClassificationIterator(ROCALGenericIterator):
     """
     RALI iterator for classification tasks for PyTorch. It returns 2 outputs
     (data and label) in the form of PyTorch's Tensor.
@@ -125,13 +125,13 @@ class RALIClassificationIterator(RALIGenericIterator):
 
     .. code-block:: python
 
-       RALIClassificationIterator(pipelines, size)
+       ROCALClassificationIterator(pipelines, size)
 
     is equivalent to calling
 
     .. code-block:: python
 
-       RALIGenericIterator(pipelines, ["data", "label"], size)
+       ROCALGenericIterator(pipelines, ["data", "label"], size)
 
     Please keep in mind that Tensors returned by the iterator are
     still owned by RALI. They are valid till the next iterator call.
@@ -139,7 +139,7 @@ class RALIClassificationIterator(RALIGenericIterator):
 
     Parameters
     ----------
-    pipelines : list of amd.raliLI.pipeline.Pipeline
+    pipelines : list of amd.rocalLI.pipeline.Pipeline
                 List of pipelines to use
     size : int
            Number of samples in the epoch (Usually the size of the dataset).
@@ -176,14 +176,16 @@ class RALIClassificationIterator(RALIGenericIterator):
     """
     def __init__(self,
                  pipelines,
+                 device="cpu",
+                 device_id=0,
                  size = 0,
                  auto_reset=False,
                  fill_last_batch=True,
                  dynamic_shape=False,
                  last_batch_padded=False):
         pipe = pipelines
-        super(RALIClassificationIterator, self).__init__(pipe, tensor_layout = pipe._tensor_layout, tensor_dtype = pipe._tensor_dtype,
-                                                            multiplier=pipe._multiplier, offset=pipe._offset)
+        super(ROCALClassificationIterator, self).__init__(pipe, tensor_layout = pipe._tensor_layout, tensor_dtype = pipe._tensor_dtype,
+                                                            multiplier=pipe._multiplier, offset=pipe._offset, device=device, device_id=device_id)
 
 
 # class RALI_iterator(RALIGenericImageIterator):

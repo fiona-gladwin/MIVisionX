@@ -215,7 +215,7 @@ int main(int argc, const char ** argv)
 #elif CLASSIFICATION_VAL
     std::vector<float> mean{0.485 * 255, 0.456 * 255, 0.406 * 255};
     std::vector<float> sdev{0.229 * 255, 0.224 * 255, 0.225 * 255};
-    image1 = rocalResizeShorter(handle, input1, tensorLayout, tensorOutputType, 256, true);
+    image1 = rocalResize(handle, input1, tensorLayout, tensorOutputType, 256, true);
     image2 = rocalCropCenterFixed(handle, image1, tensorLayout, tensorOutputType, 224, 224, 3, false);
     image1 = rocalCropMirrorNormalize(handle, image2, tensorLayout, RocalTensorOutputType::ROCAL_FP32, 3, 224, 224, 0, 0, 0, mean, sdev, true);
 #elif SSD

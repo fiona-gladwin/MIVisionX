@@ -1,6 +1,6 @@
 import numpy as np
-import rali_pybind as b
-import amd.rali.types as types
+import rocal_pybind as b
+import amd.rocal.types as types
 class RALIGenericImageIterator(object):
     def __init__(self, pipeline):
         self.loader = pipeline

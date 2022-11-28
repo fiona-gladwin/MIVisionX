@@ -2,12 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import random
-from amd.rali.plugin.pytorch import RALIClassificationIterator
+from amd.rocal.plugin.pytorch import ROCALClassificationIterator
 
-from amd.rali.pipeline import Pipeline
-import amd.rali.fn as fn
-import amd.rali.types as types
-# import rali_pybind.tensor
+from amd.rocal.pipeline import Pipeline
+import amd.rocal.fn as fn
+import amd.rocal.types as types
 import sys
 import cv2
 import os
@@ -20,7 +19,7 @@ def draw_patches(img, idx, device):
     else:
         image = img.cpu().numpy()
     image = image.transpose([1, 2, 0])
-    print(img.shape)
+    # print(img.shape)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/FILE_READER/" + "brightness" + "/" + str(idx)+"_"+"train"+".png", image * 255)
 
@@ -64,7 +63,7 @@ def main():
     #     pipe.set_outputs(brightend_images)
 
     # pipe.build()
-    # imageIterator = RALIClassificationIterator(pipe)
+    # imageIterator = ROCALClassificationIterator(pipe)
     # cnt = 0
     # for i , it in enumerate(imageIterator):
     #     print("************************************** i *************************************",i)
@@ -75,64 +74,67 @@ def main():
 
     print("*********************************************************************")
 
-    # image_classification_train_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=random_seed, rocal_cpu=_rali_cpu)
+    image_classification_train_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=random_seed, rocal_cpu=_rali_cpu)
 
-    # with image_classification_train_pipeline:
-    #     jpegs, labels = fn.readers.file(file_root=data_path)
-    #     decode = fn.decoders.image_slice(jpegs, output_type=types.RGB,
-    #                                     file_root=data_path, shard_id=local_rank, num_shards=world_size, random_shuffle=True)
-    #     res = fn.resize(decode, resize_width=224, resize_height=224, rocal_tensor_layout = types.NHWC, rocal_tensor_output_type = types.UINT8)
-    #     flip_coin = fn.random.coin_flip(probability=0.5)
-    #     cmnp = fn.crop_mirror_normalize(res, device="gpu",
-    #                                         rocal_tensor_layout = types.NHWC,
-    #                                         rocal_tensor_output_type = types.UINT8,
-    #                                         crop=(224, 224),
-    #                                         mirror=flip_coin,
-    #                                         image_type=types.RGB,
-    #                                         mean=[0.485 * 255,0.456 * 255,0.406 * 255],
-    #                                         std=[0.229 * 255,0.224 * 255,0.225 * 255])
-    #     image_classification_train_pipeline.set_outputs(cmnp)
-
-    # image_classification_train_pipeline.build()
-    # imageIteratorPipeline = RALIClassificationIterator(image_classification_train_pipeline)
-    # cnt = 0
-    # for i , it in enumerate(imageIteratorPipeline):
-    #     print("************************************** i *************************************",i)
-    #     for img in it[0]:
-    #         print(img.shape)
-    #         cnt = cnt + 1
-    #         draw_patches(img, cnt, "cpu")
-
-    # print("*********************************************************************")
-
-    image_classification_val_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=random_seed, rocal_cpu=_rali_cpu)
-
-    with image_classification_val_pipeline:
+    with image_classification_train_pipeline:
         jpegs, labels = fn.readers.file(file_root=data_path)
-        decode = fn.decoders.image(jpegs,file_root=data_path, output_type=types.RGB, shard_id=local_rank, num_shards=world_size, random_shuffle=False)
-        res = fn.resize_shorter(decode, resize_size = 256)
-        centrecrop = fn.centre_crop(res, crop=(224, 224))
-        cmnp = fn.crop_mirror_normalize(centrecrop, device="gpu",
+        decode = fn.decoders.image_slice(jpegs, output_type=types.RGB,
+                                        file_root=data_path, shard_id=local_rank, num_shards=world_size, random_shuffle=True)
+        res = fn.resize(decode, resize_width=224, resize_height=224, rocal_tensor_layout = types.NHWC, rocal_tensor_output_type = types.UINT8)
+        flip_coin = fn.random.coin_flip(probability=0.5)
+        cmnp = fn.crop_mirror_normalize(res, device="gpu",
                                             rocal_tensor_layout = types.NHWC,
-                                            rocal_tensor_output_type = types.UINT8,
+                                            rocal_tensor_output_type = types.FLOAT,
                                             crop=(224, 224),
-                                            mirror=0,
+                                            mirror=flip_coin,
                                             image_type=types.RGB,
                                             mean=[0.485 * 255,0.456 * 255,0.406 * 255],
                                             std=[0.229 * 255,0.224 * 255,0.225 * 255])
-        image_classification_val_pipeline.set_outputs(cmnp)
+        image_classification_train_pipeline.set_outputs(cmnp)
 
-    image_classification_val_pipeline.build()
-    imageIteratorPipeline = RALIClassificationIterator(image_classification_val_pipeline)
+    image_classification_train_pipeline.build()
+    imageIteratorPipeline = ROCALClassificationIterator(image_classification_train_pipeline)
     cnt = 0
-    for e in range(3):
+    for epoch in range(3):
+        print("+++++++++++++++++++++++++++++EPOCH+++++++++++++++++++++++++++++++++++++",epoch)
         for i , it in enumerate(imageIteratorPipeline):
+            print(it)
             print("************************************** i *************************************",i)
-            for img in it[0]:
-                print(img.shape)
-                cnt = cnt + 1
-                draw_patches(img, cnt, "cpu")
+            # for img in it[0]:
+                # print(img.shape)
+                # cnt = cnt + 1
+                # draw_patches(img, cnt, "cpu")
         imageIteratorPipeline.reset()
+    print("*********************************************************************")
+    exit(0)
+    # image_classification_val_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=random_seed, rocal_cpu=_rali_cpu)
+
+    # with image_classification_val_pipeline:
+    #     jpegs, labels = fn.readers.file(file_root=data_path)
+    #     decode = fn.decoders.image(jpegs,file_root=data_path, output_type=types.RGB, shard_id=local_rank, num_shards=world_size, random_shuffle=False)
+    #     res = fn.resize_shorter(decode, resize_size = 256)
+    #     centrecrop = fn.centre_crop(res, crop=(224, 224))
+    #     cmnp = fn.crop_mirror_normalize(centrecrop, device="gpu",
+    #                                         rocal_tensor_layout = types.NHWC,
+    #                                         rocal_tensor_output_type = types.UINT8,
+    #                                         crop=(224, 224),
+    #                                         mirror=0,
+    #                                         image_type=types.RGB,
+    #                                         mean=[0.485 * 255,0.456 * 255,0.406 * 255],
+    #                                         std=[0.229 * 255,0.224 * 255,0.225 * 255])
+    #     image_classification_val_pipeline.set_outputs(cmnp)
+
+    # image_classification_val_pipeline.build()
+    # imageIteratorPipeline = ROCALClassificationIterator(image_classification_train_pipeline)
+    # cnt = 0
+    # for e in range(3):
+    #     for i , it in enumerate(imageIteratorPipeline):
+    #         print("************************************** i *************************************",i)
+    #         for img in it[0]:
+    #             # print(img.shape)
+    #             cnt = cnt + 1
+    #             draw_patches(img, cnt, "cpu")
+    #     imageIteratorPipeline.reset()
 
 
 

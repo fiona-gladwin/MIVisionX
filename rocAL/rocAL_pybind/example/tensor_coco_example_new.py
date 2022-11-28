@@ -9,6 +9,7 @@ import numpy as np
 from amd.rocal.pipeline import Pipeline
 import amd.rocal.fn as fn
 import amd.rocal.types as types
+# import rali_pybind.tensor
 import sys
 import cv2
 import os
@@ -32,7 +33,6 @@ class ROCALCOCOIterator(object):
             assert pipelines is not None, "Number of provided pipelines has to be at least 1"
         except Exception as ex:
             print(ex)
-        #print("INIT")
         self.loader = pipelines
         self.tensor_format = tensor_layout
         self.multiplier = multiplier if multiplier else [1.0, 1.0, 1.0]
@@ -57,35 +57,30 @@ class ROCALCOCOIterator(object):
         return self.__next__()
 
     def __next__(self):
-        #print("next")
         if(self.loader.isEmpty()):
             raise StopIteration
-        #print("here 1")
         if self.loader.rocalRun() != 0:
-            #print("here")
             raise StopIteration
         else:
-            #print("Comes to Next in COCO pipeline ")
             self.output_tensor_list = self.loader.rocalGetOutputTensors()
 
         #From init
 
         self.lis = []  # Empty list for bboxes
         self.lis_lab = []  # Empty list of labels
-        #print(self.output_tensor_list)
         self.w = self.output_tensor_list[0].batch_width()
         self.h = self.output_tensor_list[0].batch_height()
         self.bs = self.output_tensor_list[0].batch_size()
-        #print("\n Batch Size",self.bs)
         self.color_format = self.output_tensor_list[0].color_format()
 
+        torch_gpu_device = torch.device('cuda', self.device_id)
+
         #NHWC default for now
-        self.out = torch.empty((self.bs, self.h, self.w, self.color_format,), dtype=torch.uint8)
+        self.out = torch.empty((self.bs, self.h, self.w, self.color_format,), dtype=torch.float32, device=torch_gpu_device)
         self.output_tensor_list[0].copy_data(ctypes.c_void_p(self.out.data_ptr()))
 
 
         # 1D labels & bboxes array
-        torch_gpu_device = torch.device('cuda', self.device_id)
         labels_array, boxes_array = self.loader.getEncodedBoxesAndLables(self.bs, int(self.num_anchors))
         self.encoded_bboxes = torch.as_tensor(boxes_array, dtype=torch.float32, device=torch_gpu_device)
         self.encoded_bboxes = self.encoded_bboxes.view(self.bs, self.num_anchors, 4)
@@ -95,18 +90,11 @@ class ROCALCOCOIterator(object):
 
         # Image id of a batch of images
         self.loader.GetImageId(self.image_id)
-
         # Image sizes of a batch
         self.loader.GetImgSizes(self.img_size)
-
-        # print(encoded_bboxes_tensor)
-        # print(encodded_labels_tensor.shape)
-        # exit(0)
         image_id_tensor = torch.tensor(self.image_id, device=torch_gpu_device)
         image_size_tensor = torch.tensor(self.img_size, device=torch_gpu_device).view(-1, self.bs, 2)
-        #print("Image ID :",image_id_tensor)
-        #print("Image SIZE :",image_size_tensor)
-        # exit(0)
+        '''
         for i in range(self.bs):
             index_list = []
             actual_bboxes = []
@@ -120,12 +108,9 @@ class ROCALCOCOIterator(object):
                 img = self.out
                 draw_patches(img[i], self.image_id[i],
                             actual_bboxes, self.device)
-        #print(actual_labels)
-        #print(actual_bboxes)
-        # exit(0)
+        '''
 
         return (self.out), encoded_bboxes_tensor, encodded_labels_tensor, image_id_tensor, image_size_tensor
-        return self.out
 
     def reset(self):
         self.loader.rocalResetLoaders()
@@ -177,13 +162,13 @@ def main():
     num_threads = 1
     device_id = 0
     random_seed = random.SystemRandom().randint(0, 2**32 - 1)
-    crop=224
+    crop=300
 
     local_rank = 0
     world_size = 1
-    rali_cpu= True
-    rali_device = 'cpu' if rali_cpu else 'gpu'
-    decoder_device = 'cpu' if rali_cpu else 'mixed'
+   
+    rali_device = 'gpu'
+    decoder_device = 'mixed'
     device_memory_padding = 211025920 if decoder_device == 'mixed' else 0
     host_memory_padding = 140544512 if decoder_device == 'mixed' else 0
 
@@ -230,42 +215,42 @@ def main():
     coco_train_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=random_seed, rocal_cpu=_rali_cpu)
 
     with coco_train_pipeline:
-        jpegs, bboxes, labels = fn.readers.coco(annotations_file=annotation_path, random_shuffle=True, seed=random_seed, is_box_encoder=True)
-        crop_begin, crop_size, bboxes, labels = fn.random_bbox_crop(bboxes, labels,
-                                                                    device="cpu",
-                                                                    aspect_ratio=[
-                                                                        0.5, 2.0],
-                                                                    thresholds=[
-                                                                        0, 0.1, 0.3, 0.5, 0.7, 0.9],
-                                                                    scaling=[
-                                                                        0.3, 1.0],
-                                                                    bbox_layout="xyXY",
-                                                                    allow_no_crop=True,
-                                                                    num_attempts=50)
-        images_decoded = fn.decoders.image_slice(jpegs, crop_begin, crop_size, device="mixed", output_type=types.RGB, file_root=image_path,
-                                                 annotations_file=annotation_path, random_shuffle=True, seed=random_seed, num_shards=world_size, shard_id=local_rank)
-        res = fn.resize(images_decoded, resize_width=crop, resize_height=crop, rocal_tensor_layout = types.NHWC, rocal_tensor_output_type = types.UINT8)
+        jpegs, bboxes, labels = fn.readers.coco(file_root=image_path, annotations_file=annotation_path, random_shuffle=False,shard_id=local_rank, num_shards=world_size,seed=random_seed, is_box_encoder=True)
+
+        print("*********************** SHARD ID ************************",local_rank)
+        print("*********************** NUM SHARDS **********************",world_size)
+        crop_begin, crop_size, bboxes, labels = fn.random_bbox_crop(bboxes, labels, device="cpu",
+                                    aspect_ratio=[0.5, 2.0],
+                                    thresholds=[0, 0.1, 0.3, 0.5, 0.7, 0.9],
+                                    scaling=[0.3, 1.0],
+                                    ltrb=True,
+                                    allow_no_crop=True,
+                                    num_attempts=1)
+        images_decoded = fn.decoders.image_slice(jpegs, crop_begin, crop_size, device=decoder_device, output_type = types.RGB, file_root=image_path, annotations_file=annotation_path, random_shuffle=False,shard_id=local_rank, num_shards=world_size)
+        res_images = fn.resize(images_decoded, device=rali_device, resize_width=crop, resize_height=crop, rocal_tensor_layout = types.NHWC, rocal_tensor_output_type = types.UINT8)
         saturation = fn.uniform(rng_range=[0.5, 1.5])
         contrast = fn.uniform(rng_range=[0.5, 1.5])
         brightness = fn.uniform(rng_range=[0.875, 1.125])
-        hue = fn.uniform(rng_range=[-0.5, 0.5])
-        ct_images = fn.color_twist(
-            res, saturation=saturation, contrast=contrast, brightness=brightness, hue=hue)
+        hue = fn.uniform(rng_range=[-0.05, 0.05])
+        cl_twist_images = fn.color_twist(res_images, saturation=saturation, contrast=contrast, brightness=brightness, hue=hue)
         flip_coin = fn.random.coin_flip(probability=0.5)
-        cmnp = fn.crop_mirror_normalize(ct_images, device="gpu",
-                                            rocal_tensor_layout = types.NHWC,
-                                            rocal_tensor_output_type = types.UINT8,
+        # bboxes = fn.coin_flip(bboxes, ltrb=True, horizontal=flip_coin)
+        images = fn.crop_mirror_normalize(cl_twist_images, device="gpu",
                                             crop=(crop, crop),
-                                            mirror=flip_coin,
                                             image_type=types.RGB,
-                                            mean=[0,0,0],
-                                            std=[1,1,1])
-        bboxes, labels = fn.box_encoder(bboxes, labels,
-                                  criteria=0.5,
-                                  anchors=default_boxes,
-                                  offset=False, stds=[0.1, 0.1, 0.2, 0.2], scale=300)
-        coco_train_pipeline.set_outputs(cmnp)
+                                            mirror=flip_coin,
+                                            rocal_tensor_layout = types.NHWC,
+                                            rocal_tensor_output_type = types.FLOAT,
+                                            #mean=[0,0,0],
+                                            #std=[1,1,1])
+                                            mean=[0.485*255,0.456*255 ,0.406*255 ],
+                                            std=[0.229*255 ,0.224*255 ,0.225*255 ])
+        bboxes, labels = fn.box_encoder(bboxes, labels, device=rali_device,
+                                         criteria=0.5,
+                                         anchors=default_boxes,
+                                         offset=True, stds=[0.1, 0.1, 0.2, 0.2], scale=300)
 
+        coco_train_pipeline.set_outputs(images)
     coco_train_pipeline.build()
     COCOIteratorPipeline = ROCALCOCOIterator(coco_train_pipeline)
     cnt = 0
@@ -279,6 +264,10 @@ def main():
             #     draw_patches(img, cnt, "cpu")
         COCOIteratorPipeline.reset()
     print("*********************************************************************")
+    exit(0)
+
+
+
     exit(0)
 
 

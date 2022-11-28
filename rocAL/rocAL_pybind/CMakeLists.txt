@@ -19,7 +19,7 @@
 # THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.0)
-project(rali_pybind)
+project(rocal_pybind)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../amd_openvx/cmake)
 set(ROCM_PATH /opt/rocm CACHE PATH "Deafult ROCm Installation Path")
@@ -114,11 +114,11 @@ if(${BUILD_ROCAL_PYBIND})
 
     add_subdirectory(third_party_lib/pybind11)
 
-    pybind11_add_module(rali_pybind rali_pybind.cpp)
-    target_link_libraries(rali_pybind PRIVATE rocal  vx_rpp amd_rpp)
-    message("-- ${White}rali_pybind -- CMAKE_CXX_FLAGS:${CMAKE_CXX_FLAGS}")
-    install(TARGETS rali_pybind DESTINATION lib)
-    message("-- ${Green}Radeon Augmentation Library Python Binding - rali_pybind module added ${ColourReset}")
+    pybind11_add_module(rocal_pybind rocal_pybind.cpp)
+    target_link_libraries(rocal_pybind PRIVATE rocal  vx_rpp amd_rpp)
+    message("-- ${White}rocal_pybind -- CMAKE_CXX_FLAGS:${CMAKE_CXX_FLAGS}")
+    install(TARGETS rocal_pybind DESTINATION lib)
+    message("-- ${Green}Radeon Augmentation Library Python Binding - rocal_pybind module added ${ColourReset}")
 else()
     message("-- ${Red}WARNING: rocAL Pybind module excluded ${ColourReset}")
 endif()

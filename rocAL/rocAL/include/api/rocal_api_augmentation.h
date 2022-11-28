@@ -417,18 +417,6 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResize(RocalContext context, RocalTen
                                                    unsigned resize_longer = 0,
                                                    RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
 
-/// Accepts U8 and RGB24 input.
-/// \param context
-/// \param input
-/// \param size
-/// \param is_output
-/// \return
-extern "C"  RocalTensor  ROCAL_API_CALL rocalResizeShorter(RocalContext context, RocalTensor input,
-                                                RocalTensorLayout rocal_tensor_layout,
-                                                RocalTensorOutputType rocal_tensor_output_type,
-                                                unsigned size,
-                                                bool is_output );
-
 extern "C" RocalTensor ROCAL_API_CALL rocalColorTwist(RocalContext context,
                                                       RocalTensor input,
                                                       RocalTensorLayout rocal_tensor_layout,

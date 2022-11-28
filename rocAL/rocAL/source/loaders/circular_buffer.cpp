@@ -170,7 +170,7 @@ void CircularBuffer::pop()
     if (random_bbox_crop_flag == true)
         _circ_crop_image_info.pop();
 }
-void CircularBuffer::init(RocalMemType output_mem_type, size_t output_mem_size, size_t buffer_depth)
+void CircularBuffer::init(RocalMemType output_mem_type, uint64_t output_mem_size, size_t buffer_depth)
 {
     _buff_depth = buffer_depth;
     _dev_buffer.reserve(_buff_depth);
