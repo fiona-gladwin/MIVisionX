@@ -6,10 +6,10 @@ The AMD OpenCV (vx_opencv) is an OpenVX module that implements a mechanism to ac
 
 The following is a list of OpenCV functions that have been included in the vx_opencv module.
 
-    absDiff                     	org.opencv.absdiff
-    adaptiveThreshold           	org.opencv.adaptivethreshold
-    add                         	org.opencv.add
-    addWeighted                 	org.opencv.addweighted
+    absDiff                     	org.opencv.absdiff                              
+    adaptiveThreshold           	org.opencv.adaptivethreshold                                                          
+    add                         	org.opencv.add 
+    addWeighted                 	org.opencv.addweighted                          
     bilateralFilter             	org.opencv.bilateralfilter
     bitwise_and                 	org.opencv.bitwise_and
     bitwise_not                 	org.opencv.bitwise_not
@@ -18,49 +18,49 @@ The following is a list of OpenCV functions that have been included in the vx_op
     blur                        	org.opencv.blur
     boxfilter                   	org.opencv.boxfilter
     BRISK                       	org.opencv.brisk_detect
-    BRISK_Compute               	org.opencv.brisk_compute
+    BRISK_Compute               	org.opencv.brisk_compute 
     buildOpticalFlowPyramid     	org.opencv.buildopticalflowpyramid
     buildPyramid                	org.opencv.buildpyramid
-    canny                       	org.opencv.canny
+    canny                       	org.opencv.canny  
     compare                     	org.opencv.compare
-    convert_scale_abs           	org.opencv.convertscaleabs
-    cvtcolor                    	org.opencv.cvtcolor
-    dilate                      	org.opencv.dilate
-    distanceTransform           	org.opencv.distancetransform
-    divide                      	org.opencv.divide
-    erode                       	org.opencv.erode
+    convert_scale_abs           	org.opencv.convertscaleabs                      
+    cvtcolor                    	org.opencv.cvtcolor                          
+    dilate                      	org.opencv.dilate 
+    distanceTransform           	org.opencv.distancetransform                                           
+    divide                      	org.opencv.divide  
+    erode                       	org.opencv.erode 
     FAST                        	org.opencv.fast
     fastNlMeansDenoising        	org.opencv.fastnlmeansdenoising
-    fastNlMeansDenoisingColored 	org.opencv.fastnlmeansdenoisingcolored
+    fastNlMeansDenoisingColored 	org.opencv.fastnlmeansdenoisingcolored 
     filter2D                    	org.opencv.filter2d
-    flip                        	org.opencv.flip
+    flip                        	org.opencv.flip 
     gaussianBlur                	org.opencv.gaussianblur
     goodFeature_detector        	org.opencv.good_features_to_track
     laplacian                   	org.opencv.laplacian
     medianBlur                  	org.opencv.medianblur
     morphologyEx                	org.opencv.morphologyex
-    MSER                        	org.opencv.mser_detect
-    multiply                    	org.opencv.multiply
+    MSER                        	org.opencv.mser_detect 
+    multiply                    	org.opencv.multiply    
     ORB                         	org.opencv.orb_detect
-    ORB_Compute                 	org.opencv.orb_compute
+    ORB_Compute                 	org.opencv.orb_compute   
     pyrDown                     	org.opencv.pyrdown
     pyrUp                       	org.opencv.pyrup
     resize                      	org.opencv.resize
     scharr                      	org.opencv.scharr
     sepFilter2D                 	org.opencv.sepfilter2d
-    SIFT_Compute                	org.opencv.sift_compute
-    SIFT_Detect                 	org.opencv.sift_detect
-    simpleBlobDetector          	org.opencv.simple_blob_detect
-    simpleBlobDetector_Init     	org.opencv.simple_blob_detect_initialize
+    SIFT_Compute                	org.opencv.sift_compute                         
+    SIFT_Detect                 	org.opencv.sift_detect 
+    simpleBlobDetector          	org.opencv.simple_blob_detect                   
+    simpleBlobDetector_Init     	org.opencv.simple_blob_detect_initialize 
     sobel                       	org.opencv.sobel
-    STAR_FEATURE_Detector       	org.opencv.star_detect
+    STAR_FEATURE_Detector       	org.opencv.star_detect  
     subtract                    	org.opencv.subtract
     SURF_Compute                	org.opencv.surf_compute
     SURF_Detect                 	org.opencv.surf_detect
-    threshold                   	org.opencv.threshold
-    transpose                   	org.opencv.transpose
-    warpAffine                  	org.opencv.warpaffine
-    warpPerspective             	org.opencv.warpperspective
+    threshold                   	org.opencv.threshold  
+    transpose                   	org.opencv.transpose                            
+    warpAffine                  	org.opencv.warpaffine 
+    warpPerspective             	org.opencv.warpperspective  
 
 **NOTE** - For list of OpenVX API calls for OpenCV-interop refer include/[vx_ext_opencv.h](include/vx_ext_opencv.h)
 
