@@ -78,31 +78,31 @@ public:
         _data_size = (_data_size / _data_type_size);
         _data_size *= data_type_size();
     }
-    void set_max_dims() {
+    void set_max_shape() {
         if (_layout != RocalTensorlayout::NONE) {
-            _max_dims.resize(2);  // Since 2 values will be stored in the vector
+            _max_shape.resize(2);  // Since 2 values will be stored in the vector
             _is_image = true;
             if (_layout == RocalTensorlayout::NHWC) {
-                _max_dims[0] = _dims.at(2);
-                _max_dims[1] = _dims.at(1);
+                _max_shape[0] = _dims.at(2);
+                _max_shape[1] = _dims.at(1);
             } else if (_layout == RocalTensorlayout::NCHW ||
                         _layout == RocalTensorlayout::NFHWC) {
-                _max_dims[0] = _dims.at(3);
-                _max_dims[1] = _dims.at(2);
+                _max_shape[0] = _dims.at(3);
+                _max_shape[1] = _dims.at(2);
             } else if (_layout == RocalTensorlayout::NFCHW) {
-                _max_dims[0] = _dims.at(4);
-                _max_dims[1] = _dims.at(3);
+                _max_shape[0] = _dims.at(4);
+                _max_shape[1] = _dims.at(3);
             }
             reallocate_tensor_roi_buffers();
         } else if (!_is_metadata) {  // For audio
-            _max_dims.resize(2);       // Since 2 values will be stored in the vector
-            _max_dims[0] = _dims.at(1);
-            _max_dims[1] = _num_of_dims > 2 ? _dims.at(2) : 0;
+            _max_shape.resize(2);       // Since 2 values will be stored in the vector
+            _max_shape[0] = _dims.at(1);
+            _max_shape[1] = _num_of_dims > 2 ? _dims.at(2) : 0;
         }
     }
     void set_tensor_layout(RocalTensorlayout layout) {
         _layout = layout;
-        set_max_dims();
+        set_max_shape();
     }
     void set_dims(std::vector<size_t>& new_dims) {
         _data_size = _data_type_size;
@@ -111,7 +111,7 @@ public:
                 _dims.at(i) = new_dims[i];
                 _data_size *= new_dims[i];
             }
-            set_max_dims();
+            set_max_shape();
         } else {
             THROW("The size of number of dimensions does not match with the dimensions of existing tensor")
         }
@@ -122,7 +122,7 @@ public:
     unsigned num_of_dims() const { return _num_of_dims; }
     unsigned batch_size() const { return _batch_size; }
     uint64_t data_size() const { return _data_size; }
-    std::vector<size_t> max_dims() const { return _max_dims; }
+    std::vector<size_t> max_shape() const { return _max_shape; }
     std::vector<size_t> dims() const { return _dims; }
     RocalMemType mem_type() const { return _mem_type; }
     RocalROIType roi_type() const { return _roi_type; }
@@ -152,7 +152,7 @@ private:
     std::shared_ptr<std::vector<RocalROI>> _roi;
     uint64_t _data_type_size = tensor_data_size(_data_type);
     uint64_t _data_size = 0;
-    std::vector<size_t> _max_dims;  //!< stores the the width and height dimensions in the tensor
+    std::vector<size_t> _max_shape;  //!< stores the the width and height dimensions in the tensor
     void reallocate_tensor_roi_buffers();
     bool _is_image = false;
     bool _is_metadata = false;

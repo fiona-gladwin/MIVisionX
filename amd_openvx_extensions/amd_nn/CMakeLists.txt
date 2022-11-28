@@ -1,15 +1,15 @@
 # Copyright (c) 2017 - 2022 Advanced Micro Devices, Inc. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-#  
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-#  
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -32,18 +32,9 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL")
     list(APPEND PACKAGE_DEPENDS PACKAGE OpenCL)
 elseif(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
     set(OpenCL_FOUND FALSE)
-    if(NOT DEFINED ENV{HSA_PATH})
-        SET(HSA_PATH ${ROCM_PATH})
-    else()
-        SET(HSA_PATH $ENV{HSA_PATH})
-    endif()
-    find_package(HIP QUIET REQUIRED)
+    list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+    find_package(HIP REQUIRED)
     find_package(rocblas PATHS ${ROCM_PATH} REQUIRED)
-    if(HIP_COMPILER STREQUAL clang)
-        set(HIP_LIBRARY amdhip64)
-    else()
-        message(FATAL_ERROR "Unsupported HIP compiler")
-    endif()
     list(APPEND PACKAGE_DEPENDS PACKAGE HIP)
 endif()
 
@@ -118,7 +109,7 @@ elseif (GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP" AND HIP_FOUND)
     add_library(vx_nn SHARED ${SOURCES} $<TARGET_OBJECTS:nn_hip>)
     set_target_properties(openvx PROPERTIES LINKER_LANGUAGE CXX)
     set_target_properties(openvx PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    target_link_libraries(vx_nn openvx MIOpen roc::rocblas ${HIP_LIBRARY})
+    target_link_libraries(vx_nn openvx MIOpen roc::rocblas hip::host)
 else()
     message("-- ${Red}WARNING: OpenCL/HIP Not Found -- amd_nn module excluded${ColourReset}")
 endif()
@@ -145,4 +136,4 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2 -std=gnu++14")
 endif()
 
-message("-- ${White}amd_nn -- CMAKE_CXX_FLAGS:${CMAKE_CXX_FLAGS}")
+message("-- ${White}amd_nn -- CMAKE_CXX_FLAGS:${CMAKE_CXX_FLAGS}${ColourReset}")

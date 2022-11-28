@@ -351,10 +351,10 @@ rocalRotate(
         output_info.max_dims()[0]=dest_width;
         output_info.max_dims()[1]=dest_height;
         output = context->master_graph->create_tensor(output_info, is_output);
-        
+
         if(dest_width != 0 && dest_height != 0)
              output->reset_tensor_roi();
-        
+
 
         context->master_graph->add_node<RotateNode>({input}, {output})->init(angle,outputformat);
     }
@@ -1275,7 +1275,7 @@ rocalCrop(RocalContext p_context,
 
 //resizemirrornormalize
 RocalTensor
-ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context, 
+ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context,
                                           RocalTensor p_input,
                                           RocalTensorLayout rocal_tensor_layout,
                                           RocalTensorOutputType rocal_tensor_output_type,

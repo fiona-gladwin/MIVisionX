@@ -126,7 +126,6 @@ void ResizeNode::adjust_out_roi_size() {
         } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_LARGER) {
             scale = (scale_w > 0 && scale_h > 0) ? std::min(scale_w, scale_h) : ((scale_w > 0) ? scale_w : scale_h);
         }
-
         if (has_max_size) {
             if (_max_width != 0) scale = std::min(scale, static_cast<float>(_max_width) / _src_width);
             if (_max_height != 0) scale = std::min(scale, static_cast<float>(_max_height) / _src_height);

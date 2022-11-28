@@ -1,3 +1,23 @@
+# Copyright (c) 2018 - 2022 Advanced Micro Devices, Inc. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 import rocal_pybind as b
 import amd.rocal.types as types
 import numpy as np
@@ -44,14 +64,12 @@ class Pipeline(object):
         and `y` for mixed and gpu stages. It is not supported when both `exec_async`
         and `exec_pipelined` are set to `False`.
         Executor will buffer cpu and gpu stages separatelly,
-        and will fill the buffer queues when the first :meth:`nvidia.dali.pipeline.Pipeline.run`
+        and will fill the buffer queues when the first :meth:`amd.rocal.pipeline.Pipeline.run`
         is issued.
     `exec_async` : bool, optional, default = True
         Whether to execute the pipeline asynchronously.
-        This makes :meth:`nvidia.dali.pipeline.Pipeline.run` method
+        This makes :meth:`amd.rocal.pipeline.Pipeline.run` method
         run asynchronously with respect to the calling Python thread.
-        In order to synchronize with the pipeline one needs to call
-        :meth:`nvidia.dali.pipeline.Pipeline.outputs` method.
     `bytes_per_sample` : int, optional, default = 0
         A hint for ROCAL for how much memory to use for its tensors.
     `set_affinity` : bool, optional, default = False

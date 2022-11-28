@@ -32,7 +32,7 @@
 
 // RocalTensor  ROCAL_API_CALL
 // rocalSequenceRearrange(
-//             RocalContext p_context, RocalTensor input, unsigned int* new_order, 
+//             RocalContext p_context, RocalTensor input, unsigned int* new_order,
 //             unsigned int  new_sequence_length, unsigned int sequence_length, bool is_output );
 
 // /// Accepts U8 and RGB24 inputs
@@ -47,7 +47,7 @@
 
 // extern "C" RocalTensor ROCAL_API_CALL rocalCopyTensor(RocalContext context, RocalTensor input, bool is_output);
 
-// extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context, 
+// extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context,
 //                                             RocalTensor p_input,
 //                                             RocalTensorLayout rocal_tensor_layout,
 //                                             RocalTensorOutputType rocal_tensor_output_type,
@@ -167,7 +167,7 @@ THE SOFTWARE.
 
 RocalTensor  ROCAL_API_CALL
 rocalSequenceRearrange(
-            RocalContext p_context, RocalTensor input, unsigned int* new_order, 
+            RocalContext p_context, RocalTensor input, unsigned int* new_order,
             unsigned int  new_sequence_length, unsigned int sequence_length, bool is_output );
 
 /// Accepts U8 and RGB24 inputs
@@ -185,7 +185,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalGamma(RocalContext context, RocalTens
 
 extern "C" RocalTensor ROCAL_API_CALL rocalExposure(RocalContext context, RocalTensor input, RocalTensorLayout rocal_tensor_layout, RocalTensorOutputType rocal_tensor_output_type, bool is_output,
                                                    RocalFloatParam alpha = NULL);
-                
+
 extern "C" RocalTensor ROCAL_API_CALL rocalColorCast( RocalContext p_context,
                                                       RocalTensor p_input,
                                                       RocalTensorLayout rocal_tensor_layout,
@@ -195,7 +195,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalColorCast( RocalContext p_context,
                                                       RocalFloatParam G_value = NULL,
                                                       RocalFloatParam B_value = NULL,
                                                       RocalFloatParam alpha_tensor = NULL);
-                                        
+
 extern "C" RocalTensor ROCAL_API_CALL rocalSpatter(RocalContext p_context,RocalTensor p_input,
                                                    RocalTensorLayout rocal_tensor_layout,
                                                    RocalTensorOutputType rocal_tensor_output_type,
@@ -215,7 +215,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalBlur(RocalContext p_context,
 extern "C" RocalTensor ROCAL_API_CALL rocalContrast(RocalContext context, RocalTensor input, RocalTensorLayout rocal_tensor_layout,
                                                     RocalTensorOutputType rocal_tensor_output_type, bool is_output,
                                                     RocalFloatParam c_fator = NULL, RocalFloatParam c_center = NULL);
-        
+
 extern "C" RocalTensor ROCAL_API_CALL rocalFlip(RocalContext context, RocalTensor input, RocalTensorLayout rocal_tensor_layout, RocalTensorOutputType rocal_tensor_output_type, bool is_output,
                                                    RocalFloatParam h_flag = NULL, RocalFloatParam v_flag = NULL);
 
@@ -232,10 +232,10 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJitter(RocalContext p_context,
                                                 RocalTensorOutputType rocal_tensor_output_type,
                                                 bool is_output,
                                                 RocalFloatParam p_sdev=NULL);
-                            
+
 extern "C" RocalTensor ROCAL_API_CALL rocalNoise(RocalContext context, RocalTensor input,RocalTensorLayout rocal_tensor_layout,RocalTensorOutputType rocal_tensor_output_type, bool is_output,
                                                    RocalFloatParam alpha = NULL, RocalFloatParam beta = NULL, RocalFloatParam hue = NULL, RocalFloatParam sat = NULL, int seed=11110);
-                                        
+
 
 extern "C" RocalTensor ROCAL_API_CALL rocalBlend(RocalContext context, RocalTensor input,RocalTensor input1, RocalTensorLayout rocal_tensor_layout, RocalTensorOutputType rocal_tensor_output_type, bool is_output,
                                                    RocalFloatParam alpha = NULL);
@@ -251,7 +251,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalGridmask(RocalContext p_context,
                                                     float gridvalue=0.6,
                                                     unsigned int x=0,
                                                     unsigned int y=0);
-                                    
+
 extern "C" RocalTensor ROCAL_API_CALL rocalWarpAffine(RocalContext p_context,
                                                     RocalTensor p_input,
                                                     RocalTensorLayout rocal_tensor_layout,
@@ -264,10 +264,10 @@ extern "C" RocalTensor ROCAL_API_CALL rocalWarpAffine(RocalContext p_context,
                                                     RocalFloatParam o0=0,
                                                     RocalFloatParam o1=0,
                                                     int interpolation_type=0);
-                                            
+
 extern "C" RocalTensor ROCAL_API_CALL rocalColorJitter(RocalContext context, RocalTensor input,RocalTensorLayout rocal_tensor_layout,RocalTensorOutputType rocal_tensor_output_type, bool is_output,
                                                    RocalFloatParam alpha = NULL, RocalFloatParam beta = NULL, RocalFloatParam hue = NULL, RocalFloatParam sat = NULL);
-                                        
+
 
 extern "C" RocalTensor ROCAL_API_CALL rocalSnow(RocalContext p_context,
                                                 RocalTensor p_input,
@@ -296,7 +296,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalHue(RocalContext p_context,
                                                 RocalTensorOutputType rocal_tensor_output_type,
                                                 bool is_output,
                                                 RocalFloatParam p_hue=NULL);
-                                    
+
 extern "C" RocalTensor ROCAL_API_CALL rocalFisheye(RocalContext p_context,
                                                 RocalTensor p_input,
                                                 RocalTensorLayout rocal_tensor_layout,
@@ -346,10 +346,10 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRotate(RocalContext p_context,
                                                 unsigned int dest_height=0,
                                                 int outputformat=0,
                                                 RocalFloatParam p_angle=NULL);
-    
+
 extern "C" RocalTensor ROCAL_API_CALL rocalCopyTensor(RocalContext context, RocalTensor input, bool is_output);
 
-extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context, 
+extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context,
                                             RocalTensor p_input,
                                             RocalTensorLayout rocal_tensor_layout,
                                             RocalTensorOutputType rocal_tensor_output_type,

@@ -9824,8 +9824,8 @@ VX_API_ENTRY vx_status VX_API_CALL vxQueryTensor(vx_tensor tensor, vx_enum attri
 						}
 					}
 				}
-#if defined(AMD_FP16_SUPPORT)
-				else if (tensor_data_type == VX_TYPE_FLOAT16)
+#if defined(EXPERIMENTAL_PLATFORM_SUPPORTS_16_FLOAT)
+				else if (data_type == VX_TYPE_FLOAT16)
 				{
 					if (size == sizeof(vx_float16)) {
 						if (data->buffer) {

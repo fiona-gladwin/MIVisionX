@@ -99,8 +99,8 @@ void rocalTensorInfo::reallocate_tensor_roi_buffers() {
         for (unsigned i = 0; i < _batch_size; i++) {
             _roi->at(i).x1 = 0;
             _roi->at(i).y1 = 0;
-            _roi->at(i).x2 = _max_dims.at(0);
-            _roi->at(i).y2 = _max_dims.at(1);
+            _roi->at(i).x2 = _max_shape.at(0);
+            _roi->at(i).y2 = _max_shape.at(1);
         }
     } else {
         // TODO - For other tensor types
@@ -132,9 +132,9 @@ rocalTensorInfo::rocalTensorInfo(std::vector<size_t> dims,
 void rocalTensor::update_tensor_roi(const std::vector<uint32_t> &width,
                                     const std::vector<uint32_t> &height) {
     if (_info.is_image()) {
-        auto max_dims = _info.max_dims();
-        unsigned max_width = max_dims.at(0);
-        unsigned max_height = max_dims.at(1);
+        auto max_shape = _info.max_shape();
+        unsigned max_width = max_shape.at(0);
+        unsigned max_height = max_shape.at(1);
 
         if (width.size() != height.size())
             THROW("Batch size of Tensor height and width info does not match")
@@ -180,7 +180,7 @@ int rocalTensor::create_virtual(vx_context context, vx_graph graph) {
     _vx_handle = vxCreateVirtualTensor(graph, _info.num_of_dims(), _info.dims().data(), interpret_tensor_data_type(_info.data_type()), 0);
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_vx_handle)) != VX_SUCCESS)
-        THROW("Error: vxCreateVirtualTensor(input:[" + TOSTR(_info.max_dims().at(0)) + "W" + TOSTR(_info.max_dims().at(1)) + "H" + "]): failed " + TOSTR(status))
+        THROW("Error: vxCreateVirtualTensor(input:[" + TOSTR(_info.max_shape().at(0)) + "W" + TOSTR(_info.max_shape().at(1)) + "H" + "]): failed " + TOSTR(status))
 
     _info._type = rocalTensorInfo::Type::VIRTUAL;
     return 0;

@@ -1,15 +1,15 @@
 # Copyright (c) 2015 - 2022 Advanced Micro Devices, Inc. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-#  
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-#  
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -25,35 +25,25 @@ set(CMAKE_CXX_STANDARD 14)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../amd_openvx/cmake)
 
+set(ENABLE_OPENCL 0)
+set(ENABLE_HIP 0)
+
 if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL")
     find_package(OpenCL REQUIRED)
     include_directories(${OpenCL_INCLUDE_DIRS} ${OpenCL_INCLUDE_DIRS}/Headers)
     set(ENABLE_OPENCL 1)
-    set(ENABLE_HIP 0)
     add_definitions(-DENABLE_OPENCL=${ENABLE_OPENCL} -DENABLE_HIP=${ENABLE_HIP})
     message("-- ${Green}amd_media -- Building with OpenCL${ColourReset}")
 elseif (GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
     set(OpenCL_FOUND FALSE)
-    if(NOT DEFINED ENV{HSA_PATH})
-        SET(HSA_PATH ${ROCM_PATH})
-    else()
-        SET(HSA_PATH $ENV{HSA_PATH})
-    endif()
-    find_package(HIP QUIET REQUIRED)
-    if(HIP_COMPILER STREQUAL clang)
-        set(HIP_LIBRARY amdhip64)
-    else()
-        message(FATAL_ERROR "Unsupported HIP compiler")
-    endif()
-    list(APPEND PACKAGE_DEPENDS PACKAGE HIP)
-
-    set(ENABLE_OPENCL 0)
     set(ENABLE_HIP 1)
+    list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+    find_package(HIP REQUIRED)
+    list(APPEND PACKAGE_DEPENDS PACKAGE HIP)
     add_definitions(-DENABLE_OPENCL=${ENABLE_OPENCL} -DENABLE_HIP=${ENABLE_HIP} -D__HIP_PLATFORM_AMD__)
     include_directories(${ROCM_PATH}/include)
-    link_directories(${HIP_PATH}/lib)
+    link_directories(${ROCM_PATH}/lib)
     message("-- ${Green}amd_media -- Building with HIP${ColourReset}")
-
 endif()
 
 find_path(AVCODEC_INCLUDE_DIR libavcodec/avcodec.h)
@@ -84,7 +74,7 @@ target_link_libraries(${PROJECT_NAME} ${AVUTIL_LIBRARY} ${AVCODEC_LIBRARY} ${SWS
 if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL")
     target_link_libraries(${PROJECT_NAME} ${OpenCL_LIBRARIES})
 elseif (GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
-    target_link_libraries(${PROJECT_NAME} ${HIP_LIBRARY})
+    target_link_libraries(${PROJECT_NAME} hip::host)
 endif()
 
 # install MIVisionX libs -- {ROCM_PATH}/lib
@@ -96,8 +86,8 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 else()
-    # -Wno-deprecated-declarations -- Do not warn about uses of functions, variables, and types marked as deprecated by using the deprecated attribute. 
+    # -Wno-deprecated-declarations -- Do not warn about uses of functions, variables, and types marked as deprecated by using the deprecated attribute.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -msse4.2 -std=gnu++14")
 endif()
 
-message("-- ${White}amd_media -- CMAKE_CXX_FLAGS:${CMAKE_CXX_FLAGS}")
+message("-- ${White}amd_media -- CMAKE_CXX_FLAGS:${CMAKE_CXX_FLAGS}${ColourReset}")
