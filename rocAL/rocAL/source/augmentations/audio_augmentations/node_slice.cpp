@@ -50,11 +50,29 @@ void SliceNode::create_node()
     vx_scalar policy = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, &_policy);
     vx_scalar axis_mask = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &_axis_mask);
     _node = vxExtrppNode_Slice(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle(), _src_tensor_roi, _anchor->handle(),
-                                _shape->handle(), _fill_values_array, axis_mask, normalized_anchor , normalized_shape, policy, _batch_size);
+                                _shape->handle(), _fill_values_array, _batch_size);
     
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the copy (vxExtrppNode_Slice) node failed: "+ TOSTR(status))
 
+}
+
+void applyPolicy(RocalOutOfBoundsPolicy policyType, float &anchor, float &sliceShape, float &srcBufferLength) {
+    switch (policyType) {
+        case RocalOutOfBoundsPolicy::PAD:
+            break;
+        case RocalOutOfBoundsPolicy::TRIMTOSHAPE:
+            anchor = std::min(std::max(anchor, 0.0f), srcBufferLength);
+            sliceShape = std::min(std::max(anchor + sliceShape, 0.0f), srcBufferLength);
+            break;
+        case RocalOutOfBoundsPolicy::ERROR:
+        default:
+            bool anchorCheck = (anchor < 0) || (anchor > srcBufferLength);
+            bool shapeCheck = ((anchor + sliceShape) < 0) || ((anchor + sliceShape) > srcBufferLength);
+            if(anchorCheck || shapeCheck)
+                THROW("Invalid values passed");
+            break;
+    }
 }
 
 void SliceNode::update_node()
@@ -63,6 +81,8 @@ void SliceNode::update_node()
     vx_status src_roi_status = vxCopyArrayRange((vx_array)_src_tensor_roi, 0, _batch_size * 4, sizeof(vx_uint32), _inputs[0]->info().get_roi()->data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     if(src_roi_status != 0)
         THROW(" Failed calling vxCopyArrayRange for src / dst roi status : "+ TOSTR(src_roi_status))
+    
+    // Tensor copy
     auto audio_roi = _inputs[0]->info().get_roi();
     for(unsigned i = 0; i < _batch_size; i++) {
         int idx = i * _num_of_dims;
