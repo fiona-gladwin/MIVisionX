@@ -76,8 +76,8 @@ public:
     template <typename T>
     std::shared_ptr<T> add_node(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
     template <typename T, typename M> std::shared_ptr<T> meta_add_node(std::shared_ptr<M> node);
-    Image *create_image(const ImageInfo &info, bool is_output);
-    Image *create_loader_output_image(const ImageInfo &info);
+    rocalTensor *create_tensor(const rocalTensorInfo &info, bool is_output);
+    rocalTensor *create_loader_output_tensor(const rocalTensorInfo &info);
     MetaDataBatch *create_label_reader(const char *source_path, MetaDataReaderType reader_type);
     MetaDataBatch *create_video_label_reader(const char *source_path, MetaDataReaderType reader_type, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
     MetaDataBatch *create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type , MetaDataType label_type, float sigma = 0.0, unsigned pose_output_width = 0, unsigned pose_output_height = 0);
@@ -134,7 +134,8 @@ private:
     CropCordBatch* _random_bbox_crop_cords_data = nullptr;
     std::thread _output_thread;
     ImageInfo _output_image_info;//!< Keeps the information about ROCAL's output image , it includes all images of a batch stacked on top of each other
-    std::vector<Image*> _output_images;//!< Keeps the ovx images that are used to store the augmented output (there is an image per augmentation branch)
+    rocalTensorList _internal_tensor_list;  //!< Keeps a list of ovx tensors that are used to store the augmented outputs (there is an augmentation output batch per element in the list)
+    rocalTensorList _output_tensor_list;
     std::list<Image*> _internal_images;//!< Keeps all the ovx images (virtual/non-virtual) either intermediate images, or input images that feed the graph
     std::list<std::shared_ptr<Node>> _nodes;//!< List of all the nodes
     std::list<std::shared_ptr<Node>> _root_nodes;//!< List of all root nodes (image/video loaders)

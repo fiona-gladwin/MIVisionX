@@ -38,7 +38,7 @@ THE SOFTWARE.
 /// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegFileSource(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegFileSource(RocalContext context,
                                                         const char* source_path,
                                                         RocalImageColor rocal_color_format,
                                                         unsigned internal_shard_count,
@@ -61,7 +61,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegFileSource(RocalContext context,
 /// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegFileSourceSingleShard(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegFileSourceSingleShard(RocalContext context,
                                                                    const char* source_path,
                                                                    RocalImageColor rocal_color_format,
                                                                    unsigned shard_id,

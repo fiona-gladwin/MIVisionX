@@ -296,36 +296,42 @@ MasterGraph::build()
     start_processing();
     return Status::OK;
 }
-Image *
-MasterGraph::create_loader_output_image(const ImageInfo &info)
+
+rocalTensor *
+MasterGraph::create_loader_output_tensor(const rocalTensorInfo &info)
 {
     /*
-    *   NOTE: Output image for a source node needs to be created as a regular (non-virtual) image
+    *   NOTE: Output tensor for a source node needs to be created as a regular (non-virtual) tensor
     */
-    auto output = new Image(info);
-
+    auto output = new rocalTensor(info);
     if(output->create_from_handle(_context) != 0)
-        THROW("Creating output image for loader failed");
+        THROW("Creating output tensor for loader failed");
 
-    _internal_images.push_back(output);
+    _internal_tensors.push_back(output);
 
     return output;
 }
 
-Image *
-MasterGraph::create_image(const ImageInfo &info, bool is_output)
+rocalTensor *
+MasterGraph::create_tensor(const rocalTensorInfo &info, bool is_output)
 {
-    auto* output = new Image(info);
-    // if the image is not an output image, the image creation is deferred and later it'll be created as a virtual image
+    auto* new_tensor = new rocalTensor(info);
+    // if the tensor is not an output tensor, the tensor creation is deferred and later it'll be created as a virtual tensor
     if(is_output)
     {
-        if (output->create_from_handle(_context) != 0)
-            THROW("Cannot create the image from handle")
+        if (new_tensor->create_from_handle(_context) != 0)
+            THROW("Cannot create the tensor from handle")
 
-        _output_images.push_back(output);
+        _internal_tensor_list.push_back(new_tensor);
+
+        auto * output = new rocalTensor(info);
+        if (output->create_from_handle(_context) != 0)
+            THROW("Cannot create the tensor from handle")
+
+        _output_tensor_list.push_back(output);
     }
 
-    return output;
+    return new_tensor;
 }
 
 void

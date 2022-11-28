@@ -145,7 +145,7 @@ private:
     std::vector<size_t> _dims;  //!< denotes the dimensions of the tensor
     unsigned _batch_size;       //!< the batch size
     RocalMemType _mem_type;     //!< memory type, currently either OpenCL or Host
-    RocalROIType _roi_type;     //!< ROI type, currently either XYWH or LTRB
+    RocalROIType _roi_type = RocalROIType::XYWH;     //!< ROI type either XYWH or LTRB
     RocalTensorDataType _data_type = RocalTensorDataType::FP32;  //!< tensor data type
     RocalTensorlayout _layout = RocalTensorlayout::NONE;     //!< layout of the tensor
     RocalColorFormat _color_format;  //!< color format of the image

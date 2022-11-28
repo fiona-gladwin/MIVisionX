@@ -108,7 +108,7 @@ auto convert_decoder_mode= [](RocalDecodeDevice decode_mode)
     }
 };
 
-RocalImage  ROCAL_API_CALL
+RocalTensor  ROCAL_API_CALL
 rocalJpegFileSourceSingleShard(
         RocalContext p_context,
         const char* source_path,
@@ -123,7 +123,7 @@ rocalJpegFileSourceSingleShard(
         unsigned max_height,
         RocalDecoderType dec_type)
 {
-    Image* output = nullptr;
+    rocalTensor* output = nullptr;
     auto context = static_cast<Context*>(p_context);
     try
     {
@@ -157,12 +157,13 @@ rocalJpegFileSourceSingleShard(
 
         INFO("Internal buffer size width = "+ TOSTR(width)+ " height = "+ TOSTR(height) + " depth = "+ TOSTR(num_of_planes))
 
-        auto info = ImageInfo(width, height,
-                              context->internal_batch_size(),
-                              num_of_planes,
-                              context->master_graph->mem_type(),
-                              color_format );
-        output = context->master_graph->create_loader_output_image(info);
+        std::vector<size_t> dims = {context->user_batch_size(), height, width, num_of_planes};
+        auto info  = rocalTensorInfo(std::vector<size_t>(std::move(dims)),
+                                     context->master_graph->mem_type(),
+                                     RocalTensorDataType::UINT8);
+        info.set_color_format(color_format);
+        info.set_tensor_layout(RocalTensorlayout::NHWC);
+        output = context->master_graph->create_loader_output_tensor(info);
 
         context->master_graph->add_node<ImageLoaderSingleShardNode>({}, {output})->init(shard_id, shard_count,
                                                                                         source_path, "",
@@ -179,7 +180,7 @@ rocalJpegFileSourceSingleShard(
 
         if(is_output)
         {
-            auto actual_output = context->master_graph->create_image(info, is_output);
+            auto actual_output = context->master_graph->create_tensor(info, is_output);
             context->master_graph->add_node<CopyNode>({output}, {actual_output});
         }
 
@@ -192,7 +193,7 @@ rocalJpegFileSourceSingleShard(
     return output;
 }
 
-RocalImage  ROCAL_API_CALL
+RocalTensor  ROCAL_API_CALL
 rocalJpegFileSource(
         RocalContext p_context,
         const char* source_path,
@@ -206,7 +207,7 @@ rocalJpegFileSource(
         unsigned max_height,
         RocalDecoderType dec_type)
 {
-    Image* output = nullptr;
+    rocalTensor* output = nullptr;
     auto context = static_cast<Context*>(p_context);
     try
     {
@@ -237,12 +238,13 @@ rocalJpegFileSource(
 
         INFO("Internal buffer size width = "+ TOSTR(width)+ " height = "+ TOSTR(height) + " depth = "+ TOSTR(num_of_planes))
 
-        auto info = ImageInfo(width, height,
-                              context->internal_batch_size(),
-                              num_of_planes,
-                              context->master_graph->mem_type(),
-                              color_format );
-        output = context->master_graph->create_loader_output_image(info);
+        std::vector<size_t> dims = {context->user_batch_size(), height, width, num_of_planes};
+        auto info  = rocalTensorInfo(std::vector<size_t>(std::move(dims)),
+                                     context->master_graph->mem_type(),
+                                     RocalTensorDataType::UINT8);
+        info.set_color_format(color_format);
+        info.set_tensor_layout(RocalTensorlayout::NHWC);
+        output = context->master_graph->create_loader_output_tensor(info);
 
         context->master_graph->add_node<ImageLoaderNode>({}, {output})->init(internal_shard_count,
                                                                           source_path, "",
@@ -259,7 +261,7 @@ rocalJpegFileSource(
 
         if(is_output)
         {
-            auto actual_output = context->master_graph->create_image(info, is_output);
+            auto actual_output = context->master_graph->create_tensor(info, is_output);
             context->master_graph->add_node<CopyNode>({output}, {actual_output});
         }
 
