@@ -70,6 +70,7 @@ vx_node createNode(vx_graph graph, vx_enum kernelEnum, vx_reference params[], vx
 vx_status createGraphHandle(vx_node node, RPPCommonHandle ** pHandle);
 vx_status releaseGraphHandle(vx_node node, RPPCommonHandle * handle);
 int getEnvironmentVariable(const char* name);
+void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32u layout, size_t *tensor_dims);
 
 class Kernellist
 {
