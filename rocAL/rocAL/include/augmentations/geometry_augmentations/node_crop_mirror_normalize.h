@@ -25,7 +25,6 @@ THE SOFTWARE.
 #include "parameter_factory.h"
 #include "parameter_crop_factory.h"
 #include "parameter_vx.h"
-#include "rocal_api_types.h"
 
 class CropMirrorNormalizeNode : public Node
 {
