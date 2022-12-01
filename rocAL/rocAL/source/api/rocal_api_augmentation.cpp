@@ -70,6 +70,45 @@ THE SOFTWARE.
 
 #define MAX_ASPECT_RATIO 3.0f
 
+void get_rocal_tensor_layout(RocalTensorLayout &tensor_layout, RocalTensorlayout &op_tensor_layout)
+{
+    switch(tensor_layout)
+    {
+        case 0:
+            op_tensor_layout = RocalTensorlayout::NHWC;
+            return;
+        case 1:
+            op_tensor_layout = RocalTensorlayout::NCHW;
+            return;
+        case 2:
+            op_tensor_layout = RocalTensorlayout::NFHWC;
+            return;
+        case 3:
+            op_tensor_layout = RocalTensorlayout::NFCHW;
+            return;
+        default:
+            THROW("Unsupported Tensor layout" + TOSTR(tensor_layout))
+    }
+}
+
+void get_rocal_tensor_data_type(RocalTensorOutputType &tensor_output_type, RocalTensorDataType &tensor_data_type)
+{
+    switch(tensor_output_type)
+    {
+        case ROCAL_FP32:
+            tensor_data_type = RocalTensorDataType::FP32;
+            return;
+        case ROCAL_FP16:
+            tensor_data_type = RocalTensorDataType::FP16;
+            return;
+        case ROCAL_UINT8:
+            tensor_data_type = RocalTensorDataType::UINT8;
+            return;
+        default:
+            THROW("Unsupported Tensor output type" + TOSTR(tensor_output_type))
+    }
+}
+
 RocalImage  ROCAL_API_CALL
 rocalSequenceRearrange(
             RocalContext p_context,
@@ -629,8 +668,7 @@ rocalBrightness(
     {
         RocalTensorlayout op_tensorLayout;
         RocalTensorDataType op_tensorDataType;
-        int layout = 0;
-        get_rocal_tensor_layout(rocal_tensor_layout, op_tensorLayout, layout);
+        get_rocal_tensor_layout(rocal_tensor_layout, op_tensorLayout);
         get_rocal_tensor_data_type(rocal_tensor_output_type, op_tensorDataType);
         rocalTensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensorLayout);
@@ -1695,8 +1733,7 @@ ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_in
             THROW("Null values passed as input")
         RocalTensorlayout op_tensorLayout;
         RocalTensorDataType op_tensorDataType;
-        int layout=0;
-        get_rocal_tensor_layout(rocal_tensor_layout, op_tensorLayout, layout);
+        get_rocal_tensor_layout(rocal_tensor_layout, op_tensorLayout);
         get_rocal_tensor_data_type(rocal_tensor_output_type, op_tensorDataType);
 
         // For the crop mirror normalize resize node, user can create an image with a different width and height
