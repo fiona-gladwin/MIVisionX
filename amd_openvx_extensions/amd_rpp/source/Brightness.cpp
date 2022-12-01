@@ -39,7 +39,8 @@ struct BrightnessLocalData
     RpptDescPtr dst_desc_ptr;
     RpptROI *roi_tensor_ptr;
     RpptRoiType roiType;
-    Rpp32u layout;
+    Rpp32u input_layout;
+    Rpp32u output_layout;
     size_t in_tensor_dims[NUM_OF_DIMS];
     size_t out_tensor_dims[NUM_OF_DIMS];
     vx_enum in_tensor_type;
@@ -58,7 +59,7 @@ static vx_status VX_CALLBACK refreshBrightness(vx_node node, const vx_reference 
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->nbatchSize, sizeof(vx_float32), data->alpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->nbatchSize, sizeof(vx_float32), data->beta, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     
-    if(data->layout == 2 || data->layout == 3) // For NFCHW and NFHWC formats
+    if((data->input_layout == 2 || data->input_layout == 3) && (data->nbatchSize != data->src_desc_ptr->n)) // TO BE DONE ONLY FOR VIDEO READERS OUTPUTS
     {
         unsigned num_of_frames = data->in_tensor_dims[1]; // Num of frames 'F'
         for(int n = data->nbatchSize - 1; n >= 0; n--)
@@ -95,6 +96,13 @@ static vx_status VX_CALLBACK refreshBrightness(vx_node node, const vx_reference 
             STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(vx_float32)));
             STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(vx_float32)));
         }
+#if defined(AMD_FP16_SUPPORT)
+        else if (data->in_tensor_type == vx_type_e::VX_TYPE_FLOAT16 && data->out_tensor_type == vx_type_e::VX_TYPE_FLOAT16)
+        {
+            STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(vx_float16)));
+            STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(vx_float16)));
+        }
+#endif
     }
     return status;
 }
@@ -115,6 +123,9 @@ static vx_status VX_CALLBACK validateBrightness(vx_node node, const vx_reference
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[8], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_UINT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #8 type=%d (must be size)\n", scalar_type);
+    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[9], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
+    if (scalar_type != VX_TYPE_UINT32)
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #9 type=%d (must be size)\n", scalar_type);
 
     // Check for input parameters
     vx_tensor input;
@@ -185,10 +196,11 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
 #elif ENABLE_HIP
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_HIP_STREAM, &data->handle.hipstream, sizeof(data->handle.hipstream)));
 #endif
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &roiType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[7], &data->nbatchSize));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &data->device_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &data->output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roiType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[8], &data->nbatchSize));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &data->device_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     data->roiType = (roiType == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
 
     // Querying for input tensor
@@ -203,6 +215,10 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
     else if (data->in_tensor_type == vx_type_e::VX_TYPE_FLOAT32)
     {
         data->src_desc_ptr->dataType = RpptDataType::F32;
+    }
+    else if (data->in_tensor_type == vx_type_e::VX_TYPE_FLOAT16)
+    {
+        data->src_desc_ptr->dataType = RpptDataType::F16;
     }
     data->src_desc_ptr->offsetInBytes = 0;
 
@@ -219,104 +235,14 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
     {
         data->dst_desc_ptr->dataType = RpptDataType::F32;
     }
+    else if (data->out_tensor_type == vx_type_e::VX_TYPE_FLOAT16)
+    {
+        data->dst_desc_ptr->dataType = RpptDataType::F16;
+    }
     data->dst_desc_ptr->offsetInBytes = 0;
 
-    if(data->layout == 0) // NHWC
-    {
-        // source_description_ptr
-        data->src_desc_ptr->n = data->in_tensor_dims[0];
-        data->src_desc_ptr->h = data->in_tensor_dims[1];
-        data->src_desc_ptr->w = data->in_tensor_dims[2];
-        data->src_desc_ptr->c = data->in_tensor_dims[3];
-        data->src_desc_ptr->strides.nStride = data->src_desc_ptr->c * data->src_desc_ptr->w * data->src_desc_ptr->h;
-        data->src_desc_ptr->strides.hStride = data->src_desc_ptr->c * data->src_desc_ptr->w;
-        data->src_desc_ptr->strides.wStride = data->src_desc_ptr->c;
-        data->src_desc_ptr->strides.cStride = 1;
-        data->src_desc_ptr->layout = RpptLayout::NHWC;
-
-        //destination_description_ptr
-        data->dst_desc_ptr->n = data->out_tensor_dims[0];
-        data->dst_desc_ptr->h = data->out_tensor_dims[1];
-        data->dst_desc_ptr->w = data->out_tensor_dims[2];
-        data->dst_desc_ptr->c = data->out_tensor_dims[3];
-        data->dst_desc_ptr->strides.nStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w * data->dst_desc_ptr->h;
-        data->dst_desc_ptr->strides.hStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w;
-        data->dst_desc_ptr->strides.wStride = data->dst_desc_ptr->c;
-        data->dst_desc_ptr->strides.cStride = 1;
-        data->dst_desc_ptr->layout = RpptLayout::NHWC;
-    }
-    else if(data->layout == 1) // NCHW
-    {
-        // source_description_ptr
-        data->src_desc_ptr->n = data->in_tensor_dims[0];
-        data->src_desc_ptr->h = data->in_tensor_dims[2];
-        data->src_desc_ptr->w = data->in_tensor_dims[3];
-        data->src_desc_ptr->c = data->in_tensor_dims[1];
-        data->src_desc_ptr->strides.nStride = data->src_desc_ptr->c * data->src_desc_ptr->w * data->src_desc_ptr->h;
-        data->src_desc_ptr->strides.cStride = data->src_desc_ptr->w * data->src_desc_ptr->h;
-        data->src_desc_ptr->strides.hStride = data->src_desc_ptr->w;
-        data->src_desc_ptr->strides.wStride = 1;
-        data->src_desc_ptr->layout = RpptLayout::NCHW;
-
-        //destination_description_ptr
-        data->dst_desc_ptr->n = data->out_tensor_dims[0];
-        data->dst_desc_ptr->h = data->out_tensor_dims[2];
-        data->dst_desc_ptr->w = data->out_tensor_dims[3];
-        data->dst_desc_ptr->c = data->out_tensor_dims[1];
-        data->dst_desc_ptr->strides.nStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w * data->dst_desc_ptr->h;
-        data->dst_desc_ptr->strides.cStride = data->dst_desc_ptr->w * data->dst_desc_ptr->h;
-        data->dst_desc_ptr->strides.hStride = data->dst_desc_ptr->w;
-        data->dst_desc_ptr->strides.wStride = 1;
-        data->dst_desc_ptr->layout = RpptLayout::NCHW;
-    }
-    else if(data->layout == 2) // NFHWC
-    {
-        // source_description_ptr
-        data->src_desc_ptr->n = data->in_tensor_dims[0] * data->in_tensor_dims[1];
-        data->src_desc_ptr->h = data->in_tensor_dims[2];
-        data->src_desc_ptr->w = data->in_tensor_dims[3];
-        data->src_desc_ptr->c = data->in_tensor_dims[4];
-        data->src_desc_ptr->strides.nStride = data->src_desc_ptr->c * data->src_desc_ptr->w * data->src_desc_ptr->h;
-        data->src_desc_ptr->strides.hStride = data->src_desc_ptr->c * data->src_desc_ptr->w;
-        data->src_desc_ptr->strides.wStride = data->src_desc_ptr->c;
-        data->src_desc_ptr->strides.cStride = 1;
-        data->src_desc_ptr->layout = RpptLayout::NHWC;
-
-        //destination_description_ptr
-        data->dst_desc_ptr->n = data->out_tensor_dims[0] * data->in_tensor_dims[1];
-        data->dst_desc_ptr->h = data->out_tensor_dims[1];
-        data->dst_desc_ptr->w = data->out_tensor_dims[2];
-        data->dst_desc_ptr->c = data->out_tensor_dims[3];
-        data->dst_desc_ptr->strides.nStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w * data->dst_desc_ptr->h;
-        data->dst_desc_ptr->strides.hStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w;
-        data->dst_desc_ptr->strides.wStride = data->dst_desc_ptr->c;
-        data->dst_desc_ptr->strides.cStride = 1;
-        data->dst_desc_ptr->layout = RpptLayout::NHWC;
-    }
-    else if(data->layout == 3) // NFCHW
-    {
-        // source_description_ptr
-        data->src_desc_ptr->n = data->in_tensor_dims[0] * data->in_tensor_dims[1];
-        data->src_desc_ptr->h = data->in_tensor_dims[3];
-        data->src_desc_ptr->w = data->in_tensor_dims[4];
-        data->src_desc_ptr->c = data->in_tensor_dims[2];
-        data->src_desc_ptr->strides.nStride = data->src_desc_ptr->c * data->src_desc_ptr->w * data->src_desc_ptr->h;
-        data->src_desc_ptr->strides.cStride = data->src_desc_ptr->w * data->src_desc_ptr->h;
-        data->src_desc_ptr->strides.hStride = data->src_desc_ptr->w;
-        data->src_desc_ptr->strides.wStride = 1;
-        data->src_desc_ptr->layout = RpptLayout::NCHW;
-
-        //destination_description_ptr
-        data->dst_desc_ptr->n = data->out_tensor_dims[0] * data->in_tensor_dims[1];
-        data->dst_desc_ptr->h = data->out_tensor_dims[1];
-        data->dst_desc_ptr->w = data->out_tensor_dims[2];
-        data->dst_desc_ptr->c = data->out_tensor_dims[3];
-        data->dst_desc_ptr->strides.nStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w * data->dst_desc_ptr->h;
-        data->dst_desc_ptr->strides.hStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w;
-        data->dst_desc_ptr->strides.wStride = data->dst_desc_ptr->c;
-        data->dst_desc_ptr->strides.cStride = 1;
-        data->dst_desc_ptr->layout = RpptLayout::NCHW; 
-    }
+    fillDescriptionPtrfromDims(data->src_desc_ptr, data->input_layout, data->in_tensor_dims);
+    fillDescriptionPtrfromDims(data->dst_desc_ptr, data->output_layout, data->out_tensor_dims);
 
 #if ENABLE_HIP
     if (data->device_type == AGO_TARGET_AFFINITY_GPU)
@@ -384,7 +310,7 @@ vx_status Brightness_Register(vx_context context)
     vx_kernel kernel = vxAddUserKernel(context, "org.rpp.Brightness",
                                        VX_KERNEL_RPP_BRIGHTNESS,
                                        processBrightness,
-                                       9,
+                                       10,
                                        validateBrightness,
                                        initializeBrightness,
                                        uninitializeBrightness);
@@ -413,6 +339,7 @@ vx_status Brightness_Register(vx_context context)
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 7, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 8, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
+        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 9, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxFinalizeKernel(kernel));
     }
     if (status != VX_SUCCESS)

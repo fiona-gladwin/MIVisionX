@@ -609,11 +609,13 @@ RocalImage ROCAL_API_CALL
 rocalBrightness(
         RocalContext p_context,
         RocalImage p_input,
+        RocalTensorLayout rocal_tensor_layout,
+        RocalTensorOutputType rocal_tensor_output_type,
         bool is_output,
         RocalFloatParam p_alpha,
         RocalFloatParam p_beta)
 {
-    Image* output = nullptr;
+    rocalTensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
@@ -625,9 +627,16 @@ rocalBrightness(
     auto beta = static_cast<FloatParam*>(p_beta);
     try
     {
+        RocalTensorlayout op_tensorLayout;
+        RocalTensorDataType op_tensorDataType;
+        int layout = 0;
+        get_rocal_tensor_layout(rocal_tensor_layout, op_tensorLayout, layout);
+        get_rocal_tensor_data_type(rocal_tensor_output_type, op_tensorDataType);
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
 
-        output = context->master_graph->create_image(input->info(), is_output);
-
+        output = context->master_graph->create_tensor(output_info, is_output);
         context->master_graph->add_node<BrightnessNode>({input}, {output})->init(alpha, beta);
     }
     catch(const std::exception& e)

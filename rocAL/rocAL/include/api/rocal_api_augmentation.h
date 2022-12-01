@@ -123,8 +123,10 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalRotateFixed(RocalContext context, Ro
 /// \param alpha
 /// \param beta
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalBrightness(RocalContext context, RocalImage input, bool is_output ,
-                                                    RocalFloatParam alpha = NULL, RocalFloatParam beta = NULL);
+extern "C"  RocalImage  ROCAL_API_CALL rocalBrightness(RocalContext context, RocalImage input, 
+                                                      RocalTensorLayout rocal_tensor_layout,
+                                                      RocalTensorOutputType rocal_tensor_output_type, bool is_output,
+                                                      RocalFloatParam alpha = NULL, RocalFloatParam beta = NULL);
 
 /// Accepts U8 and RGB24 inputs
 /// \param context

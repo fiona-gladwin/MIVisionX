@@ -29,7 +29,7 @@ THE SOFTWARE.
 class BrightnessNode : public Node
 {
 public:
-    BrightnessNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    BrightnessNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     BrightnessNode() = delete;
 
     void init( float alpha, float beta);
