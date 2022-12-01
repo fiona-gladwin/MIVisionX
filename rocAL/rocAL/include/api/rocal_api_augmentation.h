@@ -123,7 +123,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalRotateFixed(RocalContext context, Ro
 /// \param alpha
 /// \param beta
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalBrightness(RocalContext context, RocalImage input, 
+extern "C"  RocalTensor  ROCAL_API_CALL rocalBrightness(RocalContext context, RocalTensor input, 
                                                       RocalTensorLayout rocal_tensor_layout,
                                                       RocalTensorOutputType rocal_tensor_output_type, bool is_output,
                                                       RocalFloatParam alpha = NULL, RocalFloatParam beta = NULL);
@@ -525,7 +525,9 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalColorTwistFixed(RocalContext context
                                                         float sat,
                                                         bool is_output);
 
-extern "C"  RocalImage  ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext context, RocalImage input,
+extern "C" RocalTensor ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext context, RocalTensor input,
+                                                            RocalTensorLayout rocal_tensor_layout,
+                                                            RocalTensorOutputType rocal_tensor_output_type,
                                                             unsigned crop_depth,
                                                             unsigned crop_height,
                                                             unsigned crop_width,

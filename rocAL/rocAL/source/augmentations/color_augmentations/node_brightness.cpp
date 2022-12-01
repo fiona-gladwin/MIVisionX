@@ -51,7 +51,7 @@ void BrightnessNode::create_node()
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness_batch (vxExtrppNode_Brightness) node failed: "+ TOSTR(status))
+        THROW("Adding the brightness (vxExtrppNode_Brightness) node failed: "+ TOSTR(status))
 }
 
 void BrightnessNode::init( float alpha, float beta)

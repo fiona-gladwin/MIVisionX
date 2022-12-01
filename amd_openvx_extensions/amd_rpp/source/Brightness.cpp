@@ -59,7 +59,7 @@ static vx_status VX_CALLBACK refreshBrightness(vx_node node, const vx_reference 
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->nbatchSize, sizeof(vx_float32), data->alpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->nbatchSize, sizeof(vx_float32), data->beta, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     
-    if((data->input_layout == 2 || data->input_layout == 3) && (data->nbatchSize != data->src_desc_ptr->n)) // TO BE DONE ONLY FOR VIDEO READERS OUTPUTS
+    if((data->input_layout == 2 || data->input_layout == 3)) // TO BE DONE ONLY FOR VIDEO READERS OUTPUTS
     {
         unsigned num_of_frames = data->in_tensor_dims[1]; // Num of frames 'F'
         for(int n = data->nbatchSize - 1; n >= 0; n--)

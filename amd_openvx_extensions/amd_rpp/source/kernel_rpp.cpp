@@ -2036,7 +2036,7 @@ vx_status releaseGraphHandle(vx_node node, RPPCommonHandle *handle)
 }
 #endif
 
-void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32u layout, size_t *tensor_dims)
+void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *tensor_dims)
 {
     switch(layout)
     {
