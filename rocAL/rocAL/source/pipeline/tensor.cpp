@@ -51,7 +51,12 @@ vx_size tensor_data_size(RocalTensorDataType data_type) {
         case RocalTensorDataType::FP32:
             return sizeof(vx_float32);
         case RocalTensorDataType::FP16:
-            return sizeof(vx_int16);
+#if defined(AMD_FP16_SUPPORT)
+            return sizeof(vx_float16);
+#else
+            THROW("FLOAT16 type tensor not supported")
+            return 0;
+#endif
         case RocalTensorDataType::UINT8:
             return sizeof(vx_uint8);
         case RocalTensorDataType::UINT32:
