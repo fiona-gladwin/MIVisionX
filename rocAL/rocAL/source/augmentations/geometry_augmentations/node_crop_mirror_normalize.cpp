@@ -43,7 +43,7 @@ void CropMirrorNormalizeNode::create_node()
         THROW("Uninitialized destination dimension - Invalid Crop Sizes")
 
     _crop_param->create_array(_graph);
-    
+
     std::vector<float> mean_vx, std_dev_vx;
     mean_vx.resize(_batch_size * 3);
     std_dev_vx.resize(_batch_size * 3);
@@ -51,12 +51,10 @@ void CropMirrorNormalizeNode::create_node()
         mean_vx[j] = _mean[0];
         mean_vx[j + 1] = _mean[1];
         mean_vx[j + 2] = _mean[2];
-
         std_dev_vx[j] = _std_dev[0];
         std_dev_vx[j + 1] = _std_dev[1];
         std_dev_vx[j + 2] = _std_dev[2];
     }
-
     _mean_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 3);
     _std_dev_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 3);
     vx_status status = VX_SUCCESS;
@@ -72,9 +70,8 @@ void CropMirrorNormalizeNode::create_node()
     vx_scalar in_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
     vx_scalar out_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
     vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
-
-    _node = vxExtrppNode_CropMirrorNormalize(_graph->get(), _inputs[0]->handle(),
-                                             _src_tensor_roi, _outputs[0]->handle(),_src_tensor_roi,_crop_param->cropw_arr, _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr,
+    _node = vxExtrppNode_CropMirrorNormalize(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(),
+                                             _src_tensor_roi, _crop_param->cropw_arr, _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr,
                                              _mean_array, _std_dev_array, _mirror.default_array(), in_layout_vx, out_layout_vx, roi_type_vx, _batch_size);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the crop mirror normalize (vxExtrppNode_CropMirrorNormalize) failed: " + TOSTR(status))
@@ -92,8 +89,8 @@ void CropMirrorNormalizeNode::update_node()
 
 void CropMirrorNormalizeNode::init(int crop_h, int crop_w, float start_x, float start_y, std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror)
 {
-    _crop_param->x1 = 0;
-    _crop_param->y1 = 0;
+    _crop_param->x1 = start_x;
+    _crop_param->y1 = start_y;
     _crop_param->crop_h = crop_h;
     _crop_param->crop_w = crop_w;
     _mean   = mean;

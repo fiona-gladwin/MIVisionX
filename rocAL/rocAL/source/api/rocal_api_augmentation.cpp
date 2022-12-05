@@ -673,7 +673,6 @@ rocalBrightness(
         rocalTensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensorLayout);
         output_info.set_data_type(op_tensorDataType);
-
         output = context->master_graph->create_tensor(output_info, is_output);
         context->master_graph->add_node<BrightnessNode>({input}, {output})->init(alpha, beta);
     }
@@ -1715,9 +1714,9 @@ rocalColorTwistFixed(
 
 RocalTensor
 ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, RocalTensorLayout rocal_tensor_layout,
-                                    RocalTensorOutputType rocal_tensor_output_type, unsigned crop_depth, unsigned crop_height,
-                                    unsigned crop_width, float start_x, float start_y, float start_z, std::vector<float> &mean,
-                                    std::vector<float> &std_dev, bool is_output, RocalIntParam p_mirror)
+                                        RocalTensorOutputType rocal_tensor_output_type, unsigned crop_depth, unsigned crop_height,
+                                        unsigned crop_width, float start_x, float start_y, float start_z, std::vector<float> &mean,
+                                        std::vector<float> &std_dev, bool is_output, RocalIntParam p_mirror)
 {
     rocalTensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
@@ -1762,9 +1761,7 @@ ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_in
             out_dims[4] = crop_width;
         }
         output_info.set_dims(out_dims);
-
         output = context->master_graph->create_tensor(output_info, is_output);
-
         std::shared_ptr<CropMirrorNormalizeNode> cmn_node =  context->master_graph->add_node<CropMirrorNormalizeNode>({input}, {output});
         cmn_node->init(crop_height, crop_width, start_x, start_y, mean, std_dev , mirror);
         if (context->master_graph->meta_data_graph())

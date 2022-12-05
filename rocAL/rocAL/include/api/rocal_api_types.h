@@ -39,7 +39,6 @@ using half_float::half;
 typedef void * RocalFloatParam;
 typedef void * RocalIntParam;
 typedef void * RocalContext;
-typedef void * RocalImage;
 typedef void * RocalMetaData;
 typedef rocalTensor * RocalTensor;
 typedef rocalTensorList * RocalTensorList;

@@ -40,7 +40,6 @@ protected:
     void update_node() override;
 private:
     std::shared_ptr<RocalCropParam> _crop_param;
-    std::vector<vx_float32> _mean_vx, _std_dev_vx;
     vx_array _mean_array, _std_dev_array;
     ParameterVX<int> _mirror;
     constexpr static int   MIRROR_RANGE [2] =  {0, 1};

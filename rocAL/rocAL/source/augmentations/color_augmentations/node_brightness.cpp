@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-BrightnessNode::BrightnessNode(const std::vector<rocalTensor *> &inputs,const std::vector<rocalTensor *> &outputs) :
+BrightnessNode::BrightnessNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
         _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
         _beta (BETA_RANGE[0], BETA_RANGE[1])
@@ -46,7 +46,6 @@ void BrightnessNode::create_node()
     vx_scalar in_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
     vx_scalar out_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
     vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
-
     _node = vxExtrppNode_Brightness(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), in_layout_vx, out_layout_vx, roi_type_vx, _batch_size);
 
     vx_status status;
