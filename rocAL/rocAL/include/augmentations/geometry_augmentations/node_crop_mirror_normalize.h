@@ -36,11 +36,12 @@ public:
     vx_array return_mirror(){ return _mirror.default_array();  }
     std::shared_ptr<RocalCropParam> return_crop_param() { return _crop_param; }
 protected:
-    void create_node() override ;
+    void create_node() override;
     void update_node() override;
 private:
     std::shared_ptr<RocalCropParam> _crop_param;
     vx_array _mean_array, _std_dev_array;
+    std::vector<float> _mean, _std_dev;
     ParameterVX<int> _mirror;
     constexpr static int   MIRROR_RANGE [2] =  {0, 1};
 };
