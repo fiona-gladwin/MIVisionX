@@ -45,21 +45,26 @@ void CropMirrorNormalizeNode::create_node()
     _crop_param->create_array(_graph);
 
     std::vector<float> mean_vx, std_dev_vx;
-    mean_vx.resize(_batch_size * 3);
-    std_dev_vx.resize(_batch_size * 3);
-    for (uint i = 0, j = 0; i < _batch_size; i++ , j += 3) {
+    int mean_stddev_array_size = _batch_size * _inputs[0]->info().get_channels();
+    mean_vx.resize(mean_stddev_array_size, _mean[0]);
+    std_dev_vx.resize(mean_stddev_array_size, _std_dev[0]);
+    
+    if(_inputs[0]->info().get_channels() == 3) {
+        for (uint i = 0, j = 0; i < _batch_size; i++ , j += 3) {
         mean_vx[j] = _mean[0];
         mean_vx[j + 1] = _mean[1];
         mean_vx[j + 2] = _mean[2];
         std_dev_vx[j] = _std_dev[0];
         std_dev_vx[j + 1] = _std_dev[1];
         std_dev_vx[j + 2] = _std_dev[2];
+        }
     }
-    _mean_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 3);
-    _std_dev_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 3);
+
+    _mean_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, mean_stddev_array_size);
+    _std_dev_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, mean_stddev_array_size);
     vx_status status = VX_SUCCESS;
-    status |= vxAddArrayItems(_mean_array, _batch_size * 3, mean_vx.data(), sizeof(vx_float32));
-    status |= vxAddArrayItems(_std_dev_array, _batch_size * 3, std_dev_vx.data(), sizeof(vx_float32));
+    status |= vxAddArrayItems(_mean_array, mean_stddev_array_size, mean_vx.data(), sizeof(vx_float32));
+    status |= vxAddArrayItems(_std_dev_array, mean_stddev_array_size, std_dev_vx.data(), sizeof(vx_float32));
     _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
     if(status != 0)
         THROW(" vxAddArrayItems failed in the crop_mirror_normalize node (vxExtrppNode_CropMirrorNormalize)  node: "+ TOSTR(status) + "  "+ TOSTR(status))

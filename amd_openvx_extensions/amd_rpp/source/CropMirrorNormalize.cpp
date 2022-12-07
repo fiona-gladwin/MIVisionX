@@ -57,8 +57,8 @@ static vx_status VX_CALLBACK refreshCropMirrorNormalize(vx_node node, const vx_r
 {
     vx_status status = VX_SUCCESS;
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[1], 0, data->nbatchSize * 4, sizeof(unsigned), data->roi_tensor_ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->nbatchSize * 3, sizeof(vx_float32), data->mean, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->nbatchSize * 3, sizeof(vx_float32), data->std_dev, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->nbatchSize * data->src_desc_ptr->c, sizeof(vx_float32), data->mean, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->nbatchSize * data->src_desc_ptr->c, sizeof(vx_float32), data->std_dev, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->nbatchSize, sizeof(vx_uint32), data->mirror, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if(data->input_layout == 2 || data->input_layout == 3) // For NFCHW and NFHWC formats
@@ -69,8 +69,13 @@ static vx_status VX_CALLBACK refreshCropMirrorNormalize(vx_node node, const vx_r
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++)
             {
-                data->mean[index + f] = data->mean[n];
-                data->std_dev[index + f] = data->std_dev[n];
+                for(int c = 0; c < data->src_desc_ptr->c; c++)
+                {
+                    int dst_ind = (index + f) * data->src_desc_ptr->c + c;
+                    int src_ind = n * data->src_desc_ptr->c + c;
+                    data->mean[dst_ind] = data->mean[src_ind];
+                    data->std_dev[dst_ind] = data->std_dev[src_ind];
+                }
                 data->mirror[index + f] = data->mirror[n];
                 data->roi_tensor_ptr[index + f].xywhROI.xy.x = data->roi_tensor_ptr[n].xywhROI.xy.x;
                 data->roi_tensor_ptr[index + f].xywhROI.xy.y = data->roi_tensor_ptr[n].xywhROI.xy.y;
@@ -264,8 +269,8 @@ static vx_status VX_CALLBACK initializeCropMirrorNormalize(vx_node node, const v
         hipMalloc(&data->roi_tensor_ptr_dev, data->src_desc_ptr->n * sizeof(RpptROI));
 #endif
     data->roi_tensor_ptr = (RpptROI *)calloc(data->src_desc_ptr->n, sizeof(RpptROI));
-    data->mean = (vx_float32 *)malloc(sizeof(vx_float32) * data->src_desc_ptr->n * 3);
-    data->std_dev = (vx_float32 *)malloc(sizeof(vx_float32) * data->src_desc_ptr->n * 3);
+    data->mean = (vx_float32 *)malloc(sizeof(vx_float32) * data->src_desc_ptr->n * data->src_desc_ptr->c);
+    data->std_dev = (vx_float32 *)malloc(sizeof(vx_float32) * data->src_desc_ptr->n * data->src_desc_ptr->c);
     data->mirror = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->src_desc_ptr->n);
     refreshCropMirrorNormalize(node, parameters, num, data);
 #if ENABLE_HIP

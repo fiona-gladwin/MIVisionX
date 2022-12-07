@@ -103,13 +103,19 @@ public:
             if (_layout == RocalTensorlayout::NHWC) {
                 _max_shape[0] = _dims.at(2);
                 _max_shape[1] = _dims.at(1);
-            } else if (_layout == RocalTensorlayout::NCHW ||
-                        _layout == RocalTensorlayout::NFHWC) {
+                _channels = _dims.at(3);
+            } else if (_layout == RocalTensorlayout::NCHW) {
                 _max_shape[0] = _dims.at(3);
                 _max_shape[1] = _dims.at(2);
+                _channels = _dims.at(1);
+            } else if (_layout == RocalTensorlayout::NFHWC) {
+                _max_shape[0] = _dims.at(3);
+                _max_shape[1] = _dims.at(2);
+                _channels = _dims.at(4);
             } else if (_layout == RocalTensorlayout::NFCHW) {
                 _max_shape[0] = _dims.at(4);
                 _max_shape[1] = _dims.at(3);
+                _channels = _dims.at(2);
             }
             reallocate_tensor_roi_buffers();
         } else if (!_is_metadata) {  // For audio
@@ -145,6 +151,7 @@ public:
     void set_color_format(RocalColorFormat color_format) {
         _color_format = color_format;
     }
+    size_t get_channels() const { return _channels; }
     unsigned num_of_dims() const { return _num_of_dims; }
     unsigned batch_size() const { return _batch_size; }
     uint64_t data_size() const { return _data_size; }
@@ -182,6 +189,7 @@ private:
     void reallocate_tensor_roi_buffers();
     bool _is_image = false;
     bool _is_metadata = false;
+    size_t _channels = 3;   //!< stores the channel dimensions in the tensor
 };
 
 bool operator==(const rocalTensorInfo& rhs, const rocalTensorInfo& lhs);
