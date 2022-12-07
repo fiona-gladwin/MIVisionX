@@ -71,7 +71,6 @@ void CropMirrorNormalizeNode::create_node()
     vx_scalar out_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
     vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
     _node = vxExtrppNode_CropMirrorNormalize(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(),
-                                             _src_tensor_roi, _crop_param->cropw_arr, _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr,
                                              _mean_array, _std_dev_array, _mirror.default_array(), in_layout_vx, out_layout_vx, roi_type_vx, _batch_size);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the crop mirror normalize (vxExtrppNode_CropMirrorNormalize) failed: " + TOSTR(status))
@@ -85,6 +84,21 @@ void CropMirrorNormalizeNode::update_node()
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
     _mirror.update_array();
+    
+    // Obtain the crop coordinates and update the roi
+    auto x1 = _crop_param->get_x1_arr_val();
+    auto y1 = _crop_param->get_y1_arr_val();
+    std::vector<uint32_t> src_roi(_batch_size * 4, 0);
+    for(unsigned i = 0, j = 0; i < _batch_size; i++, j+= 4) {
+        src_roi[j] = x1[i];
+        src_roi[j + 1] = y1[i];
+        src_roi[j + 2] = crop_w_dims[i];
+        src_roi[j + 3] = crop_h_dims[i];
+    }
+    vx_status status;
+    status = vxCopyArrayRange((vx_array)_src_tensor_roi, 0, _batch_size * 4, sizeof(vx_uint32), src_roi.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+    if(status != 0)
+        WRN("ERROR: vxCopyArrayRange _src_tensor_roi failed " + TOSTR(status));
 }
 
 void CropMirrorNormalizeNode::init(int crop_h, int crop_w, float start_x, float start_y, std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror)
