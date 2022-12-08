@@ -29,13 +29,11 @@ THE SOFTWARE.
 CropMirrorNormalizeNode::CropMirrorNormalizeNode(const std::vector<rocalTensor *> &inputs,
                                                  const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
-        _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1])
-{
+        _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1]) {
         _crop_param = std::make_shared<RocalCropParam>(_batch_size);
 }
 
-void CropMirrorNormalizeNode::create_node()
-{
+void CropMirrorNormalizeNode::create_node() {
     if(_node)
         return;
 
@@ -81,8 +79,7 @@ void CropMirrorNormalizeNode::create_node()
         THROW("Error adding the crop mirror normalize (vxExtrppNode_CropMirrorNormalize) failed: " + TOSTR(status))
 }
 
-void CropMirrorNormalizeNode::update_node()
-{
+void CropMirrorNormalizeNode::update_node() {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
@@ -106,8 +103,7 @@ void CropMirrorNormalizeNode::update_node()
         WRN("ERROR: vxCopyArrayRange _src_tensor_roi failed " + TOSTR(status));
 }
 
-void CropMirrorNormalizeNode::init(int crop_h, int crop_w, float start_x, float start_y, std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror)
-{
+void CropMirrorNormalizeNode::init(int crop_h, int crop_w, float start_x, float start_y, std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror) {
     _crop_param->x1 = start_x;
     _crop_param->y1 = start_y;
     _crop_param->crop_h = crop_h;

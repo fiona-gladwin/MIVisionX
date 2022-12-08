@@ -298,8 +298,7 @@ MasterGraph::build()
 }
 
 rocalTensor *
-MasterGraph::create_loader_output_tensor(const rocalTensorInfo &info)
-{
+MasterGraph::create_loader_output_tensor(const rocalTensorInfo &info) {
     /*
     *   NOTE: Output tensor for a source node needs to be created as a regular (non-virtual) tensor
     */
@@ -313,12 +312,10 @@ MasterGraph::create_loader_output_tensor(const rocalTensorInfo &info)
 }
 
 rocalTensor *
-MasterGraph::create_tensor(const rocalTensorInfo &info, bool is_output)
-{
+MasterGraph::create_tensor(const rocalTensorInfo &info, bool is_output) {
     auto *new_tensor = new rocalTensor(info);
     // if the tensor is not an output tensor, the tensor creation is deferred and later it'll be created as a virtual tensor
-    if(is_output)
-    {
+    if(is_output) {
         if (new_tensor->create_from_handle(_context) != 0)
             THROW("Cannot create the tensor from handle")
         _internal_tensor_list.push_back(new_tensor);

@@ -2031,12 +2031,9 @@ vx_status releaseGraphHandle(vx_node node, RPPCommonHandle *handle)
 }
 #endif
 
-void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *tensor_dims)
-{
-    switch(layout)
-    {
-        case 0: // For NHWC
-        {
+void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *tensor_dims) {
+    switch(layout) {
+        case 0: { // For NHWC
             desc_ptr->n = tensor_dims[0];
             desc_ptr->h = tensor_dims[1];
             desc_ptr->w = tensor_dims[2];
@@ -2045,11 +2042,10 @@ void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *te
             desc_ptr->strides.hStride = desc_ptr->c * desc_ptr->w;
             desc_ptr->strides.wStride = desc_ptr->c;
             desc_ptr->strides.cStride = 1;
-            desc_ptr->layout = RpptLayout::NHWC;   
+            desc_ptr->layout = RpptLayout::NHWC;
+            break; 
         }
-        break;
-        case 1: // For NCHW
-        {
+        case 1: { // For NCHW
             desc_ptr->n = tensor_dims[0];
             desc_ptr->h = tensor_dims[2];
             desc_ptr->w = tensor_dims[3];
@@ -2059,10 +2055,9 @@ void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *te
             desc_ptr->strides.hStride = desc_ptr->w;
             desc_ptr->strides.wStride = 1;
             desc_ptr->layout = RpptLayout::NCHW;
+            break;
         }
-        break;
-        case 2: // For NFHWC
-        {
+        case 2: { // For NFHWC
             desc_ptr->n = tensor_dims[0] * tensor_dims[1];
             desc_ptr->h = tensor_dims[2];
             desc_ptr->w = tensor_dims[3];
@@ -2072,10 +2067,9 @@ void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *te
             desc_ptr->strides.wStride = desc_ptr->c;
             desc_ptr->strides.cStride = 1;
             desc_ptr->layout = RpptLayout::NHWC;
+            break;
         }
-        break;
-        case 3: // For NFCHW
-        {
+        case 3: { // For NFCHW
             // source_description_ptr
             desc_ptr->n = tensor_dims[0] * tensor_dims[1];
             desc_ptr->h = tensor_dims[3];
@@ -2086,7 +2080,7 @@ void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *te
             desc_ptr->strides.hStride = desc_ptr->w;
             desc_ptr->strides.wStride = 1;
             desc_ptr->layout = RpptLayout::NCHW;
+            break;
         }
-        break;
     }
 }
