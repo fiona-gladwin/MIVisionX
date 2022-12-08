@@ -123,10 +123,10 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalRotateFixed(RocalContext context, Ro
 /// \param alpha
 /// \param beta
 /// \return
-extern "C"  RocalTensor  ROCAL_API_CALL rocalBrightness(RocalContext context, RocalTensor input, 
-                                                      RocalTensorLayout rocal_tensor_layout,
-                                                      RocalTensorOutputType rocal_tensor_output_type, bool is_output,
-                                                      RocalFloatParam alpha = NULL, RocalFloatParam beta = NULL);
+extern "C" RocalTensor ROCAL_API_CALL rocalBrightness(RocalContext context, RocalTensor input, bool is_output,
+                                                      RocalFloatParam alpha = NULL, RocalFloatParam beta = NULL,
+                                                      RocalTensorLayout rocal_tensor_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 inputs
 /// \param context
@@ -526,16 +526,16 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalColorTwistFixed(RocalContext context
                                                         bool is_output);
 
 extern "C" RocalTensor ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext context, RocalTensor input,
-                                                            RocalTensorLayout rocal_tensor_layout,
-                                                            RocalTensorOutputType rocal_tensor_output_type,
-                                                            unsigned crop_height,
-                                                            unsigned crop_width,
-                                                            float start_x,
-                                                            float start_y,
-                                                            std::vector<float> &mean,
-                                                            std::vector<float> &std_dev,
-                                                            bool is_output ,
-                                                            RocalIntParam mirror = NULL);
+                                                               unsigned crop_height,
+                                                               unsigned crop_width,
+                                                               float start_x,
+                                                               float start_y,
+                                                               std::vector<float> &mean,
+                                                               std::vector<float> &std_dev,
+                                                               bool is_output,
+                                                               RocalIntParam mirror = NULL,
+                                                               RocalTensorLayout rocal_tensor_layout = ROCAL_NHWC,
+                                                               RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 extern "C" RocalImage  ROCAL_API_CALL rocalCrop(RocalContext context, RocalImage input, bool is_output,
                                              RocalFloatParam crop_width = NULL,

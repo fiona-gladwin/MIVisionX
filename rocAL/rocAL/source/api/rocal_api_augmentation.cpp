@@ -648,11 +648,11 @@ RocalTensor ROCAL_API_CALL
 rocalBrightness(
         RocalContext p_context,
         RocalTensor p_input,
-        RocalTensorLayout rocal_tensor_layout,
-        RocalTensorOutputType rocal_tensor_output_type,
         bool is_output,
         RocalFloatParam p_alpha,
-        RocalFloatParam p_beta)
+        RocalFloatParam p_beta,
+        RocalTensorLayout rocal_tensor_layout,
+        RocalTensorOutputType rocal_tensor_output_type)
 {
     rocalTensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
@@ -1713,10 +1713,10 @@ rocalColorTwistFixed(
 }
 
 RocalTensor
-ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, RocalTensorLayout rocal_tensor_layout,
-                                        RocalTensorOutputType rocal_tensor_output_type, unsigned crop_height, unsigned crop_width,
-                                        float start_x, float start_y, std::vector<float> &mean, std::vector<float> &std_dev,
-                                        bool is_output, RocalIntParam p_mirror)
+ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned crop_height,
+                                        unsigned crop_width,float start_x, float start_y, std::vector<float> &mean,
+                                        std::vector<float> &std_dev, bool is_output, RocalIntParam p_mirror, 
+                                        RocalTensorLayout rocal_tensor_layout, RocalTensorOutputType rocal_tensor_output_type)
 {
     rocalTensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
