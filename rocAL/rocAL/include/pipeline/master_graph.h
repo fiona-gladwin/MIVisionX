@@ -135,7 +135,7 @@ private:
     std::thread _output_thread;
     ImageInfo _output_image_info;//!< Keeps the information about ROCAL's output image , it includes all images of a batch stacked on top of each other
     rocalTensorList _internal_tensor_list;  //!< Keeps a list of ovx tensors that are used to store the augmented outputs (there is an augmentation output batch per element in the list)
-    rocalTensorList _output_tensor_list;
+    rocalTensorList _output_tensor_list;    //!< Keeps a list of ovx tensors(augmented outputs) that are to be passed to the user (there is an augmentation output batch per element in the list)
     std::list<Image*> _internal_images;//!< Keeps all the ovx images (virtual/non-virtual) either intermediate images, or input images that feed the graph
     std::list<std::shared_ptr<Node>> _nodes;//!< List of all the nodes
     std::list<std::shared_ptr<Node>> _root_nodes;//!< List of all root nodes (image/video loaders)

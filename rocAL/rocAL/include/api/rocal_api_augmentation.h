@@ -117,15 +117,17 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalRotateFixed(RocalContext context, Ro
                                                     bool is_output, unsigned dest_width = 0, unsigned dest_height = 0);
 
 /// Accepts U8 and RGB24 inputs
-/// \param context
-/// \param input
-/// \param is_output
-/// \param alpha
-/// \param beta
+/// \param context Rocal context
+/// \param input Input Rocal tensor
+/// \param is_output is the output tensor part of the graph output
+/// \param alpha controls contrast of the image
+/// \param beta controls brightness of the image
+/// \param tensor_output_layout the layout of the output tensor
+/// \param tensor_output_datatype the data type of the output tensor
 /// \return
 extern "C" RocalTensor ROCAL_API_CALL rocalBrightness(RocalContext context, RocalTensor input, bool is_output,
                                                       RocalFloatParam alpha = NULL, RocalFloatParam beta = NULL,
-                                                      RocalTensorLayout rocal_tensor_layout = ROCAL_NHWC,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                       RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 inputs
@@ -525,6 +527,20 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalColorTwistFixed(RocalContext context
                                                         float sat,
                                                         bool is_output);
 
+/// Accepts U8 and RGB24 inputs
+/// \param context Rocal context
+/// \param input Input Rocal tensor
+/// \param crop_height crop width of the image
+/// \param crop_width crop height of the image
+/// \param start_x x-coordinate, start of the input image to be cropped
+/// \param start_y y-coordinate, start of the input image to be cropped
+/// \param mean mean value (specified for each channel) for image normalization
+/// \param std_dev standard deviation value (specified for each channel) for image normalization
+/// \param is_output is the output tensor part of the graph output
+/// \param mirror controls horizontal flip of the image
+/// \param tensor_output_layout the layout of the output tensor
+/// \param tensor_output_type the data type of the output tensor
+/// \return
 extern "C" RocalTensor ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext context, RocalTensor input,
                                                                unsigned crop_height,
                                                                unsigned crop_width,
@@ -534,8 +550,8 @@ extern "C" RocalTensor ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext cont
                                                                std::vector<float> &std_dev,
                                                                bool is_output,
                                                                RocalIntParam mirror = NULL,
-                                                               RocalTensorLayout rocal_tensor_layout = ROCAL_NHWC,
-                                                               RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
+                                                               RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                               RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 extern "C" RocalImage  ROCAL_API_CALL rocalCrop(RocalContext context, RocalImage input, bool is_output,
                                              RocalFloatParam crop_width = NULL,

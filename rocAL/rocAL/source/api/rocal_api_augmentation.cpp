@@ -651,8 +651,8 @@ rocalBrightness(
         bool is_output,
         RocalFloatParam p_alpha,
         RocalFloatParam p_beta,
-        RocalTensorLayout rocal_tensor_layout,
-        RocalTensorOutputType rocal_tensor_output_type) {
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
     rocalTensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input tensor")
@@ -666,8 +666,8 @@ rocalBrightness(
     try {
         RocalTensorlayout op_tensorLayout;
         RocalTensorDataType op_tensorDataType;
-        get_rocal_tensor_layout(rocal_tensor_layout, op_tensorLayout);
-        get_rocal_tensor_data_type(rocal_tensor_output_type, op_tensorDataType);
+        get_rocal_tensor_layout(rocal_tensor_output_layout, op_tensorLayout);
+        get_rocal_tensor_data_type(rocal_tensor_output_datatype, op_tensorDataType);
         rocalTensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensorLayout);
         output_info.set_data_type(op_tensorDataType);
@@ -1712,7 +1712,8 @@ RocalTensor ROCAL_API_CALL
 rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned crop_height,
                          unsigned crop_width,float start_x, float start_y, std::vector<float> &mean,
                          std::vector<float> &std_dev, bool is_output, RocalIntParam p_mirror, 
-                         RocalTensorLayout rocal_tensor_layout, RocalTensorOutputType rocal_tensor_output_type) {
+                         RocalTensorLayout rocal_tensor_output_layout,
+                         RocalTensorOutputType rocal_tensor_output_datatype) {
     rocalTensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input tensor")
@@ -1726,8 +1727,8 @@ rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned c
             THROW("Null values passed as input")
         RocalTensorlayout op_tensorLayout;
         RocalTensorDataType op_tensorDataType;
-        get_rocal_tensor_layout(rocal_tensor_layout, op_tensorLayout);
-        get_rocal_tensor_data_type(rocal_tensor_output_type, op_tensorDataType);
+        get_rocal_tensor_layout(rocal_tensor_output_layout, op_tensorLayout);
+        get_rocal_tensor_data_type(rocal_tensor_output_datatype, op_tensorDataType);
         rocalTensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensorLayout);
         output_info.set_data_type(op_tensorDataType);
