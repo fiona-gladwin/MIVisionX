@@ -80,15 +80,15 @@ public:
         _data_size = (_data_size / _data_type_size);
         _data_size *= data_type_size();
     }
-    void get_modified_dims_from_layout(RocalTensorlayout old_layout, RocalTensorlayout new_layout, std::vector<size_t> &new_dims) {
+    void get_modified_dims_from_layout(RocalTensorlayout input_layout, RocalTensorlayout output_layout, std::vector<size_t> &new_dims) {
         std::vector<size_t> dims_mapping;
-        if (old_layout == RocalTensorlayout::NHWC && new_layout == RocalTensorlayout::NCHW) {
+        if (input_layout == RocalTensorlayout::NHWC && output_layout == RocalTensorlayout::NCHW) {
             dims_mapping = {0, 3, 1, 2};
-        } else if (old_layout == RocalTensorlayout::NCHW && new_layout == RocalTensorlayout::NHWC) {
+        } else if (input_layout == RocalTensorlayout::NCHW && output_layout == RocalTensorlayout::NHWC) {
             dims_mapping = {0, 2, 3, 1};
-        } else if (old_layout == RocalTensorlayout::NFHWC && new_layout == RocalTensorlayout::NFCHW) {
+        } else if (input_layout == RocalTensorlayout::NFHWC && output_layout == RocalTensorlayout::NFCHW) {
             dims_mapping = {0, 1, 4, 2, 3};
-        } else if (old_layout == RocalTensorlayout::NFCHW && new_layout == RocalTensorlayout::NFHWC) {
+        } else if (input_layout == RocalTensorlayout::NFCHW && output_layout == RocalTensorlayout::NFHWC) {
             dims_mapping = {0, 1, 3, 4, 2};
         } else {
             THROW("Invalid layout conversion")
@@ -126,15 +126,11 @@ public:
     }
     void set_tensor_layout(RocalTensorlayout layout) {
         if(_layout != layout && _layout != RocalTensorlayout::NONE) {
-            RocalTensorlayout old_layout = _layout;
-            _layout = layout;
             std::vector<size_t> new_dims(_num_of_dims, 0);
-            get_modified_dims_from_layout(old_layout, _layout, new_dims);
-            set_dims(new_dims);
-        } else {
-            _layout = layout;
-            set_max_shape();
+            get_modified_dims_from_layout(_layout, layout, new_dims);
+            _dims = new_dims;
         }
+        _layout = layout;
     }
     void set_dims(std::vector<size_t>& new_dims) {
         _data_size = _data_type_size;
