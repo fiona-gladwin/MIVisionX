@@ -71,6 +71,7 @@ vx_status createGraphHandle(vx_node node, RPPCommonHandle ** pHandle);
 vx_status releaseGraphHandle(vx_node node, RPPCommonHandle * handle);
 int getEnvironmentVariable(const char* name);
 void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *tensor_dims);
+RpptDataType getRpptDataType(vx_enum vx_data_type);
 
 class Kernellist
 {

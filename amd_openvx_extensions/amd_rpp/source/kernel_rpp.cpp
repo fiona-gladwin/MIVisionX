@@ -2084,3 +2084,16 @@ void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *te
         }
     }
 }
+
+RpptDataType getRpptDataType(vx_enum vx_data_type) {
+    switch(vx_data_type) {
+        case vx_type_e::VX_TYPE_UINT8:
+            return RpptDataType::U8;
+        case vx_type_e::VX_TYPE_INT8:
+            return RpptDataType::I8;
+        case vx_type_e::VX_TYPE_FLOAT32:
+            return RpptDataType::F32;
+        case vx_type_e::VX_TYPE_FLOAT16:
+            return RpptDataType::F16;
+    }
+}
