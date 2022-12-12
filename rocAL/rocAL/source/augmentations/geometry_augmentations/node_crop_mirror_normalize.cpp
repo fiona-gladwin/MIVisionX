@@ -44,17 +44,27 @@ void CropMirrorNormalizeNode::create_node() {
 
     std::vector<float> mean_vx, std_dev_vx;
     int mean_stddev_array_size = _batch_size * _inputs[0]->info().get_channels();
-    mean_vx.resize(mean_stddev_array_size, _mean[0]);
-    std_dev_vx.resize(mean_stddev_array_size, _std_dev[0]);
+    if(!_std_dev[0])
+        THROW("Standard deviation value cannot be 0");
+    mean_vx.resize(mean_stddev_array_size, -(_mean[0] / _std_dev[0]));
+    std_dev_vx.resize(mean_stddev_array_size, (1 / _std_dev[0]));
     
     if(_inputs[0]->info().get_channels() == 3) {
-        for (uint i = 0, j = 0; i < _batch_size; i++ , j += 3) {
-        mean_vx[j] = _mean[0];
-        mean_vx[j + 1] = _mean[1];
-        mean_vx[j + 2] = _mean[2];
-        std_dev_vx[j] = _std_dev[0];
-        std_dev_vx[j + 1] = _std_dev[1];
-        std_dev_vx[j + 2] = _std_dev[2];
+        if(!(_std_dev[0] && _std_dev[1] && _std_dev[2]))
+            THROW("Standard deviation value cannot be 0");
+        std_dev_vx[0] = 1 / _std_dev[0];
+        std_dev_vx[1] = 1 / _std_dev[1];
+        std_dev_vx[2] = 1 / _std_dev[2];
+        mean_vx[0] = -(_mean[0] * std_dev_vx[0]);
+        mean_vx[1] = -(_mean[1] * std_dev_vx[1]);
+        mean_vx[2] = -(_mean[2] * std_dev_vx[2]);
+        for (uint i = 1, j = 3; i < _batch_size; i++ , j += 3) {
+        mean_vx[j] = mean_vx[0];
+        mean_vx[j + 1] = mean_vx[1];
+        mean_vx[j + 2] = mean_vx[2];
+        std_dev_vx[j] = std_dev_vx[0];
+        std_dev_vx[j + 1] = std_dev_vx[1];
+        std_dev_vx[j + 2] = std_dev_vx[2];
         }
     }
 
