@@ -76,7 +76,6 @@ void CropParam::create_array(std::shared_ptr<Graph> graph)
     vxAddArrayItems(croph_arr,batch_size, croph_arr_val.data(), sizeof(vx_uint32));
     vxAddArrayItems(x2_arr,batch_size, x2_arr_val.data(), sizeof(vx_uint32));
     vxAddArrayItems(y2_arr,batch_size, y2_arr_val.data(), sizeof(vx_uint32));
-    update_array();
 }
 
 void CropParam::update_crop_array()
