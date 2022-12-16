@@ -100,17 +100,13 @@ void CropMirrorNormalizeNode::update_node() {
     // Obtain the crop coordinates and update the roi
     auto x1 = _crop_param->get_x1_arr_val();
     auto y1 = _crop_param->get_y1_arr_val();
-    std::vector<uint32_t> src_roi(_batch_size * 4, 0);
-    for(unsigned i = 0, j = 0; i < _batch_size; i++, j+= 4) {
-        src_roi[j] = x1[i];
-        src_roi[j + 1] = y1[i];
-        src_roi[j + 2] = crop_w_dims[i];
-        src_roi[j + 3] = crop_h_dims[i];
+    auto src_roi = _inputs[0]->info().get_roi();
+    for(unsigned i = 0; i < _batch_size; i++) {
+        src_roi[i].x1 = x1[i];
+        src_roi[i].y1 = y1[i];
+        src_roi[i].x2 = crop_w_dims[i];
+        src_roi[i].y2 = crop_h_dims[i];
     }
-    vx_status status;
-    status = vxCopyArrayRange((vx_array)_src_tensor_roi, 0, _batch_size * 4, sizeof(vx_uint32), src_roi.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    if(status != 0)
-        WRN("ERROR: vxCopyArrayRange _src_tensor_roi failed " + TOSTR(status));
 }
 
 void CropMirrorNormalizeNode::init(int crop_h, int crop_w, float start_x, float start_y, std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror) {
