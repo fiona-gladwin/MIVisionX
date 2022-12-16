@@ -24,9 +24,9 @@ THE SOFTWARE.
 #include "exception.h"
 
 #if ENABLE_HIP
-ImageLoaderNode::ImageLoaderNode(Image *output, DeviceResourcesHip device_resources):
+ImageLoaderNode::ImageLoaderNode(rocalTensor *output, DeviceResourcesHip device_resources):
 #else
-ImageLoaderNode::ImageLoaderNode(Image *output, DeviceResources device_resources):
+ImageLoaderNode::ImageLoaderNode(rocalTensor *output, DeviceResources device_resources):
 #endif
         Node({}, {output})
 {
@@ -41,7 +41,7 @@ void ImageLoaderNode::init(unsigned internal_shard_count, const std::string &sou
         THROW("ERROR: loader module is not set for ImageLoaderNode, cannot initialize")
     if(internal_shard_count < 1)
         THROW("Shard count should be greater than or equal to one")
-    _loader_module->set_output_image(_outputs[0]);
+    _loader_module->set_output(_outputs[0]);
     // Set reader and decoder config accordingly for the ImageLoaderNode
     auto reader_cfg = ReaderConfig(storage_type, source_path, json_path, feature_key_map, shuffle, loop);
     reader_cfg.set_shard_count(internal_shard_count);

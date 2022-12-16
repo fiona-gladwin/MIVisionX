@@ -29,9 +29,9 @@ class ImageLoaderSingleShardNode : public Node
 {
 public:
 #if ENABLE_HIP
-    ImageLoaderSingleShardNode(Image *output, DeviceResourcesHip device_resources);
+    ImageLoaderSingleShardNode(rocalTensor *output, DeviceResourcesHip device_resources);
 #else
-    ImageLoaderSingleShardNode(Image *output, DeviceResources device_resources);
+    ImageLoaderSingleShardNode(rocalTensor *output, DeviceResources device_resources);
 #endif
     ~ImageLoaderSingleShardNode() override;
 
