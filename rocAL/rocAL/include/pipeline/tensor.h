@@ -70,7 +70,10 @@ public:
     //! Initializer constructor with only fields common to all types (Image/ Video / Audio)
     rocalTensorInfo(std::vector<size_t> dims, RocalMemType mem_type,
                     RocalTensorDataType data_type);
-
+    
+    //! Copy constructor
+    rocalTensorInfo(const rocalTensorInfo& info);
+    ~rocalTensorInfo();
     // Setting properties required for Image / Video
     void set_roi_type(RocalROIType roi_type) { _roi_type = roi_type; }
     void set_data_type(RocalTensorDataType data_type) {
@@ -117,7 +120,7 @@ public:
                 _max_shape[1] = _dims.at(3);
                 _channels = _dims.at(2);
             }
-            reallocate_tensor_roi_buffers();
+            reset_tensor_roi_buffers();
         } else if (!_is_metadata) {  // For audio
             _max_shape.resize(2);       // Since 2 values will be stored in the vector
             _max_shape[0] = _dims.at(1);
@@ -157,7 +160,7 @@ public:
     RocalROIType roi_type() const { return _roi_type; }
     RocalTensorDataType data_type() const { return _data_type; }
     RocalTensorlayout layout() const { return _layout; }
-    std::shared_ptr<std::vector<RocalROI>> get_roi() const { return _roi; }
+    RocalROI * get_roi() const { return (RocalROI *)_roi_buf; }
     RocalColorFormat color_format() const { return _color_format; }
     Type type() const { return _type; }
     uint64_t data_type_size() {
@@ -178,11 +181,12 @@ private:
     RocalTensorDataType _data_type = RocalTensorDataType::FP32;  //!< tensor data type
     RocalTensorlayout _layout = RocalTensorlayout::NONE;     //!< layout of the tensor
     RocalColorFormat _color_format;  //!< color format of the image
-    std::shared_ptr<std::vector<RocalROI>> _roi;
+    void *_roi_buf;
     uint64_t _data_type_size = tensor_data_size(_data_type);
     uint64_t _data_size = 0;
     std::vector<size_t> _max_shape;  //!< stores the the width and height dimensions in the tensor
-    void reallocate_tensor_roi_buffers();
+    void allocate_tensor_roi_buffers();
+    void reset_tensor_roi_buffers();
     bool _is_image = false;
     bool _is_metadata = false;
     size_t _channels = 3;   //!< stores the channel dimensions in the tensor
@@ -218,7 +222,7 @@ public:
     explicit rocalTensor(const rocalTensorInfo& tensor_info);
     int create(vx_context context);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
-    void reset_tensor_roi() { _info.reallocate_tensor_roi_buffers(); }
+    void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
     int create_from_handle(vx_context context);

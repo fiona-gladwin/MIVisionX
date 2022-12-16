@@ -90,17 +90,33 @@ bool operator==(const rocalTensorInfo &rhs, const rocalTensorInfo &lhs) {
             rhs.layout() == lhs.layout());
 }
 
-void rocalTensorInfo::reallocate_tensor_roi_buffers() {
-    _roi = std::make_shared<std::vector<RocalROI>>(_batch_size);
+void rocalTensorInfo::allocate_tensor_roi_buffers() {
+    size_t roi_size = _batch_size * 4 * sizeof(unsigned);
+    if(_mem_type == RocalMemType::HIP) {
+#if ENABLE_HIP
+    hipError_t err = hipHostMalloc((void **)&_roi_buf, roi_size, hipHostMallocDefault/*hipHostMallocMapped|hipHostMallocWriteCombined*/);
+    if(err != hipSuccess || !_roi_buf)
+        THROW("hipHostMalloc of size " + TOSTR(roi_size) + " failed " + TOSTR(err))
+    err = hipMemset((void *)_roi_buf, 0, roi_size);
+    if(err != hipSuccess)
+        THROW("hipMemset of size " + TOSTR(roi_size) + " failed " + TOSTR(err))
+#endif
+    } else {
+        _roi_buf = (void *)malloc(roi_size);
+        memset((void *) _roi_buf, 0, roi_size);
+    }
+}
 
-    if (_roi->size()) _roi->clear();
-    _roi->resize(_batch_size);
+void rocalTensorInfo::reset_tensor_roi_buffers() {
+    
+    if(!_roi_buf)
+        allocate_tensor_roi_buffers();
+
     if (_is_image) {
+        auto roi = get_roi();
         for (unsigned i = 0; i < _batch_size; i++) {
-            _roi->at(i).x1 = 0;
-            _roi->at(i).y1 = 0;
-            _roi->at(i).x2 = _max_shape.at(0);
-            _roi->at(i).y2 = _max_shape.at(1);
+            roi[i].x2 = _max_shape.at(0);
+            roi[i].y2 = _max_shape.at(1);
         }
     } else {
         // TODO - For other tensor types
@@ -129,6 +145,45 @@ rocalTensorInfo::rocalTensorInfo(std::vector<size_t> dims,
     if (_num_of_dims <= 3) _is_image = false;
 }
 
+rocalTensorInfo::rocalTensorInfo(const rocalTensorInfo &other) {
+    _type = other._type;
+    _num_of_dims = other._num_of_dims;
+    _dims = other._dims;
+    _batch_size = other._batch_size;
+    _mem_type = other._mem_type;
+    _roi_type = other._roi_type;
+    _data_type = other._data_type;
+    _layout = other._layout;
+    _color_format = other._color_format;
+    _data_type_size = other._data_type_size;
+    _data_size = other._data_size;
+    _max_shape = other._max_shape;
+    _is_image = other._is_image;
+    _is_metadata = other._is_metadata;
+    _channels = other._channels;
+    if(!other.is_metadata()) {  // For Metadata ROI buffer is not required
+        allocate_tensor_roi_buffers();
+        if(!other.get_roi())
+            memcpy((void *)_roi_buf, (const void *)other.get_roi(), _batch_size * 4 * sizeof(unsigned));
+    }
+}
+
+rocalTensorInfo::~rocalTensorInfo() {
+    if(!_is_metadata) {
+        if(_mem_type == RocalMemType::HIP) {
+#if ENABLE_HIP
+            if(!_roi_buf) {
+                hipError_t err = hipHostFree(_roi_buf);
+                if (err != hipSuccess)
+                    ERR("hipHostFree failed " + TOSTR(err));
+            }
+#endif
+        } else {
+            if(!_roi_buf) free(_roi_buf);
+        }
+    } 
+}
+
 void rocalTensor::update_tensor_roi(const std::vector<uint32_t> &width,
                                     const std::vector<uint32_t> &height) {
     if (_info.is_image()) {
@@ -145,15 +200,15 @@ void rocalTensor::update_tensor_roi(const std::vector<uint32_t> &width,
         for (unsigned i = 0; i < info().batch_size(); i++) {
             if (width[i] > max_width) {
                 WRN("Given ROI width is larger than buffer width for tensor[" + TOSTR(i) + "] " + TOSTR(width[i]) + " > " + TOSTR(max_width))
-                _info.get_roi()->at(i).x2 = max_width;
+                _info.get_roi()[i].x2 = max_width;
             } else {
-                _info.get_roi()->at(i).x2 = width[i];
+                _info.get_roi()[i].x2 = width[i];
             }
             if (height[i] > max_height) {
                 WRN("Given ROI height is larger than buffer height for tensor[" + TOSTR(i) + "] " + TOSTR(height[i]) + " > " + TOSTR(max_height))
-                _info.get_roi()->at(i).y2 = max_height;
+                _info.get_roi()[i].y2 = max_height;
             } else {
-                _info.get_roi()->at(i).y2 = height[i];
+                _info.get_roi()[i].y2 = height[i];
             }
         }
     }
