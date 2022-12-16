@@ -9836,6 +9836,26 @@ VX_API_ENTRY vx_status VX_API_CALL vxQueryTensor(vx_tensor tensor, vx_enum attri
 					}
 				}
 #endif
+				else if (tensor_data_type == VX_TYPE_UINT32)
+				{
+					if (size == sizeof(vx_uint32)) {
+						if (data->buffer) {
+							vx_uint32** temp  = static_cast< vx_uint32 **>(ptr);
+							*temp = (vx_uint32 *)data->buffer;
+							status = VX_SUCCESS;
+						}
+					}
+				}
+				else if (tensor_data_type == VX_TYPE_INT8)
+				{
+					if (size == sizeof(vx_int8)) {
+						if (data->buffer) {
+							vx_int8** temp  = static_cast< vx_int8 **>(ptr);
+							*temp = (vx_int8 *)data->buffer;
+							status = VX_SUCCESS;
+						}
+					}
+				}
 			}
             break;
             default:
