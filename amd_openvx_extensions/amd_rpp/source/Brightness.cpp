@@ -173,7 +173,7 @@ static vx_status VX_CALLBACK processBrightness(vx_node node, const vx_reference 
 
 static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     BrightnessLocalData *data = new BrightnessLocalData;
-    int roiType;
+    int roi_type;
     memset(data, 0, sizeof(*data));
 #if ENABLE_OPENCL
     THROW("initialize : Brightness OpenCL backend is not supported")
@@ -182,10 +182,10 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
 #endif
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->inputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &data->outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roiType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[8], &data->nbatchSize));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roiType == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
 
     // Querying for input tensor
     data->srcDescPtr = &data->srcDesc;

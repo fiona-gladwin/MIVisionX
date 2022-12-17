@@ -62,15 +62,15 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegFileSource(RocalContext context
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return Reference to the output tensor
 extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegFileSourceSingleShard(RocalContext context,
-                                                                        const char* source_path,
-                                                                        RocalImageColor rocal_color_format,
-                                                                        unsigned shard_id,
-                                                                        unsigned shard_count,
-                                                                        bool is_output ,
-                                                                        bool shuffle = false,
-                                                                        bool loop = false,
-                                                                        RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
-                                                                        unsigned max_width = 0, unsigned max_height = 0, RocalDecoderType rocal_decoder_type=RocalDecoderType::ROCAL_DECODER_TJPEG);
+                                                                       const char* source_path,
+                                                                       RocalImageColor rocal_color_format,
+                                                                       unsigned shard_id,
+                                                                       unsigned shard_count,
+                                                                       bool is_output ,
+                                                                       bool shuffle = false,
+                                                                       bool loop = false,
+                                                                       RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
+                                                                       unsigned max_width = 0, unsigned max_height = 0, RocalDecoderType rocal_decoder_type=RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /// Creates JPEG image reader and decoder. Reads [Frames] sequences from a directory representing a collection of streams.
 /// \param context Rocal context

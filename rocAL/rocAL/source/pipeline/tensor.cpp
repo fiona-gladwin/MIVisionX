@@ -108,10 +108,8 @@ void rocalTensorInfo::allocate_tensor_roi_buffers() {
 }
 
 void rocalTensorInfo::reset_tensor_roi_buffers() {
-    
     if(!_roi_buf)
         allocate_tensor_roi_buffers();
-
     if (_is_image) {
         auto roi = get_roi();
         for (unsigned i = 0; i < _batch_size; i++) {

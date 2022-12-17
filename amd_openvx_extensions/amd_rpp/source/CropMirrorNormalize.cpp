@@ -175,7 +175,7 @@ static vx_status VX_CALLBACK processCropMirrorNormalize(vx_node node, const vx_r
 #if ENABLE_HIP
         refreshCropMirrorNormalize(node, parameters, num, data);
         rpp_status = rppt_crop_mirror_normalize_gpu((void *)data->pSrc_dev, data->srcDescPtr, (void *)data->pDst_dev, data->dstDescPtr, data->mean, data->stdDev,
-                                                     data->mirror, data->roiPtr, data->roiType, data->rppHandle);
+                                                    data->mirror, data->roiPtr, data->roiType, data->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if(data->deviceType == AGO_TARGET_AFFINITY_CPU) {
@@ -189,7 +189,7 @@ static vx_status VX_CALLBACK processCropMirrorNormalize(vx_node node, const vx_r
 
 static vx_status VX_CALLBACK initializeCropMirrorNormalize(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     CropMirrorNormalizeLocalData *data = new CropMirrorNormalizeLocalData;
-    int roiType;
+    int roi_type;
     memset(data, 0, sizeof(*data));
 #if ENABLE_OPENCL
     THROW("initialize : CropMirrorNormalize OpenCL backend is not supported")
@@ -198,10 +198,10 @@ static vx_status VX_CALLBACK initializeCropMirrorNormalize(vx_node node, const v
 #endif  
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &data->inputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &data->outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &roiType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[9], &data->nbatchSize));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[10], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roiType == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
 
     // Querying for input tensor
     data->srcDescPtr = &data->srcDesc;

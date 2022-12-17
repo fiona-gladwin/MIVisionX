@@ -70,7 +70,7 @@ public:
     //! Initializer constructor with only fields common to all types (Image/ Video / Audio)
     rocalTensorInfo(std::vector<size_t> dims, RocalMemType mem_type,
                     RocalTensorDataType data_type);
-    
+
     //! Copy constructor
     rocalTensorInfo(const rocalTensorInfo& info);
     ~rocalTensorInfo();
@@ -160,7 +160,7 @@ public:
     RocalROIType roi_type() const { return _roi_type; }
     RocalTensorDataType data_type() const { return _data_type; }
     RocalTensorlayout layout() const { return _layout; }
-    RocalROI * get_roi() const { return (RocalROI *)_roi_buf; }
+    RocalROI *get_roi() const { return (RocalROI *)_roi_buf; }
     RocalColorFormat color_format() const { return _color_format; }
     Type type() const { return _type; }
     uint64_t data_type_size() {

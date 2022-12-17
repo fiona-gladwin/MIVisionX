@@ -57,7 +57,6 @@ Node::create(std::shared_ptr<Graph> graph)
             THROW("Error: vxCreateTensorFromHandle(src tensor roi: failed " + TOSTR(status))
         if ((status = vxGetStatus((vx_reference)_dst_tensor_roi)) != VX_SUCCESS)
             THROW("Error: vxCreateTensorFromHandle(dst tensor roi: failed " + TOSTR(status))
-
     }
 
     create_node();

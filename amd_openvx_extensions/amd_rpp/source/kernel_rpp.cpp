@@ -2031,62 +2031,62 @@ vx_status releaseGraphHandle(vx_node node, RPPCommonHandle *handle)
 }
 #endif
 
-void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *tensor_dims) {
+void fillDescriptionPtrfromDims(RpptDescPtr &descPtr, Rpp32s layout, size_t *tensorDims) {
     switch(layout) {
         case 0: { // For NHWC
-            desc_ptr->n = tensor_dims[0];
-            desc_ptr->h = tensor_dims[1];
-            desc_ptr->w = tensor_dims[2];
-            desc_ptr->c = tensor_dims[3];
-            desc_ptr->strides.nStride = desc_ptr->c * desc_ptr->w * desc_ptr->h;
-            desc_ptr->strides.hStride = desc_ptr->c * desc_ptr->w;
-            desc_ptr->strides.wStride = desc_ptr->c;
-            desc_ptr->strides.cStride = 1;
-            desc_ptr->layout = RpptLayout::NHWC;
+            descPtr->n = tensorDims[0];
+            descPtr->h = tensorDims[1];
+            descPtr->w = tensorDims[2];
+            descPtr->c = tensorDims[3];
+            descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
+            descPtr->strides.hStride = descPtr->c * descPtr->w;
+            descPtr->strides.wStride = descPtr->c;
+            descPtr->strides.cStride = 1;
+            descPtr->layout = RpptLayout::NHWC;
             break; 
         }
         case 1: { // For NCHW
-            desc_ptr->n = tensor_dims[0];
-            desc_ptr->h = tensor_dims[2];
-            desc_ptr->w = tensor_dims[3];
-            desc_ptr->c = tensor_dims[1];
-            desc_ptr->strides.nStride = desc_ptr->c * desc_ptr->w * desc_ptr->h;
-            desc_ptr->strides.cStride = desc_ptr->w * desc_ptr->h;
-            desc_ptr->strides.hStride = desc_ptr->w;
-            desc_ptr->strides.wStride = 1;
-            desc_ptr->layout = RpptLayout::NCHW;
+            descPtr->n = tensorDims[0];
+            descPtr->h = tensorDims[2];
+            descPtr->w = tensorDims[3];
+            descPtr->c = tensorDims[1];
+            descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
+            descPtr->strides.cStride = descPtr->w * descPtr->h;
+            descPtr->strides.hStride = descPtr->w;
+            descPtr->strides.wStride = 1;
+            descPtr->layout = RpptLayout::NCHW;
             break;
         }
         case 2: { // For NFHWC
-            desc_ptr->n = tensor_dims[0] * tensor_dims[1];
-            desc_ptr->h = tensor_dims[2];
-            desc_ptr->w = tensor_dims[3];
-            desc_ptr->c = tensor_dims[4];
-            desc_ptr->strides.nStride = desc_ptr->c * desc_ptr->w * desc_ptr->h;
-            desc_ptr->strides.hStride = desc_ptr->c * desc_ptr->w;
-            desc_ptr->strides.wStride = desc_ptr->c;
-            desc_ptr->strides.cStride = 1;
-            desc_ptr->layout = RpptLayout::NHWC;
+            descPtr->n = tensorDims[0] * tensorDims[1];
+            descPtr->h = tensorDims[2];
+            descPtr->w = tensorDims[3];
+            descPtr->c = tensorDims[4];
+            descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
+            descPtr->strides.hStride = descPtr->c * descPtr->w;
+            descPtr->strides.wStride = descPtr->c;
+            descPtr->strides.cStride = 1;
+            descPtr->layout = RpptLayout::NHWC;
             break;
         }
         case 3: { // For NFCHW
             // source_description_ptr
-            desc_ptr->n = tensor_dims[0] * tensor_dims[1];
-            desc_ptr->h = tensor_dims[3];
-            desc_ptr->w = tensor_dims[4];
-            desc_ptr->c = tensor_dims[2];
-            desc_ptr->strides.nStride = desc_ptr->c * desc_ptr->w * desc_ptr->h;
-            desc_ptr->strides.cStride = desc_ptr->w * desc_ptr->h;
-            desc_ptr->strides.hStride = desc_ptr->w;
-            desc_ptr->strides.wStride = 1;
-            desc_ptr->layout = RpptLayout::NCHW;
+            descPtr->n = tensorDims[0] * tensorDims[1];
+            descPtr->h = tensorDims[3];
+            descPtr->w = tensorDims[4];
+            descPtr->c = tensorDims[2];
+            descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
+            descPtr->strides.cStride = descPtr->w * descPtr->h;
+            descPtr->strides.hStride = descPtr->w;
+            descPtr->strides.wStride = 1;
+            descPtr->layout = RpptLayout::NCHW;
             break;
         }
     }
 }
 
-RpptDataType getRpptDataType(vx_enum vx_data_type) {
-    switch(vx_data_type) {
+RpptDataType getRpptDataType(vx_enum vxDataType) {
+    switch(vxDataType) {
         case vx_type_e::VX_TYPE_FLOAT32:
             return RpptDataType::F32;
         case vx_type_e::VX_TYPE_FLOAT16:
