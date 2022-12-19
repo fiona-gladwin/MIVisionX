@@ -161,8 +161,7 @@ rocalTensorInfo::rocalTensorInfo(const rocalTensorInfo &other) {
     _channels = other._channels;
     if(!other.is_metadata()) {  // For Metadata ROI buffer is not required
         allocate_tensor_roi_buffers();
-        if(!other.get_roi())
-            memcpy((void *)_roi_buf, (const void *)other.get_roi(), _batch_size * 4 * sizeof(unsigned));
+        memcpy((void *)_roi_buf, (const void *)other.get_roi(), _batch_size * 4 * sizeof(unsigned));
     }
 }
 
@@ -170,15 +169,16 @@ rocalTensorInfo::~rocalTensorInfo() {
     if(!_is_metadata) {
         if(_mem_type == RocalMemType::HIP) {
 #if ENABLE_HIP
-            if(!_roi_buf) {
+            if(_roi_buf) {
                 hipError_t err = hipHostFree(_roi_buf);
                 if (err != hipSuccess)
                     ERR("hipHostFree failed " + TOSTR(err));
             }
 #endif
         } else {
-            if(!_roi_buf) free(_roi_buf);
+            if(_roi_buf) free(_roi_buf);
         }
+        _roi_buf = nullptr;
     } 
 }
 
