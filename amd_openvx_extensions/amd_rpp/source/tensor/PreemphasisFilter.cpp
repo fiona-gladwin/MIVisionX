@@ -174,8 +174,8 @@ static vx_status VX_CALLBACK initializePreemphasisFilter(vx_node node, const vx_
 
     // source_description_ptr
     data->srcDescPtr->n = data->inTensorDims[0];
-    data->srcDescPtr->h = data->inTensorDims[2];
-    data->srcDescPtr->w = data->inTensorDims[1];
+    data->srcDescPtr->h = data->inTensorDims[1];
+    data->srcDescPtr->w = data->inTensorDims[2];
     data->srcDescPtr->c = 1;
     data->srcDescPtr->strides.nStride = data->srcDescPtr->c * data->srcDescPtr->w * data->srcDescPtr->h;
     data->srcDescPtr->strides.hStride = data->srcDescPtr->c * data->srcDescPtr->w;
@@ -185,8 +185,8 @@ static vx_status VX_CALLBACK initializePreemphasisFilter(vx_node node, const vx_
 
     // source_description_ptr
     data->dstDescPtr->n = data->outTensorDims[0];
-    data->dstDescPtr->w = data->outTensorDims[1];
-    data->dstDescPtr->h = data->outTensorDims[2];
+    data->dstDescPtr->h = data->outTensorDims[1];
+    data->dstDescPtr->w = data->outTensorDims[2];
     data->dstDescPtr->c = 1;
     data->dstDescPtr->strides.nStride = data->dstDescPtr->c * data->dstDescPtr->w * data->dstDescPtr->h;
     data->dstDescPtr->strides.hStride = data->dstDescPtr->c * data->dstDescPtr->w;

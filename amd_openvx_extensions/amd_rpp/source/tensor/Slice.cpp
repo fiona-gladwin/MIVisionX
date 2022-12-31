@@ -66,7 +66,7 @@ static vx_status VX_CALLBACK refreshSlice(vx_node node, const vx_reference *para
 {
     vx_status status = VX_SUCCESS;
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[2], 0, data->nbatchSize * 4, sizeof(unsigned), data->roi_tensor_ptr, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    for (uint i = 0, j = 0; i < data->nbatchSize * 2, j < data->nbatchSize; i = i + 2, j = j + 1) {
+    for (uint i = 0, j = 0; j < data->nbatchSize; i += 2, j++) {
       data->srcDims[i] = data->roi_tensor_ptr[j].xywhROI.xy.x;
       data->srcDims[i + 1] = data->roi_tensor_ptr[j].xywhROI.xy.y;
     //TODO: Swetha : To clean up the debug code
@@ -239,8 +239,8 @@ static vx_status VX_CALLBACK initializeSlice(vx_node node, const vx_reference *p
 
     // source_description_ptr
     data->src_desc_ptr->n = data->in_tensor_dims[0];
-    data->src_desc_ptr->h = data->in_tensor_dims[2];
-    data->src_desc_ptr->w = data->in_tensor_dims[1];
+    data->src_desc_ptr->h = data->in_tensor_dims[1];
+    data->src_desc_ptr->w = data->in_tensor_dims[2];
     data->src_desc_ptr->c = 1;
     data->src_desc_ptr->strides.nStride = data->src_desc_ptr->c * data->src_desc_ptr->w * data->src_desc_ptr->h;
     data->src_desc_ptr->strides.hStride = data->src_desc_ptr->c * data->src_desc_ptr->w;
@@ -251,8 +251,8 @@ static vx_status VX_CALLBACK initializeSlice(vx_node node, const vx_reference *p
 
     // source_description_ptr
     data->dst_desc_ptr->n = data->out_tensor_dims[0];
-    data->dst_desc_ptr->w = data->out_tensor_dims[1];
-    data->dst_desc_ptr->h = data->out_tensor_dims[2];;
+    data->dst_desc_ptr->h = data->out_tensor_dims[1];
+    data->dst_desc_ptr->w = data->out_tensor_dims[2];
     data->dst_desc_ptr->c = 1;
     data->dst_desc_ptr->strides.nStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w * data->dst_desc_ptr->h;
     data->dst_desc_ptr->strides.hStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w;

@@ -212,8 +212,8 @@ static vx_status VX_CALLBACK initializeMelFilterBank(vx_node node, const vx_refe
 
     // source_description_ptr
     data->dst_desc_ptr->n = data->out_tensor_dims[0];
+    data->dst_desc_ptr->h = data->out_tensor_dims[2]; // Num filter
     data->dst_desc_ptr->w = data->out_tensor_dims[1];
-    data->dst_desc_ptr->h = data->out_tensor_dims[2];
     data->dst_desc_ptr->c = 1;
     data->dst_desc_ptr->strides.nStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w * data->dst_desc_ptr->h;
     data->dst_desc_ptr->strides.hStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w;

@@ -213,8 +213,8 @@ static vx_status VX_CALLBACK initializeSpectrogram(vx_node node, const vx_refere
 
     // source_description_ptr
     data->src_desc_ptr->n = data->in_tensor_dims[0];
-    data->src_desc_ptr->h = data->in_tensor_dims[2];
-    data->src_desc_ptr->w = data->in_tensor_dims[1];
+    data->src_desc_ptr->h = data->in_tensor_dims[1];
+    data->src_desc_ptr->w = data->in_tensor_dims[2];
     data->src_desc_ptr->c = 1;
     data->src_desc_ptr->strides.nStride = data->src_desc_ptr->c * data->src_desc_ptr->w * data->src_desc_ptr->h;
     data->src_desc_ptr->strides.hStride = data->src_desc_ptr->c * data->src_desc_ptr->w;
@@ -224,8 +224,8 @@ static vx_status VX_CALLBACK initializeSpectrogram(vx_node node, const vx_refere
 
     // source_description_ptr
     data->dst_desc_ptr->n = data->out_tensor_dims[0];
-    data->dst_desc_ptr->w = data->out_tensor_dims[1];
     data->dst_desc_ptr->h = data->out_tensor_dims[2];
+    data->dst_desc_ptr->w = data->out_tensor_dims[1];
     data->dst_desc_ptr->c = 1;
     data->dst_desc_ptr->strides.nStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w * data->dst_desc_ptr->h;
     data->dst_desc_ptr->strides.hStride = data->dst_desc_ptr->c * data->dst_desc_ptr->w;

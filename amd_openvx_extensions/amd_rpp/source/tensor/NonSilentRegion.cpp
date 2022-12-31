@@ -211,8 +211,8 @@ static vx_status VX_CALLBACK initializeNonSilentRegion(vx_node node, const vx_re
 
     // source_description_ptr
     data->src_desc_ptr->n = data->in_tensor_dims[0];
-    data->src_desc_ptr->h = data->in_tensor_dims[2];
-    data->src_desc_ptr->w = data->in_tensor_dims[1];
+    data->src_desc_ptr->h = data->in_tensor_dims[1];
+    data->src_desc_ptr->w = data->in_tensor_dims[2];
     data->src_desc_ptr->c = 1;
     data->src_desc_ptr->strides.nStride = data->src_desc_ptr->c * data->src_desc_ptr->w * data->src_desc_ptr->h;
     data->src_desc_ptr->strides.hStride = data->src_desc_ptr->c * data->src_desc_ptr->w;
