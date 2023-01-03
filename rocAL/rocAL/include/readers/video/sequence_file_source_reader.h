@@ -91,12 +91,12 @@ private:
     /// The loader will repeat images if necessary to be able to have images available in multiples of the load_batch_count,
     /// for instance if there are 10 images in the dataset and _batch_count is 3, the loader repeats 2 images as if there are 12 images available.
     size_t _batch_count = 1;
-    size_t _user_batch_count = 1;
     size_t _sequence_id = 0;
     size_t _in_batch_read_count = 0;
     bool _loop;
     bool _shuffle;
     int _read_counter = 0;
+    int _sequence_read_counter = 0;
     //!< _sequence_count_all_shards total_number of sequences in to figure out the max_batch_size (usually needed for distributed training).
     size_t  _sequence_count_all_shards;
     void incremenet_read_ptr();

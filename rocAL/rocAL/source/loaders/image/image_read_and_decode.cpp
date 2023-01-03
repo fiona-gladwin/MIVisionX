@@ -107,13 +107,15 @@ ImageReadAndDecode::create(ReaderConfig reader_config, DecoderConfig decoder_con
 {
     // Can initialize it to any decoder types if needed
     _batch_size = batch_size;
+    _sequence_length = reader_config.get_sequence_length();
+    _files_count = batch_size * _sequence_length;
     _internal_batch_size = compute_optimum_internal_batch_size(_batch_size);
-    _compressed_buff.resize(batch_size);
+    _compressed_buff.resize(_files_count);
     _decoder.resize(batch_size);
-    _actual_read_size.resize(batch_size);
+    _actual_read_size.resize(_files_count);
     _image_names.resize(batch_size);
-    _compressed_image_size.resize(batch_size);
-    _decompressed_buff_ptrs.resize(_batch_size);
+    _compressed_image_size.resize(_files_count);
+    _decompressed_buff_ptrs.resize(_files_count);
     _actual_decoded_width.resize(_batch_size);
     _actual_decoded_height.resize(_batch_size);
     _original_height.resize(_batch_size);
@@ -179,7 +181,7 @@ ImageReadAndDecode::load(unsigned char* buff,
     if(_reader->count_items() < _batch_size)
         return LoaderModuleStatus::NO_MORE_DATA_TO_READ;
     // load images/frames from the disk and push them as a large image onto the buff
-    unsigned file_counter = 0;
+    unsigned file_counter = 0, file_counter_seq = 0;
     const auto ret = interpret_color_format(output_color_format);
     const Decoder::ColorFormat decoder_color_format = std::get<0>(ret);
     const unsigned output_planes = std::get<1>(ret);
@@ -190,7 +192,7 @@ ImageReadAndDecode::load(unsigned char* buff,
     // File read is done serially since I/O parallelization does not work very well.
     _file_load_time.start();// Debug timing
     if (_decoder_config._type == DecoderType::SKIP_DECODE) {
-        while ((file_counter != _batch_size) && _reader->count_items() > 0)
+        while ((file_counter != _files_count) && _reader->count_items() > 0)
         {
             auto read_ptr = buff + image_size * file_counter;
             uint64_t fsize = _reader->open();
@@ -202,23 +204,26 @@ ImageReadAndDecode::load(unsigned char* buff,
             _actual_read_size[file_counter] = _reader->read_data(read_ptr, fsize);
             if(_actual_read_size[file_counter] < fsize)
                 LOG("Reader read less than requested bytes of size: " + _actual_read_size[file_counter]);
-
-            _image_names[file_counter] = _reader->id();
+            
+            if((file_counter % _sequence_length) == 0)
+            {
+                _image_names[file_counter_seq] = _reader->id();
+                names[file_counter_seq] = _image_names[file_counter_seq];
+                roi_width[file_counter_seq] = max_decoded_width;
+                roi_height[file_counter_seq] = max_decoded_height;
+                actual_width[file_counter_seq] = max_decoded_width;
+                actual_height[file_counter_seq] = max_decoded_height;
+                file_counter_seq++;
+            }
             _reader->close();
            // _compressed_image_size[file_counter] = fsize;
-            names[file_counter] = _image_names[file_counter];
-            roi_width[file_counter] = max_decoded_width;
-            roi_height[file_counter] = max_decoded_height;
-            actual_width[file_counter] = max_decoded_width;
-            actual_height[file_counter] = max_decoded_height;
             file_counter++;
         }
         //_file_load_time.end();// Debug timing
         //return LoaderModuleStatus::OK;
     }
     else {
-        while ((file_counter != _batch_size) && _reader->count_items() > 0) {
-
+        while ((file_counter != _files_count) && _reader->count_items() > 0) {            
             uint64_t fsize = _reader->open();
             if (fsize == 0) {
                 WRN("Opened file " + _reader->id() + " of size 0");
@@ -227,7 +232,9 @@ ImageReadAndDecode::load(unsigned char* buff,
 
             _compressed_buff[file_counter].reserve(fsize);
             _actual_read_size[file_counter] = _reader->read_data(_compressed_buff[file_counter].data(), fsize);
-            _image_names[file_counter] = _reader->id();
+            if((file_counter % _sequence_length) == 0) {
+                _image_names[file_counter_seq++] = _reader->id();                
+            }
             _reader->close();
             _compressed_image_size[file_counter] = fsize;
             file_counter++;
@@ -245,37 +252,76 @@ ImageReadAndDecode::load(unsigned char* buff,
 
     _decode_time.start();// Debug timing
     if (_decoder_config._type != DecoderType::SKIP_DECODE) {
-        for (size_t i = 0; i < _batch_size; i++)
+        for (size_t i = 0; i < _files_count; i++)
             _decompressed_buff_ptrs[i] = buff + image_size * i;
 
-#pragma omp parallel for num_threads(_internal_batch_size)  // default(none) TBD: option disabled in Ubuntu 20.04
-        for (size_t i = 0; i < _batch_size; i++)
+        if(_sequence_length == 1)
         {
-            // initialize the actual decoded height and width with the maximum
-            _actual_decoded_width[i] = max_decoded_width;
-            _actual_decoded_height[i] = max_decoded_height;
-            int original_width, original_height, jpeg_sub_samp;
-            if (_decoder[i]->decode_info(_compressed_buff[i].data(), _actual_read_size[i], &original_width, &original_height,
-                                         &jpeg_sub_samp) != Decoder::Status::OK) {
-                    continue;
-            }
-            _original_height[i] = original_height;
-            _original_width[i] = original_width;
-            // decode the image and get the actual decoded image width and height
-            size_t scaledw, scaledh;
-            if(_decoder[i]->is_partial_decoder() && _randombboxcrop_meta_data_reader)
+#pragma omp parallel for num_threads(_internal_batch_size)  // default(none) TBD: option disabled in Ubuntu 20.04
+            for (size_t i = 0; i < _batch_size; i++)
             {
-                _decoder[i]->set_bbox_coords(_bbox_coords[i]);
-            }
+                // initialize the actual decoded height and width with the maximum
+                _actual_decoded_width[i] = max_decoded_width;
+                _actual_decoded_height[i] = max_decoded_height;
+                int original_width, original_height, jpeg_sub_samp;
+                if (_decoder[i]->decode_info(_compressed_buff[i].data(), _actual_read_size[i], &original_width, &original_height,
+                                            &jpeg_sub_samp) != Decoder::Status::OK) {
+                        continue;
+                }
+                _original_height[i] = original_height;
+                _original_width[i] = original_width;
+                // decode the image and get the actual decoded image width and height
+                size_t scaledw, scaledh;
+                if(_decoder[i]->is_partial_decoder() && _randombboxcrop_meta_data_reader)
+                {
+                    _decoder[i]->set_bbox_coords(_bbox_coords[i]);
+                }
 
-            if (_decoder[i]->decode(_compressed_buff[i].data(), _compressed_image_size[i], _decompressed_buff_ptrs[i],
-                                    max_decoded_width, max_decoded_height,
-                                    original_width, original_height,
-                                    scaledw, scaledh,
-                                    decoder_color_format, _decoder_config, keep_original, i) != Decoder::Status::OK) {
+                if (_decoder[i]->decode(_compressed_buff[i].data(), _compressed_image_size[i], _decompressed_buff_ptrs[i],
+                                        max_decoded_width, max_decoded_height,
+                                        original_width, original_height,
+                                        scaledw, scaledh,
+                                        decoder_color_format, _decoder_config, keep_original, i) != Decoder::Status::OK) {
+                }
+                _actual_decoded_width[i] = scaledw;
+                _actual_decoded_height[i] = scaledh;
             }
-            _actual_decoded_width[i] = scaledw;
-            _actual_decoded_height[i] = scaledh;
+        }
+        else 
+        {
+#pragma omp parallel for num_threads(_internal_batch_size)  // default(none) TBD: option disabled in Ubuntu 20.04
+            for (size_t i = 0; i < _batch_size; i++)
+            {
+                // initialize the actual decoded height and width with the maximum
+                _actual_decoded_width[i] = max_decoded_width;
+                _actual_decoded_height[i] = max_decoded_height;
+                int original_width, original_height, jpeg_sub_samp;
+                size_t scaledw, scaledh;
+                
+                for(size_t seq_frame = i * _sequence_length; seq_frame < (i + 1) * _sequence_length; seq_frame++) {
+                    if (_decoder[i]->decode_info(_compressed_buff[seq_frame].data(), _actual_read_size[seq_frame], &original_width, &original_height,
+                                                &jpeg_sub_samp) != Decoder::Status::OK) {
+                            continue;
+                    }
+                    // decode the image and get the actual decoded image width and height
+                    if (_decoder[i]->decode(_compressed_buff[seq_frame].data(), _compressed_image_size[seq_frame], _decompressed_buff_ptrs[seq_frame],
+                                            max_decoded_width, max_decoded_height,
+                                            original_width, original_height,
+                                            scaledw, scaledh,
+                                            decoder_color_format, _decoder_config, keep_original, i) != Decoder::Status::OK) {
+                    }   
+                }
+                
+                if(_decoder[i]->is_partial_decoder() && _randombboxcrop_meta_data_reader)
+                {
+                    _decoder[i]->set_bbox_coords(_bbox_coords[i]);
+                }
+                
+                _original_height[i] = original_height;
+                _original_width[i] = original_width;
+                _actual_decoded_width[i] = scaledw;
+                _actual_decoded_height[i] = scaledh;
+            }
         }
         for (size_t i = 0; i < _batch_size; i++) {
             names[i] = _image_names[i];

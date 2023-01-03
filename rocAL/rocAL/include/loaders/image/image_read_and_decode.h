@@ -89,11 +89,12 @@ private:
     std::vector<size_t> _original_height;
     static const size_t MAX_COMPRESSED_SIZE = 1*1024*1024; // 1 Meg
     TimingDBG _file_load_time, _decode_time;
-    size_t _batch_size, _internal_batch_size;
+    size_t _batch_size, _internal_batch_size, _files_count;
     DecoderConfig _decoder_config;
     bool decoder_keep_original;
     std::vector<std::vector <float>> _bbox_coords, _crop_coords_batch;
     std::shared_ptr<RandomBBoxCrop_MetaDataReader> _randombboxcrop_meta_data_reader = nullptr;
+    size_t _sequence_length = 1;
     // pCropCord _CropCord;
 };
 

@@ -233,7 +233,7 @@ void
 MasterGraph::decrease_image_count()
 {
     if(!_loop)
-        _remaining_count -= (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size);
+        _remaining_count -= _user_batch_size;
 }
 
 void
@@ -568,7 +568,7 @@ void MasterGraph::output_routine()
             ImageNameBatch full_batch_image_names = {};
             pMetaDataBatch full_batch_meta_data = nullptr;
             pMetaDataBatch augmented_batch_meta_data = nullptr;
-            if (_loader_module->remaining_count() < (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size))
+            if (_loader_module->remaining_count() < _user_batch_size)
             {
                 // If the internal process routine ,output_routine(), has finished processing all the images, and last
                 // processed images stored in the _ring_buffer will be consumed by the user when it calls the run() func

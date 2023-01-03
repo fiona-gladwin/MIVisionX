@@ -45,8 +45,8 @@ SequenceFileSourceReader::SequenceFileSourceReader() : _shuffle_time("shuffle_ti
 unsigned SequenceFileSourceReader::count_items()
 {
     if (_loop)
-        return _frame_names.size();
-    int ret = ((int)_frame_names.size() - _read_counter);
+        return _sequence_frame_names.size();
+    int ret = ((int)_sequence_frame_names.size() - _sequence_read_counter);
     return ((ret < 0) ? 0 : ret);
 }
 
@@ -57,13 +57,12 @@ Reader::Status SequenceFileSourceReader::initialize(ReaderConfig desc)
     _folder_path = desc.path();
     _shard_id = desc.get_shard_id();
     _shard_count = desc.get_shard_count();
-    _user_batch_count = desc.get_batch_size();
+    _batch_count = desc.get_batch_size();
     _shuffle = desc.shuffle();
     _loop = desc.loop();
     _sequence_length = desc.get_sequence_length();
     _step = desc.get_frame_step();
     _stride = desc.get_frame_stride();
-    _batch_count = _user_batch_count / _sequence_length;
     ret = subfolder_reading();
     if (ret != Reader::Status::OK)
         return ret;
@@ -96,6 +95,7 @@ Reader::Status SequenceFileSourceReader::initialize(ReaderConfig desc)
 void SequenceFileSourceReader::incremenet_read_ptr()
 {
     _read_counter++;
+    if(!(_read_counter % _sequence_length)) _sequence_read_counter++;
     _curr_file_idx = (_curr_file_idx + 1) % _frame_names.size();
 }
 
