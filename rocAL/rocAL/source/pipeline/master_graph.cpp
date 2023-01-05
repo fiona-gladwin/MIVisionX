@@ -551,16 +551,13 @@ ImageNameBatch& operator+=(ImageNameBatch& dest, const ImageNameBatch& src)
 void MasterGraph::output_routine()
 {
     INFO("Output routine started with "+TOSTR(_remaining_count) + " to load");
-    if(!_is_sequence_reader_output) 
-    {
 #if !ENABLE_HIP
     if(processing_on_device_ocl())
-        THROW("Internal failure, in the GPU processing case, user and input batch size must be equal")
+        THROW("Internal failure, in the GPU processing case")
 #else
     if(processing_on_device_hip())
-        THROW("Internal failure, in the GPU processing case, user and input batch size must be equal")
+        THROW("Internal failure, in the GPU processing case")
 #endif
-    }
     try {
         while (_processing)
         {

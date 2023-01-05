@@ -95,17 +95,13 @@ public:
 
     void set_loop(bool val) { _loop = val; }
     void set_output(rocalTensor* output_image);
-    bool empty() { return (remaining_count() < (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size)); }
-    size_t sequence_batch_size() { return _sequence_batch_size; }
+    bool empty() { return (remaining_count() < _user_batch_size); }
     std::shared_ptr<MetaDataGraph> meta_data_graph() { return _meta_data_graph; }
     std::shared_ptr<MetaDataReader> meta_data_reader() { return _meta_data_reader; }
     bool is_random_bbox_crop() {return _is_random_bbox_crop; }
     bool is_segmentation() { return _is_segmentation; };
     std::vector<rocalTensorList *> get_bbox_encoded_buffers(size_t num_encoded_boxes);
     size_t bounding_box_batch_count(int* buf, pMetaDataBatch meta_data_batch);
-    bool is_sequence_reader_output() {return _is_sequence_reader_output; }
-    void set_sequence_reader_output() { _is_sequence_reader_output = true; }
-    void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
 private:
     Status update_node_parameters();
     void create_single_graph();
@@ -184,8 +180,6 @@ private:
 #endif
     std::vector<std::vector<size_t>> _sequence_start_framenum_vec; //!< Stores the starting frame number of the sequences.
     std::vector<std::vector<std::vector<float>>>_sequence_frame_timestamps_vec; //!< Stores the timestamps of the frames in a sequences.
-    size_t _sequence_batch_size = 0; //!< Indicates the _user_batch_size when sequence reader outputs are required
-    bool _is_sequence_reader_output = false; //!< Set to true if Sequence Reader is invoked.
     TimingDBG _rb_block_if_empty_time, _rb_block_if_full_time;
 };
 
@@ -218,7 +212,6 @@ std::shared_ptr<T> MasterGraph::meta_add_node(std::shared_ptr<M> node)
     _meta_data_graph->_meta_nodes.push_back(meta_node);
     meta_node->_node = node;
     meta_node->_batch_size = _user_batch_size;
-    // meta_node->_batch_size = _is_sequence_reader_output ? _sequence_batch_size : _user_batch_size;
     return meta_node;
 }
 

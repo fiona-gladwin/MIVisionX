@@ -299,8 +299,6 @@ rocalSequenceReader(
         if(sequence_length == 0)
             THROW("Sequence length passed should be bigger than 0")
         // Set sequence batch size and batch ratio in master graph as it varies according to sequence length
-        context->master_graph->set_sequence_reader_output();
-        context->master_graph->set_sequence_batch_size(sequence_length);
         bool decoder_keep_original = true;
 
         // This has been introduced to support variable width and height video frames in future.
@@ -347,7 +345,7 @@ rocalSequenceReader(
                                                                             DecoderType::TURBO_JPEG,
                                                                             shuffle,
                                                                             loop,
-                                                                            context->master_graph->sequence_batch_size(),
+                                                                            context->user_batch_size(),
                                                                             context->master_graph->mem_type(),
                                                                             context->master_graph->meta_data_reader(),
                                                                             decoder_keep_original, "",
@@ -395,8 +393,6 @@ rocalSequenceReaderSingleShard(
         if(sequence_length == 0)
             THROW("Sequence length passed should be bigger than 0")
         // Set sequence batch size and batch ratio in master graph as it varies according to sequence length
-        context->master_graph->set_sequence_reader_output();
-        context->master_graph->set_sequence_batch_size(sequence_length);
         bool decoder_keep_original = true;
 
         // This has been introduced to support variable width and height video frames in future.
@@ -444,7 +440,7 @@ rocalSequenceReaderSingleShard(
                                                                                         DecoderType::TURBO_JPEG,
                                                                                         shuffle,
                                                                                         loop,
-                                                                                        context->master_graph->sequence_batch_size(),
+                                                                                        context->user_batch_size(),
                                                                                         context->master_graph->mem_type(),
                                                                                         context->master_graph->meta_data_reader(),
                                                                                         decoder_keep_original,

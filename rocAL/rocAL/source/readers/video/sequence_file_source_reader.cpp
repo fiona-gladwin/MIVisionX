@@ -94,8 +94,7 @@ Reader::Status SequenceFileSourceReader::initialize(ReaderConfig desc)
 
 void SequenceFileSourceReader::incremenet_read_ptr()
 {
-    _read_counter++;
-    if(!(_read_counter % _sequence_length)) _sequence_read_counter++;
+    if(!((++_read_counter) % _sequence_length)) _sequence_read_counter++;
     _curr_file_idx = (_curr_file_idx + 1) % _frame_names.size();
 }
 
