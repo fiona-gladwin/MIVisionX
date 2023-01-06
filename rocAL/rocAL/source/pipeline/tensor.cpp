@@ -91,7 +91,7 @@ bool operator==(const rocalTensorInfo &rhs, const rocalTensorInfo &lhs) {
 }
 
 void rocalTensorInfo::allocate_tensor_roi_buffers() {
-    size_t roi_size = _batch_size * 4 * sizeof(unsigned);
+    size_t roi_size = _batch_size * 4 * sizeof(unsigned) * (_num_of_dims == 5 ? _dims[1] : 1);
     if(_mem_type == RocalMemType::HIP) {
 #if ENABLE_HIP
     hipError_t err = hipHostMalloc((void **)&_roi_buf, roi_size, hipHostMallocDefault/*hipHostMallocMapped|hipHostMallocWriteCombined*/);

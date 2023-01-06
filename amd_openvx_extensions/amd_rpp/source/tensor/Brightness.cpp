@@ -88,10 +88,7 @@ static vx_status VX_CALLBACK refreshBrightness(vx_node node, const vx_reference 
             for(int f = 0; f < num_of_frames; f++) {
                 data->alpha[index + f] = data->alpha[n];
                 data->beta[index + f] = data->beta[n];
-                data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
-                data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
-                data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
-                data->roiPtr[index + f].xywhROI.roiHeight = data->roiPtr[n].xywhROI.roiHeight;
+                data->roiPtr[index + f] = data->roiPtr[n];
             }
         }
     }
@@ -211,10 +208,10 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
 
 #if ENABLE_HIP
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU)
-        rppCreateWithStreamAndBatchSize(&data->rppHandle, data->handle.hipstream, data->nbatchSize);
+        rppCreateWithStreamAndBatchSize(&data->rppHandle, data->handle.hipstream, data->srcDescPtr->n);
 #endif
     if (data->deviceType == AGO_TARGET_AFFINITY_CPU)
-        rppCreateWithBatchSize(&data->rppHandle, data->nbatchSize);
+        rppCreateWithBatchSize(&data->rppHandle, data->srcDescPtr->n);
 
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;

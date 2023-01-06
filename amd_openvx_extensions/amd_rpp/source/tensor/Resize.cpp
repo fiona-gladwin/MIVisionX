@@ -108,12 +108,8 @@ static vx_status VX_CALLBACK refreshResize(vx_node node, const vx_reference *par
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++)
             {
-                data->resize_w[index + f] = data->resize_w[n];
-                data->resize_h[index + f] = data->resize_h[n];
-                data->roi_ptr[index + f].xywhROI.xy.x = data->roi_ptr[n].xywhROI.xy.x;
-                data->roi_ptr[index + f].xywhROI.xy.y = data->roi_ptr[n].xywhROI.xy.y;
-                data->roi_ptr[index + f].xywhROI.roiWidth = data->roi_ptr[n].xywhROI.roiWidth;
-                data->roi_ptr[index + f].xywhROI.roiHeight = data->roi_ptr[n].xywhROI.roiHeight;
+                data->dstImgSize[index + f] = data->dstImgSize[n];
+                data->roi_ptr[index + f] = data->roi_ptr[n];
             }
         }
     }
@@ -264,10 +260,10 @@ static vx_status VX_CALLBACK initializeResize(vx_node node, const vx_reference *
     refreshResize(node, parameters, num, data);
 #if ENABLE_HIP
     if (data->device_type == AGO_TARGET_AFFINITY_GPU)
-        rppCreateWithStreamAndBatchSize(&data->rppHandle, data->handle.hipstream, data->nbatchSize);
+        rppCreateWithStreamAndBatchSize(&data->rppHandle, data->handle.hipstream, data->src_desc_ptr->n);
 #endif
     if (data->device_type == AGO_TARGET_AFFINITY_CPU)
-        rppCreateWithBatchSize(&data->rppHandle, data->nbatchSize);
+        rppCreateWithBatchSize(&data->rppHandle, data->src_desc_ptr->n);
 
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
