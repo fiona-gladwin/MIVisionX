@@ -41,8 +41,8 @@ struct CropMirrorNormalizeLocalData {
     RpptRoiType roiType;
     Rpp32s inputLayout;
     Rpp32s outputLayout;
-    size_t inputTensorDims[NUM_OF_DIMS];
-    size_t ouputTensorDims[NUM_OF_DIMS];
+    size_t inputTensorDims[RPP_MAX_TENSOR_DIMS];
+    size_t ouputTensorDims[RPP_MAX_TENSOR_DIMS];
     vx_enum inputTensorType;
     vx_enum outputTensorType;
 #if ENABLE_HIP
@@ -147,7 +147,7 @@ static vx_status VX_CALLBACK validateCropMirrorNormalize(vx_node node, const vx_
     vx_parameter output_param;
     size_t out_num_tensor_dims;
     vx_uint8 tensor_fixed_point_position;
-    size_t tensor_dims[NUM_OF_DIMS];
+    size_t tensor_dims[RPP_MAX_TENSOR_DIMS];
     vx_enum tensor_type;
     output_param = vxGetParameterByIndex(node, 2);
     STATUS_ERROR_CHECK(vxQueryParameter(output_param, VX_PARAMETER_ATTRIBUTE_REF, &output, sizeof(vx_tensor)));
