@@ -239,22 +239,16 @@ int Image::create_from_handle(vx_context context)
     // TODO: the pointer passed here changes if the number of planes are more than one
     vx_imagepatch_addressing_t addr_in = { 0 };
     void *ptr[1] = { nullptr };
+    vx_uint32 alignpixels = 32;
 
     addr_in.step_x = 1;
     addr_in.step_y = 1;
     addr_in.scale_x = VX_SCALE_UNITY;
     addr_in.scale_y = VX_SCALE_UNITY;
-    addr_in.dim_x = _info.width();
+    addr_in.dim_x = ((_info.width() + alignpixels - 1) & ~(alignpixels - 1));
     addr_in.dim_y = _info.height_batch();
-
-    vx_uint32 alignpixels = 32;
-
     addr_in.stride_x = _info._color_planes;
-
-    if (alignpixels == 0)
-        addr_in.stride_y = addr_in.dim_x *addr_in.stride_x;
-    else
-        addr_in.stride_y = ((addr_in.dim_x + alignpixels - 1) & ~(alignpixels - 1))*addr_in.stride_x;
+    addr_in.stride_y = addr_in.dim_x *addr_in.stride_x;
 
     if(_info.height_batch() == 0 || _info.width() == 0 || _info._color_planes == 0)
         THROW("Invalid image dimension " + TOSTR(_info.height_batch()) + " x " + TOSTR(_info.width()) + " x " + TOSTR(_info._color_planes));

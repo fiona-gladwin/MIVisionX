@@ -408,7 +408,7 @@ MasterGraph::output_color_format()
 size_t
 MasterGraph::output_width()
 {
-    return _output_image_info.width();
+    return ((_output_image_info.width() + 31) &~ 31);
 }
 
 size_t
