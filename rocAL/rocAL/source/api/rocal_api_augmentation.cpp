@@ -31,45 +31,6 @@ THE SOFTWARE.
 
 #define MAX_ASPECT_RATIO 3.0f
 
-void get_rocal_tensor_layout(RocalTensorLayout &tensor_layout, RocalTensorlayout &op_tensor_layout)
-{
-    switch(tensor_layout)
-    {
-        case 0:
-            op_tensor_layout = RocalTensorlayout::NHWC;
-            return;
-        case 1:
-            op_tensor_layout = RocalTensorlayout::NCHW;
-            return;
-        case 2:
-            op_tensor_layout = RocalTensorlayout::NFHWC;
-            return;
-        case 3:
-            op_tensor_layout = RocalTensorlayout::NFCHW;
-            return;
-        default:
-            THROW("Unsupported Tensor layout" + TOSTR(tensor_layout))
-    }
-}
-
-void get_rocal_tensor_data_type(RocalTensorOutputType &tensor_output_type, RocalTensorDataType &tensor_data_type)
-{
-    switch(tensor_output_type)
-    {
-        case ROCAL_FP32:
-            tensor_data_type = RocalTensorDataType::FP32;
-            return;
-        case ROCAL_FP16:
-            tensor_data_type = RocalTensorDataType::FP16;
-            return;
-        case ROCAL_UINT8:
-            tensor_data_type = RocalTensorDataType::UINT8;
-            return;
-        default:
-            THROW("Unsupported Tensor output type" + TOSTR(tensor_output_type))
-    }
-}
-
 RocalImage  ROCAL_API_CALL
 rocalSequenceRearrange(
             RocalContext p_context,
@@ -625,10 +586,8 @@ rocalBrightness(
     auto alpha = static_cast<FloatParam*>(p_alpha);
     auto beta = static_cast<FloatParam*>(p_beta);
     try {
-        RocalTensorlayout op_tensorLayout;
-        RocalTensorDataType op_tensorDataType;
-        get_rocal_tensor_layout(rocal_tensor_output_layout, op_tensorLayout);
-        get_rocal_tensor_data_type(rocal_tensor_output_datatype, op_tensorDataType);
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
         rocalTensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensorLayout);
         output_info.set_data_type(op_tensorDataType);
@@ -1686,10 +1645,8 @@ rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned c
     try {
         if( crop_width == 0 || crop_height == 0)
             THROW("Null values passed as input")
-        RocalTensorlayout op_tensorLayout;
-        RocalTensorDataType op_tensorDataType;
-        get_rocal_tensor_layout(rocal_tensor_output_layout, op_tensorLayout);
-        get_rocal_tensor_data_type(rocal_tensor_output_datatype, op_tensorDataType);
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
         rocalTensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensorLayout);
         output_info.set_data_type(op_tensorDataType);
