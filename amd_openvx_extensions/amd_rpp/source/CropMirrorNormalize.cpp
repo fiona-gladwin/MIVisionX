@@ -23,8 +23,7 @@ THE SOFTWARE.
 #include "internal_publishKernels.h"
 
 struct CropMirrorNormalizeLocalData {
-    RPPCommonHandle handle;
-    rppHandle_t rppHandle;
+    RPPCommonHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
@@ -171,13 +170,13 @@ static vx_status VX_CALLBACK processCropMirrorNormalize(vx_node node, const vx_r
 #if ENABLE_HIP
         refreshCropMirrorNormalize(node, parameters, num, data);
         rpp_status = rppt_crop_mirror_normalize_gpu((void *)data->pSrc_dev, data->srcDescPtr, (void *)data->pDst_dev, data->dstDescPtr, data->multiplier, data->offset,
-                                                    data->mirror, data->roiPtr, data->roiType, data->rppHandle);
+                                                     data->mirror, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if(data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshCropMirrorNormalize(node, parameters, num, data);
         rpp_status = rppt_crop_mirror_normalize_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->multiplier, data->offset,
-                                                     data->mirror, data->roiPtr, data->roiType, data->rppHandle);
+                                                     data->mirror, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -185,13 +184,9 @@ static vx_status VX_CALLBACK processCropMirrorNormalize(vx_node node, const vx_r
 
 static vx_status VX_CALLBACK initializeCropMirrorNormalize(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     CropMirrorNormalizeLocalData *data = new CropMirrorNormalizeLocalData;
-    int roi_type;
     memset(data, 0, sizeof(*data));
-#if ENABLE_OPENCL
-    THROW("initialize : CropMirrorNormalize OpenCL backend is not supported")
-#elif ENABLE_HIP
-    STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_HIP_STREAM, &data->handle.hipstream, sizeof(data->handle.hipstream)));
-#endif  
+    
+    int roi_type;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &data->inputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &data->outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -220,13 +215,7 @@ static vx_status VX_CALLBACK initializeCropMirrorNormalize(vx_node node, const v
     data->offset = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n * data->srcDescPtr->c);
     data->mirror = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
     refreshCropMirrorNormalize(node, parameters, num, data);
-#if ENABLE_HIP
-    if (data->deviceType == AGO_TARGET_AFFINITY_GPU)
-        rppCreateWithStreamAndBatchSize(&data->rppHandle, data->handle.hipstream, data->srcDescPtr->n);
-#endif
-    if (data->deviceType == AGO_TARGET_AFFINITY_CPU)
-        rppCreateWithBatchSize(&data->rppHandle, data->srcDescPtr->n);
-
+    STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
@@ -234,13 +223,7 @@ static vx_status VX_CALLBACK initializeCropMirrorNormalize(vx_node node, const v
 static vx_status VX_CALLBACK uninitializeCropMirrorNormalize(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     CropMirrorNormalizeLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-#if ENABLE_HIP
-    if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
-        rppDestroyGPU(data->rppHandle);
-    }
-#endif
-    if (data->deviceType == AGO_TARGET_AFFINITY_CPU)
-        rppDestroyHost(data->rppHandle);
+    STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
     free(data->multiplier);
     free(data->offset);
     free(data->mirror);
