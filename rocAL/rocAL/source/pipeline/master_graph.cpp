@@ -314,20 +314,20 @@ MasterGraph::create_loader_output_tensor(const rocalTensorInfo &info) {
 
 rocalTensor *
 MasterGraph::create_tensor(const rocalTensorInfo &info, bool is_output) {
-    auto *new_tensor = new rocalTensor(info);
+    auto *output = new rocalTensor(info);
     // if the tensor is not an output tensor, the tensor creation is deferred and later it'll be created as a virtual tensor
     if(is_output) {
-        if (new_tensor->create_from_handle(_context) != 0)
-            THROW("Cannot create the tensor from handle")
-        _internal_tensor_list.push_back(new_tensor);
-
-        auto *output = new rocalTensor(info);
         if (output->create_from_handle(_context) != 0)
             THROW("Cannot create the tensor from handle")
-        _output_tensor_list.push_back(output);
+        _internal_tensor_list.push_back(output);
+
+        auto *output_ext = new rocalTensor(info);
+        if (output_ext->create_from_handle(_context) != 0)
+            THROW("Cannot create the tensor from handle")
+        _output_tensor_list.push_back(output_ext);
     }
 
-    return new_tensor;
+    return output;
 }
 
 void
