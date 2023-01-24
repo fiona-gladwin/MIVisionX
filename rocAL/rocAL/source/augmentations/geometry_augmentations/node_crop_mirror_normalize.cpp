@@ -42,36 +42,36 @@ void CropMirrorNormalizeNode::create_node() {
 
     _crop_param->create_array(_graph);
 
-    std::vector<float> mean_vec, std_dev_vec;
-    int mean_stddev_array_size = _batch_size * _inputs[0]->info().get_channels();
+    std::vector<float> multiplier_vec, offset_vec;
+    int multiplier_offset_array_size = _batch_size * _inputs[0]->info().get_channels();
     if(!_std_dev[0])
         THROW("Standard deviation value cannot be 0");
-    mean_vec.resize(mean_stddev_array_size, -(_mean[0] / _std_dev[0]));
-    std_dev_vec.resize(mean_stddev_array_size, (1 / _std_dev[0]));
+    multiplier_vec.resize(multiplier_offset_array_size, -(_mean[0] / _std_dev[0]));
+    offset_vec.resize(multiplier_offset_array_size, (1 / _std_dev[0]));
     
     if(_inputs[0]->info().get_channels() == 3) {
         if(!(_std_dev[0] && _std_dev[1] && _std_dev[2]))
             THROW("Standard deviation value cannot be 0");
-        std_dev_vec[0] = 1 / _std_dev[0];
-        std_dev_vec[1] = 1 / _std_dev[1];
-        std_dev_vec[2] = 1 / _std_dev[2];
-        mean_vec[0] = -(_mean[0] * std_dev_vec[0]);
-        mean_vec[1] = -(_mean[1] * std_dev_vec[1]);
-        mean_vec[2] = -(_mean[2] * std_dev_vec[2]);
+        offset_vec[0] = 1 / _std_dev[0];
+        offset_vec[1] = 1 / _std_dev[1];
+        offset_vec[2] = 1 / _std_dev[2];
+        multiplier_vec[0] = -(_mean[0] * offset_vec[0]);
+        multiplier_vec[1] = -(_mean[1] * offset_vec[1]);
+        multiplier_vec[2] = -(_mean[2] * offset_vec[2]);
         for (uint i = 1, j = 3; i < _batch_size; i++ , j += 3) {
-            mean_vec[j] = mean_vec[0];
-            mean_vec[j + 1] = mean_vec[1];
-            mean_vec[j + 2] = mean_vec[2];
-            std_dev_vec[j] = std_dev_vec[0];
-            std_dev_vec[j + 1] = std_dev_vec[1];
-            std_dev_vec[j + 2] = std_dev_vec[2];
+            multiplier_vec[j] = multiplier_vec[0];
+            multiplier_vec[j + 1] = multiplier_vec[1];
+            multiplier_vec[j + 2] = multiplier_vec[2];
+            offset_vec[j] = offset_vec[0];
+            offset_vec[j + 1] = offset_vec[1];
+            offset_vec[j + 2] = offset_vec[2];
         }
     }
-    _mean_vx_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, mean_stddev_array_size);
-    _std_dev_vx_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, mean_stddev_array_size);
+    _multiplier_vx_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, multiplier_offset_array_size);
+    _offset_vx_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, multiplier_offset_array_size);
     vx_status status = VX_SUCCESS;
-    status |= vxAddArrayItems(_mean_vx_array, mean_stddev_array_size, mean_vec.data(), sizeof(vx_float32));
-    status |= vxAddArrayItems(_std_dev_vx_array, mean_stddev_array_size, std_dev_vec.data(), sizeof(vx_float32));
+    status |= vxAddArrayItems(_multiplier_vx_array, multiplier_offset_array_size, multiplier_vec.data(), sizeof(vx_float32));
+    status |= vxAddArrayItems(_offset_vx_array, multiplier_offset_array_size, offset_vec.data(), sizeof(vx_float32));
     _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
     if(status != 0)
         THROW(" vxAddArrayItems failed in the crop_mirror_normalize node (vxExtrppNode_CropMirrorNormalize)  node: "+ TOSTR(status) + "  "+ TOSTR(status))
@@ -83,7 +83,7 @@ void CropMirrorNormalizeNode::create_node() {
     vx_scalar out_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
     vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
     _node = vxExtrppNode_CropMirrorNormalize(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(),
-                                             _mean_vx_array, _std_dev_vx_array, _mirror.default_array(), in_layout_vx, out_layout_vx, roi_type_vx);
+                                             _multiplier_vx_array, _offset_vx_array, _mirror.default_array(), in_layout_vx, out_layout_vx, roi_type_vx);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the crop mirror normalize (vxExtrppNode_CropMirrorNormalize) failed: " + TOSTR(status))
 }

@@ -28,8 +28,8 @@ struct CropMirrorNormalizeLocalData {
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    vx_float32 *mean;
-    vx_float32 *stdDev;
+    vx_float32 *multiplier;
+    vx_float32 *offset;
     vx_uint32 *mirror;
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
@@ -52,8 +52,8 @@ struct CropMirrorNormalizeLocalData {
 
 static vx_status VX_CALLBACK refreshCropMirrorNormalize(vx_node node, const vx_reference *parameters, vx_uint32 num, CropMirrorNormalizeLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n * data->srcDescPtr->c, sizeof(vx_float32), data->mean, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n * data->srcDescPtr->c, sizeof(vx_float32), data->stdDev, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n * data->srcDescPtr->c, sizeof(vx_float32), data->multiplier, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n * data->srcDescPtr->c, sizeof(vx_float32), data->offset, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->srcDescPtr->n, sizeof(vx_uint32), data->mirror, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
@@ -97,8 +97,8 @@ static vx_status VX_CALLBACK refreshCropMirrorNormalize(vx_node node, const vx_r
                 for(int c = 0; c < data->srcDescPtr->c; c++) {
                     int dst_ind = (index + f) * data->srcDescPtr->c + c;
                     int src_ind = n * data->srcDescPtr->c + c;
-                    data->mean[dst_ind] = data->mean[src_ind];
-                    data->stdDev[dst_ind] = data->stdDev[src_ind];
+                    data->multiplier[dst_ind] = data->multiplier[src_ind];
+                    data->offset[dst_ind] = data->offset[src_ind];
                 }
                 data->mirror[index + f] = data->mirror[n];
                 data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
@@ -170,13 +170,13 @@ static vx_status VX_CALLBACK processCropMirrorNormalize(vx_node node, const vx_r
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshCropMirrorNormalize(node, parameters, num, data);
-        rpp_status = rppt_crop_mirror_normalize_gpu((void *)data->pSrc_dev, data->srcDescPtr, (void *)data->pDst_dev, data->dstDescPtr, data->mean, data->stdDev,
+        rpp_status = rppt_crop_mirror_normalize_gpu((void *)data->pSrc_dev, data->srcDescPtr, (void *)data->pDst_dev, data->dstDescPtr, data->multiplier, data->offset,
                                                     data->mirror, data->roiPtr, data->roiType, data->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if(data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshCropMirrorNormalize(node, parameters, num, data);
-        rpp_status = rppt_crop_mirror_normalize_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->mean, data->stdDev,
+        rpp_status = rppt_crop_mirror_normalize_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->multiplier, data->offset,
                                                      data->mirror, data->roiPtr, data->roiType, data->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
@@ -216,8 +216,8 @@ static vx_status VX_CALLBACK initializeCropMirrorNormalize(vx_node node, const v
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
-    data->mean = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n * data->srcDescPtr->c);
-    data->stdDev = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n * data->srcDescPtr->c);
+    data->multiplier = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n * data->srcDescPtr->c);
+    data->offset = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n * data->srcDescPtr->c);
     data->mirror = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
     refreshCropMirrorNormalize(node, parameters, num, data);
 #if ENABLE_HIP
@@ -241,8 +241,8 @@ static vx_status VX_CALLBACK uninitializeCropMirrorNormalize(vx_node node, const
 #endif
     if (data->deviceType == AGO_TARGET_AFFINITY_CPU)
         rppDestroyHost(data->rppHandle);
-    free(data->mean);
-    free(data->stdDev);
+    free(data->multiplier);
+    free(data->offset);
     free(data->mirror);
     delete (data);
     return VX_SUCCESS;
