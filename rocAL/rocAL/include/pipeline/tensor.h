@@ -52,6 +52,15 @@ vx_enum vx_mem_type(RocalMemType mem);
  */
 vx_uint64 tensor_data_size(RocalTensorDataType data_type);
 
+/*! \brief Allocated memory for given size
+ *
+ * @param void * The ptr for which memory is allocated
+ * @param size_t size of the buffer
+ * @param RocalMemType For HIP memType pinned memory is allocated
+ *        else HOST memory is allocated
+ */
+void allocate_host_or_pinned_mem(void **ptr, size_t size, RocalMemType mem_type);
+
 /*! \brief Holds the information about a rocalTensor */
 class rocalTensorInfo {
 public:
@@ -185,7 +194,6 @@ private:
     uint64_t _data_type_size = tensor_data_size(_data_type);
     uint64_t _data_size = 0;
     std::vector<size_t> _max_shape;  //!< stores the the width and height dimensions in the tensor
-    void allocate_tensor_roi_buffers();
     void reset_tensor_roi_buffers();
     bool _is_image = false;
     bool _is_metadata = false;
