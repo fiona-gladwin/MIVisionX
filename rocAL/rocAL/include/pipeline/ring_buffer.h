@@ -46,9 +46,9 @@ public:
     ///\param sub_buffer_size
     ///\param sub_buffer_count
 #if ENABLE_HIP
-    void initHip(RocalMemType mem_type, DeviceResourcesHip dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count);
+    void initHip(RocalMemType mem_type, DeviceResourcesHip dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count, size_t roi_buffer_size);
 #else
-    void init(RocalMemType mem_type, DeviceResources dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count);
+    void init(RocalMemType mem_type, DeviceResources dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count, size_t roi_buffer_size);
 #endif
     void initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size);
     void init_metadata(RocalMemType mem_type, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count);
@@ -56,6 +56,8 @@ public:
     std::vector<void*> get_read_buffers();
     void* get_host_master_read_buffer();
     std::vector<void*> get_write_buffers();
+    std::vector<unsigned*> get_read_roi_buffers();
+    std::vector<unsigned*> get_write_roi_buffers();
     std::pair<void*, void*> get_box_encode_write_buffers();
     std::pair<void*, void*> get_box_encode_read_buffers();
     MetaDataNamePair& get_meta_data();
@@ -89,6 +91,8 @@ private:
     std::condition_variable _wait_for_unload;
     std::vector<std::vector<void*>> _dev_sub_buffer;
     std::vector<std::vector<void*>> _host_sub_buffers;
+    std::vector<std::vector<unsigned *>> _dev_roi_buffers;
+    std::vector<std::vector<unsigned *>> _host_roi_buffers;
     std::vector<std::vector<void*>> _host_meta_data_buffers;
     std::vector<void *> _dev_bbox_buffer;
     std::vector<void *> _dev_labels_buffer;

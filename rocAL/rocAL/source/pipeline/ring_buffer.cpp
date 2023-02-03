@@ -28,6 +28,8 @@ RingBuffer::RingBuffer(unsigned buffer_depth):
         BUFF_DEPTH(buffer_depth),
         _dev_sub_buffer(buffer_depth),
         _host_sub_buffers(buffer_depth),
+        _dev_roi_buffers(buffer_depth),
+        _host_roi_buffers(buffer_depth),
         _dev_bbox_buffer(buffer_depth),
         _dev_labels_buffer(buffer_depth)
 {
@@ -56,12 +58,21 @@ void RingBuffer:: block_if_full()
         _wait_for_unload.wait(lock);
     }
 }
+
 std::vector<void*> RingBuffer::get_read_buffers()
 {
     block_if_empty();
     if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
         return _dev_sub_buffer[_read_ptr];
     return _host_sub_buffers[_read_ptr];
+}
+
+std::vector<unsigned*> RingBuffer::get_read_roi_buffers()
+{
+    block_if_empty();
+    if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
+        return _dev_roi_buffers[_read_ptr];
+    return _host_roi_buffers[_read_ptr];
 }
 
 std::pair<void*, void*> RingBuffer::get_box_encode_read_buffers()
@@ -79,6 +90,15 @@ std::vector<void*> RingBuffer::get_write_buffers()
         return _dev_sub_buffer[_write_ptr];
 
     return _host_sub_buffers[_write_ptr];
+}
+
+std::vector<unsigned*> RingBuffer::get_write_roi_buffers()
+{
+    block_if_full();
+    if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
+        return _dev_roi_buffers[_write_ptr];
+
+    return _host_roi_buffers[_write_ptr];
 }
 
 std::pair<void*, void*> RingBuffer::get_box_encode_write_buffers()
@@ -120,7 +140,7 @@ void RingBuffer::unblock_writer()
 }
 
 #if !ENABLE_HIP
-void RingBuffer::init(RocalMemType mem_type, DeviceResources dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count)
+void RingBuffer::init(RocalMemType mem_type, DeviceResources dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count, size_t roi_buffer_size)
 {
     _mem_type = mem_type;
     _dev = dev;
@@ -164,14 +184,16 @@ void RingBuffer::init(RocalMemType mem_type, DeviceResources dev, std::vector<si
         {
             // a minimum of extra MEM_ALIGNMENT is allocated
             _host_sub_buffers[buffIdx].resize(_sub_buffer_count);
-            for(size_t sub_buff_idx = 0; sub_buff_idx < _sub_buffer_count; sub_buff_idx++)
+            for(size_t sub_buff_idx = 0; sub_buff_idx < _sub_buffer_count; sub_buff_idx++) {
                 _host_sub_buffers[buffIdx][sub_buff_idx] = aligned_alloc(MEM_ALIGNMENT, MEM_ALIGNMENT * (_sub_buffer_size[sub_buff_idx] / MEM_ALIGNMENT + 1));
+                _host_roi_buffers[buffIdx][sub_buff_idx] = malloc(roi_buffer_size);
+            }
         }
     }
 }
 
 #else
-void RingBuffer::initHip(RocalMemType mem_type, DeviceResourcesHip dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count)
+void RingBuffer::initHip(RocalMemType mem_type, DeviceResourcesHip dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count, size_t roi_buffer_size)
 {
     _mem_type = mem_type;
     _devhip = dev;
@@ -190,6 +212,7 @@ void RingBuffer::initHip(RocalMemType mem_type, DeviceResourcesHip dev, std::vec
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
             _dev_sub_buffer[buffIdx].resize(_sub_buffer_count);
+            _dev_roi_buffers[buffIdx].resize(_sub_buffer_count);
             for(unsigned sub_idx = 0; sub_idx < _sub_buffer_count; sub_idx++)
             {
 
@@ -201,6 +224,9 @@ void RingBuffer::initHip(RocalMemType mem_type, DeviceResourcesHip dev, std::vec
                     THROW("hipMalloc of size " + TOSTR(_sub_buffer_size[sub_idx]) + " index " + TOSTR(sub_idx) +
                           " failed " + TOSTR(err));
                 }
+                err = hipHostMalloc((void **)&_dev_roi_buffers[buffIdx][sub_idx], roi_buffer_size, hipHostMallocDefault);
+                if(err != hipSuccess || !*_dev_roi_buffers[buffIdx][sub_idx])
+                    THROW("hipHostMalloc of size " + TOSTR(roi_buffer_size) + " failed " + TOSTR(err))                
             }
         }
     }
@@ -210,8 +236,11 @@ void RingBuffer::initHip(RocalMemType mem_type, DeviceResourcesHip dev, std::vec
         {
             // a minimum of extra MEM_ALIGNMENT is allocated
             _host_sub_buffers[buffIdx].resize(_sub_buffer_count);
-            for(size_t sub_buff_idx = 0; sub_buff_idx < _sub_buffer_count; sub_buff_idx++)
+            _host_roi_buffers[buffIdx].resize(_sub_buffer_count);
+            for(size_t sub_buff_idx = 0; sub_buff_idx < _sub_buffer_count; sub_buff_idx++) {
                 _host_sub_buffers[buffIdx][sub_buff_idx] = aligned_alloc(MEM_ALIGNMENT, MEM_ALIGNMENT * (_sub_buffer_size[sub_buff_idx] / MEM_ALIGNMENT + 1));
+                _host_roi_buffers[buffIdx][sub_buff_idx] = (unsigned *)malloc(roi_buffer_size);
+            }
         }
     }
 }
@@ -348,9 +377,15 @@ void RingBuffer::release_gpu_res()
                         //printf("Error Freeing device buffer <%d, %d, %p>\n", buffIdx, sub_buf_idx, _dev_sub_buffer[buffIdx][sub_buf_idx]);
                         ERR("Could not release hip memory in the ring buffer")
                     }
+                if (_dev_roi_buffers[buffIdx][sub_buf_idx])
+                    if ( hipHostFree((void *)_dev_roi_buffers[buffIdx][sub_buf_idx]) != hipSuccess ) {
+                        //printf("Error Freeing device buffer <%d, %d, %p>\n", buffIdx, sub_buf_idx, _dev_sub_buffer[buffIdx][sub_buf_idx]);
+                        ERR("Could not release hip memory in the ring buffer")
+                    }
             }
         }
         _dev_sub_buffer.clear();
+        _dev_roi_buffers.clear();
     }
 #elif ENABLE_OPENCL
     if (_mem_type == RocalMemType::OCL) {
@@ -373,10 +408,13 @@ RingBuffer::~RingBuffer()
                     free(_host_sub_buffers[buffIdx][sub_buf_idx]);
                 if (_host_meta_data_buffers[buffIdx][sub_buf_idx])
                     free(_host_meta_data_buffers[buffIdx][sub_buf_idx]);
+                if (_host_roi_buffers[buffIdx][sub_buf_idx])
+                    free(_host_roi_buffers[buffIdx][sub_buf_idx]);
             }
         }
         _host_sub_buffers.clear();
         _host_meta_data_buffers.clear();
+        _host_roi_buffers.clear();
     }
 }
 
