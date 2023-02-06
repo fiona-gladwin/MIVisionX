@@ -613,12 +613,7 @@ void MasterGraph::output_routine()
 
             // Swap handles on the output tensor, so that new processed tensor will be written to the a new buffer
             for (size_t idx = 0; idx < _internal_tensor_list.size(); idx++)
-            {
-                // if(_internal_tensor_list.size() != 0)
-                // size_t tensor_each_cycle_size = tensor_each_cycle_size_vec[idx]; // TODO - Batch ratio calculation TO be removed
                 _internal_tensor_list[idx]->swap_handle(tensor_write_buffer[idx]);
-                _internal_tensor_list[idx]->copy_roi(tensor_roi_buffer[idx]);
-            }
 
             if (!_processing)
                 break;
@@ -666,6 +661,10 @@ void MasterGraph::output_routine()
             _process_time.start();
             _graph->process();
             _process_time.end();
+            
+            // Copy the ROI from tensor info into ring buffer
+            for (size_t idx = 0; idx < _internal_tensor_list.size(); idx++)
+                _internal_tensor_list[idx]->copy_roi(tensor_roi_buffer[idx]);
             
             _bencode_time.start();
             if(_is_box_encoder )
