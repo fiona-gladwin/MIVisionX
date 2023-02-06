@@ -68,8 +68,8 @@ struct RPPCommonHandle {
 vx_node createNode(vx_graph graph, vx_enum kernelEnum, vx_reference params[], vx_uint32 num);
 vx_status createGraphHandle(vx_node node, RPPCommonHandle ** pHandle, Rpp32u batchSize, Rpp32u deviceType);
 vx_status releaseGraphHandle(vx_node node, RPPCommonHandle * handle, Rpp32u deviceType);
-void fillDescriptionPtrfromDims(RpptDescPtr &desc_ptr, Rpp32s layout, size_t *tensor_dims);
-RpptDataType getRpptDataType(vx_enum vx_data_type);
+void fillDescriptionPtrfromDims(RpptDescPtr &descPtr, Rpp32s layout, size_t *tensorDims);
+RpptDataType getRpptDataType(vx_enum dataType);
 
 class Kernellist
 {

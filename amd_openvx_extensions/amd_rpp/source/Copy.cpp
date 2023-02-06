@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 
 #include "internal_publishKernels.h"
-#define RPP_MAX_TENSOR_DIMS 5
+
 struct CopyLocalData
 {
     RPPCommonHandle handle;

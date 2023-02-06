@@ -58,7 +58,7 @@ void CropMirrorNormalizeNode::create_node() {
         multiplier_vec[0] = -(_mean[0] * offset_vec[0]);
         multiplier_vec[1] = -(_mean[1] * offset_vec[1]);
         multiplier_vec[2] = -(_mean[2] * offset_vec[2]);
-        for (uint i = 1, j = 3; i < _batch_size; i++ , j += 3) {
+        for (uint i = 1, j = 3; i < _batch_size; i++, j += 3) {
             multiplier_vec[j] = multiplier_vec[0];
             multiplier_vec[j + 1] = multiplier_vec[1];
             multiplier_vec[j + 2] = multiplier_vec[2];
@@ -138,7 +138,7 @@ void CropMirrorNormalizeNode::init(int crop_h, int crop_w, float start_x, float 
 CropMirrorNormalizeNode::~CropMirrorNormalizeNode() {
     if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
 #if ENABLE_HIP
-        hipError_t err = hipFree(_crop_coordinates);
+        hipError_t err = hipHostFree(_crop_coordinates);
         if(err != hipSuccess)
             std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
 #endif
