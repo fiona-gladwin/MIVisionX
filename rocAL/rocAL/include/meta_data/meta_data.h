@@ -292,10 +292,14 @@ public:
     }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        if(copy_contents)
+        if(copy_contents) {
             return std::make_shared<LabelBatch>(*this);
-        else
-            return std::make_shared<LabelBatch>();
+        } else {
+            std::shared_ptr<MetaDataBatch> label_batch_instance = std::make_shared<LabelBatch>();
+            label_batch_instance->resize(this->size());
+            label_batch_instance->get_info_batch() = this->get_info_batch();
+            return label_batch_instance;
+        }
     }
     explicit LabelBatch(std::vector<Labels>& labels)
     {
@@ -362,10 +366,14 @@ public:
     }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        if(copy_contents)
+        if(copy_contents) {
             return std::make_shared<BoundingBoxBatch>(*this);
-        else
-            return std::make_shared<BoundingBoxBatch>();
+        } else {
+            std::shared_ptr<MetaDataBatch> bbox_instance = std::make_shared<BoundingBoxBatch>();
+            bbox_instance->resize(this->size());
+            bbox_instance->get_info_batch() = this->get_info_batch();
+            return bbox_instance;
+        }
     }
     void convert_ltrb_to_xywh(BoundingBoxCords& ltrb_bbox_list) {
         for(unsigned i = 0; i < ltrb_bbox_list.size(); i++) {
@@ -444,10 +452,14 @@ public:
     int mask_size() override { return _mask_cords.size(); }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        if(copy_contents)
+        if(copy_contents) {
             return std::make_shared<PolygonMaskBatch>(*this);
-        else
-            return std::make_shared<PolygonMaskBatch>();
+        } else {
+            std::shared_ptr<MetaDataBatch> mask_batch_instance = std::make_shared<PolygonMaskBatch>();
+            mask_batch_instance->resize(this->size());
+            mask_batch_instance->get_info_batch() = this->get_info_batch();
+            return mask_batch_instance;
+        }
     }
     void copy_data(std::vector<void*> buffer) override
     {
@@ -530,10 +542,14 @@ public:
     }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        if(copy_contents)
+        if(copy_contents) {
             return std::make_shared<KeyPointBatch>(*this);
-        else
-            return std::make_shared<KeyPointBatch>();
+        } else {
+            std::shared_ptr<MetaDataBatch> joints_batch_instance = std::make_shared<KeyPointBatch>();
+            joints_batch_instance->resize(this->size());
+            joints_batch_instance->get_info_batch() = this->get_info_batch();
+            return joints_batch_instance;
+        }
     }
     JointsDataBatch& get_joints_data_batch() override { return _joints_data; }
     void copy_data(std::vector<void*> buffer) override {}
