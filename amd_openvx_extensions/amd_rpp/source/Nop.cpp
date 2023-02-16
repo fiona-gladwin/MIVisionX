@@ -28,10 +28,6 @@ struct NopLocalData
     Rpp32u device_type;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-#if ENABLE_HIP
-    void *pSrc_dev;
-    void *pDst_dev;
-#endif
 };
 
 static vx_status VX_CALLBACK refreshNop(vx_node node, const vx_reference *parameters, vx_uint32 num, NopLocalData *data)
@@ -40,8 +36,8 @@ static vx_status VX_CALLBACK refreshNop(vx_node node, const vx_reference *parame
     if (data->device_type == AGO_TARGET_AFFINITY_GPU)
     {
 #if ENABLE_HIP
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc_dev, sizeof(data->pSrc_dev)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &data->pDst_dev, sizeof(data->pDst_dev)));
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
 #endif
     }
     else if (data->device_type == AGO_TARGET_AFFINITY_CPU)
@@ -50,16 +46,8 @@ static vx_status VX_CALLBACK refreshNop(vx_node node, const vx_reference *parame
         vx_enum out_tensor_type = vx_type_e::VX_TYPE_UINT8;
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_DATA_TYPE, &in_tensor_type, sizeof(in_tensor_type)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_DATA_TYPE, &out_tensor_type, sizeof(out_tensor_type)));
-        if (in_tensor_type == vx_type_e::VX_TYPE_UINT8 && out_tensor_type == vx_type_e::VX_TYPE_UINT8)
-        {
-            STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(vx_uint8)));
-            STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(vx_uint8)));
-        }
-        else if (in_tensor_type == vx_type_e::VX_TYPE_FLOAT32 && out_tensor_type == vx_type_e::VX_TYPE_FLOAT32)
-        {
-            STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(vx_float32)));
-            STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(vx_float32)));
-        }
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
     }
     return status;
 }
