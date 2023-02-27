@@ -113,7 +113,6 @@ MasterGraph::~MasterGraph()
 
 MasterGraph::MasterGraph(size_t batch_size, RocalAffinity affinity, int gpu_id, size_t prefetch_queue_depth, RocalTensorDataType output_tensor_data_type):
         _ring_buffer(prefetch_queue_depth),
-        _output_tensor(nullptr),
         _graph(nullptr),
         _affinity(affinity),
         _gpu_id(gpu_id),
@@ -363,8 +362,6 @@ void MasterGraph::release()
         delete tensor;  // It will call the vxReleaseTensor internally in the destructor
     _internal_tensor_list.release(); // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
     _output_tensor_list.release();   // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
-    deallocate_output_tensor();
-
 
     if(_graph != nullptr)
         _graph->release();
@@ -401,25 +398,6 @@ MasterGraph::sequence_frame_timestamps(std::vector<std::vector<float>> &sequence
 {
     sequence_frame_timestamp = _sequence_frame_timestamps_vec.back();
     _sequence_frame_timestamps_vec.pop_back();
-}
-
-MasterGraph::Status
-MasterGraph::deallocate_output_tensor()
-{
-#if ENABLE_OPENCL
-    if(processing_on_device_ocl() && _output_tensor != nullptr)
-        clReleaseMemObject((cl_mem)_output_tensor );
-#elif ENABLE_HIP
-    if(processing_on_device_hip() && _output_tensor != nullptr) {
-        hipError_t err = hipFree(_output_tensor );
-        if (err != hipSuccess) {
-            THROW("MasterGraph::deallocate_output_tensor  hipFree failed " + TOSTR(err))
-        }
-        _output_tensor = nullptr;
-    }
-#endif
-
-    return Status::OK;
 }
 
 MasterGraph::Status
