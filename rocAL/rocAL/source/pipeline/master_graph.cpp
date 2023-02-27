@@ -446,8 +446,17 @@ MasterGraph::timing()
     return t;
 }
 
-
-#define CHECK_CL_CALL_RET(x) { cl_int ret; ret = x; if( ret != CL_SUCCESS) THROW("ocl call failed "+STR(#x)+" error "+TOSTR(ret)) }
+rocalTensorList *
+MasterGraph::get_output_tensors()
+{
+    std::vector<void*> output_ptr = _ring_buffer.get_read_buffers();
+    // TODO - check here if size of internal tensor and ring buffer is same?
+    for(unsigned i = 0; i < _internal_tensor_list.size(); i++)
+    {
+        _output_tensor_list[i]->swap_handle(output_ptr[i]);
+    }
+    return &_output_tensor_list;
+}
 
 void MasterGraph::output_routine()
 {
