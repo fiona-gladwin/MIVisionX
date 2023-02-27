@@ -52,7 +52,6 @@ public:
     ~MasterGraph();
     Status reset();
     size_t remaining_count();
-    Status copy_output(void* out_ptr, size_t out_size);
     rocalTensorList *get_output_tensors();
     std::vector<size_t> tensor_output_byte_size();
     void sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum); // Returns the starting frame number of the sequences
@@ -81,7 +80,6 @@ public:
     void set_loop(bool val) { _loop = val; }
     void set_output(rocalTensor* output_tensor);
     bool empty() { return (remaining_count() < (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size)); }
-    size_t internal_batch_size() { return _internal_batch_size; }
     size_t sequence_batch_size() { return _sequence_batch_size; }
     std::shared_ptr<MetaDataGraph> meta_data_graph() { return _meta_data_graph; }
     std::shared_ptr<MetaDataReader> meta_data_reader() { return _meta_data_reader; }
@@ -89,7 +87,6 @@ public:
     bool is_sequence_reader_output() {return _is_sequence_reader_output; }
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
-    void set_sequence_batch_ratio() { _sequence_batch_ratio = _sequence_batch_size / _internal_batch_size; }
     Status get_bbox_encoded_buffers(float **boxes_buf_ptr, int **labels_buf_ptr, size_t num_encoded_boxes);
     size_t bounding_box_batch_count(int* buf, pMetaDataBatch meta_data_batch);
 #if ENABLE_OPENCL
@@ -140,9 +137,6 @@ private:
     const static unsigned SAMPLE_SIZE = sizeof(unsigned char);
     int _remaining_count;//!< Keeps the count of remaining images yet to be processed for the user,
     bool _loop;//!< Indicates if user wants to indefinitely loops through images or not
-    static size_t compute_optimum_internal_batch_size(size_t user_batch_size, RocalAffinity affinity);
-    const size_t _internal_batch_size;//!< In the host processing case , internal batch size can be different than _user_batch_size. This batch size used internally throughout.
-    const size_t _user_to_internal_batch_ratio;
     size_t _prefetch_queue_depth;
     bool _output_routine_finished_processing = false;
     const RocalTensorDataType _out_data_type;
@@ -150,7 +144,6 @@ private:
     std::vector<std::vector<size_t>> _sequence_start_framenum_vec; //!< Stores the starting frame number of the sequences.
     std::vector<std::vector<std::vector<float>>>_sequence_frame_timestamps_vec; //!< Stores the timestamps of the frames in a sequences.
     size_t _sequence_batch_size = 0; //!< Indicates the _user_batch_size when sequence reader outputs are required
-    size_t _sequence_batch_ratio; //!< Indicates the _user_to_internal_batch_ratio when sequence reader outputs are required
     bool _is_sequence_reader_output = false; //!< Set to true if Sequence Reader is invoked.
     // box encoder variables
     bool _is_box_encoder = false; //bool variable to set the box encoder

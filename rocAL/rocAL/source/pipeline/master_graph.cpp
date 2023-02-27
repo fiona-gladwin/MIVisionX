@@ -129,8 +129,6 @@ MasterGraph::MasterGraph(size_t batch_size, RocalAffinity affinity, int gpu_id, 
 #endif        
         _first_run(true),
         _processing(false),
-        _internal_batch_size(compute_optimum_internal_batch_size(batch_size, affinity)),
-        _user_to_internal_batch_ratio (_user_batch_size/_internal_batch_size),
         _prefetch_queue_depth(prefetch_queue_depth),
         _out_data_type(output_tensor_data_type),
 #if ENABLE_HIP
@@ -461,17 +459,13 @@ MasterGraph::get_output_tensors()
 void MasterGraph::output_routine()
 {
     INFO("Output routine started with "+TOSTR(_remaining_count) + " to load");
-    size_t batch_ratio = _is_sequence_reader_output ? _sequence_batch_ratio : _user_to_internal_batch_ratio;
-    if(!_is_sequence_reader_output) // _sequence_batch_ratio and _user_to_internal_batch_ratio is different. Will be removed in TensorSupport.
-    {
 #if !ENABLE_HIP
-    if(processing_on_device_ocl() && batch_ratio != 1)
-        THROW("Internal failure, in the GPU processing case, user and input batch size must be equal")
+    if(processing_on_device_ocl())
+        THROW("Internal failure, in the GPU processing case")
 #else
-    if(processing_on_device_hip() && batch_ratio != 1)
-        THROW("Internal failure, in the GPU processing case, user and input batch size must be equal")
+    if(processing_on_device_hip())
+        THROW("Internal failure, in the GPU processing case")
 #endif
-    }
     try {
         while (_processing)
         {
@@ -503,7 +497,7 @@ void MasterGraph::output_routine()
             auto decode_image_info = _loader_module->get_decode_image_info();
             auto crop_image_info = _loader_module->get_crop_image_info();
 
-            if(this_cycle_names.size() != _internal_batch_size)
+            if(this_cycle_names.size() != _user_batch_size)
                 WRN("Internal problem: names count "+ TOSTR(this_cycle_names.size()))
 
             // meta_data lookup is done before _meta_data_graph->process() is called to have the new meta_data ready for processing
@@ -795,49 +789,6 @@ size_t MasterGraph::bounding_box_batch_count(int *buf, pMetaDataBatch meta_data_
         size += buf[i];
     }
     return size;
-}
-
-
-size_t MasterGraph::compute_optimum_internal_batch_size(size_t user_batch_size, RocalAffinity affinity)
-{
-    const unsigned MINIMUM_CPU_THREAD_COUNT = 2;
-    const unsigned DEFAULT_SMT_COUNT = 2;
-
-
-    if(affinity == RocalAffinity::GPU)
-        return user_batch_size;
-
-    unsigned THREAD_COUNT = std::thread::hardware_concurrency();
-    if(THREAD_COUNT >= MINIMUM_CPU_THREAD_COUNT)
-    {
-        INFO("Can run " + TOSTR(THREAD_COUNT) + " threads simultaneously on this machine")
-    }
-    else
-    {
-        THREAD_COUNT = MINIMUM_CPU_THREAD_COUNT;
-        WRN("hardware_concurrency() call failed assuming can run " + TOSTR(THREAD_COUNT) + " threads")
-    }
-    size_t ret = user_batch_size;
-    size_t CORE_COUNT = THREAD_COUNT / DEFAULT_SMT_COUNT;
-
-    if(CORE_COUNT <= 0)
-        THROW("Wrong core count detected less than 0")
-
-    for( size_t i = CORE_COUNT; i <= THREAD_COUNT; i++)
-        if(user_batch_size % i == 0)
-        {
-            ret = i;
-            break;
-        }
-
-    for(size_t i = CORE_COUNT; i > 1; i--)
-        if(user_batch_size % i == 0)
-        {
-            ret = i;
-            break;
-        }
-    INFO("User batch size "+ TOSTR(user_batch_size)+" Internal batch size set to "+ TOSTR(ret))
-    return ret;
 }
 
 std::vector<size_t> MasterGraph::tensor_output_byte_size()
