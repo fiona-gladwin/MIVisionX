@@ -97,8 +97,6 @@ public:
 #endif
 private:
     Status update_node_parameters();
-    Status allocate_output_tensor();
-    Status deallocate_output_tensor();
     void create_single_graph();
     void start_processing();
     void stop_processing();
@@ -121,7 +119,6 @@ private:
     std::list<std::shared_ptr<Node>> _root_nodes;//!< List of all root nodes (image/video loaders)
     std::list<std::shared_ptr<Node>> _meta_data_nodes;//!< List of nodes where meta data has to be updated after augmentation
     std::map<rocalTensor*, std::shared_ptr<Node>> _tensor_map;//!< key: tensor, value : Parent node
-    void * _output_tensor;//!< In the GPU processing case , is used to convert the U8 samples to float32 before they are being transfered back to host
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU
 #elif ENABLE_OPENCL
