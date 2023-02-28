@@ -26,12 +26,13 @@ THE SOFTWARE.
 RingBuffer::RingBuffer(unsigned buffer_depth):
         BUFF_DEPTH(buffer_depth),
         _dev_sub_buffer(buffer_depth),
-        _host_master_buffers(buffer_depth),
+        _host_sub_buffers(buffer_depth),
         _dev_bbox_buffer(buffer_depth),
         _dev_labels_buffer(buffer_depth)
 {
     reset();
 }
+
 void RingBuffer::block_if_empty()
 {
     std::unique_lock<std::mutex> lock(_lock);
@@ -61,15 +62,6 @@ std::vector<void*> RingBuffer::get_read_buffers()
         return _dev_sub_buffer[_read_ptr];
     return _host_sub_buffers[_read_ptr];
 }
-
-void *RingBuffer::get_host_master_read_buffer() {
-    block_if_empty();
-    if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
-        return nullptr;
-
-    return _host_master_buffers[_read_ptr];
-}
-
 
 std::pair<void*, void*> RingBuffer::get_box_encode_read_buffers()
 {
@@ -119,7 +111,7 @@ void RingBuffer::unblock_writer()
     _wait_for_unload.notify_all();
 }
 
-void RingBuffer::init(RocalMemType mem_type, void *devres, unsigned sub_buffer_size, unsigned sub_buffer_count)
+void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count)
 {
     _mem_type = mem_type;
     _dev = devres;
@@ -145,12 +137,12 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, unsigned sub_buffer_s
             _dev_sub_buffer[buffIdx].resize(_sub_buffer_count);
             for(unsigned sub_idx = 0; sub_idx < _sub_buffer_count; sub_idx++)
             {
-                _dev_sub_buffer[buffIdx][sub_idx] =  clCreateBuffer(dev_ocl->context, flags, sub_buffer_size, NULL, &err);
+                _dev_sub_buffer[buffIdx][sub_idx] =  clCreateBuffer(dev_ocl->context, flags, _sub_buffer_size[sub_idx], NULL, &err);
 
                 if(err)
                 {
                     _dev_sub_buffer.clear();
-                    THROW("clCreateBuffer of size " + TOSTR(sub_buffer_size) + " index " + TOSTR(sub_idx) +
+                    THROW("clCreateBuffer of size " + TOSTR(_sub_buffer_size[sub_idx]) + " index " + TOSTR(sub_idx) +
                           " failed " + TOSTR(err));
                 }
 
@@ -159,7 +151,7 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, unsigned sub_buffer_s
 
         }
     }
-   else
+    else
     {
 #elif ENABLE_HIP
     DeviceResourcesHip *dev_hip = static_cast<DeviceResourcesHip *>(_dev);
@@ -176,29 +168,26 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, unsigned sub_buffer_s
             for(unsigned sub_idx = 0; sub_idx < _sub_buffer_count; sub_idx++)
             {
 
-                hipError_t err =  hipMalloc(&_dev_sub_buffer[buffIdx][sub_idx], sub_buffer_size);
-                //printf("allocated HIP device buffer <%d, %d, %d, %p>\n", buffIdx, sub_idx, sub_buffer_size, _dev_sub_buffer[buffIdx][sub_idx]);
+                hipError_t err =  hipMalloc(&_dev_sub_buffer[buffIdx][sub_idx], _sub_buffer_size[sub_idx]);
+                //printf("allocated HIP device buffer <%d, %d, %d, %p>\n", buffIdx, sub_idx, _sub_buffer_size[sub_idx], _dev_sub_buffer[buffIdx][sub_idx]);
                 if(err != hipSuccess)
                 {
                     _dev_sub_buffer.clear();
-                    THROW("hipMalloc of size " + TOSTR(sub_buffer_size) + " index " + TOSTR(sub_idx) +
+                    THROW("hipMalloc of size " + TOSTR(_sub_buffer_size[sub_idx]) + " index " + TOSTR(sub_idx) +
                           " failed " + TOSTR(err));
                 }
             }
         }
     }
-   else
+    else
     {
 #endif
-        _host_sub_buffers.resize(BUFF_DEPTH);
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
-            const size_t master_buffer_size = sub_buffer_size * sub_buffer_count;
             // a minimum of extra MEM_ALIGNMENT is allocated
-            _host_master_buffers[buffIdx] = aligned_alloc(MEM_ALIGNMENT, MEM_ALIGNMENT * (master_buffer_size / MEM_ALIGNMENT + 1));
             _host_sub_buffers[buffIdx].resize(_sub_buffer_count);
             for(size_t sub_buff_idx = 0; sub_buff_idx < _sub_buffer_count; sub_buff_idx++)
-                _host_sub_buffers[buffIdx][sub_buff_idx] = (unsigned char*)_host_master_buffers[buffIdx] + _sub_buffer_size * sub_buff_idx;
+                _host_sub_buffers[buffIdx][sub_buff_idx] = aligned_alloc(MEM_ALIGNMENT, MEM_ALIGNMENT * (_sub_buffer_size[sub_buff_idx] / MEM_ALIGNMENT + 1));
         }
 #if ENABLE_OPENCL || ENABLE_HIP
     }
@@ -319,12 +308,10 @@ void RingBuffer::release_gpu_res()
 RingBuffer::~RingBuffer()
 {
     if (_mem_type == RocalMemType::HOST) {
-        for (unsigned idx = 0; idx < _host_master_buffers.size(); idx++)
-            if (_host_master_buffers[idx]) {
-                free(_host_master_buffers[idx]);
-            }
-
-        _host_master_buffers.clear();
+        for (unsigned buffIdx = 0; buffIdx < _host_sub_buffers.size(); buffIdx++)
+            for (unsigned sub_buf_idx = 0; sub_buf_idx < _host_sub_buffers[buffIdx].size(); sub_buf_idx++)
+                if (_host_sub_buffers[buffIdx][sub_buf_idx])
+                    free(_host_sub_buffers[buffIdx][sub_buf_idx]);
         _host_sub_buffers.clear();
     }
 }
