@@ -45,10 +45,10 @@ public:
     ///\param dev
     ///\param sub_buffer_size
     ///\param sub_buffer_count
-    void init(RocalMemType mem_type, void *dev, unsigned sub_buffer_size, unsigned sub_buffer_count);
+    void init(RocalMemType mem_type, void *dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count);
     void initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size);
     void release_gpu_res();
-    std::vector<void*> get_read_buffers() ;
+    std::vector<void*> get_read_buffers();
     void* get_host_master_read_buffer();
     std::vector<void*> get_write_buffers();
     std::pair<void*, void*> get_box_encode_write_buffers();
@@ -72,13 +72,12 @@ private:
     void increment_write_ptr();
     bool full();
     const unsigned BUFF_DEPTH;
-    unsigned _sub_buffer_size;
+    std::vector<size_t> _sub_buffer_size;
     unsigned _sub_buffer_count;
     std::mutex _lock;
     std::condition_variable _wait_for_load;
     std::condition_variable _wait_for_unload;
     std::vector<std::vector<void*>> _dev_sub_buffer;
-    std::vector<void*> _host_master_buffers;
     std::vector<std::vector<void*>> _host_sub_buffers;
     std::vector<void *> _dev_bbox_buffer;
     std::vector<void *> _dev_labels_buffer;
