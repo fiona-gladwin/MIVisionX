@@ -99,8 +99,6 @@ private:
     void stop_processing();
     void output_routine();
     void decrease_image_count();
-    bool processing_on_device_ocl() { return _internal_tensor_list.front()->info().mem_type() == RocalMemType::OCL; };
-    bool processing_on_device_hip() { return _internal_tensor_list.front()->info().mem_type() == RocalMemType::HIP; };
     /// notify_user_thread() is called when the internal processing thread is done with processing all available images
     void notify_user_thread();
     /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed images
