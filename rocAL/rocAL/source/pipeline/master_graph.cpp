@@ -459,13 +459,6 @@ MasterGraph::get_output_tensors()
 void MasterGraph::output_routine()
 {
     INFO("Output routine started with "+TOSTR(_remaining_count) + " to load");
-#if !ENABLE_HIP
-    if(processing_on_device_ocl())
-        THROW("Internal failure, in the GPU processing case")
-#else
-    if(processing_on_device_hip())
-        THROW("Internal failure, in the GPU processing case")
-#endif
     try {
         while (_processing)
         {
