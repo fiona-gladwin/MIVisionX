@@ -278,9 +278,9 @@ MasterGraph::build()
         THROW("No output tensors are there, cannot create the pipeline")
 
 #if ENABLE_HIP || ENABLE_OPENCL
-    _ring_buffer.init(_mem_type, (void *)_device.resources(), _internal_tensor_list.data_size(), _internal_tensor_list.size());
+    _ring_buffer.init(_mem_type, (void *)_device.resources(), _internal_tensor_list.data_size());
 #else
-    _ring_buffer.init(_mem_type, nullptr, _internal_tensor_list.data_size(), _internal_tensor_list.size());
+    _ring_buffer.init(_mem_type, nullptr, _internal_tensor_list.data_size());
 #endif
     if (_is_box_encoder) _ring_buffer.initBoxEncoderMetaData(_mem_type, _user_batch_size*_num_anchors*4*sizeof(float), _user_batch_size*_num_anchors*sizeof(int));
     create_single_graph();
