@@ -310,11 +310,7 @@ MasterGraph::create_tensor(const rocalTensorInfo &info, bool is_output) {
         if (output->create_from_handle(_context) != 0)
             THROW("Cannot create the tensor from handle")
         _internal_tensor_list.push_back(output);
-
-        auto *output_ext = new rocalTensor(info);
-        if (output_ext->create_from_handle(_context) != 0)
-            THROW("Cannot create the tensor from handle")
-        _output_tensor_list.push_back(output_ext);
+        _output_tensor_list.push_back(new rocalTensor(info));   // Creating a replica of the output tensor to be returned to the user
     }
 
     return output;
@@ -329,12 +325,7 @@ MasterGraph::set_output(rocalTensor* output_tensor)
                 THROW("Cannot create the tensor from handle")
 
         _internal_tensor_list.push_back(output_tensor);
-
-        auto* output = new rocalTensor(output_tensor->info());
-        if (output->create_from_handle(_context) != 0)
-                THROW("Cannot create the tensor from handle")
-
-        _output_tensor_list.push_back(output);
+        _output_tensor_list.push_back(new rocalTensor(output_tensor->info()));  // Creating a replica of the output tensor to be returned to the user
     }
     else
     {
@@ -448,11 +439,9 @@ rocalTensorList *
 MasterGraph::get_output_tensors()
 {
     std::vector<void*> output_ptr = _ring_buffer.get_read_buffers();
-    // TODO - check here if size of internal tensor and ring buffer is same?
     for(unsigned i = 0; i < _internal_tensor_list.size(); i++)
-    {
-        _output_tensor_list[i]->swap_handle(output_ptr[i]);
-    }
+        _output_tensor_list[i]->set_mem_handle(output_ptr[i]);
+    
     return &_output_tensor_list;
 }
 
