@@ -53,7 +53,6 @@ public:
     Status reset();
     size_t remaining_count();
     rocalTensorList *get_output_tensors();
-    std::vector<size_t> tensor_output_byte_size();
     void sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum); // Returns the starting frame number of the sequences
     void sequence_frame_timestamps(std::vector<std::vector<float>> &sequence_frame_timestamp); // Returns the timestamps of the frames in the sequences
     Status build();
@@ -99,11 +98,11 @@ private:
     void stop_processing();
     void output_routine();
     void decrease_image_count();
-    /// notify_user_thread() is called when the internal processing thread is done with processing all available images
+    /// notify_user_thread() is called when the internal processing thread is done with processing all available tensors
     void notify_user_thread();
-    /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed images
+    /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed tensors
     bool no_more_processed_data();
-    RingBuffer _ring_buffer;//!< The queue that keeps the images that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
+    RingBuffer _ring_buffer;//!< The queue that keeps the tensors that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
     MetaDataBatch* _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
     CropCordBatch* _random_bbox_crop_cords_data = nullptr;
     std::thread _output_thread;
@@ -122,7 +121,7 @@ private:
     std::shared_ptr<Graph> _graph = nullptr;
     RocalAffinity _affinity;
     const int _gpu_id;//!< Defines the device id used for processing
-    pLoaderModule _loader_module; //!< Keeps the loader module used to feed the input the images of the graph
+    pLoaderModule _loader_module; //!< Keeps the loader module used to feed the input the tensors of the graph
     TimingDBG _convert_time, _process_time, _bencode_time;
     const size_t _user_batch_size;//!< Batch size provided by the user
     vx_context _context;
@@ -133,8 +132,8 @@ private:
     bool _first_run = true;
     bool _processing;//!< Indicates if internal processing thread should keep processing or not
     const static unsigned SAMPLE_SIZE = sizeof(unsigned char);
-    int _remaining_count;//!< Keeps the count of remaining images yet to be processed for the user,
-    bool _loop;//!< Indicates if user wants to indefinitely loops through images or not
+    int _remaining_count;//!< Keeps the count of remaining tensors yet to be processed for the user,
+    bool _loop;//!< Indicates if user wants to indefinitely loops through tensors or not
     size_t _prefetch_queue_depth;
     bool _output_routine_finished_processing = false;
     const RocalTensorDataType _out_data_type;
@@ -166,7 +165,7 @@ std::shared_ptr<T> MasterGraph::add_node(const std::vector<rocalTensor *> &input
     for(auto& input: inputs)
     {
         if (_tensor_map.find(input) == _tensor_map.end())
-            THROW("Input image is invalid, cannot be found among output of previously created nodes")
+            THROW("Input tensor is invalid, cannot be found among output of previously created nodes")
 
         auto parent_node = _tensor_map.find(input)->second;
         parent_node->add_next(node);

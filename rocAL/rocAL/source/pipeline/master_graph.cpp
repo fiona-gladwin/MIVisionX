@@ -493,9 +493,7 @@ void MasterGraph::output_routine()
 
             // Swap handles on the output tensor, so that new processed tensor will be written to the a new buffer
             for (size_t idx = 0; idx < _internal_tensor_list.size(); idx++)
-            {
                 _internal_tensor_list[idx]->swap_handle(write_buffers[idx]);
-            }
 
             if (!_processing)
                 break;
@@ -527,7 +525,6 @@ void MasterGraph::output_routine()
             _process_time.start();
             _graph->process();
             _process_time.end();
-
             _bencode_time.start();
             if(_is_box_encoder )
             {
@@ -771,11 +768,6 @@ size_t MasterGraph::bounding_box_batch_count(int *buf, pMetaDataBatch meta_data_
         size += buf[i];
     }
     return size;
-}
-
-std::vector<size_t> MasterGraph::tensor_output_byte_size()
-{
-    return _internal_tensor_list.data_size();
 }
 
 void MasterGraph::notify_user_thread()
