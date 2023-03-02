@@ -316,7 +316,7 @@ unsigned rocalTensor::copy_data(hipStream_t stream, void *host_memory, bool sync
 #endif
 
 unsigned rocalTensor::copy_data(void *user_buffer) {
-    if (_info._type != rocalTensorInfo::Type::HANDLE) return 0;
+    if (_mem_handle == nullptr) return 0;
 
 #if ENABLE_HIP
     if (_info._mem_type == RocalMemType::HIP) {
