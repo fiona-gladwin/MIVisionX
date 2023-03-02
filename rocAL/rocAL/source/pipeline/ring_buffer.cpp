@@ -111,7 +111,7 @@ void RingBuffer::unblock_writer()
     _wait_for_unload.notify_all();
 }
 
-void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> sub_buffer_size)
+void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &sub_buffer_size)
 {
     _mem_type = mem_type;
     _dev = devres;
