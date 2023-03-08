@@ -438,7 +438,7 @@ MasterGraph::timing()
 rocalTensorList *
 MasterGraph::get_output_tensors()
 {
-    std::vector<void*> output_ptr = _ring_buffer.get_read_buffers();
+    auto output_ptr = _ring_buffer.get_read_buffers();
     for(unsigned i = 0; i < _internal_tensor_list.size(); i++)
         _output_tensor_list[i]->set_mem_handle(output_ptr[i]);
     
