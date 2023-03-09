@@ -52,7 +52,6 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
     if (image_names.size() != (unsigned)_output->size())
         _output->resize(image_names.size());
 
-    _output->reset_objects_count();
     for (unsigned i = 0; i < image_names.size(); i++)
     {
         auto image_name = image_names[i];
@@ -63,17 +62,11 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         _output->get_bb_labels_batch()[i] = it->second->get_bb_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         _output->get_matches_batch()[i] = it->second->get_matches();
-        _output->increment_object_count(it->second->get_object_count());
-        _output->get_metadata_dimensions_batch().bb_labels_dims()[i] = it->second->get_bb_label_dims();
-        _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
-        _output->get_metadata_dimensions_batch().matches_dims()[i] = it->second->get_matches_dims();
         if (_mask)
         {
             _output->get_mask_cords_batch()[i] = it->second->get_mask_cords();
             _output->get_mask_polygons_count_batch()[i] = it->second->get_polygon_count();
             _output->get_mask_vertices_count_batch()[i] = it->second->get_vertices_count();
-            _output->get_metadata_dimensions_batch().mask_cords_dims()[i] = it->second->get_mask_cords_dims();
-            _output->increment_mask_coords_count(it->second->get_mask_coords_count());
         }
     }
 }
