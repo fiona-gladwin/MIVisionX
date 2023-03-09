@@ -1,3 +1,25 @@
+/*
+Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
@@ -78,6 +100,154 @@ namespace rocal
         std::string s(ptr);
         free(ptr);
         return py::bytes(s);
+    }
+
+    py::object wrapper_label_copy(RocalContext context, py::object p)
+    {
+        auto ptr = ctypes_void_ptr(p);
+        // call pure C++ function
+        rocalGetImageLabels(context,ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_cupy_label_copy(RocalContext context, size_t array_ptr)
+    {
+        void * ptr = (void*)array_ptr;
+        // call pure C++ function
+        rocalGetImageLabels(context,ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_image_id(RocalContext context, py::array_t<int> array)
+    {
+        auto buf = array.request();
+        int* ptr = (int*) buf.ptr;
+        // call pure C++ function
+        rocalGetImageId(context,ptr);
+        return py::cast<py::none>(Py_None);
+    }
+    py::object wrapper_labels_BB_count_copy(RocalContext context, py::array_t<int> array)
+
+    {
+        auto buf = array.request();
+        int* ptr = (int*) buf.ptr;
+        // call pure C++ function
+        int count =rocalGetBoundingBoxCount(context,ptr);
+        return py::cast(count);
+    }
+
+
+    py::object wrapper_BB_label_copy(RocalContext context, py::array_t<int> array)
+    {
+        auto buf = array.request();
+        int* ptr = (int*) buf.ptr;
+        // call pure C++ function
+        rocalGetBoundingBoxLabel(context,ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_encoded_bbox_label(RocalContext context, py::array_t<float>bboxes_array, py::array_t<int>labels_array)
+    {
+        auto bboxes_buf = bboxes_array.request();
+        float* bboxes_ptr = (float*) bboxes_buf.ptr;
+        auto labels_buf = labels_array.request();
+        int* labels_ptr = (int*) labels_buf.ptr;
+        // call pure C++ function
+        rocalCopyEncodedBoxesAndLables(context, bboxes_ptr , labels_ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    std::pair<py::array_t<float>, py::array_t<int>>  wrapper_get_encoded_bbox_label(RocalContext context, int batch_size, int num_anchors)
+    {
+        float* bboxes_buf_ptr; int* labels_buf_ptr;
+        // call pure C++ function
+        rocalGetEncodedBoxesAndLables(context, &bboxes_buf_ptr, &labels_buf_ptr, num_anchors*batch_size);
+        // create numpy arrays for boxes and labels tensor from the returned ptr
+        // no need to free the memory as this is freed by c++ lib
+        py::array_t<float> bboxes_array = py::array_t<float>(
+                                                          {batch_size, num_anchors, 4},
+                                                          {4*sizeof(float)*num_anchors, 4*sizeof(float), sizeof(float)},
+                                                          bboxes_buf_ptr,
+                                                          py::cast<py::none>(Py_None));
+        py::array_t<int> labels_array = py::array_t<int>(
+                                                          {batch_size, num_anchors},
+                                                          {num_anchors*sizeof(int), sizeof(int)},
+                                                          labels_buf_ptr,
+                                                          py::cast<py::none>(Py_None));
+
+        return std::make_pair(bboxes_array, labels_array);
+    }
+
+
+    py::object wrapper_BB_cord_copy(RocalContext context, py::array_t<float> array)
+    {
+        auto buf = array.request();
+        float* ptr = (float*) buf.ptr;
+        // call pure C++ function
+        rocalGetBoundingBoxCords(context,ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_mask_count(RocalContext context, py::array_t<int> array)
+    {
+        auto buf = array.request();
+        int* ptr = (int*) buf.ptr;
+        // call pure C++ function
+        int count = rocalGetMaskCount(context,ptr);
+        return py::cast(count);
+    }
+
+    py::object wrapper_mask_coordinates(RocalContext context, py::array_t<int> array_count, py::array_t<float> array)
+    {
+        auto buf = array.request();
+        float* ptr = (float*) buf.ptr;
+        auto buf_count = array_count.request();
+        int* ptr1 = (int*) buf_count.ptr;
+        // call pure C++ function
+        rocalGetMaskCoordinates(context, ptr1, ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_img_sizes_copy(RocalContext context, py::array_t<int> array)
+    {
+        auto buf = array.request();
+        int* ptr = (int*) buf.ptr;
+        // call pure C++ function
+        rocalGetImageSizes(context,ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_ROI_width_copy(RocalContext context, py::array_t<unsigned int> array)
+    {
+        auto buf = array.request();
+        unsigned int* ptr = (unsigned int*) buf.ptr;
+        // call pure C++ function
+        rocalGetOutputResizeWidth(context,ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_ROI_height_copy(RocalContext context, py::array_t<unsigned int> array)
+    {
+        auto buf = array.request();
+        unsigned int* ptr = (unsigned int*) buf.ptr;
+        // call pure C++ function
+        rocalGetOutputResizeHeight(context,ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_one_hot_label_copy(RocalContext context, py::object p , unsigned numOfClasses, int dest)
+    {
+        auto ptr = ctypes_void_ptr(p);
+        // call pure C++ function
+        rocalGetOneHotImageLabels(context, ptr, numOfClasses, dest);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_random_bbox_crop(RocalContext context, bool all_boxes_overlap, bool no_crop, RocalFloatParam p_aspect_ratio, bool has_shape, int crop_width, int crop_height, int num_attempts, RocalFloatParam p_scaling, int total_num_attempts )
+    {
+        // call pure C++ function
+        rocalRandomBBoxCrop(context, all_boxes_overlap, no_crop, p_aspect_ratio, has_shape, crop_width, crop_height, num_attempts, p_scaling, total_num_attempts);
+        return py::cast<py::none>(Py_None);
     }
 
     PYBIND11_MODULE(rocal_pybind, m)
@@ -303,38 +473,38 @@ namespace rocal
             .value("TRIANGULAR_INTERPOLATION",ROCAL_TRIANGULAR_INTERPOLATION)
             .export_values();
         // rocal_api_info.h
-        m.def("getRemainingImages", &rocalGetRemainingImages);
-        m.def("isEmpty", &rocalIsEmpty);
-        m.def("getStatus", rocalGetStatus);
-        m.def("rocalGetErrorMessage", &rocalGetErrorMessage);
-        m.def("rocalGetTimingInfo", &rocalGetTimingInfo);
-        m.def("getTimingInfo", &rocalGetTimingInfo);
-        m.def("setOutputImages", &rocalSetOutputs);
-        m.def("labelReader", &rocalCreateLabelReader, py::return_value_policy::reference);
-        m.def("COCOReader", &rocalCreateCOCOReader, py::return_value_policy::reference);
-        // rocal_api_meta_data.h
-        m.def("RandomBBoxCrop", &rocalRandomBBoxCrop);
+        m.def("getRemainingImages",&rocalGetRemainingImages);
+        m.def("getImageName",&wrapper_image_name);
+        m.def("getImageId", &wrapper_image_id);
+        m.def("getImageNameLen",&wrapper_image_name_length);
+        m.def("getStatus",&rocalGetStatus);
+        m.def("setOutputImages",&rocalSetOutputs);
+        m.def("rocalGetErrorMessage",&rocalGetErrorMessage);
+        m.def("labelReader",&rocalCreateLabelReader);
+        m.def("RandomBBoxCrop",&wrapper_random_bbox_crop);
+        m.def("COCOReader",&rocalCreateCOCOReader);
+        m.def("getImageLabels",&wrapper_label_copy);
+        m.def("getCupyImageLabels",&wrapper_cupy_label_copy);
+        m.def("getBBLabels",&wrapper_BB_label_copy);
+        m.def("getBBCords",&wrapper_BB_cord_copy);
+        m.def("rocalCopyEncodedBoxesAndLables",&wrapper_encoded_bbox_label);
+        m.def("rocalGetEncodedBoxesAndLables",&wrapper_get_encoded_bbox_label);
+        m.def("getImgSizes",&wrapper_img_sizes_copy);
+        m.def("getOutputROIWidth",&wrapper_ROI_width_copy);
+        m.def("getOutputROIHeight",&wrapper_ROI_height_copy);
+        m.def("getMaskCount", &wrapper_mask_count);
+        m.def("getMaskCoordinates", &wrapper_mask_coordinates);
+        m.def("getBoundingBoxCount",&wrapper_labels_BB_count_copy);
+        m.def("getOneHotEncodedLabels",&wrapper_one_hot_label_copy);
+        m.def("isEmpty",&rocalIsEmpty);
         m.def("BoxEncoder",&rocalBoxEncoder);
-        m.def("getImageId", [](RocalContext context, py::array_t<int> array)
-        {
-            auto buf = array.request();
-            int* ptr = (int*) buf.ptr;
-            return rocalGetImageId(context,ptr);
-        }
-        );
-        m.def("getImgSizes", [](RocalContext context, py::array_t<int> array)
-        {
-            auto buf = array.request();
-            int* ptr = (int*) buf.ptr;
-            // call pure C++ function
-            rocalGetImageSizes(context,ptr);
-        }
-        );
+        m.def("getTimingInfo",&rocalGetTimingInfo);
+        m.def("rocalGetTimingInfo",&rocalGetTimingInfo);
         // rocal_api_parameter.h
-        m.def("setSeed", &rocalSetSeed);
-        m.def("getSeed", &rocalGetSeed);
-        m.def("CreateIntUniformRand", &rocalCreateIntUniformRand);
-        m.def("CreateFloatUniformRand", &rocalCreateFloatUniformRand);
+        m.def("setSeed",&rocalSetSeed);
+        m.def("getSeed",&rocalGetSeed);
+        m.def("CreateIntUniformRand",&rocalCreateIntUniformRand);
+        m.def("CreateFloatUniformRand",&rocalCreateFloatUniformRand);
         m.def("CreateIntRand", [](std::vector<int> values, std::vector<double> frequencies)
               { return rocalCreateIntRand(values.data(), frequencies.data(), values.size()); });
         m.def("CreateFloatRand", &rocalCreateFloatRand);
@@ -354,66 +524,6 @@ namespace rocal
             for (uint i =0; i< size_of_tensor_list; i++)
                 list.append(tl->at(i));
             return list; });
-        m.def(
-            "rocalGetImageLabels", [](RocalContext context)
-    {
-            rocalTensorList *labels = rocalGetImageLabels(context);
-            // std::cerr<<"LABELS SIZE ::"<<labels->size();
-            // for (int i = 0; i < labels->size(); i++) {
-            //     int *labels_buffer = (int *)(labels->at(i)->buffer());
-            //     std::cerr << ">>>>> LABELS : " << labels_buffer[0] << "\t";
-            // }
-            return py::array(py::buffer_info(
-                            (int *)(labels->at(0)->buffer()),
-                            sizeof(int),
-                            py::format_descriptor<int>::format(),
-                            1,
-                            {labels->size()},
-                            {sizeof(int) }));
-    }
-            );
-        // m.def(
-        //     "copy_data_ptr", [](RocalContext context, py::object p)
-        // {
-        // auto ptr = ctypes_void_ptr(p);
-        // RocalTensorList output_tensor_list = rocalGetOutputTensors(context);
-        // // ptr = output_tensor_list->at(0)->buffer();
-
-        // rocalTensor::copy_data((unsigned char *) ptr, 0);
-        // // for (uint i =0; i<10; i++)
-        // // {
-        // //     std::cerr<<"\n TEMP ::"<< (float) (unsigned char *) ptr[i];
-        // // }
-        // // std::exit(0);
-        // return py::reinterpret_borrow<py::object>(PyLong_FromVoidPtr(ptr));
-        // }
-        //     );
-        m.def(
-            "rocalGetEncodedBoxesAndLables", [](RocalContext context,uint batch_size, uint num_anchors)
-            {
-                auto vec_pair_labels_boxes = rocalGetEncodedBoxesAndLables(context, batch_size * num_anchors);
-                auto labels_buf_ptr = (int*)(vec_pair_labels_boxes[0]->at(0)->buffer());
-                auto bboxes_buf_ptr = (float*)(vec_pair_labels_boxes[1]->at(0)->buffer());
-
-                py::array_t<int> labels_array = py::array_t<int>(py::buffer_info(
-                            labels_buf_ptr,
-                            sizeof(int),
-                            py::format_descriptor<int>::format(),
-                            2,
-                            {batch_size, num_anchors},
-                            {num_anchors*sizeof(int), sizeof(int)}));
-
-                py::array_t<float> bboxes_array = py::array_t<float>(py::buffer_info(
-                            bboxes_buf_ptr,
-                            sizeof(float),
-                            py::format_descriptor<float>::format(),
-                            1,
-                            {batch_size * num_anchors * 4},
-                            {sizeof(float)} ));
-
-        return std::make_pair(labels_array, bboxes_array);
-            }
-        );
         // rocal_api_data_loaders.h
         m.def("ImageDecoder", &rocalJpegFileSource, "Reads file from the source given and decodes it according to the policy",
               py::return_value_policy::reference,

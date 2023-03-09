@@ -22,7 +22,7 @@ def coco(*inputs,file_root='', annotations_file='', bytes_per_sample_hint=0, dum
     #Output
     labels = []
     bboxes = []
-    kwargs_pybind = {"source_path": annotations_file, "is_output":True, "mask":False, "is_box_encoder":is_box_encoder }
+    kwargs_pybind = {"source_path": annotations_file, "is_output":True, "mask":False}
     b.setSeed(seed)
     meta_data = b.COCOReader(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
     return (meta_data, labels, bboxes)
