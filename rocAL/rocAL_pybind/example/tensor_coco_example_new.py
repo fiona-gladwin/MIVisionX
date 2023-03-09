@@ -50,8 +50,11 @@ class ROCALCOCOIterator(object):
 
         #Number of batch size handled by each GPU
         self.len = math.ceil(self.loader.getRemainingImages()/self.bs)
+        # Count of labels/ bboxes in a batch
+        self.bboxes_label_count = np.zeros(self.bs, dtype="int32")
         # Image sizes of a batch
         self.img_size = np.zeros((self.bs * 3), dtype="int32")
+        self.matched_idxs = np.zeros((self.bs * num_anchors), dtype="int32")
 
     def next(self):
         return self.__next__()
@@ -82,41 +85,39 @@ class ROCALCOCOIterator(object):
             self.output_tensor_list[0].copy_data(ctypes.c_void_p(self.out.data_ptr()))
             print("\nImages : ", self.out)
 
-            # 1D labels & bboxes array
-            labels_array, boxes_array = self.loader.getEncodedBoxesAndLables(self.bs, int(self.num_anchors))
-            self.encoded_bboxes = torch.as_tensor(boxes_array, dtype=torch.float32, device=torch_gpu_device)
-            self.encoded_bboxes = self.encoded_bboxes.view(self.bs, self.num_anchors, 4)
-            self.encoded_labels = torch.as_tensor(labels_array, dtype=torch.int32, device=torch_gpu_device)
-            encoded_bboxes_tensor = self.encoded_bboxes.cpu()
-            encodded_labels_tensor = self.encoded_labels.cpu()
-            #print("\n Self.encoded_labels : ", self.encoded_labels)
-            #print("\n Self.encoded_boxes : ", self.encoded_bboxes)
         else:
             #NCHW default for now
             #self.out = torch.empty((self.bs, self.color_format, self.h, self.w), dtype=torch.float32)
             self.out = torch.empty((self.bs, self.color_format, self.h, self.w,), dtype=torch.float32)
             self.output_tensor_list[0].copy_data(ctypes.c_void_p(self.out.data_ptr()))
             #print("\nImages : ", self.out)
-
-            labels_array = self.loader.rocalGetBoundingBoxLabel()
-            encodded_labels_tensor = []
-            encoded_bboxes_tensor = []
-            for label in labels_array:
-                self.encoded_labels = torch.as_tensor(label, dtype=torch.int64)
-                encodded_labels_tensor.append(self.encoded_labels)
-            #print("\n encodded_labels_tensor : ", encodded_labels_tensor)
-
-            boxes_array = self.loader.rocalGetBoundingBoxCords()
-            for box in boxes_array:
-                self.encoded_bboxes = torch.as_tensor(box, dtype=torch.float16)
-                self.encoded_bboxes = self.encoded_bboxes * 800
-                self.encoded_bboxes = self.encoded_bboxes.view(-1, 4)
-                encoded_bboxes_tensor.append(self.encoded_bboxes)
-            #print("\n encoded_bboxes_tensor : ", encoded_bboxes_tensor)
-
-            matched_idxs = self.loader.rocalGetMatchedIndices()
-            self.matched_idxs = torch.as_tensor(matched_idxs, dtype=torch.int64)
-            matched_idxs_tensor = self.matched_idxs.view(-1, 120087)
+        
+        encodded_labels_tensor = []
+        encoded_bboxes_tensor = []
+            
+        # Image sizes of a batch
+        self.loader.GetImgSizes(self.img_size)
+        # Count of labels/ bboxes in a batch
+        self.count_batch = self.loader.GetBoundingBoxCount(
+            self.bboxes_label_count)
+        # 1D labels & bboxes array
+        # if self.device == "cpu":
+        print(self.count_batch)
+        boxes_array = np.zeros((self.count_batch * 4), dtype="float64")
+        labels_array = np.zeros(self.count_batch, dtype="int32")
+        self.loader.copyEncodedBoxesAndLables(boxes_array, labels_array)
+        
+        encodded_labels_tensor = []
+        encoded_bboxes_tensor = []
+        for i, bbox_cnt in enumerate(self.bboxes_label_count):
+            label = torch.as_tensor(labels_array[i : (i + bbox_cnt)], dtype=torch.int64)
+            encoded_bbox = torch.as_tensor(boxes_array[i * 4 : (i + bbox_cnt) * 4], dtype=torch.float32)
+            encoded_bbox = (encoded_bbox * 800).view(-1, 4)
+            encodded_labels_tensor.append(label)
+            encoded_bboxes_tensor.append(encoded_bbox)
+            
+        # self.loader.rocalGetMatchedIndices(self.matched_idxs)
+        # matched_idxs_tensor = torch.as_tensor(matched_idxs, dtype=torch.int64).view(-1, 120087)
             #print("\n Matched_idxs : ", matched_idxs_tensor)
 
         # Image sizes and Image id of a batch
@@ -145,7 +146,7 @@ class ROCALCOCOIterator(object):
                     'labels' : encodded_labels_tensor,
                     'image_id' : image_size_tensor[:, 2:3].cuda(),
                     'original_image_size' : image_size_tensor[:, 0:2].cuda(),
-                    'matched_idxs' : matched_idxs_tensor
+                    # 'matched_idxs' : matched_idxs_tensor
         }
         return (self.out).to(torch.float16), targets
         #return (self.out), encoded_bboxes_tensor, encodded_labels_tensor, image_id_tensor, image_size_tensor
@@ -211,10 +212,10 @@ def main():
     host_memory_padding = 140544512 if decoder_device == 'mixed' else 0
 
     # Anchors - load default anchors from a text file     
-    with open('/media/SSD/training_retinanet/rocAL/MLPerf-mGPU-dev/ObjectDetection/retinanet/pytorch/Default_anchors_retinanet_1.txt', 'r') as f_read:
-        anchors = f_read.readlines()
-    anchor_list = [float(x.strip())/800 for x in anchors]
-    f_read.close()
+    # with open('/media/SSD/training_retinanet/rocAL/MLPerf-mGPU-dev/ObjectDetection/retinanet/pytorch/Default_anchors_retinanet_1.txt', 'r') as f_read:
+    #     anchors = f_read.readlines()
+    # anchor_list = [float(x.strip())/800 for x in anchors]
+    # f_read.close()
 
     print("*********************************************************************")
 
@@ -228,7 +229,7 @@ def main():
                                                  num_shards=world_size,
                                                  seed=random_seed, 
                                                  is_box_encoder=False,
-                                                 is_box_iou_matcher=True)
+                                                 is_box_iou_matcher=False)
 
         print("*********************** SHARD ID ************************",local_rank)
         print("*********************** NUM SHARDS **********************",world_size)
@@ -243,9 +244,9 @@ def main():
                                             rocal_tensor_output_type = types.FLOAT,
                                             mean=[0.485*255,0.456*255 ,0.406*255 ],
                                             std=[0.229*255 ,0.224*255 ,0.225*255 ])
-        Matched_idxs  = fn.box_iou_matcher(anchors=anchor_list, criteria=0.5,
-                                     high_threshold=0.5, low_threshold=0.4,
-                                     allow_low_quality_matches=True)
+        # Matched_idxs  = fn.box_iou_matcher(anchors=anchor_list, criteria=0.5,
+        #                              high_threshold=0.5, low_threshold=0.4,
+        #                              allow_low_quality_matches=True)
 
         coco_train_pipeline.set_outputs(images)
     coco_train_pipeline.build()
@@ -255,7 +256,8 @@ def main():
         print("+++++++++++++++++++++++++++++EPOCH+++++++++++++++++++++++++++++++++++++",epoch)
         for i , it in enumerate(COCOIteratorPipeline):
             print("************************************** i *************************************",i)
-            # for img in it[0]:
+            for img in it[0]:
+                print(it[1])
             #     print(img.shape)
             #     cnt = cnt + 1
             #     draw_patches(img, cnt, "cpu")
