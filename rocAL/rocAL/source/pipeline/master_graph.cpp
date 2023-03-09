@@ -588,7 +588,7 @@ void MasterGraph::output_routine()
                 _meta_data_graph->update_box_iou_matcher(&_anchors_double, full_batch_meta_data, _criteria, _high_threshold, _low_threshold, _allow_low_quality_matches);
             }
             _bencode_time.end();
-            _ring_buffer.set_meta_data(full_batch_image_names, full_batch_meta_data, _is_segmentation, _is_box_iou_matcher);
+            _ring_buffer.set_meta_data(full_batch_image_names, full_batch_meta_data);
             _ring_buffer.push();
             // full_batch_meta_data->clear();
         }
@@ -630,11 +630,12 @@ void MasterGraph::stop_processing()
         _output_thread.join();
 }
 
-MetaDataBatch * MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool mask)
+MetaDataBatch * MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool mask, bool is_box_encoder, bool is_box_iou_matcher)
 {
     if( _meta_data_reader)
         THROW("A metadata reader has already been created")
     if(mask) _is_segmentation = true;
+    if(is_box_iou_matcher) _is_box_iou_matcher = true;
     MetaDataConfig config(label_type, reader_type, source_path, std::map<std::string, std::string>(), std::string(), mask);
     _meta_data_graph = create_meta_data_graph(config);
     _meta_data_reader = create_meta_data_reader(config);
@@ -771,22 +772,6 @@ void MasterGraph::box_iou_matcher(std::vector<float> &anchors, float criteria, f
     _high_threshold = high_threshold;
     _low_threshold = low_threshold;
     _allow_low_quality_matches = allow_low_quality_matches;
-}
-
-std::vector<rocalTensorList *> MasterGraph::create_caffe_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type , MetaDataType label_type)
-{
-    if( _meta_data_reader)
-        THROW("A metadata reader has already been created")
-    MetaDataConfig config(label_type, reader_type, source_path);
-    _meta_data_graph = create_meta_data_graph(config);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
-    _meta_data_reader->read_all(source_path);
-    if (_augmented_meta_data)
-        THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
-    else
-        _augmented_meta_data = _meta_data_reader->get_output();
-    return _meta_data_reader->get_output();
 }
 
 MetaDataBatch * MasterGraph::create_caffe_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type , MetaDataType label_type)

@@ -188,6 +188,15 @@ namespace rocal
         return py::cast<py::none>(Py_None);
     }
 
+    py::object wrapper_matched_idx(RocalContext context, py::array_t<int> array)
+    {
+        auto buf = array.request();
+        int* ptr = (int*) buf.ptr;
+        // call pure C++ function
+        rocalGetMatchedIndices(context, ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
     py::object wrapper_mask_count(RocalContext context, py::array_t<int> array)
     {
         auto buf = array.request();
@@ -516,7 +525,7 @@ namespace rocal
         m.def("GetIntValue", &rocalGetIntValue);
         m.def("GetFloatValue", &rocalGetFloatValue);
         m.def("rocalGetBoundingBoxCount", &rocalGetBoundingBoxCount);
-        m.def("rocalGetMatchedIndices", &rocalGetMatchedIndices);
+        m.def("rocalGetMatchedIndices", &wrapper_matched_idx);
         // rocal_api_data_transfer.h
         // m.def("rocalGetOutputTensors",&rocalGetOutputTensors, return_value_policy::reference);
         m.def("rocalGetOutputTensors", [](RocalContext context)

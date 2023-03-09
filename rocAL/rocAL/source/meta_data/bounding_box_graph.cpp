@@ -340,7 +340,6 @@ void BoundingBoxGraph::update_box_iou_matcher(std::vector<double> *anchors, pMet
         }
 
         full_batch_meta_data->get_matches_batch()[i] = matches;
-        full_batch_meta_data->get_metadata_dimensions_batch().matches_dims()[i][0] = anchors_size;
 
         matches.clear();
         all_matches.clear();

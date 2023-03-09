@@ -81,7 +81,7 @@ ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_
         THROW("Invalid rocal context passed to rocalCreateCOCOReader")
     auto context = static_cast<Context*>(p_context);
 
-    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, mask, MetaDataReaderType::COCO_META_DATA_READER,  MetaDataType::BoundingBox, is_box_encoder, is_box_iou_matcher);
+    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER,  MetaDataType::BoundingBox, mask, is_box_encoder, is_box_iou_matcher);
 }
 
 RocalMetaData
@@ -315,13 +315,28 @@ ROCAL_API_CALL rocalGetBoundingBoxLabel(RocalContext p_context, int* buf)
     }
 }
 
-RocalTensorList
-ROCAL_API_CALL rocalGetMatchedIndices(RocalContext p_context)
+void
+ROCAL_API_CALL rocalGetMatchedIndices(RocalContext p_context, int* buf)
 {
+
     if (!p_context)
-        THROW("Invalid rocal context passed to rocalGetMatchedIndices")
+        THROW("Invalid rocal context passed to rocalGetImageLabels")
     auto context = static_cast<Context*>(p_context);
-    return context->master_graph->matches_meta_data();
+    auto meta_data = context->master_graph->meta_data();
+    if(!meta_data.second) {
+        WRN("No label has been loaded for this output image")
+        return;
+    }
+    size_t meta_data_batch_size = meta_data.second->get_matches_batch().size();
+    if(context->user_batch_size() != meta_data_batch_size)
+        THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size()))
+    
+    unsigned num_of_anchors = meta_data.second->get_matches_batch()[0].size();
+    for(unsigned i = 0; i < meta_data_batch_size; i++)
+    {
+        memcpy(buf, meta_data.second->get_matches_batch()[i].data(), num_of_anchors * sizeof(int));
+        buf += num_of_anchors;
+    }
 }
 
 
@@ -473,7 +488,7 @@ ROCAL_API_CALL rocalGetImageSizes(RocalContext p_context, int* buf)
     }
     for(unsigned i = 0; i < meta_data_batch_size; i++)
     {
-        memcpy(buf, &(img_sizes[i]), sizeof(ImgSize));
+        memcpy(buf, &(meta_data.second->get_img_sizes_batch()[i]), sizeof(ImgSize));
         buf += 3;
     }
 }
