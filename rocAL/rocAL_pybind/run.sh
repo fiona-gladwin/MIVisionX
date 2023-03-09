@@ -22,8 +22,8 @@ if [[ $# -eq 1 ]]; then
     do
         echo "Going to install $WHEEL_NAME"
     done
-    pip$PYTHON_VERSION uninstall -y $WHEEL_NAME
-    pip$PYTHON_VERSION install $WHEEL_NAME
+    python$PYTHON_VERSION -m pip uninstall -y $WHEEL_NAME
+    python$PYTHON_VERSION -m pip install $WHEEL_NAME
   else
     echo
     echo "The run.sh bash script runs the setup.py with OCL / HIP backends"
@@ -43,7 +43,7 @@ else
   do
     echo "Going to install $WHEEL_NAME"
   done
-  pip$PYTHON_VERSION uninstall -y $WHEEL_NAME
-  pip$PYTHON_VERSION install $WHEEL_NAME
+  python$PYTHON_VERSION -m pip uninstall -y $WHEEL_NAME
+  python$PYTHON_VERSION -m pip install $WHEEL_NAME
 fi
 

@@ -321,6 +321,7 @@ unsigned rocalTensor::copy_data(void *user_buffer) {
         if ((status = hipMemcpyHtoD((void *)user_buffer, _mem_handle, _info.data_size())))
             THROW("copy_data::hipMemcpyHtoD failed: " + TOSTR(status))
     }
+    // memcpy((void *)user_buffer, _mem_handle, _info.data_size());
     return 0;
 }
 
