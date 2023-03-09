@@ -305,8 +305,8 @@ class Pipeline(object):
     def rocalGetBoundingBoxCount(self):
         return b.rocalGetBoundingBoxCount(self._handle)
     
-    def rocalGetMatchedIndices(self):
-        return b.rocalGetMatchedIndices(self._handle)
+    def rocalGetMatchedIndices(self, array):
+        return b.rocalGetMatchedIndices(self._handle, array)
 
     def copy_out_data_ptr(self, data_ptr):
         return b.copy_data_ptr(self._handle, data_ptr)
