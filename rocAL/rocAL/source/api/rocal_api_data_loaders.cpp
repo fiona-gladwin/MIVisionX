@@ -2013,6 +2013,83 @@ rocalVideoFileSource(
 }
 
 
+RocalTensor  ROCAL_API_CALL
+rocalJpegExternalFileSource(
+        RocalContext p_context,
+        const char* source_path,
+        RocalImageColor rocal_color_format,
+        bool is_output,
+        bool shuffle,
+        bool loop,
+        RocalImageSizeEvaluationPolicy decode_size_policy,
+        unsigned max_width,
+        unsigned max_height,
+        RocalDecoderType dec_type)
+{
+    rocalTensor* output = nullptr;
+    auto context = static_cast<Context*>(p_context);
+    try
+    {
+        bool use_input_dimension = (decode_size_policy == ROCAL_USE_USER_GIVEN_SIZE) || (decode_size_policy == ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED);
+        bool decoder_keep_original = (decode_size_policy == ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED) || (decode_size_policy == ROCAL_USE_MAX_SIZE_RESTRICTED);
+        DecoderType decType = DecoderType::TURBO_JPEG; // default
+        if (dec_type == ROCAL_DECODER_OPENCV) decType = DecoderType::OPENCV_DEC;
+        if ((decode_size_policy == ROCAL_USE_MAX_SIZE) || (decode_size_policy == ROCAL_USE_MAX_SIZE_RESTRICTED))
+            THROW("use_max_size is not supported in external source reader");
+
+        // user need to specify this
+        if(max_width == 0 || max_height == 0)
+        {
+            THROW("Invalid input max width and height");
+        }
+        else
+        {
+            LOG("User input size " + TOSTR(max_width) + " x " + TOSTR(max_height))
+        }
+
+        auto [width, height] = std::make_tuple(max_width, max_height);
+
+        auto [color_format, num_of_planes] = convert_color_format(rocal_color_format);
+
+
+        INFO("Internal buffer size width = "+ TOSTR(width)+ " height = "+ TOSTR(height) + " depth = "+ TOSTR(num_of_planes))
+        std::vector<size_t> dims = {context->user_batch_size(), height, width, num_of_planes};
+        auto info = rocalTensorInfo(std::move(dims),
+                                    context->master_graph->mem_type(),
+                                    RocalTensorDataType::UINT8);
+        info.set_color_format(color_format);
+        info.set_tensor_layout(RocalTensorlayout::NHWC);
+        info.set_max_shape();
+        output = context->master_graph->create_loader_output_tensor(info);
+
+        context->master_graph->add_node<ImageLoaderNode>({}, {output})->init(context->user_batch_size(),
+                                                                          source_path, "",
+                                                                          std::map<std::string, std::string>(),
+                                                                          StorageType::EXTERNAL_FILE_SOURCE,
+                                                                          decType,
+                                                                          shuffle,
+                                                                          loop,
+                                                                          context->user_batch_size(),
+                                                                          context->master_graph->mem_type(),
+                                                                          context->master_graph->meta_data_reader(),
+                                                                          decoder_keep_original); // Check if its ImageLoaderNode / ImageLoaderSingleShardNode
+        context->master_graph->set_loop(loop);
+
+        if(is_output)
+        {
+            auto actual_output = context->master_graph->create_tensor(info, is_output);
+            context->master_graph->add_node<CopyNode>({output}, {actual_output});
+        }
+
+    }
+    catch(const std::exception& e)
+    {
+        context->capture_error(e.what());
+        std::cerr << e.what() << '\n';
+    }
+    return output;
+}
+
 RocalStatus ROCAL_API_CALL
 rocalResetLoaders(RocalContext p_context)
 {
