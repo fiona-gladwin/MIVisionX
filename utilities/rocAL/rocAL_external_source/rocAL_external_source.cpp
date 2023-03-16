@@ -122,7 +122,7 @@ int main(int argc, const char ** argv)
         display = atoi(argv[++argIdx]);
 
 
-    std::cout << ">>> Running on " << (processing_device?"GPU":"CPU") << std::endl;
+    std::cerr << ">>> Running on " << (processing_device?"GPU":"CPU") << std::endl;
     RocalImageColor color_format = RocalImageColor::ROCAL_COLOR_RGB_PLANAR;
     if (rgb == 0) 
       color_format = RocalImageColor::ROCAL_COLOR_U8;
@@ -135,7 +135,7 @@ int main(int argc, const char ** argv)
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
-        std::cout << "Could not create the Rocal contex\n";
+        std::cerr << "Could not create the Rocal contex\n";
         return -1;
     }
 
@@ -157,7 +157,7 @@ int main(int argc, const char ** argv)
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
-        std::cout << "JPEG source could not initialize : "<<rocalGetErrorMessage(handle) << std::endl;
+        std::cerr << "JPEG source could not initialize : "<<rocalGetErrorMessage(handle) << std::endl;
         return -1;
     }
 
@@ -208,11 +208,11 @@ int main(int argc, const char ** argv)
     rocalVerify(handle);
     if (rocalGetStatus(handle) != ROCAL_OK)
     {
-        std::cout << "Could not verify the augmentation graph " << rocalGetErrorMessage(handle);
+        std::cerr << "Could not verify the augmentation graph " << rocalGetErrorMessage(handle);
         return -1;
     }
 
-    std::cout << "<Remaining_images, augmentation_count> " << rocalGetRemainingImages(handle) << std::endl;
+    std::cerr << "<Remaining_images, augmentation_count> " << rocalGetRemainingImages(handle) << std::endl;
     // TODO:prefetch and feed data for the input pipeline
     for (int i=0; i< prefetch_queue_depth; i++) {
       
@@ -227,7 +227,8 @@ int main(int argc, const char ** argv)
     printf("Remaining images %lu \n", rocalGetRemainingImages(handle));
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     int index = 0;
-
+    bool eos = false;
+    int total_images = file_names.size();
     RocalTensorList output_tensor_list;
     auto cv_color_format = ((color_format == RocalImageColor::ROCAL_COLOR_RGB24) ?  ((tensorOutputType == RocalTensorOutputType::ROCAL_FP32) ? CV_32FC3 : CV_8UC3) : CV_8UC1);
 
@@ -237,12 +238,19 @@ int main(int argc, const char ** argv)
         std::vector<std::string> input_images;
         for(int i = 0; i < inputBatchSize; i++)
         {
-            input_images.push_back(std::string(folderPath1) + file_names.at(0));
+            input_images.push_back(std::string(folderPath1) + file_names.back());
             file_names.pop_back();
             std::cerr<<"\n Input images :: "<<input_images[i];
         }
-        rocalExternalSourceFeedInput(handle, input_images, input_images, NULL, {}, {}, 1, 1, RocalExtSourceMode (0), RocalTensorLayout (0));
-
+        if((file_names.size()) == 0)
+        {
+           eos = true;
+        }
+        if(index <= (total_images / inputBatchSize))
+        {
+            std::cerr<<"\n************************** Gonna process Batch *************************"<<index;
+            rocalExternalSourceFeedInput(handle, input_images, input_images, NULL, {}, {}, 1, 1, RocalExtSourceMode (0), RocalTensorLayout (0), eos);
+        }
         if(rocalRun(handle) != 0)
             break;
         uint pipeline_type = 1;
@@ -280,7 +288,7 @@ int main(int argc, const char ** argv)
             // Cases for Mask & Keypoints is not added
             default:
             {
-                std::cout << "Not a valid pipeline type ! Exiting!\n";
+                std::cerr << "Not a valid pipeline type ! Exiting!\n";
                 return -1;
             }
         }
@@ -377,11 +385,11 @@ int main(int argc, const char ** argv)
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto dur = duration_cast<microseconds>(t2 - t1).count();
     auto rocal_timing = rocalGetTimingInfo(handle);
-    std::cout << "Load     time " << rocal_timing.load_time << std::endl;
-    std::cout << "Decode   time " << rocal_timing.decode_time << std::endl;
-    std::cout << "Process  time " << rocal_timing.process_time << std::endl;
-    std::cout << "Transfer time " << rocal_timing.transfer_time << std::endl;
-    std::cout << ">>>>> Total Elapsed Time " << dur / 1000000 << " sec " << dur % 1000000 << " us " << std::endl;
+    std::cerr << "Load     time " << rocal_timing.load_time << std::endl;
+    std::cerr << "Decode   time " << rocal_timing.decode_time << std::endl;
+    std::cerr << "Process  time " << rocal_timing.process_time << std::endl;
+    std::cerr << "Transfer time " << rocal_timing.transfer_time << std::endl;
+    std::cerr << ">>>>> Total Elapsed Time " << dur / 1000000 << " sec " << dur % 1000000 << " us " << std::endl;
     rocalRelease(handle);
     return 0;
 }
