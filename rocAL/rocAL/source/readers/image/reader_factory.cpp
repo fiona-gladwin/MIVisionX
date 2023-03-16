@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include "caffe_lmdb_record_reader.h"
 #include "caffe2_lmdb_record_reader.h"
 #include "mxnet_recordio_reader.h"
+#include "external_source_reader.h"
 
 std::shared_ptr<Reader> create_reader(ReaderConfig config) {
     switch(config.type()) {
@@ -90,6 +91,13 @@ std::shared_ptr<Reader> create_reader(ReaderConfig config) {
             return ret;
         }
         break;
+        case StorageType::EXTERNAL_FILE_SOURCE:
+        {
+            auto ret = std::make_shared<ExternalSourceReader>();
+            if(ret->initialize(config) != Reader::Status::OK)
+                throw std::runtime_error("ExternalSourceReader cannot access the storage");
+            return ret;
+        }
         // case StorageType::MXNET_RECORDIO:
         // {
         //     auto ret = std::make_shared<MXNetRecordIOReader>();

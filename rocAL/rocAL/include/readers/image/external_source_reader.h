@@ -22,22 +22,18 @@ THE SOFTWARE.
 
 #pragma once
 #include <vector>
+#include <condition_variable>
 #include <string>
 #include <memory>
-#include <dirent.h>
-#include <map>
-#include <iterator>
-#include <algorithm>
+#include <queue>
 #include "reader.h"
-#include <google/protobuf/message_lite.h>
-#include <lmdb.h>
-#include "caffe_protos.pb.h"
+#include "commons.h"
 #include "timing_debug.h"
 
-
-class CaffeLMDBRecordReader : public Reader{
+#if 1
+class ExternalSourceReader : public Reader {
 public:
-    //! Reads the TFRecord File, and loads the image ids and other necessary info
+    //! Looks up the folder which contains the files, amd loads the image names
     /*!
      \param desc  User provided descriptor containing the files' path.
     */
@@ -53,42 +49,53 @@ public:
      \return The size of the next file, 0 if couldn't access it
     */
     size_t open() override;
-    //! Resets the object's state to read from the first file in the folder
+
+    //! Resets the object's state to read from the first file in the list
     void reset() override;
 
-    //! Returns the id of the latest file opened
+    //! Returns the name of the latest file opened
     std::string id() override { return _last_id;};
 
     unsigned count_items() override;
 
-    ~CaffeLMDBRecordReader() override;
+    ~ExternalSourceReader() override;
 
     int close() override;
+    // not supported for external_source
+    unsigned long long get_shuffle_time() {return 0;};
 
-    CaffeLMDBRecordReader();
-    unsigned long long get_shuffle_time() override {return 0;}
-    //! return feed_data: not implemented
-    void feed_file_names(const std::vector<std::string>& file_names, size_t num_images, bool eos=false) override {return;}
+    ExternalSourceReader();
 
-    //! return feed_raw_data: not implemented
-    void feed_data(const std::vector<char *>& images, const std::vector<size_t>& image_size, int mode, bool eos = false, int width=0, int height=0, int channels=0) override{return;}
+    //! receive next set of filenames from external source
+    void feed_file_names(const std::vector<std::string>& file_names, size_t num_images, bool eos=false) override;
+
+    //! receive next set of file data from external source
+    void feed_data(const std::vector<char *>& images, const std::vector<size_t>& image_size, int mode, bool eos = false, int width=0, int height=0, int channels=0) override;
+
+    // mode(): returs the mode for the reader
+    FileMode mode() {return _mode;};
+
+    // get image_dims
+    void get_dims(int& width, int& height, int& channels);
+
+
 private:
     //! opens the folder containnig the images
-    Reader::Status folder_reading();
-    Reader::Status Caffe_LMDB_reader();
     std::string _folder_path;
-    std::string _path;
-    DIR *_sub_dir;
-    std::vector<std::string> _file_names;
-    std::map<std::string, unsigned int > _file_size;
+    std::queue<std::string> _file_names_q;
+    std::vector<size_t> _file_sizes;
+    std::vector<std::tuple<char*, size_t, int, int, int>> _file_data;
+    std::queue<std::tuple<char*, size_t, int, int, int>> _images_data_q;
+    std::mutex _lock;
+    std::condition_variable _wait_for_input;
+    
     unsigned  _curr_file_idx;
+    FILE* _current_fPtr;
     unsigned _current_file_size;
     std::string _last_id;
     std::string _last_file_name;
-    unsigned int _last_file_size;
     size_t _shard_id = 0;
     size_t _shard_count = 1;// equivalent of batch size
-    bool _last_rec;
     //!< _batch_count Defines the quantum count of the images to be read. It's usually equal to the user's batch size.
     /// The loader will repeat images if necessary to be able to have images available in multiples of the load_batch_count,
     /// for instance if there are 10 images in the dataset and _batch_count is 3, the loader repeats 2 images as if there are 12 images available.
@@ -98,27 +105,19 @@ private:
     bool _loop;
     bool _shuffle;
     int _read_counter = 0;
-    MDB_env* _mdb_env,  *_read_mdb_env;
-    MDB_dbi _mdb_dbi, _read_mdb_dbi;
-    MDB_val _mdb_key, _mdb_value, _read_mdb_key, _read_mdb_value;
-    MDB_txn* _mdb_txn, *_read_mdb_txn;
-    MDB_cursor* _mdb_cursor, *_read_mdb_cursor;
-    uint _file_byte_size;
+    volatile bool _end_of_sequence;
+    //!< _file_count_all_shards total_number of files in to figure out the max_batch_size (usually needed for distributed training).
+    void push_file_name(const std::string& image_name);
+    bool pop_file_name(std::string& file_name);
+    void push_file_data(std::tuple<char*, size_t, int, int, int>& image);
+    bool pop_file_data(std::tuple<char*, size_t, int, int, int>& image);
+    size_t  _file_count_all_shards;
     void incremenet_read_ptr();
     int release();
     size_t get_file_shard_id();
-    //!< _file_count_all_shards total_number of files in to figure out the max_batch_size (usually needed for distributed training).
-    size_t  _file_count_all_shards;
     void incremenet_file_id() { _file_id++; }
     void replicate_last_image_to_fill_last_shard();
     void replicate_last_batch_to_pad_partial_shard();
-    void read_image(unsigned char* buff, std::string _file_name);
-    void read_image_names();
-    std::map <std::string, uint> _image_record_starting;
-    TimingDBG _shuffle_time;
-    int _open_env = 1;
-    int rc;
-    void open_env_for_read_image();
-    std::shared_ptr<MetaDataReader> _meta_data_reader = nullptr;
+    FileMode _mode;
 };
-
+#endif
