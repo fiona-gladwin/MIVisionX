@@ -234,7 +234,16 @@ int main(int argc, const char ** argv)
     while (rocalGetRemainingImages(handle) >= inputBatchSize)
     {
         index++;
-        if (rocalRun(handle) != 0)
+        std::vector<std::string> input_images;
+        for(int i = 0; i < inputBatchSize; i++)
+        {
+            input_images.push_back(std::string(folderPath1) + file_names.at(0));
+            file_names.pop_back();
+            std::cerr<<"\n Input images :: "<<input_images[i];
+        }
+        rocalExternalSourceFeedInput(handle, input_images, input_images, NULL, {}, {}, 1, 1, RocalExtSourceMode (0), RocalTensorLayout (0));
+
+        if(rocalRun(handle) != 0)
             break;
         uint pipeline_type = 1;
         switch(pipeline_type)

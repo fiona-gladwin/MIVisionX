@@ -2061,18 +2061,28 @@ rocalJpegExternalFileSource(
         info.set_tensor_layout(RocalTensorlayout::NHWC);
         info.set_max_shape();
         output = context->master_graph->create_loader_output_tensor(info);
-
-        context->master_graph->add_node<ImageLoaderNode>({}, {output})->init(context->user_batch_size(),
-                                                                          source_path, "",
-                                                                          std::map<std::string, std::string>(),
-                                                                          StorageType::EXTERNAL_FILE_SOURCE,
-                                                                          decType,
-                                                                          shuffle,
-                                                                          loop,
-                                                                          context->user_batch_size(),
-                                                                          context->master_graph->mem_type(),
-                                                                          context->master_graph->meta_data_reader(),
-                                                                          decoder_keep_original); // Check if its ImageLoaderNode / ImageLoaderSingleShardNode
+        context->master_graph->add_node<ImageLoaderSingleShardNode>({}, {output})->init(0, //shard_id
+                                                                                        1, //shard_count
+                                                                                        source_path, "",
+                                                                                        StorageType::EXTERNAL_FILE_SOURCE,
+                                                                                        decType,
+                                                                                        shuffle,
+                                                                                        loop,
+                                                                                        context->user_batch_size(),
+                                                                                        context->master_graph->mem_type(),
+                                                                                        context->master_graph->meta_data_reader(),
+                                                                                        decoder_keep_original);
+        // context->master_graph->add_node<ImageLoaderNode>({}, {output})->init(context->user_batch_size(),
+        //                                                                   source_path, "",
+        //                                                                   std::map<std::string, std::string>(),
+        //                                                                   StorageType::EXTERNAL_FILE_SOURCE,
+        //                                                                   decType,
+        //                                                                   shuffle,
+        //                                                                   loop,
+        //                                                                   context->user_batch_size(),
+        //                                                                   context->master_graph->mem_type(),
+        //                                                                   context->master_graph->meta_data_reader(),
+        //                                                                   decoder_keep_original); // Check if its ImageLoaderNode / ImageLoaderSingleShardNode
         context->master_graph->set_loop(loop);
 
         if(is_output)

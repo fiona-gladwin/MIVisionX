@@ -86,11 +86,18 @@ THE SOFTWARE.
 //     return ROCAL_OK;
 // }
 
-//TODO:: change input to tensor
+//TODO:: Change input to tensor
 RocalStatus ROCAL_API_CALL
 rocalExternalSourceFeedInput(
         RocalContext p_context,
-        RocalTensor Input,
+        // RocalTensor Input,
+        std::vector<std::string> input_images,
+        std::vector<std::string> labels,
+        unsigned char *input_buffer,
+        std::vector<unsigned> roi_width,
+        std::vector<unsigned> roi_height,
+        unsigned int max_width,
+        unsigned int max_height,
         RocalExtSourceMode mode,
         RocalTensorLayout layout)
 {
@@ -99,6 +106,10 @@ rocalExternalSourceFeedInput(
     {
         //context->master_graph->feed_input(input, mode, layout);
         // should call root_node process_input
+        FileMode file_mode = (FileMode) mode;
+        RocalTensorFormat format = (RocalTensorFormat) layout;
+        context->master_graph->feed_external_input(input_images, labels, input_buffer,
+                                                   roi_width, roi_height, max_width, max_height, file_mode, format);
     }
     catch(const std::exception& e)
     {
