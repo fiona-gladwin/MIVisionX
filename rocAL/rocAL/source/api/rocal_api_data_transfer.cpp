@@ -86,6 +86,29 @@ THE SOFTWARE.
 //     return ROCAL_OK;
 // }
 
+//TODO:: change input to tensor
+RocalStatus ROCAL_API_CALL
+rocalExternalSourceFeedInput(
+        RocalContext p_context,
+        RocalTensor Input,
+        RocalExtSourceMode mode,
+        RocalTensorLayout layout)
+{
+    auto context = static_cast<Context*>(p_context);
+    try
+    {
+        //context->master_graph->feed_input(input, mode, layout);
+        // should call root_node process_input
+    }
+    catch(const std::exception& e)
+    {
+        context->capture_error(e.what());
+        ERR(e.what())
+        return ROCAL_RUNTIME_ERROR;
+    }
+    return ROCAL_OK;
+}
+
 RocalTensorList ROCAL_API_CALL
 rocalGetOutputTensors(
                     RocalContext p_context)
