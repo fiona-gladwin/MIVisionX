@@ -38,6 +38,7 @@ THE SOFTWARE.
 #include "node_cifar10_loader.h"
 #include "meta_data_reader.h"
 #include "meta_data_graph.h"
+#include "rocal_api_types.h"
 #if ENABLE_HIP
 #include "device_manager_hip.h"
 #include "box_encoder_hip.h"
@@ -104,7 +105,7 @@ public:
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
     void feed_external_input(std::vector<std::string> input_images, std::vector<int> labels, unsigned char *input_buffer,
                              std::vector<unsigned> roi_width, std::vector<unsigned> roi_height, unsigned int max_width,
-                             unsigned int max_height, FileMode mode, RocalTensorFormat layout, bool eos);
+                             unsigned int max_height, FileMode mode, RocalTensorLayout layout, bool eos);
     std::vector<rocalTensorList *> get_bbox_encoded_buffers(size_t num_encoded_boxes);
     size_t bounding_box_batch_count(int* buf, pMetaDataBatch meta_data_batch);
 #if ENABLE_OPENCL

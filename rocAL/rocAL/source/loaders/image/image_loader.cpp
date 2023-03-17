@@ -210,8 +210,8 @@ ImageLoader::load_routine()
             _decoded_img_info._image_names.reserve(_batch_size*2); // This has to be changed - shobi
             load_status = _image_loader->load(data,
                                               _decoded_img_info._image_names,
-                                              _output_tensor->info().width(),
-                                              _output_tensor->info().height_single(),
+                                              _output_tensor->info().dims().at(2),
+                                              _output_tensor->info().dims().at(1),
                                               _decoded_img_info._roi_width,
                                               _decoded_img_info._roi_height,
                                               _decoded_img_info._original_width,

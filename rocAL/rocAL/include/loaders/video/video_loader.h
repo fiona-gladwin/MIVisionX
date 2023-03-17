@@ -56,6 +56,9 @@ public:
     // std::vector<size_t> get_sequence_start_frame_number();
     // std::vector<std::vector<float>> get_sequence_frame_timestamps();
     void shut_down() override;
+    void feed_external_input(std::vector<std::string> input_images, std::vector<int> labels, unsigned char *input_buffer,
+                             std::vector<unsigned> roi_width, std::vector<unsigned> roi_height,
+                             unsigned int max_width, unsigned int max_height, FileMode mode, bool eos) override;
 
 private:
     bool is_out_of_data();
@@ -87,5 +90,7 @@ private:
     std::vector<std::vector<std::vector<float>>> _sequence_frame_timestamps_vec;
     crop_image_info _crop_img_info;
     size_t _max_decoded_width, _max_decoded_height;
+    bool _external_source_reader = false; // Set to true if external source reader
+    bool _external_input_eos = false;
 };
 #endif

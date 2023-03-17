@@ -698,7 +698,7 @@ std::vector<rocalTensorList *> MasterGraph::create_video_label_reader(const char
 {
     if( _meta_data_reader)
         THROW("A metadata reader has already been created")
-    MetaDataConfig config(MetaDataType::Label, reader_type, source_path, std::map<std::string, std::string>(), std::string(), false, sequence_length, frame_step, frame_stride);
+    MetaDataConfig config(MetaDataType::Label, reader_type, source_path, std::map<std::string, std::string>(), std::string(), sequence_length, frame_step, frame_stride);    
     _meta_data_reader = create_meta_data_reader(config);
     _meta_data_reader->init(config);
     if(!file_list_frame_num)
@@ -1221,7 +1221,7 @@ MasterGraph::get_bbox_encoded_buffers(size_t num_encoded_boxes)
 }
 
 void MasterGraph::feed_external_input(std::vector<std::string> input_images, std::vector<int> labels, unsigned char *input_buffer,
-                            std::vector<unsigned> roi_width, std::vector<unsigned> roi_height, unsigned int max_width, unsigned int max_height,
+                            std::vector<unsigned> roi_width, std::vector<unsigned> roi_height, unsigned int max_width, unsigned int max_height, FileMode mode, RocalTensorLayout layout, bool eos)
 {
     _external_source_eos = eos;
     _loader_module->feed_external_input(input_images, labels, input_buffer, roi_width, roi_height, max_width, max_height, mode, eos);
