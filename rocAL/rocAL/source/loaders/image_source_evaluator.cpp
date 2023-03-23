@@ -39,7 +39,12 @@ size_t ImageSourceEvaluator::max_height()
     return _height_max.get_max();
 }  
 
-ImageSourceEvaluatorStatus 
+size_t ImageSourceEvaluator::max_channels()
+{
+    return _channel_max.get_max();
+}
+
+ImageSourceEvaluatorStatus
 ImageSourceEvaluator::create(ReaderConfig reader_cfg, DecoderConfig decoder_cfg)
 {
     ImageSourceEvaluatorStatus status = ImageSourceEvaluatorStatus::OK;
@@ -54,7 +59,21 @@ ImageSourceEvaluator::create(ReaderConfig reader_cfg, DecoderConfig decoder_cfg)
     return status;
 }
 
-void 
+ImageSourceEvaluatorStatus
+ImageSourceEvaluator::create(ReaderConfig reader_cfg)
+{
+    ImageSourceEvaluatorStatus status = ImageSourceEvaluatorStatus::OK;
+
+    // Can initialize it to any decoder types if needed
+
+
+    // _header_buff.resize(COMPRESSED_SIZE);
+    _reader = create_reader(std::move(reader_cfg));
+    find_max_numpy_dimensions();
+    return status;
+}
+
+void
 ImageSourceEvaluator::find_max_dimension()
 {
     _reader->reset();
@@ -86,7 +105,34 @@ ImageSourceEvaluator::find_max_dimension()
     _reader->reset();
 }
 
-void 
+void
+ImageSourceEvaluator::find_max_numpy_dimensions()
+{
+    _reader->reset();
+
+    while( _reader->count_items() )
+    {
+        int width, height, channels;
+        size_t fsize = _reader->open();
+        const NumpyHeaderData numpy_header = _reader->get_numpy_header_data();
+        width = numpy_header._shape[0];
+        height = numpy_header._shape[1];
+        channels = numpy_header._shape[2];
+        _reader->close();        
+
+        if(width <= 0 || height <=0 || channels <=0)
+            continue;
+
+        _width_max.process_sample(width);
+        _height_max.process_sample(height);
+        _channel_max.process_sample(height);
+
+    }
+    // return the reader read pointer to the begining of the resource
+    _reader->reset();
+}
+
+void
 ImageSourceEvaluator::FindMaxSize::process_sample(unsigned val)
 {
     if(_policy == MaxSizeEvaluationPolicy::MAXIMUM_FOUND_SIZE)
