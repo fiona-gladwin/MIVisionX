@@ -33,6 +33,8 @@ THE SOFTWARE.
 #include "node_image_loader.h"
 #include "node_image_loader_single_shard.h"
 #include "node_cifar10_loader.h"
+#include "node_numpy_loader.h"
+#include "node_numpy_loader_single_shard.h"
 #include "image_source_evaluator.h"
 #include "node_copy.h"
 #include "node_fused_jpeg_crop.h"
@@ -2086,7 +2088,6 @@ RocalTensor  ROCAL_API_CALL
 rocalNumpyFileSource(
                  RocalContext p_context,
                  const char* source_path,
-                 RocalImageColor rocal_color_format,
                  unsigned internal_shard_count,
                  bool is_output,
                  bool shuffle,
@@ -2127,11 +2128,11 @@ rocalNumpyFileSource(
         info.set_max_shape();
         output = context->master_graph->create_loader_output_tensor(info);
 
-        // context->master_graph->add_node<NumpyLoaderNode>({}, {output})->init(internal_shard_count, source_path, "",
-        //                                                                      StorageType::NUMPY_DATA,
-        //                                                                      loop,
-        //                                                                      context->user_batch_size(),
-        //                                                                      context->master_graph->mem_type(), filename_prefix);
+        context->master_graph->add_node<NumpyLoaderNode>({}, {output})->init(internal_shard_count, source_path, "",
+                                                                             StorageType::NUMPY_DATA, DecoderType::SKIP_DECODE,
+                                                                             shuffle, loop,
+                                                                             context->user_batch_size(),
+                                                                             context->master_graph->mem_type());
         context->master_graph->set_loop(loop);
 
         if(is_output)
@@ -2153,7 +2154,6 @@ RocalTensor  ROCAL_API_CALL
 rocalNumpyFileSourceSingleShard(
                  RocalContext p_context,
                  const char* source_path,
-                 RocalImageColor rocal_color_format,
                  bool is_output,
                  bool shuffle,
                  bool loop,
@@ -2201,12 +2201,12 @@ rocalNumpyFileSourceSingleShard(
         info.set_max_shape();
         output = context->master_graph->create_loader_output_tensor(info);
 
-        // context->master_graph->add_node<NumpyLoaderSingleShardNode>({}, {output})->init(shard_id, shard_count,
-        //                                                                      source_path, "",
-        //                                                                      StorageType::NUMPY_DATA, DecoderType::SKIP_DECODE,
-        //                                                                      shuffle, loop,
-        //                                                                      context->user_batch_size(),
-        //                                                                      context->master_graph->mem_type());
+        context->master_graph->add_node<NumpyLoaderSingleShardNode>({}, {output})->init(shard_id, shard_count,
+                                                                             source_path, "",
+                                                                             StorageType::NUMPY_DATA, DecoderType::SKIP_DECODE,
+                                                                             shuffle, loop,
+                                                                             context->user_batch_size(),
+                                                                             context->master_graph->mem_type());
         context->master_graph->set_loop(loop);
 
         if(is_output)
