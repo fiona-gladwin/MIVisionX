@@ -1,4 +1,4 @@
-# Copyright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL")
     find_package(OpenCL REQUIRED)
 elseif(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
     SET(OpenCL_FOUND FALSE)
-    list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+    list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
     find_package(HIP REQUIRED)
 endif()
 
@@ -111,6 +111,7 @@ list(APPEND SOURCES
         source/Resizetensor.cpp
         source/ResizeCropbatchPD.cpp
         source/ResizeCropMirrorPD.cpp
+        source/ResizeMirrorNormalizeTensor.cpp
         source/RotatebatchPD.cpp
         source/SaturationbatchPD.cpp
         source/ScalebatchPD.cpp

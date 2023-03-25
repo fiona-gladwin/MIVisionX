@@ -1,4 +1,4 @@
-# Copyright (c) 2017 - 2022 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (c) 2017 - 2023 Advanced Micro Devices, Inc. All rights reserved.
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL")
     list(APPEND PACKAGE_DEPENDS PACKAGE OpenCL)
 elseif(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
     set(OpenCL_FOUND FALSE)
-    list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+    list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
     find_package(HIP REQUIRED)
     find_package(rocblas PATHS ${ROCM_PATH} REQUIRED)
     list(APPEND PACKAGE_DEPENDS PACKAGE HIP)
