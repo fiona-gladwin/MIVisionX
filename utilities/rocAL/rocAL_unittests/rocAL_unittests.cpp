@@ -612,7 +612,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             }
             else
             {
-                std::cout << "Creating uchar buffer of " << w << " x " << h << "shape\n";
+                std::cout << "Creating uchar buffer of " << w << " x " << h << " shape\n";
                 if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HIP)
                 {
                     out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->info().data_size());
