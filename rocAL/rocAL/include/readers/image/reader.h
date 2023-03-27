@@ -126,7 +126,7 @@ struct ImageRecordIOHeader {
 
 struct NumpyHeaderData {
     public:
-    std::vector<int> _shape;
+    std::vector<unsigned> _shape;
     RocalTensorDataType _type_info;
     bool _fortran_order        = false;
     int64_t _data_offset       = 0;
@@ -141,6 +141,7 @@ struct NumpyHeaderData {
     };
 
     size_t nbytes() const { return tensor_data_size(_type_info) * size(); }
+    std::vector<unsigned> shape() const { return _shape; }
 };
 
 class Reader {
@@ -173,7 +174,7 @@ public:
     //! Copies the data of the opened item to the buf
     virtual size_t read_data(unsigned char *buf, size_t read_size) = 0;
 
-    virtual const NumpyHeaderData get_numpy_header_data() {return {}; }
+    virtual const NumpyHeaderData get_numpy_header_data() { return {}; }
 
     virtual size_t read_numpy_data(void* buf, size_t read_size) { return 0; }
 
