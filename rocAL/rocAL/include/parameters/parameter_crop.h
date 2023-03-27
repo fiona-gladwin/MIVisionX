@@ -50,7 +50,7 @@ public:
         x_drift_factor     = default_x_drift_factor();
         y_drift_factor     = default_y_drift_factor();
     }
-    void set_image_dimensions(RocalROI *roi)
+    void set_image_dimensions(Rocal2DROI *roi)
     {
         in_roi = roi;
     }
@@ -58,7 +58,7 @@ public:
     void set_center() { _is_center_crop = true; }
     void set_x_drift_factor(Parameter<float>* x_drift);
     void set_y_drift_factor(Parameter<float>* y_drift);
-    const RocalROI * in_roi;
+    const Rocal2DROI * in_roi;
     unsigned int  x1, y1, x2, y2;
     const unsigned int batch_size;
     void set_batch_size(unsigned int batch_size);

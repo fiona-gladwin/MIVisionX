@@ -549,8 +549,8 @@ void MasterGraph::output_routine()
             std::vector<uint32_t> temp_height_arr;
             for (unsigned int i = 0; i < _user_batch_size; i++)
             {
-                temp_width_arr.push_back(_internal_tensor_list.front()->info().get_roi()[i].x2);
-                temp_height_arr.push_back(_internal_tensor_list.front()->info().get_roi()[i].y2);
+                temp_width_arr.push_back(_internal_tensor_list.front()->info().roi()[i].shape[0]);
+                temp_height_arr.push_back(_internal_tensor_list.front()->info().roi()[i].shape[1]);
             }
             _resize_width.insert(_resize_width.begin(), temp_width_arr);
             _resize_height.insert(_resize_height.begin(), temp_height_arr);
