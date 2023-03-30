@@ -26,9 +26,9 @@ THE SOFTWARE.
 #include "video_file_source_reader.h"
 
 #ifdef ROCAL_VIDEO
-std::shared_ptr<VideoReader> create_video_reader(VideoReaderConfig config) {
+std::shared_ptr<VideoReader> create_video_reader(ReaderConfig config) {
     switch(config.type()) {
-        case VideoStorageType::VIDEO_FILE_SYSTEM:
+        case StorageType::VIDEO_FILE_SYSTEM:
         {
             auto ret = std::make_shared<VideoFileSourceReader>();
             if(ret->initialize(config) !=  VideoReader::Status::OK)

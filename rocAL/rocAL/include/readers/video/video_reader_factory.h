@@ -26,5 +26,5 @@ THE SOFTWARE.
 #include "video_reader.h"
 
 #ifdef ROCAL_VIDEO
-std::shared_ptr<VideoReader> create_video_reader(VideoReaderConfig config);
+std::shared_ptr<VideoReader> create_video_reader(ReaderConfig config);
 #endif

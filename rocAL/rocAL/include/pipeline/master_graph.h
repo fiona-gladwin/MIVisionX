@@ -192,7 +192,7 @@ std::shared_ptr<T> MasterGraph::meta_add_node(std::shared_ptr<M> node)
 /*
  * Explicit specialization for ImageLoaderNode
  */
-template<> inline std::shared_ptr<ImageLoaderNode> MasterGraph::add_node(const std::vector<Image*>& inputs, const std::vector<Image*>& outputs)
+template<> inline std::shared_ptr<ImageLoaderNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")

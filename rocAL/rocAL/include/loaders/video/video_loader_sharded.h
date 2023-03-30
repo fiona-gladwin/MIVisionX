@@ -28,21 +28,23 @@ THE SOFTWARE.
 // It improves load and decode performance since each loader loads the sequences in parallel using an internal thread
 //
 #ifdef ROCAL_VIDEO
-class VideoLoaderSharded : public VideoLoaderModule
+class VideoLoaderSharded : public LoaderModule
 {
 public:
     explicit VideoLoaderSharded(void *dev_resources);
     ~VideoLoaderSharded() override;
-    VideoLoaderModuleStatus load_next() override;
-    void initialize(VideoReaderConfig reader_cfg, VideoDecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool keep_orig_size = false) override;
+    LoaderModuleStatus load_next() override;
+    void initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool keep_orig_size = false) override;
     void shut_down() override;
-    void set_output_image(Image *output_image) override;
+    void set_output(rocalTensor* output_image) override;
     size_t remaining_count() override;
     void reset() override;
     void start_loading() override;
     std::vector<std::string> get_id() override;
     decoded_image_info get_decode_image_info() override;
     void set_prefetch_queue_depth(size_t prefetch_queue_depth) override;
+    crop_image_info get_crop_image_info() override { return _crop_img_info; }
+    void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) override {};
     std::vector<size_t> get_sequence_start_frame_number() override;
     std::vector<std::vector<float>> get_sequence_frame_timestamps() override;
     Timing timing() override;
@@ -55,6 +57,7 @@ private:
     size_t _shard_count = 1;
     void fast_forward_through_empty_loaders();
     size_t _prefetch_queue_depth; // Used for circular buffer's internal buffer
-    Image *_output_image;
+    rocalTensor* _output_tensor;
+    crop_image_info _crop_img_info;
 };
 #endif

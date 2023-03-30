@@ -96,7 +96,7 @@ void VideoLoader::de_init()
     _is_initialized = false;
 }
 
-VideoLoaderModuleStatus
+LoaderModuleStatus
 VideoLoader::load_next()
 {
     return update_output_image();
@@ -119,7 +119,7 @@ void VideoLoader::stop_internal_thread()
         _load_thread.join();
 }
 
-void VideoLoader::initialize(VideoReaderConfig reader_cfg, VideoDecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool decoder_keep_original)
+void VideoLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool decoder_keep_original)
 {
     if (_is_initialized)
         WRN("initialize() function is already called and loader module is initialized")
@@ -160,11 +160,11 @@ void VideoLoader::start_loading()
     _load_thread = std::thread(&VideoLoader::load_routine, this);
 }
 
-VideoLoaderModuleStatus
+LoaderModuleStatus
 VideoLoader::load_routine()
 {
     LOG("Started the internal loader thread");
-    VideoLoaderModuleStatus last_load_status = VideoLoaderModuleStatus::OK;
+    LoaderModuleStatus last_load_status = LoaderModuleStatus::OK;
 
     // Initially record number of all the frames that are going to be loaded, this is used to know how many still there
     while (_internal_thread_running)
@@ -173,7 +173,7 @@ VideoLoader::load_routine()
         if (!_internal_thread_running)
             break;
 
-        auto load_status = VideoLoaderModuleStatus::NO_MORE_DATA_TO_READ;
+        auto load_status = LoaderModuleStatus::NO_MORE_DATA_TO_READ;
         {
             load_status = _video_loader->load(data,
                                               _decoded_img_info._image_names,
@@ -187,19 +187,19 @@ VideoLoader::load_routine()
                                               _sequence_frame_timestamps_vec,
                                               _output_image->info().color_format());
 
-            if (load_status == VideoLoaderModuleStatus::OK)
+            if (load_status == LoaderModuleStatus::OK)
             {
                 _circ_buff.set_image_info(_decoded_img_info);
                 _circ_buff.push();
                 _image_counter += _output_image->info().batch_size();
             }
         }
-        if (load_status != VideoLoaderModuleStatus::OK)
+        if (load_status != LoaderModuleStatus::OK)
         {
             if (last_load_status != load_status)
             {
-                if (load_status == VideoLoaderModuleStatus::NO_MORE_DATA_TO_READ ||
-                    load_status == VideoLoaderModuleStatus::NO_FILES_TO_READ)
+                if (load_status == LoaderModuleStatus::NO_MORE_DATA_TO_READ ||
+                    load_status == LoaderModuleStatus::NO_FILES_TO_READ)
                 {
                     LOG("Cycled through all images, count " + TOSTR(_image_counter));
                 }
@@ -220,7 +220,7 @@ VideoLoader::load_routine()
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
-    return VideoLoaderModuleStatus::OK;
+    return LoaderModuleStatus::OK;
 }
 
 bool VideoLoader::is_out_of_data()
@@ -228,14 +228,14 @@ bool VideoLoader::is_out_of_data()
     return (remaining_count() < _sequence_count);
 }
 
-VideoLoaderModuleStatus
+LoaderModuleStatus
 VideoLoader::update_output_image()
 {
-    VideoLoaderModuleStatus status = VideoLoaderModuleStatus::OK;
+    LoaderModuleStatus status = LoaderModuleStatus::OK;
     if (is_out_of_data())
-        return VideoLoaderModuleStatus::NO_MORE_DATA_TO_READ;
+        return LoaderModuleStatus::NO_MORE_DATA_TO_READ;
     if (_stopped)
-        return VideoLoaderModuleStatus::OK;
+        return LoaderModuleStatus::OK;
 
     // _circ_buff.get_read_buffer_x() is blocking and puts the caller on sleep until new images are written to the _circ_buff
     //if (_mem_type == RocalMemType::OCL)
@@ -244,7 +244,7 @@ VideoLoader::update_output_image()
         auto data_buffer = _circ_buff.get_read_buffer_dev();
         _swap_handle_time.start();
         if (_output_image->swap_handle(data_buffer) != 0)
-            return VideoLoaderModuleStatus ::DEVICE_BUFFER_SWAP_FAILED;
+            return LoaderModuleStatus ::DEVICE_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
     else
@@ -252,11 +252,11 @@ VideoLoader::update_output_image()
         auto data_buffer = _circ_buff.get_read_buffer_host();
         _swap_handle_time.start();
         if (_output_image->swap_handle(data_buffer) != 0)
-            return VideoLoaderModuleStatus::HOST_BUFFER_SWAP_FAILED;
+            return LoaderModuleStatus::HOST_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
     if (_stopped)
-        return VideoLoaderModuleStatus::OK;
+        return LoaderModuleStatus::OK;
     _output_decoded_img_info = _circ_buff.get_image_info();
     _output_names = _output_decoded_img_info._image_names;
     _output_image->update_image_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
@@ -273,7 +273,7 @@ Timing VideoLoader::timing()
     return t;
 }
 
-VideoLoaderModuleStatus VideoLoader::set_cpu_affinity(cpu_set_t cpu_mask)
+LoaderModuleStatus VideoLoader::set_cpu_affinity(cpu_set_t cpu_mask)
 {
     if (!_internal_thread_running)
         THROW("set_cpu_affinity() should be called after start_loading function is called")
@@ -284,10 +284,10 @@ VideoLoaderModuleStatus VideoLoader::set_cpu_affinity(cpu_set_t cpu_mask)
     if (ret != 0)
         WRN("Error calling pthread_setaffinity_np: " + TOSTR(ret));
 #endif
-    return VideoLoaderModuleStatus::OK;
+    return LoaderModuleStatus::OK;
 }
 
-VideoLoaderModuleStatus VideoLoader::set_cpu_sched_policy(struct sched_param sched_policy)
+LoaderModuleStatus VideoLoader::set_cpu_sched_policy(struct sched_param sched_policy)
 {
     if (!_internal_thread_running)
         THROW("set_cpu_sched_policy() should be called after start_loading function is called")
@@ -297,7 +297,7 @@ VideoLoaderModuleStatus VideoLoader::set_cpu_sched_policy(struct sched_param sch
     if (ret != 0)
         WRN("Unsuccessful in setting thread realtime priority for loader thread err = " + TOSTR(ret))
 #endif
-    return VideoLoaderModuleStatus::OK;
+    return LoaderModuleStatus::OK;
 }
 
 std::vector<std::string> VideoLoader::get_id()

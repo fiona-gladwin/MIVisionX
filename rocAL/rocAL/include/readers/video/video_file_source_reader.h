@@ -37,7 +37,7 @@ public:
     /*!
      \param desc  User provided descriptor containing the files' path.
     */
-    VideoReader::Status initialize(VideoReaderConfig desc) override;
+    VideoReader::Status initialize(ReaderConfig desc) override;
     //! Reads the next resource item
     SequenceInfo get_sequence_info() override;
 
