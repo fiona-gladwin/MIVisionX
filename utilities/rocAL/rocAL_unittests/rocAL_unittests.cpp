@@ -439,12 +439,12 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 {
                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
                     float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
-                    std::cerr << "\n>>>>> BBOX LABELS : ";
+                    std::cout << "\n>>>>> BBOX LABELS : ";
                     for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
-                        std::cerr << labels_buffer[j] << " ";
-                    std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->info().dims().at(0) << " : \n";
+                        std::cout << labels_buffer[j] << " ";
+                    std::cout << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->info().dims().at(0) << " : \n";
                     for(int j = 0, j4 = 0; j < bbox_coords->at(i)->info().dims().at(0); j++, j4 = j * 4)
-                        std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
+                        std::cout << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
 
                 }
             }
