@@ -52,7 +52,7 @@ using namespace cv;
 
 using namespace std::chrono;
 
-template <typename T> 
+template <typename T>
 void convert_float_to_uchar_buffer(T * input_float_buffer, unsigned char * output_uchar_buffer, size_t data_size)
 {
     for(size_t i = 0; i < data_size; i++)
@@ -263,7 +263,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         {
             std::cout << ">>>>>>> Running CAFFE CLASSIFICATION READER" << std::endl;
             pipeline_type = 1;
-            rocalCreateCaffeLMDBLabelReader(handle, path);
+            //rocalCreateCaffeLMDBLabelReader(handle, path);
             input1 = rocalJpegCaffeLMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
@@ -271,7 +271,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         {
             std::cout << ">>>>>>> Running CAFFE DETECTION READER" << std::endl;
             pipeline_type = 2;
-            rocalCreateCaffeLMDBReaderDetection(handle, path);
+            //rocalCreateCaffeLMDBReaderDetection(handle, path);
             input1 = rocalJpegCaffeLMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
@@ -279,7 +279,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         {
             std::cout << ">>>>>>> Running CAFFE2 CLASSIFICATION READER" << std::endl;
             pipeline_type = 1;
-            rocalCreateCaffe2LMDBLabelReader(handle, path, true);
+            //rocalCreateCaffe2LMDBLabelReader(handle, path, true);
             input1 = rocalJpegCaffe2LMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
@@ -287,7 +287,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         {
             std::cout << ">>>>>>> Running CAFFE2 DETECTION READER" << std::endl;
             pipeline_type = 2;
-            rocalCreateCaffe2LMDBReaderDetection(handle, path, true);
+            //rocalCreateCaffe2LMDBReaderDetection(handle, path, true);
             input1 = rocalJpegCaffe2LMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
@@ -460,7 +460,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 int mask_size = rocalGetMaskCount(handle, mask_count.data());
                 polygon_size.resize(mask_size);
                 RocalTensorList mask_data = rocalGetMaskCoordinates(handle, polygon_size.data());
-                
+
                 for(int i = 0; i < bbox_labels->size(); i++)
                 {
                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
@@ -584,7 +584,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 // mat_input_nchw = (unsigned char *)out_buffer;
                 // cv::transposeND(mat_input_nchw, {0, 3, 1, 2}, mat_input); // Can be enabled only with OpenCV 4.6.0
                 convert_nchw_to_nhwc(out_buffer, mat_input.data, output_tensor_list->at(idx)->info().dims().at(0), output_tensor_list->at(idx)->info().dims().at(2),
-                                     output_tensor_list->at(idx)->info().dims().at(3), output_tensor_list->at(idx)->info().dims().at(1));            
+                                     output_tensor_list->at(idx)->info().dims().at(3), output_tensor_list->at(idx)->info().dims().at(1));
             }
             else
                 mat_input.data = (unsigned char *)out_buffer;

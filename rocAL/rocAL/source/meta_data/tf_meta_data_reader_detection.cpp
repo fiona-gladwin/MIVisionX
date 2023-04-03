@@ -47,7 +47,7 @@ bool TFMetaDataReaderDetection::exists(const std::string& _image_name)
 }
 
 
-void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size)
+void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size, uint image_id)
 {
     if(exists(image_name))
     {
@@ -56,7 +56,7 @@ void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_
         it->second->get_bb_labels().push_back(bb_labels[0]);
         return;
     }
-    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size);
+    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size, image_id);
     _map_content.insert(pair<std::string, std::shared_ptr<BoundingBox>>(image_name, info));
 }
 
@@ -67,14 +67,14 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
         WRN("No image names passed")
         return;
     }
-    if(image_names.size() != (unsigned)_output->size())   
+    if(image_names.size() != (unsigned)_output->size())
         _output->resize(image_names.size());
     _output->reset_objects_count();
     for(unsigned i = 0; i < image_names.size(); i++)
     {
         auto image_name = image_names[i];
         auto it = _map_content.find(image_name);
- 
+
         if(_map_content.end() == it)
         {
             _output->get_bb_cords_batch()[i] = {{0, 0, 0, 0}};
@@ -113,7 +113,7 @@ void TFMetaDataReaderDetection::print_map_contents()
 }
 
 void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint file_size, std::vector<std::string> &_image_name,
-    std::string user_label_key, std::string user_text_key, 
+    std::string user_label_key, std::string user_text_key,
     std::string user_xmin_key, std::string user_ymin_key, std::string user_xmax_key, std::string user_ymax_key,
     std::string user_filename_key)
 {
@@ -124,8 +124,8 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
     size_t uint64_size, uint32_size;
     uint64_t data_length;
     uint32_t length_crc, data_crc;
-    uint64_size = sizeof(uint64_t); 
-    uint32_size = sizeof(uint32_t); 
+    uint64_size = sizeof(uint64_t);
+    uint32_size = sizeof(uint32_t);
     char * header_length = new char [uint64_size];
     char * header_crc = new char [uint32_size];
     char * footer_crc = new char [uint32_size];
@@ -151,13 +151,13 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
 
     auto feature = features.feature();
     tensorflow::Feature single_feature,sf_xmin,sf_ymin,sf_xmax,sf_ymax,sf_fname,sf_label,sf_height,sf_width;
-    
+
     single_feature = feature.at(user_filename_key);
     std::string fname = single_feature.bytes_list().value()[0];
     float  size_b_xmin;
     single_feature = feature.at(user_xmin_key);
     size_b_xmin = single_feature.float_list().value().size();
-    
+
     BoundingBoxCords bb_coords;
     BoundingBoxLabels bb_labels;
     BoundingBoxCord box;
@@ -170,7 +170,7 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
 
     sf_height = feature.at("image/height");
     sf_width = feature.at("image/width");
-    
+
     int image_height, image_width;
     image_height = sf_height.int64_list().value()[0];
     image_width = sf_width.int64_list().value()[0];
@@ -187,14 +187,14 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
       bbox_xmin = sf_xmin.float_list().value()[i];
       bbox_ymin = sf_ymin.float_list().value()[i];
       bbox_xmax = sf_xmax.float_list().value()[i];
-      bbox_ymax = sf_ymax.float_list().value()[i]; 
+      bbox_ymax = sf_ymax.float_list().value()[i];
       box.l = bbox_xmin ;
       box.r = bbox_xmax ;
       box.t = bbox_ymin ;
       box.b = bbox_ymax ;
       bb_coords.push_back(box);
       bb_labels.push_back(label);
-      add(fname, bb_coords, bb_labels, img_size);
+      add(fname, bb_coords, bb_labels, img_size, -1);
       bb_coords.clear();
       bb_labels.clear();
     }
@@ -270,7 +270,7 @@ void TFMetaDataReaderDetection::read_files(const std::string& _path)
         if(_entity->d_type != DT_REG)
             continue;
 
-        _file_names.push_back(_entity->d_name);  
+        _file_names.push_back(_entity->d_name);
     }
     if(_file_names.empty())
         WRN("LabelReader: Could not find any file in " + _path)

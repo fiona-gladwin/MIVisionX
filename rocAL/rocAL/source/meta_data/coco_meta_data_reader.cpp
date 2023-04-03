@@ -67,7 +67,7 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
     }
 }
 
-void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size)
+void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size, uint image_id)
 {
     if (exists(image_name))
     {
@@ -76,7 +76,7 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
         it->second->get_bb_labels().push_back(bb_labels[0]);
         return;
     }
-    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size);
+    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size, image_id);
     _map_content.insert(pair<std::string, std::shared_ptr<BoundingBox>>(image_name, info));
 }
 
@@ -132,6 +132,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
 
     BoundingBoxCord box;
     ImgSize img_size;
+    int original_id;
     RAPIDJSON_ASSERT(parser.PeekType() == kObjectType);
     parser.EnterObject();
     while (const char *key = parser.NextObjectKey())
@@ -143,7 +144,6 @@ void COCOMetaDataReader::read_all(const std::string &path)
             while (parser.NextArrayValue())
             {
                 string image_name;
-                int original_id;
                 if (parser.PeekType() != kObjectType)
                 {
                     continue;
@@ -165,14 +165,14 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     }
                     else if(0 == std::strcmp(internal_key, "id"))
                     {
-                        img_size.original_id = parser.GetInt();
+                        original_id = parser.GetInt();
                     }
                     else
                     {
                         parser.SkipValue();
                     }
                 }
-                _map_img_names.insert(pair<int, std::string>(img_size.original_id, image_name));
+                _map_img_names.insert(pair<int, std::string>(original_id, image_name));
                 _map_img_sizes.insert(pair<std::string, ImgSize>(image_name, img_size));
                 img_size = {};
             }
@@ -253,7 +253,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                 box.b = (bbox[1] + bbox[3]) / static_cast<double>(image_size.h);
                 bb_coords.push_back(box);
                 bb_labels.push_back(label);
-                add(itr->second, bb_coords, bb_labels, image_size);
+                add(itr->second, bb_coords, bb_labels, image_size, id);
                 bb_coords.clear();
                 bb_labels.clear();
                 image_size = {};

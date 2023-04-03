@@ -44,7 +44,7 @@ bool Caffe2MetaDataReaderDetection::exists(const std::string &_image_name)
     return _map_content.find(_image_name) != _map_content.end();
 }
 
-void Caffe2MetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size)
+void Caffe2MetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size, uint image_id)
 {
     if (exists(image_name))
     {
@@ -53,12 +53,12 @@ void Caffe2MetaDataReaderDetection::add(std::string image_name, BoundingBoxCords
         it->second->get_bb_labels().push_back(bb_labels[0]);
         return;
     }
-    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size);
+    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size, image_id);
     _map_content.insert(pair<std::string, std::shared_ptr<BoundingBox>>(image_name, info));
 }
 
 void Caffe2MetaDataReaderDetection::lookup(const std::vector<std::string> &_image_names)
-{   
+{
     if (_image_names.empty())
     {
         WRN("No image names passed")
@@ -181,7 +181,7 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
                 int boundIter = 0;
                 for (int i = 0; i < boundBox_size / 4; i++)
                 {
-                    // Parsing the bounding box points using Iterator 
+                    // Parsing the bounding box points using Iterator
                     // && Normalizing the box Co-ordinates
                     box.l = boundingBox_proto.dims(boundIter) / img_size.w;
                     box.t = boundingBox_proto.dims(boundIter + 1) / img_size.h;
@@ -195,7 +195,7 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
 
                     bb_coords.push_back(box);
                     bb_labels.push_back(label);
-                    add(str_key.c_str(), bb_coords, bb_labels, img_size);
+                    add(str_key.c_str(), bb_coords, bb_labels, img_size, -1);
                     bb_coords.clear();
                     bb_labels.clear();
                 }
@@ -206,14 +206,14 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
                 box.r = box.b = 1;
                 bb_coords.push_back(box);
                 bb_labels.push_back(0);
-                add(str_key.c_str(), bb_coords, bb_labels, img_size);
+                add(str_key.c_str(), bb_coords, bb_labels, img_size, -1);
             }
         }
         else
         {
             THROW("Parsing Protos Failed");
         }
-        
+
     }
 
     // Closing all the LMDB environment and cursor handles
