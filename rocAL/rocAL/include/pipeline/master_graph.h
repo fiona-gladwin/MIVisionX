@@ -47,6 +47,7 @@ THE SOFTWARE.
 #define MAX_OBJECTS 50 // Max number of objects/image in COCO dataset is 93 
 #define BBOX_COUNT 4
 #define MAX_NUM_ANCHORS 8732
+#define MAX_MASK_BUFFER 10000
 #define MAX_ANCHORS 120087
 
 class MasterGraph
@@ -57,6 +58,8 @@ public:
     ~MasterGraph();
     Status reset();
     size_t remaining_count();
+    std::vector<uint32_t> output_resize_width();
+    std::vector<uint32_t> output_resize_height();
     rocalTensorList *get_output_tensors();
     std::vector<size_t> tensor_output_byte_size();
     void sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum); // Returns the starting frame number of the sequences
@@ -73,7 +76,7 @@ public:
     rocalTensor *create_loader_output_tensor(const rocalTensorInfo &info);
     std::vector<rocalTensorList *> create_label_reader(const char *source_path, MetaDataReaderType reader_type);
     std::vector<rocalTensorList *> create_video_label_reader(const char *source_path, MetaDataReaderType reader_type, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
-    std::vector<rocalTensorList *> create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder = false, bool is_box_iou_matcher = false);
+    std::vector<rocalTensorList *> create_coco_meta_data_reader(const char *source_path, bool is_output, bool mask, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder = false, bool is_box_iou_matcher = false);
     std::vector<rocalTensorList *> create_tf_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type, const std::map<std::string, std::string> feature_key_map);
     std::vector<rocalTensorList *> create_caffe_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
     std::vector<rocalTensorList *> create_caffe2_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
@@ -87,6 +90,7 @@ public:
     rocalTensorList * labels_meta_data();
     rocalTensorList * bbox_labels_meta_data();
     rocalTensorList * bbox_meta_data();
+    rocalTensorList * mask_meta_data();
     rocalTensorList * matches_meta_data();
     ImgSizes& get_image_sizes();
 
@@ -97,6 +101,7 @@ public:
     std::shared_ptr<MetaDataGraph> meta_data_graph() { return _meta_data_graph; }
     std::shared_ptr<MetaDataReader> meta_data_reader() { return _meta_data_reader; }
     bool is_random_bbox_crop() {return _is_random_bbox_crop; }
+    bool is_segmentation() { return _is_segmentation; };
     bool is_sequence_reader_output() {return _is_sequence_reader_output; }
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
@@ -132,9 +137,11 @@ private:
     std::vector<rocalTensorList *> _metadata_output_tensor_list;
     rocalTensorList _labels_tensor_list;
     rocalTensorList _bbox_tensor_list;
+    rocalTensorList _mask_tensor_list;
     rocalTensorList _matches_tensor_list;
     std::vector<std::vector<unsigned>> _labels_tensor_dims;
     std::vector<std::vector<unsigned>> _bbox_tensor_dims;
+    std::vector<std::vector<unsigned>> _mask_tensor_dims;
     std::vector<std::vector<unsigned>> _matches_tensor_dims;
     std::vector<size_t> _meta_data_buffer_size;
 #if ENABLE_HIP
@@ -162,6 +169,9 @@ private:
     bool _output_routine_finished_processing = false;
     const RocalTensorDataType _out_data_type;
     bool _is_random_bbox_crop = false;
+    bool _is_segmentation = false;
+    std::vector<std::vector<uint32_t>> _resize_width;
+    std::vector<std::vector<uint32_t>> _resize_height;
     std::vector<std::vector<size_t>> _sequence_start_framenum_vec; //!< Stores the starting frame number of the sequences.
     std::vector<std::vector<std::vector<float>>>_sequence_frame_timestamps_vec; //!< Stores the timestamps of the frames in a sequences.
     size_t _sequence_batch_size = 0; //!< Indicates the _user_batch_size when sequence reader outputs are required

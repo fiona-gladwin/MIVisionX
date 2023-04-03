@@ -312,6 +312,24 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         }
         break;
 #endif
+        case 11: //coco detection segmentation
+        {
+            std::cout << ">>>>>>> Running COCO READER" << std::endl;
+            pipeline_type = 4;
+            if (strcmp(rocal_data_path.c_str(), "") == 0)
+            {
+                std::cout << "\n ROCAL_DATA_PATH env variable has not been set. ";
+                exit(0);
+            }
+            // setting the default json path to ROCAL_DATA_PATH coco sample train annotation
+            std::string json_path = rocal_data_path + "/rocal_data/coco/coco_10_img/annotations/instances_train2017.json";
+            rocalCreateCOCOReader(handle, json_path.c_str(), true, true);
+            if (decode_max_height <= 0 || decode_max_width <= 0)
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
+            else
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+        }
+        break;
         default:
         {
             std::cout << ">>>>>>> Running IMAGE READER" << std::endl;
@@ -449,7 +467,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 }
             }
             break;
-            case 3: //detection + segmentation pipeline
+            case 4: //detection + segmentation pipeline
             {
                 RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
                 RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
@@ -460,7 +478,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 int mask_size = rocalGetMaskCount(handle, mask_count.data());
                 polygon_size.resize(mask_size);
                 RocalTensorList mask_data = rocalGetMaskCoordinates(handle, polygon_size.data());
-                
+                int poly_cnt = 0;
+                int mask_idx = -1;
                 for(int i = 0; i < bbox_labels->size(); i++)
                 {
                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
@@ -473,11 +492,10 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                     for(int j = 0, j4 = 0; j < bbox_coords->at(i)->info().dims().at(0); j++, j4 = j * 4)
                         std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
                     std::cerr << "\n>>>>>>> MASK COORDS : ";
-                    int poly_cnt = 0;
-                    for(unsigned j = 0; j < total_number_of_objects_per_batch; j++)
+                    for(unsigned j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
                     {
-                        std::cerr << "Mask idx : " << j << "Polygons : " <<  mask_count[j] << "[" ;
-                        for(int k = 0; k < mask_count[j]; k++)
+                        std::cerr << "Mask idx : " << j << "Polygons : " <<  mask_count[++mask_idx] << "[" ;
+                        for(int k = 0; k < mask_count[mask_idx]; k++)
                         {
                             std::cerr << "[";
                             for(int l = 0; l < polygon_size[poly_cnt]; l++)
