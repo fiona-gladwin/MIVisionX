@@ -155,7 +155,15 @@ private:
     std::vector<std::vector<size_t>> _bb_coords_dims = {};
 };
 
-struct MetaDataBatch
+struct MetaDataInfoBatch {
+protected:
+    std::vector<uint> _img_ids = {};
+    std::vector<std::string> _img_names = {};
+    std::vector<ImgSize> _img_sizes = {};
+};
+
+
+struct MetaDataBatch : public MetaDataInfoBatch
 {
     virtual ~MetaDataBatch() = default;
     virtual void clear() = 0;
@@ -171,6 +179,8 @@ struct MetaDataBatch
     }
     virtual std::shared_ptr<MetaDataBatch> clone()  = 0;
     std::vector<int>& get_label_batch() { return _label_id; }
+    std::vector<uint>& get_image_id_batch() { return _img_ids; }
+    std::vector<std::string>& get_image_names_batch() {return _img_names; }
     std::vector<BoundingBoxCords>& get_bb_cords_batch() { return _bb_cords; }
     std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() { return _bb_cords_xcycwh; }
     std::vector<BoundingBoxLabels>& get_bb_labels_batch() { return _bb_label_ids; }
@@ -186,7 +196,6 @@ protected:
     std::vector<BoundingBoxCords> _bb_cords = {};
     std::vector<BoundingBoxCords_xcycwh> _bb_cords_xcycwh = {};
     std::vector<BoundingBoxLabels> _bb_label_ids = {};
-    ImgSizes _img_sizes = {};
     std::vector<size_t> _buffer_size;
     int _total_objects_count = 0;
     MetaDataDimensionsBatch _metadata_dimensions;
@@ -242,6 +251,7 @@ struct BoundingBoxBatch: public MetaDataBatch
         _bb_cords.clear();
         _bb_label_ids.clear();
         _img_sizes.clear();
+        _img_ids.clear();
         _metadata_dimensions.clear();
         _total_objects_count = 0;
         _buffer_size.clear();
@@ -251,6 +261,7 @@ struct BoundingBoxBatch: public MetaDataBatch
         _bb_cords.insert(_bb_cords.end(), other.get_bb_cords_batch().begin(), other.get_bb_cords_batch().end());
         _bb_label_ids.insert(_bb_label_ids.end(), other.get_bb_labels_batch().begin(), other.get_bb_labels_batch().end());
         _img_sizes.insert(_img_sizes.end(), other.get_img_sizes_batch().begin(), other.get_img_sizes_batch().end());
+        _img_ids.insert(_img_ids.end(), other.get_image_id_batch().begin(), other.get_image_id_batch().end());
         _metadata_dimensions.insert(other.get_metadata_dimensions_batch());
         return *this;
     }
@@ -259,6 +270,7 @@ struct BoundingBoxBatch: public MetaDataBatch
         _bb_cords.resize(batch_size);
         _bb_label_ids.resize(batch_size);
         _img_sizes.resize(batch_size);
+        _img_ids.resize(batch_size);
         _metadata_dimensions.resize(batch_size);
     }
     int size() override
