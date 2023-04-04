@@ -64,7 +64,7 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         WRN("No image names passed")
         return;
     }
-    if(_image_names.size() != (unsigned)_output->size())   
+    if(_image_names.size() != (unsigned)_output->size())
         _output->resize(_image_names.size());
     _output->reset_objects_count();
 
@@ -84,7 +84,7 @@ void TFMetaDataReader::print_map_contents()
 {
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label() << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label()[0] << std::endl;
     }
 }
 
@@ -189,7 +189,7 @@ void TFMetaDataReader::read_files(const std::string& _path)
         if(_entity->d_type != DT_REG)
             continue;
 
-        _file_names.push_back(_entity->d_name);  
+        _file_names.push_back(_entity->d_name);
     }
     if(_file_names.empty())
         WRN("TFMetadataReader: Could not find any file in " + _path)

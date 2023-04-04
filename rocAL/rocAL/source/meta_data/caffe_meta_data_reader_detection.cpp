@@ -75,7 +75,7 @@ void CaffeMetaDataReaderDetection::lookup(const std::vector<std::string> &_image
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name)
         _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-        _output->get_bb_labels_batch()[i] = it->second->get_bb_labels();
+        _output->get_label_batch()[i] = it->second->get_bb_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         // TODO - Check condition
         _output->increment_object_count(it->second->get_object_count());

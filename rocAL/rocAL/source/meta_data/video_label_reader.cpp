@@ -86,7 +86,7 @@ void VideoLabelReader::print_map_contents()
     std::cerr << "\nMap contents: \n";
     for (auto &elem : _map_content)
     {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label() << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label()[0] << std::endl;
     }
 }
 

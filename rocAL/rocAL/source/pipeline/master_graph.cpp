@@ -126,7 +126,7 @@ MasterGraph::MasterGraph(size_t batch_size, RocalAffinity affinity, int gpu_id, 
         _mem_type ((_affinity == RocalAffinity::GPU) ? RocalMemType::OCL : RocalMemType::HOST),
 #else
         _mem_type (RocalMemType::HOST),
-#endif        
+#endif
         _first_run(true),
         _processing(false),
         _prefetch_queue_depth(prefetch_queue_depth),
@@ -445,7 +445,7 @@ MasterGraph::get_output_tensors()
     auto output_ptr = _ring_buffer.get_read_buffers();
     for(unsigned i = 0; i < _internal_tensor_list.size(); i++)
         _output_tensor_list[i]->set_mem_handle(output_ptr[i]);
-    
+
     return &_output_tensor_list;
 }
 
@@ -1049,8 +1049,8 @@ std::vector<rocalTensorList *> MasterGraph::create_cifar10_label_reader(const ch
         _labels_tensor_list.push_back(tensor);
     }
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
-    
-    
+
+
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
     if (_augmented_meta_data)
         THROW("Metadata can only have a single output")
@@ -1072,7 +1072,7 @@ void MasterGraph::box_iou_matcher(std::vector<float> &anchors, float criteria, f
     if (!_is_box_iou_matcher)
         THROW("Box IOU matcher variable not set cannot return matched idx")
     _num_anchors = anchors.size() / 4;
- 
+
 #if ENABLE_HIP
     //do nothing for now - have to add gpu kernels
 #endif
@@ -1092,7 +1092,7 @@ size_t MasterGraph::bounding_box_batch_count(int *buf, pMetaDataBatch meta_data_
     size_t size = 0;
     for(unsigned i = 0; i < _user_batch_size; i++)
     {
-        buf[i] = _is_box_encoder? _num_anchors: meta_data_batch->get_bb_labels_batch()[i].size();
+        buf[i] = _is_box_encoder? _num_anchors: meta_data_batch->get_label_batch()[i].size();
         size += buf[i];
     }
     return size;
