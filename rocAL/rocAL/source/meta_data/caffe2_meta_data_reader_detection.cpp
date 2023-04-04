@@ -44,7 +44,7 @@ bool Caffe2MetaDataReaderDetection::exists(const std::string &_image_name)
     return _map_content.find(_image_name) != _map_content.end();
 }
 
-void Caffe2MetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size, uint image_id)
+void Caffe2MetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, uint image_id)
 {
     if (exists(image_name))
     {
@@ -77,7 +77,7 @@ void Caffe2MetaDataReaderDetection::lookup(const std::vector<std::string> &_imag
         _output->get_label_batch()[i] = it->second->get_label();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         _output->increment_object_count(it->second->get_object_count());
-        _output->get_metadata_dimensions_batch().bb_labels_dims()[i] = it->second->get_bb_label_dims();
+        _output->get_metadata_dimensions_batch().labels_dims()[i] = it->second->get_label_dims();
         _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
     }
 }
@@ -85,7 +85,7 @@ void Caffe2MetaDataReaderDetection::lookup(const std::vector<std::string> &_imag
 void Caffe2MetaDataReaderDetection::print_map_contents()
 {
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
 
     std::cerr << "\nMap contents: \n";
     for (auto &elem : _map_content)
@@ -165,7 +165,7 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
             int boundBox_size = boundingBox_proto.dims_size();
 
             BoundingBoxCords bb_coords;
-            BoundingBoxLabels bb_labels;
+            Labels bb_labels;
             BoundingBoxCord box;
 
             ImgSize img_size;

@@ -59,7 +59,7 @@ void CropMirrorNormalizeMetaNode::update_parameters(MetaDataBatch* input_meta_da
         memcpy((void *)coords_buf.data(), input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
         BoundingBoxCords bb_coords;
         BoundingBoxCord temp_box = {0, 0, 1, 1};
-        BoundingBoxLabels bb_labels;
+        Labels bb_labels;
         BoundingBoxCord crop_box;
         crop_box.l = (_x1_val[i]) / input_roi[i].x2;
         crop_box.t = (_y1_val[i]) / input_roi[i].y2;
@@ -99,7 +99,7 @@ void CropMirrorNormalizeMetaNode::update_parameters(MetaDataBatch* input_meta_da
         }
         input_meta_data->get_bb_cords_batch()[i] = bb_coords;
         input_meta_data->get_label_batch()[i] = bb_labels;
-        input_meta_data->get_metadata_dimensions_batch().bb_labels_dims()[i][0] = bb_labels.size();
+        input_meta_data->get_metadata_dimensions_batch().labels_dims()[i][0] = bb_labels.size();
         input_meta_data->get_metadata_dimensions_batch().bb_cords_dims()[i][0] = bb_coords.size();
     }
 }

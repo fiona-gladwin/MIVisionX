@@ -62,12 +62,12 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         _output->get_label_batch()[i] = it->second->get_label();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         _output->increment_object_count(it->second->get_object_count());
-        _output->get_metadata_dimensions_batch().bb_labels_dims()[i] = it->second->get_bb_label_dims();
+        _output->get_metadata_dimensions_batch().labels_dims()[i] = it->second->get_label_dims();
         _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
     }
 }
 
-void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size, uint image_id)
+void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, uint image_id)
 {
     if (exists(image_name))
     {
@@ -83,7 +83,7 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
 void COCOMetaDataReader::print_map_contents()
 {
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
     ImgSize img_size;
 
     std::cout << "\nBBox Annotations List: \n";
@@ -127,7 +127,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
     LookaheadParser parser(buff.get());
 
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
     ImgSizes img_sizes;
 
     BoundingBoxCord box;
@@ -268,7 +268,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
     {
         bb_coords = elem.second->get_bb_cords();
         bb_labels = elem.second->get_label();
-        BoundingBoxLabels continuous_label_id;
+        Labels continuous_label_id;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
             auto _it_label = _label_info.find(bb_labels[i]);
@@ -276,7 +276,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
             int cnt_idx = _it_label->first;
             continuous_label_id.push_back(cnt_idx);
         }
-        elem.second->set_bb_labels(continuous_label_id);
+        elem.second->set_labels(continuous_label_id);
     }
     _coco_metadata_read_time.end(); // Debug timing
     //print_map_contents();

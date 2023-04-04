@@ -1117,7 +1117,7 @@ rocalTensorList * MasterGraph::bbox_labels_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[0]; // Get labels buffer from ring buffer
-    auto labels_tensor_dims = _ring_buffer.get_meta_data_info().bb_labels_dims();
+    auto labels_tensor_dims = _ring_buffer.get_meta_data_info().labels_dims();
     for(unsigned i = 0; i < _labels_tensor_list.size(); i++)
     {
         _labels_tensor_list[i]->set_dims(labels_tensor_dims[i]);
@@ -1193,7 +1193,7 @@ MasterGraph::get_bbox_encoded_buffers(size_t num_encoded_boxes)
         auto encoded_boxes_and_lables = _ring_buffer.get_box_encode_read_buffers();
         unsigned char *boxes_buf_ptr = (unsigned char *) encoded_boxes_and_lables.first;
         unsigned char *labels_buf_ptr = (unsigned char *) encoded_boxes_and_lables.second;
-        auto labels_tensor_dims = _ring_buffer.get_meta_data_info().bb_labels_dims();
+        auto labels_tensor_dims = _ring_buffer.get_meta_data_info().labels_dims();
         auto bbox_tensor_dims = _ring_buffer.get_meta_data_info().bb_cords_dims();
 
         if(_bbox_tensor_list.size() != _labels_tensor_list.size())

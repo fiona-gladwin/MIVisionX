@@ -49,7 +49,7 @@ private:
     void read_files(const std::string& _path);
     bool exists(const std::string &image_name) override;
     //bbox add
-    void add(std::string image_name, BoundingBoxCords bbox, BoundingBoxLabels b_labels, ImgSize image_size, uint image_id);
+    void add(std::string image_name, BoundingBoxCords bbox, Labels b_labels, ImgSize image_size, uint image_id);
     bool _last_rec;
     void read_record(std::ifstream &file_contents, uint file_size, std::vector<std::string> &image_name,
         std::string user_label_key, std::string user_text_key,

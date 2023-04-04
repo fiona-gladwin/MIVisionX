@@ -57,7 +57,7 @@ void SSDRandomCropMetaNode::update_parameters(MetaDataBatch *input_meta_data)
         memcpy(labels_buf, input_meta_data->get_label_batch()[i].data(),  sizeof(int)*bb_count);
         memcpy((void *)box_coords_buf.data(), input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
         BoundingBoxCords bb_coords;
-        BoundingBoxLabels bb_labels;
+        Labels bb_labels;
         BoundingBoxCord crop_box;
         crop_box.l = _x1_val[i];
         crop_box.t = _y1_val[i];
