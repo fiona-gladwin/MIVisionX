@@ -53,7 +53,7 @@ void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_
     {
         auto it = _map_content.find(image_name);
         it->second->get_bb_cords().push_back(bb_coords[0]);
-        it->second->get_bb_labels().push_back(bb_labels[0]);
+        it->second->get_label().push_back(bb_labels[0]);
         return;
     }
     pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size, image_id);
@@ -84,7 +84,7 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
         else
         {
             _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-            _output->get_label_batch()[i] = it->second->get_bb_labels();
+            _output->get_label_batch()[i] = it->second->get_label();
             _output->get_img_sizes_batch()[i] = it->second->get_img_size();
             // TODO - Check condition
             _output->increment_object_count(it->second->get_object_count());
@@ -103,7 +103,7 @@ void TFMetaDataReaderDetection::print_map_contents()
     for (auto& elem : _map_content) {
         std::cerr << "Name :\t " << elem.first;
         bb_coords = elem.second->get_bb_cords() ;
-        bb_labels = elem.second->get_bb_labels();
+        bb_labels = elem.second->get_label();
         std::cerr << "\nsize of the element  : "<< bb_coords.size() << std::endl;
         for(unsigned int i = 0; i < bb_coords.size(); i++){
             std::cerr << " l : " << bb_coords[i].l << " t: :" << bb_coords[i].t << " r : " << bb_coords[i].r << " b: :" << bb_coords[i].b << std::endl;

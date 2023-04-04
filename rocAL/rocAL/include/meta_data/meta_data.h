@@ -57,7 +57,6 @@ struct MetaData
     virtual std::vector<int>& get_label() { };
     virtual BoundingBoxCords& get_bb_cords() { };
     virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { };
-    virtual BoundingBoxLabels& get_bb_labels() { };
     virtual int get_object_count() { };
     virtual std::vector<size_t> get_bb_label_dims() { };
     virtual std::vector<size_t> get_bb_cords_dims() { };
@@ -122,7 +121,6 @@ struct BoundingBox : public Label
     }
     BoundingBoxCords& get_bb_cords() { return _bb_cords; }
     BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { return _bb_cords_xcycwh; }
-    BoundingBoxLabels& get_bb_labels() { return _label_ids; }
     std::vector<size_t> get_bb_label_dims()
     {
         _bb_labels_dims = {_label_ids.size()};
