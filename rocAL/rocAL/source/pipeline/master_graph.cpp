@@ -378,6 +378,23 @@ MasterGraph::update_node_parameters()
     return Status::OK;
 }
 
+std::vector<uint32_t>
+MasterGraph::output_resize_width()
+{
+    std::vector<uint32_t> resize_width_vector;
+    resize_width_vector = _resize_width.back();
+    _resize_width.pop_back();
+    return resize_width_vector;
+}
+
+std::vector<uint32_t>
+MasterGraph::output_resize_height()
+{
+    std::vector<uint32_t> resize_height_vector;
+    resize_height_vector = _resize_height.back();
+    _resize_height.pop_back();
+    return resize_height_vector;
+}
 
 void
 MasterGraph::sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum)
@@ -413,6 +430,8 @@ MasterGraph::reset()
     // restart processing of the images
     _first_run = true;
     _output_routine_finished_processing = false;
+    _resize_width.clear();
+    _resize_height.clear();
     start_processing();
     return Status::OK;
 }
@@ -523,7 +542,11 @@ void MasterGraph::output_routine()
                     {
                         _meta_data_graph->update_random_bbox_meta_data(_augmented_meta_data, decode_image_info, crop_image_info);
                     }
-                    _meta_data_graph->process(_augmented_meta_data);
+                    else
+                    {
+                        _meta_data_graph->update_meta_data(_augmented_meta_data, decode_image_info, _is_segmentation);
+                    }
+                    _meta_data_graph->process(_augmented_meta_data, _is_segmentation);
                 }
                 if (full_batch_meta_data)
                     full_batch_meta_data->concatenate(_augmented_meta_data);
@@ -531,6 +554,17 @@ void MasterGraph::output_routine()
                     full_batch_meta_data = _augmented_meta_data->clone();
             }
 
+            // get roi width and height of output image / For maskrcnn only
+            // std::vector<uint32_t> temp_width_arr;
+            // std::vector<uint32_t> temp_height_arr;
+            // for (unsigned int i = 0; i < _user_batch_size; i++)
+            // {
+            //     temp_width_arr.push_back(_internal_tensor_list.front()->info().get_roi()[i].x2);
+            //     temp_height_arr.push_back(_internal_tensor_list.front()->info().get_roi()[i].y2);
+            // }
+            // _resize_width.insert(_resize_width.begin(), temp_width_arr);
+            // _resize_height.insert(_resize_height.begin(), temp_height_arr);
+            
             _process_time.start();
             _graph->process();
             _process_time.end();
@@ -554,7 +588,7 @@ void MasterGraph::output_routine()
                 _meta_data_graph->update_box_iou_matcher(&_anchors_double, (int *)matches_write_buffer, full_batch_meta_data, _criteria, _high_threshold, _low_threshold, _allow_low_quality_matches);
             }
             _bencode_time.end();
-            _ring_buffer.set_meta_data(full_batch_image_names, full_batch_meta_data);
+            _ring_buffer.set_meta_data(full_batch_image_names, full_batch_meta_data, _is_segmentation);
             _ring_buffer.push(); // Image data and metadata is now stored in output the ring_buffer, increases it's level by 1
         }
     }
@@ -596,11 +630,13 @@ void MasterGraph::stop_processing()
         _output_thread.join();
 }
 
-std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder, bool is_box_iou_matcher)
+std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, bool mask, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder, bool is_box_iou_matcher)
 {
     if(_meta_data_reader)
         THROW("A metadata reader has already been created")
-    MetaDataConfig config(label_type, reader_type, source_path, std::map<std::string, std::string>(), std::string());
+    if(mask)
+        _is_segmentation = true;
+    MetaDataConfig config(label_type, reader_type, source_path, std::map<std::string, std::string>(), std::string(), mask);
     _meta_data_graph = create_meta_data_graph(config);
     _meta_data_reader = create_meta_data_reader(config);
     _meta_data_reader->init(config);
@@ -625,6 +661,19 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     default_bbox_info.set_metadata();
     _meta_data_buffer_size.emplace_back(dims.at(0) * dims.at(1)  * _user_batch_size * sizeof(vx_float64)); // TODO - replace with data size from info
     rocalTensorInfo default_matches_info;
+    rocalTensorInfo default_mask_info;
+    if(mask)
+    {
+        num_of_dims = 2;
+        dims.resize(num_of_dims);
+        dims.at(0) = MAX_MASK_BUFFER;
+        dims.at(1) = 1;
+        default_mask_info  = rocalTensorInfo(dims,
+                                            _mem_type,
+                                            RocalTensorDataType::FP32);
+        default_mask_info.set_metadata();
+        _meta_data_buffer_size.emplace_back(dims.at(0) * dims.at(1)  * _user_batch_size * sizeof(vx_float32)); // TODO - replace with data size from info  
+    }
     if(is_box_iou_matcher)
     {
         _is_box_iou_matcher = true;
@@ -650,6 +699,11 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
             auto matches_info = default_matches_info;
             _matches_tensor_list.push_back(new rocalTensor(matches_info));
         }
+        if(mask)
+        {
+            auto mask_info = default_mask_info;
+            _mask_tensor_list.push_back(new rocalTensor(mask_info));
+        }
     }
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
     if(is_output)
@@ -661,6 +715,8 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     }
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
     _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
+    if(mask)
+        _metadata_output_tensor_list.emplace_back(&_mask_tensor_list);
     if(is_box_iou_matcher)
         _metadata_output_tensor_list.emplace_back(&_matches_tensor_list);
 
@@ -1154,6 +1210,22 @@ rocalTensorList * MasterGraph::bbox_meta_data()
     }
 
     return &_bbox_tensor_list;
+}
+
+rocalTensorList * MasterGraph::mask_meta_data()
+{
+    if(_ring_buffer.level() == 0)
+        THROW("No meta data has been loaded")
+    auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get bbox buffer from ring buffer
+    auto mask_tensor_dims = _ring_buffer.get_meta_data_info().mask_cords_dims();
+    for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
+    {
+        _mask_tensor_list[i]->set_dims(mask_tensor_dims[i]);
+        _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
+        meta_data_buffers += _mask_tensor_list[i]->info().data_size();
+    }
+
+    return &_mask_tensor_list;
 }
 
 ImgSizes& MasterGraph::get_image_sizes()

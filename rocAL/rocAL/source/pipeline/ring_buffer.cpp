@@ -204,7 +204,7 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> s
         }
 #if ENABLE_OPENCL || ENABLE_HIP
     }
-#endif    
+#endif
 }
 
 void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size)
@@ -256,7 +256,7 @@ void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bb
             }
         }
     }
-#else    
+#else
     {
         if(_meta_data_sub_buffer_count < 2)
             THROW("Insufficient HOST metadata buffers for Box Encoder");
@@ -419,7 +419,7 @@ void RingBuffer::increment_write_ptr()
     _wait_for_load.notify_all();
 }
 
-void RingBuffer::set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data)
+void RingBuffer::set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data, bool is_segmentation)
 {
     if(meta_data == nullptr)
         _last_image_meta_data = std::move(std::make_pair(std::move(names), pMetaDataBatch()));

@@ -32,7 +32,7 @@ class ResizeMirrorNormalizeMetaNode:public MetaNode
 {
     public:
         ResizeMirrorNormalizeMetaNode() {};
-        void update_parameters(MetaDataBatch* input_meta_data) override;
+        void update_parameters(MetaDataBatch* input_meta_data, bool segmentation) override;
         std::shared_ptr<ResizeMirrorNormalizeNode> _node = nullptr;
     private:
         void initialize();
