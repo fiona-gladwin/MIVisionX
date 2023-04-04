@@ -179,7 +179,7 @@ public:
 };
 
 
-struct MetaDataBatch : public MetaDataInfoBatch
+struct MetaDataBatch
 {
     virtual ~MetaDataBatch() = default;
     virtual void clear() = 0;
