@@ -26,35 +26,29 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-SequenceRearrangeNode::SequenceRearrangeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
-        Node(inputs, outputs)
-{
-}
+SequenceRearrangeNode::SequenceRearrangeNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
+        Node(inputs, outputs) { }
 
-void SequenceRearrangeNode::create_node()
-{
+void SequenceRearrangeNode::create_node() {
     if(_node)
         return;
 
     vx_status status;
-    _sequence_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _new_sequence_length);
-    status = vxAddArrayItems(_sequence_array, _new_sequence_length, _new_order.data(), sizeof(vx_uint32));
+    vx_array sequence_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _new_order.size());
+    status = vxAddArrayItems(sequence_array, _new_order.size(), _new_order.data(), sizeof(vx_uint32));
     if(status != VX_SUCCESS)
-        THROW("Adding array items failed: "+ TOSTR(status))
-    _node = vxExtrppNode_SequenceRearrange(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle(), _sequence_array, _new_sequence_length, _sequence_length, _sequence_count);
+        THROW("Adding array items failed: "+ TOSTR(status));
+    
+    int input_layout = (int)_inputs[0]->info().layout();
+    vx_scalar in_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
+    _node = vxExtrppNode_SequenceRearrange(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle(), sequence_array, in_layout_vx);
+    
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the sequence rearrange (vxExtrppNode_SequenceRearrange) node failed: "+ TOSTR(status))
 }
 
-void SequenceRearrangeNode::init(unsigned int* new_order, unsigned int new_sequence_length, unsigned int sequence_length, unsigned int sequence_count)
-{
-    _new_sequence_length = new_sequence_length;
-    _sequence_length = sequence_length;
-    _sequence_count = sequence_count;
-    _new_order.resize(_new_sequence_length);
-    std::copy(new_order, new_order + _new_sequence_length, _new_order.begin());
+void SequenceRearrangeNode::init(std::vector<unsigned int>& new_order) {
+    _new_order = new_order;
 }
 
-void SequenceRearrangeNode::update_node()
-{
-}
+void SequenceRearrangeNode::update_node() { }

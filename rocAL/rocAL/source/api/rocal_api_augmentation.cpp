@@ -32,37 +32,32 @@ THE SOFTWARE.
 // Calculated from the largest resize shorter dimension in imagenet validation dataset
 #define MAX_ASPECT_RATIO 6.0f
 
-RocalImage  ROCAL_API_CALL
-rocalSequenceRearrange(
-            RocalContext p_context,
-            RocalImage p_input,
-            unsigned int* new_order,
-            unsigned int  new_sequence_length,
-            unsigned int sequence_length,
-            bool is_output )
-{
-    Image* output = nullptr;
-    if ((p_context == nullptr) || (p_input == nullptr)) {
+RocalTensor  ROCAL_API_CALL
+rocalSequenceRearrange(RocalContext p_context,
+                       RocalTensor input,
+                       std::vector<unsigned int>& new_order,
+                       bool is_output) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    try
-    {
-        if(sequence_length == 0)
-            THROW("sequence_length passed should be bigger than 0")
-        auto input = static_cast<Image*>(p_input);
-        auto info = ImageInfo(input->info().width(), input->info().height_single(),
-                              context->master_graph->internal_batch_size() * new_sequence_length,
-                              input->info().color_plane_count(),
-                              context->master_graph->mem_type(),
-                              input->info().color_format() );
-        output = context->master_graph->create_image(info, is_output);
+    try {
+
+        if(new_order.size() == 0)
+            THROW("The new order for the sequence passed should be greater than 0")
+        rocalTensorInfo output_info = input->info();
+        std::vector<size_t> new_dims;
+        new_dims = output_info.dims();
+        new_dims[1] = new_order.size();
+        output_info.set_dims(new_dims);
+
+        output = context->master_graph->create_tensor(output_info, is_output);
         std::shared_ptr<SequenceRearrangeNode> sequence_rearrange_node =  context->master_graph->add_node<SequenceRearrangeNode>({input}, {output});
-        sequence_rearrange_node->init(new_order, new_sequence_length, sequence_length, context->master_graph->internal_batch_size());
+        sequence_rearrange_node->init(new_order);
     }
-    catch(const std::exception& e)
-    {
+    catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
