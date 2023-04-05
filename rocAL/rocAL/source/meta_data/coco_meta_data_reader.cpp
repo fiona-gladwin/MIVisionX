@@ -50,8 +50,6 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
     }
     if (image_names.size() != (unsigned)_output->size())
         _output->resize(image_names.size());
-
-    _output->reset_objects_count();
     for (unsigned i = 0; i < image_names.size(); i++)
     {
         auto image_name = image_names[i];
@@ -62,7 +60,6 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         auto labels = it->second->get_label();
         _output->get_label_batch()[i] = labels;
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
-        _output->increment_object_count(labels.size());
         _output->get_metadata_dimensions_batch().labels_dims()[i] = {labels.size()};
         _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = {labels.size(),4};
     }
