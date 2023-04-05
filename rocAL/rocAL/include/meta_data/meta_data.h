@@ -55,12 +55,9 @@ public:
 struct MetaData
 {
     virtual std::vector<int>& get_label() { };
-    virtual int get_object_count() { };
-    virtual std::vector<size_t> get_label_dims() { };
     virtual void set_labels(Labels label_ids) { };
     virtual BoundingBoxCords& get_bb_cords() { };
     virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { };
-    virtual std::vector<size_t> get_bb_cords_dims() { };
     virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) { };
     virtual void set_bb_cords(BoundingBoxCords bb_cords) { };
     ImgSize& get_img_size() {return _info._img_size; }
@@ -80,7 +77,6 @@ struct Label : public MetaData
     {
         _label_ids.resize(1);
         _label_ids[0] = label;
-        _object_count = 1;
     }
     Label()
     {
@@ -88,21 +84,12 @@ struct Label : public MetaData
         _label_ids[0] = -1;
     }
     std::vector<int>& get_label() { return _label_ids; }
-    int get_object_count() { return _object_count; }
-    std::vector<size_t> get_label_dims()
-    {
-        _labels_dims = {_label_ids.size()};
-        return _labels_dims;
-    }
     void set_labels(Labels label_ids)
     {
         _label_ids = std::move(label_ids);
-        _object_count = _label_ids.size();
     }
     protected:
     Labels _label_ids = {}; // For label use only
-    std::vector<size_t> _labels_dims = {};
-    int _object_count = 0;
 };
 
 struct BoundingBox : public Label
@@ -134,17 +121,11 @@ struct BoundingBox : public Label
     }
     BoundingBoxCords& get_bb_cords() { return _bb_cords; }
     BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { return _bb_cords_xcycwh; }
-    std::vector<size_t> get_bb_cords_dims()
-    {
-        _bb_coords_dims = {_bb_cords.size(), 4};
-        return _bb_coords_dims;
-    }
     void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) { _bb_cords_xcycwh =std::move(bb_cords_xcycwh); }
     void set_bb_cords(BoundingBoxCords bb_cords) { _bb_cords =std::move(bb_cords); }
 protected:
     BoundingBoxCords _bb_cords = {}; // For bb use
     BoundingBoxCords_xcycwh _bb_cords_xcycwh = {}; // For bb use
-    std::vector<size_t> _bb_coords_dims = {};
 };
 
 struct MetaDataDimensionsBatch
