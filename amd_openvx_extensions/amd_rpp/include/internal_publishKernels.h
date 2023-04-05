@@ -129,6 +129,12 @@ vx_status Resize_Register(vx_context);
 vx_status Crop_Register(vx_context);
 vx_status ColorTwist_Register(vx_context);
 vx_status ResizeMirrorNormalize_Register(vx_context);
+vx_status GammaCorrection_Register(vx_context);
+vx_status Contrast_Register(vx_context);
+vx_status Flip_Register(vx_context);
+
+
+
 vx_status SequenceRearrange_Register(vx_context);
 
 // kernel names
@@ -226,4 +232,8 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_COLORTWIST_NAME                                        "org.rpp.ColorTwist"
 #define VX_KERNEL_RPP_RESIZEMIRROR_NAME                                      "org.rpp.ResizeMirrorNormalize"
 #define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
+#define VX_KERNEL_RPP_CONTRAST_NAME                                          "org.rpp.Contrast"
+#define VX_KERNEL_RPP_FLIP_NAME                                              "org.rpp.Flip"
+
+
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
