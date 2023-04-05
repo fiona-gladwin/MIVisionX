@@ -100,8 +100,9 @@ void LabelReaderFolders::lookup(const std::vector<std::string>& image_names)
         auto it = _map_content.find(image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ image_name )
-        _output->get_label_batch()[i] = it->second->get_label();
-        _output->increment_object_count(it->second->get_object_count());
+        auto labels = it->second->get_label();
+        _output->get_label_batch()[i] = labels;
+        _output->increment_object_count(labels.size());
     }
 }
 

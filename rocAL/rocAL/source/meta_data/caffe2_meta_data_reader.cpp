@@ -72,7 +72,9 @@ void Caffe2MetaDataReader::lookup(const std::vector<std::string> &_image_names)
         auto it = _map_content.find(_image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ _image_name )
-        _output->get_label_batch()[i] = it->second->get_label();
+        auto labels = it->second->get_label();
+        _output->get_label_batch()[i] = labels;
+        _output->increment_object_count(labels.size());
     }
 
 }
