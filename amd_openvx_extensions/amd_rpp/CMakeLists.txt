@@ -129,6 +129,9 @@ list(APPEND SOURCES
         source/WarpAffinebatchPD.cpp
         source/WarpPerspectivebatchPD.cpp
         source/Brightness.cpp
+        source/GammaCorrection.cpp
+        source/Contrast.cpp
+        source/Flip.cpp
         source/Copy.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp

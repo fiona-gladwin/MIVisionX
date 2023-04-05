@@ -135,6 +135,10 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(ColorTwist_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(ResizeMirrorNormalize_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(SequenceRearrange_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(GammaCorrection_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Contrast_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Flip_Register));
+
     return status;
 }
 
