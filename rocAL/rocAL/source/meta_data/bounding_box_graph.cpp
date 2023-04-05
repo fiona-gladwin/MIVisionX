@@ -51,12 +51,12 @@ void BoundingBoxGraph::update_random_bbox_meta_data(MetaDataBatch *input_meta_da
     auto crop_cords = crop_image_info._crop_image_coords;
     for (int i = 0; i < input_meta_data->size(); i++)
     {
-        auto bb_count = input_meta_data->get_label_batch()[i].size();
+        auto bb_count = input_meta_data->get_labels_batch()[i].size();
         BoundingBoxCords coords_buf;
         Labels labels_buf;
         coords_buf.resize(bb_count);
         labels_buf.resize(bb_count);
-        memcpy(labels_buf.data(), input_meta_data->get_label_batch()[i].data(), sizeof(int) * bb_count);
+        memcpy(labels_buf.data(), input_meta_data->get_labels_batch()[i].data(), sizeof(int) * bb_count);
         memcpy((void *)coords_buf.data(), input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
         BoundingBoxCords bb_coords;
         Labels bb_labels;
@@ -91,7 +91,7 @@ void BoundingBoxGraph::update_random_bbox_meta_data(MetaDataBatch *input_meta_da
             THROW("Bounding box co-ordinates not found in the image ");
         }
         input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_label_batch()[i] = bb_labels;
+        input_meta_data->get_labels_batch()[i] = bb_labels;
         input_meta_data->get_metadata_dimensions_batch().labels_dims()[i][0] = bb_labels.size();
         input_meta_data->get_metadata_dimensions_batch().bb_cords_dims()[i][0] = bb_coords.size();
     }
@@ -146,12 +146,12 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
     for (int i = 0; i < full_batch_meta_data->size(); i++)
     {
         BoundingBoxCord *bbox_anchors = reinterpret_cast<BoundingBoxCord *>(anchors->data());
-        auto bb_count = full_batch_meta_data->get_label_batch()[i].size();
+        auto bb_count = full_batch_meta_data->get_labels_batch()[i].size();
         std::vector<BoundingBoxCord> bb_coords;
         Labels bb_labels;
         bb_labels.resize(bb_count);
         bb_coords.resize(bb_count);
-        memcpy(bb_labels.data(), full_batch_meta_data->get_label_batch()[i].data(), sizeof(int) * bb_count);
+        memcpy(bb_labels.data(), full_batch_meta_data->get_labels_batch()[i].data(), sizeof(int) * bb_count);
         memcpy((void *)bb_coords.data(), full_batch_meta_data->get_bb_cords_batch()[i].data(), full_batch_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
         BoundingBoxCords_xcycwh encoded_bb;
         Labels encoded_labels;
@@ -228,7 +228,7 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
         }
         BoundingBoxCords * encoded_bb_ltrb = (BoundingBoxCords*)&encoded_bb;
         full_batch_meta_data->get_bb_cords_batch()[i] = (*encoded_bb_ltrb);
-        full_batch_meta_data->get_label_batch()[i] = encoded_labels;
+        full_batch_meta_data->get_labels_batch()[i] = encoded_labels;
         bb_coords.clear();
         bb_labels.clear();
         full_batch_meta_data->get_metadata_dimensions_batch().labels_dims()[i][0] = anchors_size;
