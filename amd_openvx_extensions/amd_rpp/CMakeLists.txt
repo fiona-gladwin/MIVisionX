@@ -137,6 +137,11 @@ list(APPEND SOURCES
         source/Exposure.cpp
         source/WarpAffine.cpp
         source/Rotate.cpp
+        source/Pixelate.cpp
+        source/Vignette.cpp
+        source/Jitter.cpp
+        source/ColorTemperature.cpp
+        source/Glitch.cpp
         source/Copy.cpp
         source/Snow.cpp
         source/Fog.cpp

@@ -151,6 +151,11 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(FishEye_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Rain_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(LensCorrection_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Pixelate_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Vignette_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Jitter_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(ColorTemperature_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Glitch_Register));
 
     return status;
 }

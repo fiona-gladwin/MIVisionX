@@ -157,6 +157,12 @@ extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ResizeMirrorNormalize(
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Rotate(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array angle, vx_scalar interpolation_type, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph,vx_tensor pSrc,vx_tensor pDst, vx_array newOrder,vx_uint32 newSequenceLength, vx_uint32 sequenceLength, vx_uint32 sequenceCount, vx_scalar layout);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_WarpAffine(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array affine_array, vx_scalar interpolation_type, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Pixelate(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Vignette(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array sdev, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Jitter(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array kernel_size, vx_scalar seed, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ColorTemperature(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array adjust_value, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Glitch(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst,vx_array x_offset_r, vx_array y_offset_r, vx_array x_offset_g, vx_array y_offset_g, vx_array x_offset_b, vx_array y_offset_b, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+
 
 #ifdef __cplusplus
 }

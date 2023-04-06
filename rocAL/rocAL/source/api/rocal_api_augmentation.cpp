@@ -1616,3 +1616,173 @@ rocalLensCorrection(
     }
     return output;
 }
+
+RocalTensor ROCAL_API_CALL
+rocalPixelate(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<rocalTensor*>(p_input);
+    try {
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        context->master_graph->add_node<PixelateNode>({input}, {output});
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
+
+RocalTensor ROCAL_API_CALL
+rocalVignette(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output,
+        RocalFloatParam p_sdev,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<rocalTensor*>(p_input);
+    auto sdev = static_cast<FloatParam*>(p_sdev);
+    try {
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        context->master_graph->add_node<VignetteNode>({input}, {output})->init(sdev);
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
+
+
+RocalTensor ROCAL_API_CALL
+rocalJitter(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output,
+        RocalFloatParam p_kernel_size,
+        int seed,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<rocalTensor*>(p_input);
+    auto kernel_size = static_cast<IntParam*>(p_kernel_size);
+    try {
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        context->master_graph->add_node<JitterNode>({input}, {output})->init(kernel_size, seed);
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
+
+RocalTensor ROCAL_API_CALL
+rocalColorTemperature(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output,
+        RocalIntParam p_adjust_value,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<rocalTensor*>(p_input);
+    auto adjust_value = static_cast<IntParam*>(p_adjust_value);
+    try {
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        context->master_graph->add_node<ColorTemperatureNode>({input}, {output})->init(adjust_value);
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
+
+RocalTensor ROCAL_API_CALL
+rocalGlitch(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output,
+        RocalIntParam x_offset_r,
+        RocalIntParam y_offset_r,
+        RocalIntParam x_offset_g,
+        RocalIntParam y_offset_g,
+        RocalIntParam x_offset_b,
+        RocalIntParam y_offset_b,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<rocalTensor*>(p_input);
+    auto x_offset_R = static_cast<IntParam*>(x_offset_r);
+    auto y_offset_R = static_cast<IntParam*>(y_offset_r);
+    auto x_offset_G = static_cast<IntParam*>(x_offset_g);
+    auto y_offset_G = static_cast<IntParam*>(y_offset_g);
+    auto x_offset_B = static_cast<IntParam*>(x_offset_g);
+    auto y_offset_B = static_cast<IntParam*>(y_offset_g);
+    try {
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        context->master_graph->add_node<GlitchNode>({input}, {output})->init(x_offset_R, y_offset_R, x_offset_G, y_offset_G, x_offset_B, y_offset_B);
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}

@@ -145,6 +145,11 @@ vx_status Rain_Register(vx_context);
 vx_status LensCorrection_Register(vx_context);
 vx_status SequenceRearrange_Register(vx_context);
 vx_status Snow_Register(vx_context);
+vx_status Pixelate_Register(vx_context);
+vx_status Vignette_Register(vx_context);
+vx_status Jitter_Register(vx_context);
+vx_status ColorTemperature_Register(vx_context);
+vx_status Glitch_Register(vx_context);
 vx_status WarpAffine_Register(vx_context);
 
 // kernel names
@@ -257,5 +262,10 @@ vx_status WarpAffine_Register(vx_context);
 #define VX_KERNEL_RPP_SATURATION_NAME                                        "org.rpp.Saturation"
 #define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
 #define VX_KERNEL_RPP_SNOW_NAME                                              "org.rpp.Snow"
+#define VX_KERNEL_RPP_PIXELATE_NAME                                          "org.rpp.Pixelate"
+// #define VX_KERNEL_RPP_VIGNETTE_NAME                                          "org.rpp.Vignette"
+#define VX_KERNEL_RPP_JITTER_NAME                                            "org.rpp.Jitter"
+#define VX_KERNEL_RPP_COLORTEMPERATURE_NAME                                  "org.rpp.ColorTemperature"
+#define VX_KERNEL_RPP_GLITCH_NAME                                            "org.rpp.Glitch"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
