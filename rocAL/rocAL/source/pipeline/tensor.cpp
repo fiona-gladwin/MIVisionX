@@ -108,8 +108,10 @@ bool operator==(const rocalTensorInfo &rhs, const rocalTensorInfo &lhs) {
 
 
 void rocalTensorInfo::reset_tensor_roi_buffers() {
-    if(!_roi_buf)
-        allocate_host_or_pinned_mem(&_roi_buf, _batch_size * 4 * sizeof(unsigned), _mem_type);
+    if(!_roi_buf) {
+        size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
+        allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
+    }
     if (_is_image) {
         auto roi = get_roi();
         for (unsigned i = 0; i < _batch_size; i++) {
