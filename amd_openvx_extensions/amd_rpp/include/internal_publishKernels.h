@@ -137,6 +137,11 @@ vx_status Exposure_Register(vx_context);
 vx_status WarpAffine_Register(vx_context);
 vx_status Rotate_Register(vx_context);
 vx_status Noise_Register(vx_context);
+vx_status Pixelate_Register(vx_context);
+vx_status Vignette_Register(vx_context);
+vx_status Jitter_Register(vx_context);
+vx_status ColorTemperature_Register(vx_context);
+vx_status Glitch_Register(vx_context);
 
 
 
@@ -235,9 +240,14 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_GAMMACORRECTION_NAME                                   "org.rpp.GammaCorrection"
 #define VX_KERNEL_RPP_BLEND_NAME                                             "org.rpp.Blend"
 #define VX_KERNEL_RPP_EXPOSURE_NAME                                          "org.rpp.Exposure"
-#define VX_KERNEL_RPP_WARPAFFINE_NAME                                          "org.rpp.WarpAffine"
-#define VX_KERNEL_RPP_ROTATE_NAME                                             "org.rpp.Rotate"
+#define VX_KERNEL_RPP_WARPAFFINE_NAME                                        "org.rpp.WarpAffine"
+#define VX_KERNEL_RPP_ROTATE_NAME                                            "org.rpp.Rotate"
 #define VX_KERNEL_RPP_NOISE_NAME                                             "org.rpp.Noise"
+#define VX_KERNEL_RPP_PIXELATE_NAME                                          "org.rpp.Pixelate"
+#define VX_KERNEL_RPP_VIGNETTE_NAME                                          "org.rpp.Vignette"
+#define VX_KERNEL_RPP_JITTER_NAME                                            "org.rpp.Jitter"
+#define VX_KERNEL_RPP_COLORTEMPERATURE_NAME                                  "org.rpp.ColorTemperature"
+#define VX_KERNEL_RPP_GLITCH_NAME                                            "org.rpp.Glitch"
 
 #define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                               "org.rpp.CropMirrorNormalize"
 #define VX_KERNEL_RPP_RESIZE_NAME                                            "org.rpp.Resize"

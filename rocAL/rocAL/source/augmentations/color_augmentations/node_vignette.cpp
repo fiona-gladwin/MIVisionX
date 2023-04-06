@@ -20,40 +20,38 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#pragma once
-
-#include "node_warp_affine.h"
-#include "node_exposure.h"
+#include <vx_ext_rpp.h>
 #include "node_vignette.h"
-#include "node_jitter.h"
-#include "node_snp_noise.h"
-// #include "node_snow.h"
-// #include "node_rain.h"
-#include "node_color_temperature.h"
-// #include "node_fog.h"
-#include "node_pixelate.h"
-// #include "node_lens_correction.h"
-#include "node_gamma.h"
-#include "node_flip.h"
-// #include "node_crop_resize.h"
-#include "node_brightness.h"
-#include "node_contrast.h"
-// #include "node_blur.h"
-// #include "node_fisheye.h"
-#include "node_blend.h"
-#include "node_resize.h"
-#include "node_rotate.h"
-#include "node_color_twist.h"
-// #include "node_hue.h"
-// #include "node_saturation.h"
-#include "node_crop_mirror_normalize.h"
-#include "node_resize_mirror_normalize.h"
-// #include "node_resize_crop_mirror.h"
-#include "node_ssd_random_crop.h"
-#include "node_crop.h"
-// #include "node_random_crop.h"
-#include "node_copy.h"
-#include "node_nop.h"
-#include "node_sequence_rearrange.h"
-#include "node_glitch.h"
+#include "exception.h"
 
+
+VignetteNode::VignetteNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
+        Node(inputs, outputs),
+        _sdev(SDEV_RANGE[0], SDEV_RANGE[1])
+{
+}
+
+void VignetteNode::create_node() {
+    if(_node)
+        return;
+
+    _sdev.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtrppNode_Vignette(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _sdev.default_array(), _input_layout, _output_layout, _roi_type);
+
+    vx_status status;
+    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Adding the vignette (vxExtrppNode_Vignette) node failed: "+ TOSTR(status))
+}
+
+void VignetteNode::init( float sdev) {
+    _sdev.set_param(sdev);
+}
+
+void VignetteNode::init( FloatParam* sdev) {
+    _sdev.set_param(core(sdev));
+}
+
+
+void VignetteNode::update_node() {
+    _sdev.update_array();
+}
