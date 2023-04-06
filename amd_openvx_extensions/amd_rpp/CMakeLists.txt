@@ -132,6 +132,9 @@ list(APPEND SOURCES
         source/GammaCorrection.cpp
         source/Contrast.cpp
         source/Flip.cpp
+        source/Blend.cpp
+        source/Exposure.cpp
+        source/WarpAffine.cpp
         source/Copy.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp

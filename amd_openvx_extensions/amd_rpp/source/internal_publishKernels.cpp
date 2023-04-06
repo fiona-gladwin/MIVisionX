@@ -138,7 +138,9 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(GammaCorrection_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Contrast_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Flip_Register));
-
+    STATUS_ERROR_CHECK(ADD_KERNEL(Blend_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Exposure_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(WarpAffine_Register));
     return status;
 }
 
