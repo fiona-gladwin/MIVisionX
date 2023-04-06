@@ -130,13 +130,13 @@ void COCOMetaDataReader::read_all(const std::string &path)
 
     BoundingBoxCord box;
     ImgSize img_size;
-    int original_id;
     RAPIDJSON_ASSERT(parser.PeekType() == kObjectType);
     parser.EnterObject();
     while (const char *key = parser.NextObjectKey())
     {
         if (0 == std::strcmp(key, "images"))
         {
+            int original_id;
             RAPIDJSON_ASSERT(parser.PeekType() == kArrayType);
             parser.EnterArray();
             while (parser.NextArrayValue())
