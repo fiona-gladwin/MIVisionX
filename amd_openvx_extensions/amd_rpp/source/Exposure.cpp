@@ -22,13 +22,12 @@ THE SOFTWARE.
 
 #include "internal_publishKernels.h"
 
-struct ContrastLocalData {
+struct ExposureLocalData {
     RPPCommonHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    vx_float32 *c_factor;
-    vx_float32 *c_centre;
+    vx_float32 *shift;
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
     RpptDesc dstDesc;
@@ -44,10 +43,9 @@ struct ContrastLocalData {
     vx_enum outputTensorType;
 };
 
-static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *parameters, vx_uint32 num, ContrastLocalData *data) {
+static vx_status VX_CALLBACK refreshExposure(vx_node node, const vx_reference *parameters, vx_uint32 num, ExposureLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->c_factor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_float32), data->c_centre, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->shift, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -66,8 +64,7 @@ static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *p
         for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
-                data->c_factor[index + f] = data->c_factor[n];
-                data->c_centre[index + f] = data->c_centre[n];
+                data->shift[index + f] = data->shift[n];
                 data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
                 data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
                 data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
@@ -79,9 +76,12 @@ static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *p
     return status;
 }
 
-static vx_status VX_CALLBACK validateContrast(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
+static vx_status VX_CALLBACK validateExposure(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
+    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[4], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
+    if (scalar_type != VX_TYPE_INT32)
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #4 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[5], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #5 type=%d (must be size)\n", scalar_type);
@@ -89,11 +89,8 @@ static vx_status VX_CALLBACK validateContrast(vx_node node, const vx_reference p
     if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #6 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[7], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
-    if (scalar_type != VX_TYPE_INT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #7 type=%d (must be size)\n", scalar_type);
-    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[8], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_UINT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #8 type=%d (must be size)\n", scalar_type);
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #7 type=%d (must be size)\n", scalar_type);
 
     // Check for input parameters
     vx_tensor input;
@@ -103,7 +100,7 @@ static vx_status VX_CALLBACK validateContrast(vx_node node, const vx_reference p
     STATUS_ERROR_CHECK(vxQueryParameter(input_param, VX_PARAMETER_ATTRIBUTE_REF, &input, sizeof(vx_tensor)));
     STATUS_ERROR_CHECK(vxQueryTensor(input, VX_TENSOR_NUMBER_OF_DIMS, &in_num_tensor_dims, sizeof(in_num_tensor_dims)));
     if(in_num_tensor_dims < 4)
-        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: Contrast: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", in_num_tensor_dims);
+        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: Exposure: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", in_num_tensor_dims);
 
     // Check for output parameters
     vx_tensor output;
@@ -129,37 +126,34 @@ static vx_status VX_CALLBACK validateContrast(vx_node node, const vx_reference p
     return status;
 }
 
-static vx_status VX_CALLBACK processContrast(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+static vx_status VX_CALLBACK processExposure(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     RppStatus rpp_status = RPP_SUCCESS;
     vx_status return_status = VX_SUCCESS;
-    ContrastLocalData *data = NULL;
+    ExposureLocalData *data = NULL;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
-        refreshContrast(node, parameters, num, data);
-        rpp_status = rppt_contrast_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->c_factor, data->c_centre, data->roiPtr, data->roiType, data->handle->rppHandle);
+        refreshExposure(node, parameters, num, data);
+        rpp_status = rppt_exposure_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->shift, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        refreshContrast(node, parameters, num, data);
-        std::cerr<<"\n data->c_factor "<<data->c_factor[0]<<"  "<< data->c_centre[0];
-        std::cerr<<"\n data->c_factor[1] "<<data->c_factor[1]<<"  "<< data->c_centre[1];
-
-        rpp_status = rppt_contrast_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->c_factor, data->c_centre, data->roiPtr, data->roiType, data->handle->rppHandle);
+        refreshExposure(node, parameters, num, data);
+        rpp_status = rppt_exposure_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->shift, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
 }
 
-static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    ContrastLocalData *data = new ContrastLocalData;
+static vx_status VX_CALLBACK initializeExposure(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+    ExposureLocalData *data = new ExposureLocalData;
     memset(data, 0, sizeof(*data));
 
     int roi_type;
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->inputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &data->outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &data->inputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
 
     // Querying for input tensor
@@ -180,20 +174,18 @@ static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
-    data->c_factor = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
-    data->c_centre = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
-    refreshContrast(node, parameters, num, data);
+    data->shift = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
+    refreshExposure(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
 
-static vx_status VX_CALLBACK uninitializeContrast(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    ContrastLocalData *data;
+static vx_status VX_CALLBACK uninitializeExposure(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+    ExposureLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
-    free(data->c_factor);
-    free(data->c_centre);
+    free(data->shift);
     delete (data);
     return VX_SUCCESS;
 }
@@ -215,16 +207,16 @@ static vx_status VX_CALLBACK query_target_support(vx_graph graph, vx_node node,
     return VX_SUCCESS;
 }
 
-vx_status Contrast_Register(vx_context context) {
+vx_status Exposure_Register(vx_context context) {
     vx_status status = VX_SUCCESS;
     // Add kernel to the context with callbacks
-    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.Contrast",
-                                       VX_KERNEL_RPP_CONTRAST,
-                                       processContrast,
-                                       9,
-                                       validateContrast,
-                                       initializeContrast,
-                                       uninitializeContrast);
+    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.Exposure",
+                                       VX_KERNEL_RPP_EXPOSURE,
+                                       processExposure,
+                                       8,
+                                       validateExposure,
+                                       initializeExposure,
+                                       uninitializeExposure);
     ERROR_CHECK_OBJECT(kernel);
     AgoTargetAffinityInfo affinity;
     vxQueryContext(context, VX_CONTEXT_ATTRIBUTE_AMD_AFFINITY, &affinity, sizeof(affinity));
@@ -244,11 +236,11 @@ vx_status Contrast_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 1, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
-        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
+        // PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
+        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 7, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
-        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 8, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxFinalizeKernel(kernel));
     }
     if (status != VX_SUCCESS) {

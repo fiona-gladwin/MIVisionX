@@ -333,7 +333,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
 
     int resize_w = width, resize_h = height; // height and width
 
-    RocalTensor image1;
+    RocalTensor image1, image2;
 
     // switch (test_case)
     // {
@@ -453,7 +453,13 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalBlend" << std::endl;
-        // RocalImage image0_b = rocalRotate(handle, image0, false);
+        image2 = rocalFlip(handle, input1, true, NULL, NULL, tensorLayout, tensorOutputType);
+        // // image2 = rocalBrightness(handle, input1, true, NULL, NULL, tensorLayout, tensorOutputType);
+
+        image1 = rocalBlend(handle, input1, image2, true, NULL,  tensorLayout, tensorOutputType);
+
+        // image2 = rocalFlip(handle, input1, true, NULL, NULL, tensorLayout, tensorOutputType);
+
         // image1 = rocalBlend(handle, image0, image0_b, true);
     }
     break;
@@ -462,6 +468,10 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalWarpAffine" << std::endl;
         // image1 = rocalWarpAffine(handle, image0, true);
+        // image1 = rocalWarpAffine(handle, input1, tensorLayout, tensorOutputType, true);
+        image1 = rocalWarpAffine(handle, input1, true, NULL, NULL,  NULL, NULL, NULL, NULL, 0, tensorLayout, tensorOutputType);
+
+
     }
     break;
     case 10:
@@ -539,6 +549,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalExposure" << std::endl;
         // image1 = rocalExposure(handle, image0, true);
+        image1 = rocalExposure(handle, input1, true, NULL,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 21:
@@ -642,6 +654,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalBlendFixed" << std::endl;
         // RocalImage image0_b = rocalRotate(handle, image0, false);
         // image1 = rocalBlendFixed(handle, image0, image0_b, 0.5, true);
+        image2 = rocalFlipFixed(handle, input1, true, 1, 0, tensorLayout, tensorOutputType);
+        image1 = rocalBlendFixed(handle, input1, image2, true, 0.5,  tensorLayout, tensorOutputType);
     }
     break;
     case 37:
@@ -712,6 +726,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalExposureFixed" << std::endl;
         // image1 = rocalExposureFixed(handle, image0, 1, true);
+        image1 = rocalExposureFixed(handle, input1, true, 1, tensorLayout, tensorOutputType);
+
     }
     break;
     case 47:

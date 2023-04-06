@@ -22,13 +22,14 @@ THE SOFTWARE.
 
 #include "internal_publishKernels.h"
 
-struct ContrastLocalData {
+struct WarpAffineLocalData {
     RPPCommonHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    vx_float32 *c_factor;
-    vx_float32 *c_centre;
+    vx_float32 *alpha;
+    vx_uint32 interpolation;
+
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
     RpptDesc dstDesc;
@@ -44,10 +45,9 @@ struct ContrastLocalData {
     vx_enum outputTensorType;
 };
 
-static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *parameters, vx_uint32 num, ContrastLocalData *data) {
+static vx_status VX_CALLBACK refreshWarpAffine(vx_node node, const vx_reference *parameters, vx_uint32 num, WarpAffineLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->c_factor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_float32), data->c_centre, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->alpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -66,8 +66,14 @@ static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *p
         for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
-                data->c_factor[index + f] = data->c_factor[n];
-                data->c_centre[index + f] = data->c_centre[n];
+                int var=(index*6)+f;
+                int var2=n*6;
+                data->alpha[var] = data->alpha[var2];
+                data->alpha[var+1] = data->alpha[var2+1];
+                data->alpha[var+2] = data->alpha[var2+2];
+                data->alpha[var+3] = data->alpha[var2+3];
+                data->alpha[var+4] = data->alpha[var2+4];
+                data->alpha[var+5] = data->alpha[var2+5];
                 data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
                 data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
                 data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
@@ -79,7 +85,7 @@ static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *p
     return status;
 }
 
-static vx_status VX_CALLBACK validateContrast(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
+static vx_status VX_CALLBACK validateWarpAffine(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[5], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
@@ -103,7 +109,7 @@ static vx_status VX_CALLBACK validateContrast(vx_node node, const vx_reference p
     STATUS_ERROR_CHECK(vxQueryParameter(input_param, VX_PARAMETER_ATTRIBUTE_REF, &input, sizeof(vx_tensor)));
     STATUS_ERROR_CHECK(vxQueryTensor(input, VX_TENSOR_NUMBER_OF_DIMS, &in_num_tensor_dims, sizeof(in_num_tensor_dims)));
     if(in_num_tensor_dims < 4)
-        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: Contrast: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", in_num_tensor_dims);
+        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: WarpAffine: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", in_num_tensor_dims);
 
     // Check for output parameters
     vx_tensor output;
@@ -129,30 +135,27 @@ static vx_status VX_CALLBACK validateContrast(vx_node node, const vx_reference p
     return status;
 }
 
-static vx_status VX_CALLBACK processContrast(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+static vx_status VX_CALLBACK processWarpAffine(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     RppStatus rpp_status = RPP_SUCCESS;
     vx_status return_status = VX_SUCCESS;
-    ContrastLocalData *data = NULL;
+    WarpAffineLocalData *data = NULL;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
-        refreshContrast(node, parameters, num, data);
-        rpp_status = rppt_contrast_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->c_factor, data->c_centre, data->roiPtr, data->roiType, data->handle->rppHandle);
+        refreshWarpAffine(node, parameters, num, data);
+        rpp_status = rppt_warp_affine_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->alpha, RpptInterpolationType::BILINEAR, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        refreshContrast(node, parameters, num, data);
-        std::cerr<<"\n data->c_factor "<<data->c_factor[0]<<"  "<< data->c_centre[0];
-        std::cerr<<"\n data->c_factor[1] "<<data->c_factor[1]<<"  "<< data->c_centre[1];
-
-        rpp_status = rppt_contrast_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->c_factor, data->c_centre, data->roiPtr, data->roiType, data->handle->rppHandle);
+        refreshWarpAffine(node, parameters, num, data);
+        // rpp_status = rppt_brightness_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->alpha, data->beta, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
 }
 
-static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    ContrastLocalData *data = new ContrastLocalData;
+static vx_status VX_CALLBACK initializeWarpAffine(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+    WarpAffineLocalData *data = new WarpAffineLocalData;
     memset(data, 0, sizeof(*data));
 
     int roi_type;
@@ -180,20 +183,18 @@ static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
-    data->c_factor = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
-    data->c_centre = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
-    refreshContrast(node, parameters, num, data);
+    data->alpha = (vx_float32 *)malloc(sizeof(vx_float32) * 6 * data->srcDescPtr->n);
+    refreshWarpAffine(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
 
-static vx_status VX_CALLBACK uninitializeContrast(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    ContrastLocalData *data;
+static vx_status VX_CALLBACK uninitializeWarpAffine(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+    WarpAffineLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
-    free(data->c_factor);
-    free(data->c_centre);
+    free(data->alpha);
     delete (data);
     return VX_SUCCESS;
 }
@@ -215,16 +216,16 @@ static vx_status VX_CALLBACK query_target_support(vx_graph graph, vx_node node,
     return VX_SUCCESS;
 }
 
-vx_status Contrast_Register(vx_context context) {
+vx_status WarpAffine_Register(vx_context context) {
     vx_status status = VX_SUCCESS;
     // Add kernel to the context with callbacks
-    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.Contrast",
-                                       VX_KERNEL_RPP_CONTRAST,
-                                       processContrast,
+    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.WarpAffine",
+                                       VX_KERNEL_RPP_WARPAFFINE,
+                                       processWarpAffine,
                                        9,
-                                       validateContrast,
-                                       initializeContrast,
-                                       uninitializeContrast);
+                                       validateWarpAffine,
+                                       initializeWarpAffine,
+                                       uninitializeWarpAffine);
     ERROR_CHECK_OBJECT(kernel);
     AgoTargetAffinityInfo affinity;
     vxQueryContext(context, VX_CONTEXT_ATTRIBUTE_AMD_AFFINITY, &affinity, sizeof(affinity));
@@ -244,7 +245,7 @@ vx_status Contrast_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 1, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
-        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
+        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 7, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
