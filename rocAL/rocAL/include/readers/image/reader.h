@@ -54,7 +54,6 @@ struct SequenceInfo
     size_t start_frame_number;
     std::string video_file_name;
 };
-
 #endif
 
 struct ReaderConfig

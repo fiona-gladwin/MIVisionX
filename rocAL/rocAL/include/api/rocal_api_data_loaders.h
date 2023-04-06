@@ -85,7 +85,7 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegFileSourceSingleShard(RocalCont
 /// \param loop Determines if the user wants to indefinitely loops through images or not.
 /// \param step: Frame interval between each sequence.
 /// \param stride: Frame interval between frames in a sequence.
-/// \return Reference to the output image.
+/// \return Reference to the output tensor.
 extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReader(RocalContext context,
                                                             const char* source_path,
                                                             RocalImageColor rocal_color_format,
@@ -109,7 +109,7 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReader(RocalContext context
 /// \param loop Determines if the user wants to indefinitely loops through images or not.
 /// \param step: Frame interval between each sequence.
 /// \param stride: Frame interval between frames in a sequence.
-/// \return Reference to the output image
+/// \return Reference to the output tensor
 extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalContext context,
                                                                        const char* source_path,
                                                                        RocalImageColor rocal_color_format,
@@ -678,7 +678,7 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileResizeSingleShard(RocalCon
 /// \param out_height ; output_height
 /// \param filename_prefix ; if set loader will only load files with the given prefix name
 /// \return Reference to the output image
-extern "C"  RocalTensor  ROCAL_API_CALL rocalRawCIFAR10Source(RocalContext context,
+extern "C"  RocalImage  ROCAL_API_CALL rocalRawCIFAR10Source(RocalContext context,
                                                         const char* source_path,
                                                         RocalImageColor color_format,
                                                         bool is_output ,
