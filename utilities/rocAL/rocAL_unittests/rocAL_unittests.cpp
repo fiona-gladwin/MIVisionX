@@ -411,6 +411,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalRotate" << std::endl;
         // image1 = rocalRotate(handle, image0, true);
+        image1 = rocalRotate(handle, input1, true, NULL, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+
     }
     break;
     case 3:
@@ -618,6 +620,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalRotateFixed" << std::endl;
         // image1 = rocalRotateFixed(handle, image0, 45, true);
+        image1 = rocalRotateFixed(handle, input1, true, 45, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+
     }
     break;
     case 32:
@@ -654,7 +658,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalBlendFixed" << std::endl;
         // RocalImage image0_b = rocalRotate(handle, image0, false);
         // image1 = rocalBlendFixed(handle, image0, image0_b, 0.5, true);
-        image2 = rocalFlipFixed(handle, input1, true, 1, 0, tensorLayout, tensorOutputType);
+        image2 = rocalRotateFixed(handle, input1, true, 45, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
         image1 = rocalBlendFixed(handle, input1, image2, true, 0.5,  tensorLayout, tensorOutputType);
     }
     break;

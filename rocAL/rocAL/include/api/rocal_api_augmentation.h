@@ -134,6 +134,21 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_
                                             RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                             RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
+
+extern "C" RocalTensor ROCAL_API_CALL rocalRotate(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalFloatParam angle = NULL, 
+                                                      RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+                                                    
+extern "C" RocalTensor ROCAL_API_CALL rocalRotateFixed(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      float angle = NULL, 
+                                                      RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
 /// Accepts U8 and RGB24 inputs
 /// \param context Rocal context
 /// \param input Input Rocal tensor
