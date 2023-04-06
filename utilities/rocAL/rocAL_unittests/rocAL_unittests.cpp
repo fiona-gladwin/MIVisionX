@@ -411,6 +411,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalRotate" << std::endl;
         // image1 = rocalRotate(handle, image0, true);
+        image1 = rocalRotate(handle, input1, true, NULL, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+
     }
     break;
     case 3:

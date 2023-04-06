@@ -135,6 +135,7 @@ vx_status Flip_Register(vx_context);
 vx_status Blend_Register(vx_context);
 vx_status Exposure_Register(vx_context);
 vx_status WarpAffine_Register(vx_context);
+vx_status Rotate_Register(vx_context);
 
 
 
@@ -234,7 +235,7 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_BLEND_NAME                                             "org.rpp.Blend"
 #define VX_KERNEL_RPP_EXPOSURE_NAME                                          "org.rpp.Exposure"
 #define VX_KERNEL_RPP_WARPAFFINE_NAME                                          "org.rpp.WarpAffine"
-
+#define VX_KERNEL_RPP_ROTATE_NAME                                             "org.rpp.Rotate"
 
 #define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                               "org.rpp.CropMirrorNormalize"
 #define VX_KERNEL_RPP_RESIZE_NAME                                            "org.rpp.Resize"
