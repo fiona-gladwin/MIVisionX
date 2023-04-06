@@ -21,39 +21,32 @@ THE SOFTWARE.
 */
 
 #pragma once
+#include "node.h"
+#include "parameter_factory.h"
+#include "parameter_vx.h"
+#include "graph.h"
 
-#include "node_warp_affine.h"
-#include "node_exposure.h"
-#include "node_vignette.h"
-#include "node_jitter.h"
-#include "node_snp_noise.h"
-#include "node_snow.h"
-#include "node_rain.h"
-#include "node_color_temperature.h"
-#include "node_fog.h"
-#include "node_pixelate.h"
-#include "node_lens_correction.h"
-#include "node_gamma.h"
-#include "node_flip.h"
-// #include "node_crop_resize.h"
-#include "node_brightness.h"
-#include "node_contrast.h"
-#include "node_blur.h"
-#include "node_fisheye.h"
-#include "node_blend.h"
-#include "node_resize.h"
-#include "node_rotate.h"
-#include "node_color_twist.h"
-#include "node_hue.h"
-#include "node_saturation.h"
-#include "node_crop_mirror_normalize.h"
-#include "node_resize_mirror_normalize.h"
-#include "node_resize_crop_mirror.h"
-#include "node_ssd_random_crop.h"
-#include "node_crop.h"
-// #include "node_random_crop.h"
-#include "node_copy.h"
-#include "node_nop.h"
-#include "node_sequence_rearrange.h"
-#include "node_glitch.h"
+class NoiseNode : public Node
+{
+public:
+    NoiseNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
+    NoiseNode() = delete;
 
+    void init( float _noise_prob, float _salt_prob,float hue , float _noise_value,int _salt_value);
+    void init( FloatParam* _noise_prob_param, FloatParam* _salt_prob_param,  FloatParam* _noise_value_param,  FloatParam* _salt_value_param, int seed);
+
+protected:
+    void create_node() override ;
+    void update_node() override;
+private:
+    ParameterVX<float> _noise_prob;
+    ParameterVX<float> _salt_prob;
+    ParameterVX<float> _noise_value;
+    ParameterVX<float> _salt_value;
+    int _seed;
+    
+    constexpr static float NOISE_PROB_RANGE [2] = {0.1, 1};
+    constexpr static float SALT_PROB_RANGE [2] = {0.1, 1};
+    constexpr static float NOISE_RANGE [2] = {0, 0.5};
+    constexpr static float SALT_RANGE [2] = {0.1, 1};
+};

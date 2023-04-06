@@ -585,6 +585,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalSnPNoise" << std::endl;
+        image1 = rocalNoise(handle, input1, true, NULL, NULL, NULL, NULL, 0, tensorLayout, tensorOutputType);
+
         // image1 = rocalSnPNoise(handle, image0, true);
     }
     break;
@@ -594,7 +596,6 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalSnow" << std::endl;
         // image1 = rocalSnow(handle, image0, true);
         image1 = rocalSnow(handle, input1, true, NULL,  tensorLayout, tensorOutputType);
-
     }
     break;
     case 15:
@@ -796,6 +797,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalSnPNoiseFixed" << std::endl;
         // image1 = rocalSnPNoiseFixed(handle, image0, 0.12, true);
+        image1 = rocalNoiseFixed(handle, input1, true, 0.2, 0.2, 0.2, 0.5, 0, tensorLayout, tensorOutputType);
+
     }
     break;
     case 41:

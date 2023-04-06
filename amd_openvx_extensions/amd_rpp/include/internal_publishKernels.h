@@ -151,6 +151,7 @@ vx_status Jitter_Register(vx_context);
 vx_status ColorTemperature_Register(vx_context);
 vx_status Glitch_Register(vx_context);
 vx_status WarpAffine_Register(vx_context);
+vx_status Noise_Register(vx_context);
 
 // kernel names
 #define VX_KERNEL_RPP_NOPBATCHPD_NAME                   "org.rpp.NopbatchPD"
@@ -243,6 +244,7 @@ vx_status WarpAffine_Register(vx_context);
 #define VX_KERNEL_RPP_COLORTWIST_NAME                                        "org.rpp.ColorTwist"
 #define VX_KERNEL_RPP_CONTRAST_NAME                                          "org.rpp.Contrast"
 #define VX_KERNEL_RPP_COPY_NAME                                              "org.rpp.Copy"
+#define VX_KERNEL_RPP_NOISE_NAME                                             "org.rpp.Noise"
 #define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                               "org.rpp.CropMirrorNormalize"
 #define VX_KERNEL_RPP_CROP_NAME                                              "org.rpp.Crop"
 #define VX_KERNEL_RPP_EXPOSURE_NAME                                          "org.rpp.Exposure"

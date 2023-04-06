@@ -197,6 +197,59 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSaturation(RocalContext context, Roca
                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 
+extern "C" RocalTensor ROCAL_API_CALL rocalPixelate(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalVignette(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalFloatParam intensity = NULL,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalJitter(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalIntParam kernelSize = NULL,
+                                                      int seed=0,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalColorTemperature(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalIntParam p_adjust_value=NULL,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalGlitch(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalIntParam x_offset_r = NULL,
+                                                      RocalIntParam y_offset_r = NULL,
+                                                      RocalIntParam x_offset_g = NULL,
+                                                      RocalIntParam y_offset_g = NULL,
+                                                      RocalIntParam x_offset_b = NULL,
+                                                      RocalIntParam y_offset_b = NULL,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalNoise(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalFloatParam noise_prob = NULL, RocalFloatParam salt_prob = NULL,
+                                                      RocalFloatParam noise_val = NULL, RocalFloatParam salt_val = NULL,
+                                                      int seed=11110,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+                                                    
+extern "C" RocalTensor ROCAL_API_CALL rocalNoiseFixed(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      float noise_prob, float salt_prob,
+                                                      float noise_val, float salt_val,
+                                                      int seed=11110,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+
+
 /// Accepts U8 and RGB24 inputs
 /// \param context Rocal context
 /// \param input Input Rocal tensor
@@ -316,39 +369,5 @@ extern "C" RocalTensor ROCAL_API_CALL rocalLensCorrection(RocalContext context, 
                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
-extern "C" RocalTensor ROCAL_API_CALL rocalPixelate(RocalContext context, RocalTensor input,
-                                                      bool is_output,
-                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
-                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
-
-extern "C" RocalTensor ROCAL_API_CALL rocalVignette(RocalContext context, RocalTensor input,
-                                                      bool is_output,
-                                                      RocalFloatParam sdev = NULL,
-                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
-                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
-
-extern "C" RocalTensor ROCAL_API_CALL rocalJitter(RocalContext context, RocalTensor input,
-                                                      bool is_output,
-                                                      RocalIntParam kernelSize = NULL,
-                                                      int seed=0,
-                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
-                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
-
-extern "C" RocalTensor ROCAL_API_CALL rocalColorTemperature(RocalContext context, RocalTensor input,
-                                                      bool is_output,
-                                                      RocalIntParam p_adjust_value=NULL,
-                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
-                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
-
-extern "C" RocalTensor ROCAL_API_CALL rocalGlitch(RocalContext context, RocalTensor input,
-                                                      bool is_output,
-                                                      RocalIntParam x_offset_r = NULL,
-                                                      RocalIntParam y_offset_r = NULL,
-                                                      RocalIntParam x_offset_g = NULL,
-                                                      RocalIntParam y_offset_g = NULL,
-                                                      RocalIntParam x_offset_b = NULL,
-                                                      RocalIntParam y_offset_b = NULL,
-                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
-                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 #endif //MIVISIONX_ROCAL_API_AUGMENTATION_H
