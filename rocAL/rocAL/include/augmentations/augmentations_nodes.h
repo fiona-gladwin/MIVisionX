@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "node_exposure.h"
 // #include "node_vignette.h"
 // #include "node_jitter.h"
-// #include "node_snp_noise.h"
+#include "node_snp_noise.h"
 // #include "node_snow.h"
 // #include "node_rain.h"
 // #include "node_color_temperature.h"

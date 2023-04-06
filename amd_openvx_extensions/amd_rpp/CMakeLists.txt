@@ -136,6 +136,7 @@ list(APPEND SOURCES
         source/Exposure.cpp
         source/WarpAffine.cpp
         source/Rotate.cpp
+        source/Noise.cpp
         source/Copy.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp

@@ -501,6 +501,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalSnPNoise" << std::endl;
+        image1 = rocalNoise(handle, input1, true, NULL, NULL, NULL, NULL, 0, tensorLayout, tensorOutputType);
+
         // image1 = rocalSnPNoise(handle, image0, true);
     }
     break;

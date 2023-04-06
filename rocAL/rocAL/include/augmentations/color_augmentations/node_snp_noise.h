@@ -1,4 +1,4 @@
- /*
+/*
 Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,23 +25,28 @@ THE SOFTWARE.
 #include "parameter_factory.h"
 #include "parameter_vx.h"
 #include "graph.h"
-#include "rocal_api_types.h"
 
-
-class RotateNode : public Node
+class NoiseNode : public Node
 {
 public:
-    RotateNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
-    RotateNode() = delete;
+    NoiseNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
+    NoiseNode() = delete;
 
-    void init( float angle, RocalResizeInterpolationType interpolation_type);
-    void init( FloatParam* angle_param, RocalResizeInterpolationType interpolation_type);
+    void init( float _noise_prob, float _salt_prob,float hue , float _noise_value,int _salt_value);
+    void init( FloatParam* _noise_prob_param, FloatParam* _salt_prob_param,  FloatParam* _noise_value_param,  FloatParam* _salt_value_param, int seed);
 
 protected:
     void create_node() override ;
     void update_node() override;
 private:
-    ParameterVX<float> _angle;
-    int _interpolation_type;
-    constexpr static float ROTATE_ANGLE_RANGE [2] = {0, 180};
+    ParameterVX<float> _noise_prob;
+    ParameterVX<float> _salt_prob;
+    ParameterVX<float> _noise_value;
+    ParameterVX<float> _salt_value;
+    int _seed;
+    
+    constexpr static float NOISE_PROB_RANGE [2] = {0.1, 1};
+    constexpr static float SALT_PROB_RANGE [2] = {0.1, 1};
+    constexpr static float NOISE_RANGE [2] = {0, 0.5};
+    constexpr static float SALT_RANGE [2] = {0.1, 1};
 };
