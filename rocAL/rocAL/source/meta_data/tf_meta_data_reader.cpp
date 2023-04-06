@@ -66,7 +66,6 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
     }
     if(_image_names.size() != (unsigned)_output->size())
         _output->resize(_image_names.size());
-    _output->reset_objects_count();
 
     for(unsigned i = 0; i < _image_names.size(); i++)
     {
@@ -74,8 +73,8 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         auto it = _map_content.find(_image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ _image_name )
-        _output->get_label_batch()[i] = it->second->get_label();
-        _output->increment_object_count(it->second->get_object_count());
+        auto labels = it->second->get_labels();
+        _output->get_labels_batch()[i] = labels;
     }
 
 }
@@ -84,7 +83,7 @@ void TFMetaDataReader::print_map_contents()
 {
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label()[0] << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_labels()[0] << std::endl;
     }
 }
 

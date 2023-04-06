@@ -1148,7 +1148,7 @@ size_t MasterGraph::bounding_box_batch_count(int *buf, pMetaDataBatch meta_data_
     size_t size = 0;
     for(unsigned i = 0; i < _user_batch_size; i++)
     {
-        buf[i] = _is_box_encoder? _num_anchors: meta_data_batch->get_label_batch()[i].size();
+        buf[i] = _is_box_encoder? _num_anchors: meta_data_batch->get_labels_batch()[i].size();
         size += buf[i];
     }
     return size;

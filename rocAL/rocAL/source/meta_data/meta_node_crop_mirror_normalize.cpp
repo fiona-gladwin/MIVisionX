@@ -51,11 +51,11 @@ void CropMirrorNormalizeMetaNode::update_parameters(MetaDataBatch* input_meta_da
     vxCopyArrayRange((vx_array)_mirror, 0, _batch_size, sizeof(uint),_mirror_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     for(int i = 0; i < _batch_size; i++)
     {
-        auto bb_count = input_meta_data->get_label_batch()[i].size();
+        auto bb_count = input_meta_data->get_labels_batch()[i].size();
         int labels_buf[bb_count];
         BoundingBoxCords coords_buf;
         coords_buf.resize(bb_count);
-        memcpy(labels_buf, input_meta_data->get_label_batch()[i].data(),  sizeof(int)*bb_count);
+        memcpy(labels_buf, input_meta_data->get_labels_batch()[i].data(),  sizeof(int)*bb_count);
         memcpy((void *)coords_buf.data(), input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
         BoundingBoxCords bb_coords;
         BoundingBoxCord temp_box = {0, 0, 1, 1};
@@ -98,7 +98,7 @@ void CropMirrorNormalizeMetaNode::update_parameters(MetaDataBatch* input_meta_da
             bb_labels.push_back(0);
         }
         input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_label_batch()[i] = bb_labels;
+        input_meta_data->get_labels_batch()[i] = bb_labels;
         input_meta_data->get_metadata_dimensions_batch().labels_dims()[i][0] = bb_labels.size();
         input_meta_data->get_metadata_dimensions_batch().bb_cords_dims()[i][0] = bb_coords.size();
     }
