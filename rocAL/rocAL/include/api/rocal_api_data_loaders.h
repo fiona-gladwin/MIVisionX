@@ -86,16 +86,16 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegFileSourceSingleShard(RocalCont
 /// \param step: Frame interval between each sequence.
 /// \param stride: Frame interval between frames in a sequence.
 /// \return Reference to the output image.
-extern "C"  RocalImage  ROCAL_API_CALL rocalSequenceReader(RocalContext context,
-                                                        const char* source_path,
-                                                        RocalImageColor rocal_color_format,
-                                                        unsigned internal_shard_count,
-                                                        unsigned sequence_length,
-                                                        bool is_output,
-                                                        bool shuffle = false,
-                                                        bool loop = false,
-                                                        unsigned step = 0,
-                                                        unsigned stride = 0);
+extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReader(RocalContext context,
+                                                            const char* source_path,
+                                                            RocalImageColor rocal_color_format,
+                                                            unsigned internal_shard_count,
+                                                            unsigned sequence_length,
+                                                            bool is_output,
+                                                            bool shuffle = false,
+                                                            bool loop = false,
+                                                            unsigned step = 0,
+                                                            unsigned stride = 0);
 
 /// Creates JPEG image reader and decoder. Reads [Frames] sequences from a directory representing a collection of streams. It accepts external sharding information to load a singe shard only.
 /// \param context Rocal context
@@ -110,17 +110,17 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalSequenceReader(RocalContext context,
 /// \param step: Frame interval between each sequence.
 /// \param stride: Frame interval between frames in a sequence.
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalContext context,
-                                                                   const char* source_path,
-                                                                   RocalImageColor rocal_color_format,
-                                                                   unsigned shard_id,
-                                                                   unsigned shard_count,
-                                                                   unsigned sequence_length,
-                                                                   bool is_output,
-                                                                   bool shuffle = false,
-                                                                   bool loop = false,
-                                                                   unsigned step = 0,
-                                                                   unsigned stride = 0);
+extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalContext context,
+                                                                       const char* source_path,
+                                                                       RocalImageColor rocal_color_format,
+                                                                       unsigned shard_id,
+                                                                       unsigned shard_count,
+                                                                       unsigned sequence_length,
+                                                                       bool is_output,
+                                                                       bool shuffle = false,
+                                                                       bool loop = false,
+                                                                       unsigned step = 0,
+                                                                       unsigned stride = 0);
 
 /// Creates JPEG image reader and decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants.
 /// If images are not Jpeg compressed they will be ignored.

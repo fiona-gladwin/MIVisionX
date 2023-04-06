@@ -159,6 +159,10 @@ public:
     void set_color_format(RocalColorFormat color_format) {
         _color_format = color_format;
     }
+    // Introduce for SequenceReader, as batch size is different in case of sequence reader
+    void set_sequence_batch_size(unsigned sequence_length) {
+        _batch_size *= sequence_length;
+    }
     size_t get_channels() const { return _channels; }
     unsigned num_of_dims() const { return _num_of_dims; }
     unsigned batch_size() const { return _batch_size; }

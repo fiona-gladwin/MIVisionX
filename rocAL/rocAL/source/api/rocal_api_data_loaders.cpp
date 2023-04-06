@@ -276,7 +276,7 @@ rocalJpegFileSource(
     return output;
 }
 
-RocalImage  ROCAL_API_CALL
+RocalTensor  ROCAL_API_CALL
 rocalSequenceReader(
         RocalContext p_context,
         const char* source_path,
@@ -289,7 +289,7 @@ rocalSequenceReader(
         unsigned step,
         unsigned stride)
 {
-    Image* output = nullptr;
+    rocalTensor* output = nullptr;
     if (p_context == nullptr) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
@@ -320,12 +320,17 @@ rocalSequenceReader(
 
         INFO("Internal buffer size width = "+ TOSTR(width)+ " height = "+ TOSTR(height) + " depth = "+ TOSTR(num_of_planes))
 
-        auto info = ImageInfo(width, height,
-                              context->internal_batch_size(),
-                              num_of_planes,
-                              context->master_graph->mem_type(),
-                              color_format );
-        output = context->master_graph->create_loader_output_image(info);
+        std::vector<size_t> dims = {context->user_batch_size(), sequence_length, height, 
+                                    width, static_cast<unsigned>(num_of_planes)};
+        auto info  = rocalTensorInfo(std::move(dims),
+                                     context->master_graph->mem_type(),
+                                     RocalTensorDataType::UINT8);
+        info.set_color_format(color_format);
+        info.set_tensor_layout(RocalTensorlayout::NFHWC);
+        info.set_sequence_batch_size(sequence_length);
+        info.set_max_shape();
+
+        output = context->master_graph->create_loader_output_tensor(info);
 
         context->master_graph->add_node<ImageLoaderNode>({}, {output})->init(internal_shard_count,
                                                                             source_path, "",
@@ -357,7 +362,7 @@ rocalSequenceReader(
     return output;
 }
 
-RocalImage  ROCAL_API_CALL
+RocalTensor  ROCAL_API_CALL
 rocalSequenceReaderSingleShard(
         RocalContext p_context,
         const char* source_path,
@@ -371,7 +376,7 @@ rocalSequenceReaderSingleShard(
         unsigned step,
         unsigned stride)
 {
-    Image* output = nullptr;
+    rocALTensor* output = nullptr;
     if (p_context == nullptr) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
@@ -405,12 +410,16 @@ rocalSequenceReaderSingleShard(
 
         INFO("Internal buffer size width = "+ TOSTR(width)+ " height = "+ TOSTR(height) + " depth = "+ TOSTR(num_of_planes))
 
-        auto info = ImageInfo(width, height,
-                              context->internal_batch_size(),
-                              num_of_planes,
-                              context->master_graph->mem_type(),
-                              color_format );
-        output = context->master_graph->create_loader_output_image(info);
+        std::vector<size_t> dims = {context->user_batch_size(), sequence_length, height, 
+                                    width, static_cast<unsigned>(num_of_planes)};
+        auto info  = rocalTensorInfo(std::move(dims),
+                                     context->master_graph->mem_type(),
+                                     RocalTensorDataType::UINT8);
+        info.set_color_format(color_format);
+        info.set_tensor_layout(RocalTensorlayout::NFHWC);
+        info.set_sequence_batch_size(sequence_length);
+        info.set_max_shape();
+        output = context->master_graph->create_loader_output_tensor(info);
 
         context->master_graph->add_node<ImageLoaderSingleShardNode>({}, {output})->init(shard_id, shard_count,
                                                                                         source_path, "",
@@ -429,7 +438,7 @@ rocalSequenceReaderSingleShard(
 
         if(is_output)
         {
-            auto actual_output = context->master_graph->create_image(info, is_output);
+            auto actual_output = context->master_graph->create_tensor(info, is_output);
             context->master_graph->add_node<CopyNode>({output}, {actual_output});
         }
 
@@ -1954,7 +1963,7 @@ rocalFusedJpegCropSingleShard(
     return output;
 }
 
-RocalImage  ROCAL_API_CALL
+RocalTensor  ROCAL_API_CALL
 rocalVideoFileSource(
         RocalContext p_context,
         const char* source_path,
