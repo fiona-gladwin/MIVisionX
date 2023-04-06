@@ -47,9 +47,9 @@ struct CropMirrorNormalizeLocalData {
 
 static vx_status VX_CALLBACK refreshCropMirrorNormalize(vx_node node, const vx_reference *parameters, vx_uint32 num, CropMirrorNormalizeLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n * data->srcDescPtr->c, sizeof(vx_float32), data->multiplier, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n * data->srcDescPtr->c, sizeof(vx_float32), data->offset, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->srcDescPtr->n, sizeof(vx_uint32), data->mirror, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0] * data->srcDescPtr->c, sizeof(vx_float32), data->multiplier, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0] * data->srcDescPtr->c, sizeof(vx_float32), data->offset, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->mirror, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -66,7 +66,7 @@ static vx_status VX_CALLBACK refreshCropMirrorNormalize(vx_node node, const vx_r
     data->roiPtr = (RpptROI *)data->roiTensorPtr;
     if(data->inputLayout == 2 || data->inputLayout == 3) { // For NFCHW and NFHWC formats
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
+        for(int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
                 for(int c = 0; c < data->srcDescPtr->c; c++) {
@@ -76,10 +76,7 @@ static vx_status VX_CALLBACK refreshCropMirrorNormalize(vx_node node, const vx_r
                     data->offset[dst_ind] = data->offset[src_ind];
                 }
                 data->mirror[index + f] = data->mirror[n];
-                data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
-                data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
-                data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
-                data->roiPtr[index + f].xywhROI.roiHeight = data->roiPtr[n].xywhROI.roiHeight;
+                data->roiPtr[index + f].xywhROI = data->roiPtr[n].xywhROI;
             }
         }
     }
