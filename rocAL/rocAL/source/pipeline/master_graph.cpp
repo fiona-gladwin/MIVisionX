@@ -412,6 +412,8 @@ MasterGraph::reset()
     // restart processing of the images
     _first_run = true;
     _output_routine_finished_processing = false;
+    _resize_width.clear();
+    _resize_height.clear();
     start_processing();
     return Status::OK;
 }
@@ -518,7 +520,11 @@ void MasterGraph::output_routine()
                     {
                         _meta_data_graph->update_random_bbox_meta_data(_augmented_meta_data, decode_image_info, crop_image_info);
                     }
-                    _meta_data_graph->process(_augmented_meta_data);
+                    else
+                    {
+                        _meta_data_graph->update_meta_data(_augmented_meta_data, decode_image_info, _is_segmentation);
+                    }
+                    _meta_data_graph->process(_augmented_meta_data, _is_segmentation);
                 }
                 if (full_batch_meta_data)
                     full_batch_meta_data->concatenate(_augmented_meta_data);
@@ -531,21 +537,6 @@ void MasterGraph::output_routine()
             _bencode_time.start();
             if(_is_box_encoder )
             {
-#if ENABLE_HIP
-                if(_mem_type == RocalMemType::HIP) {
-                    // get bbox encoder read buffers
-                    auto bbox_encode_write_buffers = _ring_buffer.get_box_encode_write_buffers();
-                    if (_box_encoder_gpu) _box_encoder_gpu->Run(full_batch_meta_data, (float *)bbox_encode_write_buffers.first, (int *)bbox_encode_write_buffers.second);
-                    //_meta_data_graph->update_box_encoder_meta_data_gpu(_anchors_gpu_buf, num_anchors, full_batch_meta_data, _criteria, _offset, _scale, _means, _stds);
-                } else
-#endif
-                    _meta_data_graph->update_box_encoder_meta_data(&_anchors, full_batch_meta_data, _criteria, _offset, _scale, _means, _stds);
-            }
-            _bencode_time.end();
-            _ring_buffer.set_meta_data(full_batch_image_names, full_batch_meta_data);
-            _ring_buffer.push(); // Image data and metadata is now stored in output the ring_buffer, increases it's level by 1
-        }
-    }
     catch (const std::exception &e)
     {
         ERR("Exception thrown in the process routine: " + STR(e.what()) + STR("\n"));
@@ -583,11 +574,11 @@ void MasterGraph::stop_processing()
         _output_thread.join();
 }
 
-std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder, float sigma, unsigned pose_output_width, unsigned pose_output_height)
+std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, bool mask, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder, float sigma, unsigned pose_output_width, unsigned pose_output_height)
 {
     if(_meta_data_reader)
         THROW("A metadata reader has already been created")
-    MetaDataConfig config(label_type, reader_type, source_path, std::map<std::string, std::string>(), std::string());
+    MetaDataConfig config(label_type, reader_type, source_path, std::map<std::string, std::string>(), std::string(), mask);
     config.set_out_img_width(pose_output_width);
     config.set_out_img_height(pose_output_height);
     _meta_data_graph = create_meta_data_graph(config);
@@ -614,6 +605,19 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     default_bbox_info.set_metadata();
     _meta_data_buffer_size.emplace_back(dims.at(0) * dims.at(1)  * _user_batch_size * sizeof(vx_float64)); // TODO - replace with data size from info
     rocalTensorInfo default_matches_info;
+    rocalTensorInfo default_mask_info;
+    if(mask)
+    {
+        num_of_dims = 2;
+        dims.resize(num_of_dims);
+        dims.at(0) = MAX_MASK_BUFFER;
+        dims.at(1) = 1;
+        default_mask_info  = rocalTensorInfo(dims,
+                                            _mem_type,
+                                            RocalTensorDataType::FP32);
+        default_mask_info.set_metadata();
+        _meta_data_buffer_size.emplace_back(dims.at(0) * dims.at(1)  * _user_batch_size * sizeof(vx_float32)); // TODO - replace with data size from info  
+    }
     if(is_box_iou_matcher)
     {
         _is_box_iou_matcher = true;
@@ -639,6 +643,11 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
             auto matches_info = default_matches_info;
             _matches_tensor_list.push_back(new rocalTensor(matches_info));
         }
+        if(mask)
+        {
+            auto mask_info = default_mask_info;
+            _mask_tensor_list.push_back(new rocalTensor(mask_info));
+        }
     }
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
     if(is_output)
@@ -650,6 +659,8 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     }
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
     _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
+    if(mask)
+        _metadata_output_tensor_list.emplace_back(&_mask_tensor_list);
     if(is_box_iou_matcher)
         _metadata_output_tensor_list.emplace_back(&_matches_tensor_list);
 
@@ -1110,6 +1121,22 @@ rocalTensorList * MasterGraph::bbox_meta_data()
     }
 
     return &_bbox_tensor_list;
+}
+
+rocalTensorList * MasterGraph::mask_meta_data()
+{
+    if(_ring_buffer.level() == 0)
+        THROW("No meta data has been loaded")
+    auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get bbox buffer from ring buffer
+    auto mask_tensor_dims = _ring_buffer.get_meta_data_info().mask_cords_dims();
+    for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
+    {
+        _mask_tensor_list[i]->set_dims(mask_tensor_dims[i]);
+        _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
+        meta_data_buffers += _mask_tensor_list[i]->info().data_size();
+    }
+
+    return &_mask_tensor_list;
 }
 
 ImgSizes& MasterGraph::get_image_sizes()

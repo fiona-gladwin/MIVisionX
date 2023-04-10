@@ -55,6 +55,9 @@ typedef std::vector<float> Joint,JointVisibility,ScoreBatch,RotationBatch;
 typedef std::vector<std::vector<float>> Joints,JointsVisibility, CenterBatch, ScaleBatch;
 typedef std::vector<std::vector<std::vector<float>>> JointsBatch, JointsVisibilityBatch;
 
+typedef std::vector<std::vector<float>> coords;
+typedef std::vector<float> MaskCords;
+
 typedef struct
 {
     int image_id;
@@ -169,24 +172,29 @@ struct MetaDataDimensionsBatch
 {
     std::vector<std::vector<size_t>>& labels_dims() { return _labels_dims; }
     std::vector<std::vector<size_t>>& bb_cords_dims() { return _bb_coords_dims; }
+    std::vector<std::vector<size_t>>& mask_cords_dims() { return _mask_coords_dims; }
     void clear()
     {
         _labels_dims.clear();
         _bb_coords_dims.clear();
+        _mask_coords_dims.clear();
     }
     void resize(size_t size)
     {
         _labels_dims.resize(size);
         _bb_coords_dims.resize(size);
+        _mask_coords_dims.resize(size);
     }
     void insert(MetaDataDimensionsBatch &other)
     {
         _labels_dims.insert(_labels_dims.end(), other.labels_dims().begin(), other.labels_dims().end());
         _bb_coords_dims.insert(_bb_coords_dims.end(), other.bb_cords_dims().begin(), other.bb_cords_dims().end());
+        _mask_coords_dims.insert(_mask_coords_dims.end(), other.mask_cords_dims().begin(), other.mask_cords_dims().end());
     }
 private:
     std::vector<std::vector<size_t>> _labels_dims = {};
     std::vector<std::vector<size_t>> _bb_coords_dims = {};
+    std::vector<std::vector<size_t>> _mask_coords_dims = {};
 };
 
 struct MetaDataInfoBatch {
@@ -218,8 +226,9 @@ struct MetaDataBatch
     virtual void clear() = 0;
     virtual void resize(int batch_size) = 0;
     virtual int size() = 0;
-    virtual void copy_data(std::vector<void*> buffer) = 0;
-    virtual std::vector<size_t>& get_buffer_size() = 0;
+    virtual int mask_size() = 0;
+    virtual void copy_data(std::vector<void*> buffer, bool is_segmentation) = 0;
+    virtual std::vector<size_t>& get_buffer_size(bool is_segmentation) = 0;
     virtual MetaDataBatch&  operator += (MetaDataBatch& other) = 0;
     MetaDataBatch* concatenate(MetaDataBatch* other)
     {
@@ -233,6 +242,16 @@ struct MetaDataBatch
     std::vector<uint>& get_image_id_batch() { return _info_batch._img_ids; }
     std::vector<std::string>& get_image_names_batch() {return _info_batch._img_names; }
     ImgSizes& get_img_sizes_batch() { return _info_batch._img_sizes; }
+    std::vector<MaskCords>& get_mask_cords_batch() { return _mask_cords; }
+    std::vector<std::vector<int>>& get_mask_polygons_count_batch() { return _polygon_counts; }
+    std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() { return _vertices_counts; }
+    // void reset_objects_count() {
+    //     _total_objects_count = 0;
+    //     _total_mask_coords_count = 0;
+    // }
+    // void increment_object_count(int count) { _total_objects_count += count; }
+    // void increment_mask_coords_count(int count) { _total_mask_coords_count += count; }
+    // int get_batch_object_count() { return _total_objects_count; }
     JointsDataBatch & get_joints_data_batch() { return _joints_data; }
     MetaDataDimensionsBatch& get_metadata_dimensions_batch() { return _metadata_dimensions; }
     MetaDataInfoBatch& get_info_batch() { return _info_batch; };
@@ -273,7 +292,7 @@ struct LabelBatch : public MetaDataBatch
         _label_ids = std::move(labels);
     }
     LabelBatch() = default;
-    void copy_data(std::vector<void*> buffer) override
+    void copy_data(std::vector<void*> buffer, bool is_segmentation) override
     {
         if(buffer.size() < 1)
             THROW("The buffers are insufficient") // TODO -change
@@ -283,7 +302,7 @@ struct LabelBatch : public MetaDataBatch
             labels_buffer += _label_ids[i].size();
         }
     }
-    std::vector<size_t>& get_buffer_size() override
+    std::vector<size_t>& get_buffer_size(bool is_segmentation) override
     {
         size_t size = 0;
         for (auto label : _label_ids)
@@ -326,11 +345,15 @@ struct BoundingBoxBatch: public LabelBatch
     {
         return _bb_cords.size();
     }
+    int mask_size() override
+    {
+        return _mask_cords.size();
+    }
     std::shared_ptr<MetaDataBatch> clone() override
     {
         return std::make_shared<BoundingBoxBatch>(*this);
     }
-    void copy_data(std::vector<void*> buffer) override
+    void copy_data(std::vector<void*> buffer, bool is_segmentation) override
     {
         if(buffer.size() < 2)
             THROW("The buffers are insufficient") // TODO -change
@@ -346,7 +369,7 @@ struct BoundingBoxBatch: public LabelBatch
             bbox_buffer += (bb_coords_dims[i][0] * 4);
         }
     }
-    std::vector<size_t>& get_buffer_size() override
+    std::vector<size_t>& get_buffer_size(bool is_segmentation) override
     {
         size_t size = 0;
         for (auto label : _label_ids)
