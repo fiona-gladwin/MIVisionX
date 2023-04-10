@@ -592,7 +592,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::vector<float> sdev{1, 1, 1};
         std::cout << ">>>>>>> Running "
                   << " Crop Mirror Normalize " << std::endl;
-        image1 = rocalCropMirrorNormalize(handle, input1, resize_h, resize_w, 0, 0, mean, sdev, true, NULL, tensorLayout, tensorOutputType);
+        image1 = rocalCropMirrorNormalize(handle, input1, 224, 224, 0, 0, mean, sdev, true, NULL, tensorLayout, tensorOutputType);
     }
     break;
     case 26:
@@ -600,6 +600,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalCrop" << std::endl;
         // image1 = rocalCrop(handle, image0, true);
+        image1 = rocalCrop(handle, input1,true, NULL,NULL,NULL,NULL, tensorLayout, tensorOutputType);
     }
     break;
     case 27:
@@ -629,6 +630,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalBrightnessFixed" << std::endl;
         // image1 = rocalBrightnessFixed(handle, image0, 1.90, 20, true);
+        image1 = rocalBrightnessFixed(handle, input1, true, 1.90, 20, tensorLayout, tensorOutputType);
+
     }
     break;
     case 33:
@@ -636,6 +639,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalGammaFixed" << std::endl;
         // image1 = rocalGammaFixed(handle, image0, 0.5, true);
+        image1 = rocalGammaFixed(handle, input1, true, 0.5, tensorLayout, tensorOutputType);
+
     }
     break;
     case 34:
@@ -643,6 +648,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalContrastFixed" << std::endl;
         // image1 = rocalContrastFixed(handle, image0, 30, 80, true);
+        image1 = rocalContrastFixed(handle, input1, true, 30, 80, tensorLayout, tensorOutputType);
+
     }
     break;
     case 35:
@@ -672,6 +679,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalVignetteFixed" << std::endl;
         // image1 = rocalVignetteFixed(handle, image0, 50, true);
+        image1 = rocalVignetteFixed(handle, input1, true, 50, tensorLayout, tensorOutputType);
     }
     break;
     case 39:
@@ -679,6 +687,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalJitterFixed" << std::endl;
         // image1 = rocalJitterFixed(handle, image0, 3, true);
+        image1 = rocalJitterFixed(handle, input1, true, 3, 0, tensorLayout, tensorOutputType);
+
     }
     break;
     case 40:
@@ -707,6 +717,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalColorTempFixed" << std::endl;
         // image1 = rocalColorTempFixed(handle, image0, 70, true);
+        image1 = rocalColorTemperatureFixed(handle, input1, true, 70, tensorLayout, tensorOutputType);
+
     }
     break;
     case 44:
@@ -728,6 +740,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalExposureFixed" << std::endl;
         // image1 = rocalExposureFixed(handle, image0, 1, true);
+        image1 = rocalExposureFixed(handle, input1, true, 1, tensorLayout, tensorOutputType);
+
     }
     break;
     case 47:
@@ -735,6 +749,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalFlipFixed" << std::endl;
         // image1 = rocalFlipFixed(handle, image0, 2, true);
+        image1 = rocalFlipFixed(handle, input1, true, 1, 0, tensorLayout, tensorOutputType);
+
     }
     break;
     case 48:
@@ -763,6 +779,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalCropFixed" << std::endl;
         // image1 = rocalCropFixed(handle, input1, 50, 50, 1, true, 0, 0, 2);
+        image1 = rocalCropFixed(handle, input1, 224, 224,0,0, true, tensorLayout, tensorOutputType);
+
     }
     break;
     case 52:
@@ -792,7 +810,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::vector<float> sdev{1, 1, 1};
         std::cout << ">>>>>>> Running "
                   << " Resize Mirror Normalize " << std::endl;
-        image1 = rocalResizeMirrorNormalize(handle, input1, resize_w , resize_h, mean, sdev, true, ROCAL_SCALING_MODE_DEFAULT,
+        image1 = rocalResizeMirrorNormalize(handle, input1, 224 , 224, mean, sdev, true, ROCAL_SCALING_MODE_DEFAULT,
                                             {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, NULL, tensorLayout, tensorOutputType);
         break;
     }
