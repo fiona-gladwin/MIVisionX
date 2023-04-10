@@ -39,7 +39,7 @@ using half_float::half;
 typedef void * RocalFloatParam;
 typedef void * RocalIntParam;
 typedef void * RocalContext;
-typedef void * RocalMetaData;
+typedef std::vector<rocalTensorList *> RocalMetaData;
 typedef rocalTensor * RocalTensor;
 typedef rocalTensorList * RocalTensorList;
 

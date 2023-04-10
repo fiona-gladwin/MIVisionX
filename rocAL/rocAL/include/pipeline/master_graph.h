@@ -44,6 +44,11 @@ THE SOFTWARE.
 #endif
 #include "randombboxcrop_meta_data_reader.h"
 #define MAX_STRING_LENGTH 100
+#define MAX_OBJECTS 50 // Max number of objects/image in COCO dataset is 93 
+#define BBOX_COUNT 4
+#define MAX_NUM_ANCHORS 8732
+#define MAX_ANCHORS 120087
+
 class MasterGraph
 {
 public:
@@ -65,17 +70,21 @@ public:
     template <typename T, typename M> std::shared_ptr<T> meta_add_node(std::shared_ptr<M> node);
     rocalTensor *create_tensor(const rocalTensorInfo &info, bool is_output);
     rocalTensor *create_loader_output_tensor(const rocalTensorInfo &info);
-    MetaDataBatch *create_label_reader(const char *source_path, MetaDataReaderType reader_type);
-    MetaDataBatch *create_video_label_reader(const char *source_path, MetaDataReaderType reader_type, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
-    MetaDataBatch *create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type , MetaDataType label_type, float sigma = 0.0, unsigned pose_output_width = 0, unsigned pose_output_height = 0);
-    MetaDataBatch *create_tf_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type, const std::map<std::string, std::string> feature_key_map);
-    MetaDataBatch *create_caffe_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
-    MetaDataBatch *create_caffe2_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
-    MetaDataBatch* create_cifar10_label_reader(const char *source_path, const char *file_prefix);
-    MetaDataBatch *create_mxnet_label_reader(const char *source_path, bool is_output);
+    std::vector<rocalTensorList *> create_label_reader(const char *source_path, MetaDataReaderType reader_type);
+    std::vector<rocalTensorList *> create_video_label_reader(const char *source_path, MetaDataReaderType reader_type, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
+    std::vector<rocalTensorList *> create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type , MetaDataType label_type, bool is_box_encoder = false, float sigma = 0.0, unsigned pose_output_width = 0, unsigned pose_output_height = 0);
+    std::vector<rocalTensorList *> create_tf_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type, const std::map<std::string, std::string> feature_key_map);
+    std::vector<rocalTensorList *> create_caffe_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
+    std::vector<rocalTensorList *> create_caffe2_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
+    std::vector<rocalTensorList *> create_cifar10_label_reader(const char *source_path, const char *file_prefix);
+    std::vector<rocalTensorList *> create_mxnet_label_reader(const char *source_path, bool is_output);
     void box_encoder(std::vector<float> &anchors, float criteria, const std::vector<float> &means, const std::vector<float> &stds, bool offset, float scale);
     void create_randombboxcrop_reader(RandomBBoxCrop_MetaDataReaderType reader_type, RandomBBoxCrop_MetaDataType label_type, bool all_boxes_overlap, bool no_crop, FloatParam* aspect_ratio, bool has_shape, int crop_width, int crop_height, int num_attempts, FloatParam* scaling, int total_num_attempts, int64_t seed=0);
     const std::pair<ImageNameBatch,pMetaDataBatch>& meta_data();
+    rocalTensorList * labels_meta_data();
+    rocalTensorList * bbox_labels_meta_data();
+    rocalTensorList * bbox_meta_data();
+    ImgSizes& get_image_sizes();
     void set_loop(bool val) { _loop = val; }
     void set_output(rocalTensor* output_tensor);
     bool empty() { return (remaining_count() < (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size)); }
@@ -113,6 +122,14 @@ private:
     std::list<std::shared_ptr<Node>> _root_nodes;//!< List of all root nodes (image/video loaders)
     std::list<std::shared_ptr<Node>> _meta_data_nodes;//!< List of nodes where meta data has to be updated after augmentation
     std::map<rocalTensor*, std::shared_ptr<Node>> _tensor_map;//!< key: tensor, value : Parent node
+
+    // Output tensorList for metadata
+    std::vector<rocalTensorList *> _metadata_output_tensor_list;
+    rocalTensorList _labels_tensor_list;
+    rocalTensorList _bbox_tensor_list;
+    std::vector<std::vector<unsigned>> _labels_tensor_dims;
+    std::vector<std::vector<unsigned>> _bbox_tensor_dims;
+    std::vector<size_t> _meta_data_buffer_size;
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU
 #elif ENABLE_OPENCL
