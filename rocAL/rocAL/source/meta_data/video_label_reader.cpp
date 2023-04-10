@@ -123,7 +123,6 @@ void VideoLabelReader::lookup(const std::vector<std::string> &frame_names)
             THROW("ERROR: Video label reader folders Given name not present in the map" + frame_name)
         auto labels = it->second->get_label();
         _output->get_label_batch()[i] = labels;
-        _output->increment_object_count(labels.size());
     }
 }
 

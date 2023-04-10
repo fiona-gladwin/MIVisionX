@@ -230,15 +230,9 @@ struct MetaDataBatch
     ImgSizes& get_img_sizes_batch() { return _info_batch._img_sizes; }
     JointsDataBatch & get_joints_data_batch() { return _joints_data; }
     MetaDataDimensionsBatch& get_metadata_dimensions_batch() { return _metadata_dimensions; }
-    int get_batch_object_count() { return _total_objects_count; }
-    void reset_objects_count() {
-        _total_objects_count = 0;
-    }
-    void increment_object_count(int count) { _total_objects_count += count; }
 protected:
     MetaDataDimensionsBatch _metadata_dimensions;
     MetaDataInfoBatch _info_batch;
-    int _total_objects_count = 0;
 };
 
 struct LabelBatch : public MetaDataBatch
@@ -250,7 +244,6 @@ struct LabelBatch : public MetaDataBatch
         }
         _label_ids.clear();
         _buffer_size.clear();
-        _total_objects_count = 0;
     }
     MetaDataBatch&  operator += (MetaDataBatch& other) override
     {
@@ -286,7 +279,10 @@ struct LabelBatch : public MetaDataBatch
     }
     std::vector<size_t>& get_buffer_size() override
     {
-        _buffer_size.emplace_back(_total_objects_count * sizeof(int));
+        size_t size = 0;
+        for (auto label : _label_ids)
+            size += label.size();
+        _buffer_size.emplace_back(size * sizeof(int));
         return _buffer_size;
     }
     std::vector<Labels>& get_label_batch() { return _label_ids; }
@@ -304,7 +300,6 @@ struct BoundingBoxBatch: public LabelBatch
         _info_batch._img_sizes.clear();
         _info_batch._img_ids.clear();
         _metadata_dimensions.clear();
-        _total_objects_count = 0;
         _buffer_size.clear();
     }
     MetaDataBatch&  operator += (MetaDataBatch& other) override
@@ -350,8 +345,11 @@ struct BoundingBoxBatch: public LabelBatch
     }
     std::vector<size_t>& get_buffer_size() override
     {
-        _buffer_size.emplace_back(_total_objects_count * sizeof(int));
-        _buffer_size.emplace_back(_total_objects_count * 4 * sizeof(double));
+        size_t size = 0;
+        for (auto label : _label_ids)
+            size += label.size();
+        _buffer_size.emplace_back(size * sizeof(int));
+        _buffer_size.emplace_back(size * 4 * sizeof(double));
         return _buffer_size;
     }
     std::vector<BoundingBoxCords>& get_bb_cords_batch() { return _bb_cords; }
