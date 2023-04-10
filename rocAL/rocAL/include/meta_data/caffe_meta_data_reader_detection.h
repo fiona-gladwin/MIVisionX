@@ -50,7 +50,7 @@ public :
 private:
     void read_files(const std::string& _path);
     bool exists(const std::string &image_name) override;
-    void add(std::string image_name, BoundingBoxCords bbox, Labels b_labels, ImgSize image_size, uint image_id);
+    void add(std::string image_name, BoundingBoxCords bbox, Labels b_labels, ImgSize image_size);
     bool _last_rec;
     void read_lmdb_record(std::string file_name, uint file_size);
     std::map<std::string, std::shared_ptr<MetaData>> _map_content;

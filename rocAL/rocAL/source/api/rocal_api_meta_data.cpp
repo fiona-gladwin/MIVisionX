@@ -234,13 +234,13 @@ ROCAL_API_CALL rocalGetBoundingBoxCount(RocalContext p_context)
     auto meta_data = context->master_graph->meta_data();
     if(!meta_data.second)
         THROW("No label has been loaded for this output image")
-    size_t meta_data_batch_size = meta_data.second->get_label_batch().size();
+    size_t meta_data_batch_size = meta_data.second->get_labels_batch().size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
     size_t size = 0;
     for(unsigned i = 0; i < meta_data_batch_size; i++)
     {
-        size += meta_data.second->get_label_batch()[i].size();;
+        size += meta_data.second->get_labels_batch()[i].size();;
     }
     return size;
 }
@@ -265,14 +265,14 @@ ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext p_context, void* buf, int 
         WRN("No label has been loaded for this output image")
         return;
     }
-    size_t meta_data_batch_size = meta_data.second->get_label_batch().size();
+    size_t meta_data_batch_size = meta_data.second->get_labels_batch().size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
 
     int labels_buf[meta_data_batch_size];
     int one_hot_encoded[meta_data_batch_size*numOfClasses];
     memset(one_hot_encoded, 0, sizeof(int) * meta_data_batch_size * numOfClasses);
-    memcpy(labels_buf, meta_data.second->get_label_batch().data(),  sizeof(int)*meta_data_batch_size);
+    memcpy(labels_buf, meta_data.second->get_labels_batch().data(),  sizeof(int)*meta_data_batch_size);
 
     for(uint i = 0; i < meta_data_batch_size; i++)
     {
