@@ -196,6 +196,10 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalGetEncodedBoxesAndLables(RocalConte
 /// \param joints_data The user's RocalJointsData pointer that will be pointed to JointsDataBatch pointer
 extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **joints_data);
 
+extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int* buf);
+
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int *bufcount);
+
 extern "C" void ROCAL_API_CALL rocalBoxIOUMatcher(RocalContext p_context, std::vector<float> &anchors, float criteria,
                                              float high_threshold, float low_threshold ,  bool allow_low_quality_matches = true);
 
