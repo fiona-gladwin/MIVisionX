@@ -45,7 +45,7 @@ typedef struct BoundingBoxCord_
 typedef  struct { float xc; float yc; float w; float h; } BoundingBoxCord_xcycwh;
 typedef  std::vector<BoundingBoxCord> BoundingBoxCords;
 typedef  std::vector<BoundingBoxCord_xcycwh> BoundingBoxCords_xcycwh;
-typedef  std::vector<int> BoundingBoxLabels;
+typedef  std::vector<int> Labels;
 typedef  struct { int w; int h; } ImgSize;
 typedef  std::vector<ImgSize> ImgSizes;
 
@@ -91,12 +91,14 @@ public:
 struct MetaData
 {
     virtual std::vector<int>& get_label() { };
+    virtual int get_object_count() { };
+    virtual std::vector<size_t> get_label_dims() { };
+    virtual void set_labels(Labels label_ids) { };
     virtual BoundingBoxCords& get_bb_cords() { };
     virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { };
-    virtual int get_object_count() { };
-    virtual std::vector<size_t> get_bb_label_dims() { };
     virtual std::vector<size_t> get_bb_cords_dims() { };
-    virtual void set_bb_labels(BoundingBoxLabels bb_label_ids) { };
+    virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) { };
+    virtual void set_bb_cords(BoundingBoxCords bb_cords) { };
     ImgSize& get_img_size() {return _info._img_size; }
     std::string& get_image_name() { return _info._img_name; }
     uint& get_image_id() { return _info._img_id; }
@@ -123,32 +125,43 @@ struct Label : public MetaData
     }
     std::vector<int>& get_label() { return _label_ids; }
     int get_object_count() { return _object_count; }
+    std::vector<size_t> get_label_dims()
+    {
+        _labels_dims = {_label_ids.size()};
+        return _labels_dims;
+    }
+    void set_labels(Labels label_ids)
+    {
+        _label_ids = std::move(label_ids);
+        _object_count = _label_ids.size();
+    }
     protected:
-    BoundingBoxLabels _label_ids = {}; // For label use only
+    Labels _label_ids = {}; // For label use only
+    std::vector<size_t> _labels_dims = {};
     int _object_count = 0;
 };
 
 struct BoundingBox : public Label
 {
     BoundingBox()= default;
-    BoundingBox(BoundingBoxCords bb_cords, BoundingBoxLabels bb_label_ids)
+    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids)
     {
         _bb_cords =std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
     }
-    BoundingBox(BoundingBoxCords bb_cords, BoundingBoxLabels bb_label_ids, ImgSize img_size, uint img_id)
+    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, uint img_id)
     {
         _bb_cords =std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
         _info._img_size = std::move(img_size);
         _info._img_id = std::move(img_id);
     }
-    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, BoundingBoxLabels bb_label_ids)
+    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids)
     {
         _bb_cords_xcycwh =std::move(bb_cords_xcycwh);
         _label_ids = std::move(bb_label_ids);
     }
-    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, BoundingBoxLabels bb_label_ids, ImgSize img_size, uint img_id)
+    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids, ImgSize img_size, uint img_id)
     {
         _bb_cords_xcycwh =std::move(bb_cords_xcycwh);
         _label_ids = std::move(bb_label_ids);
@@ -157,27 +170,16 @@ struct BoundingBox : public Label
     }
     BoundingBoxCords& get_bb_cords() { return _bb_cords; }
     BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { return _bb_cords_xcycwh; }
-    std::vector<size_t> get_bb_label_dims()
-    {
-        _bb_labels_dims = {_label_ids.size()};
-        return _bb_labels_dims;
-    }
     std::vector<size_t> get_bb_cords_dims()
     {
         _bb_coords_dims = {_bb_cords.size(), 4};
         return _bb_coords_dims;
-    }
-    void set_bb_labels(BoundingBoxLabels bb_label_ids)
-    {
-        _label_ids = std::move(bb_label_ids);
-        _object_count = _label_ids.size();
     }
     void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) { _bb_cords_xcycwh =std::move(bb_cords_xcycwh); }
     void set_bb_cords(BoundingBoxCords bb_cords) { _bb_cords =std::move(bb_cords); }
 protected:
     BoundingBoxCords _bb_cords = {}; // For bb use
     BoundingBoxCords_xcycwh _bb_cords_xcycwh = {}; // For bb use
-    std::vector<size_t> _bb_labels_dims = {};
     std::vector<size_t> _bb_coords_dims = {};
 };
 
@@ -194,25 +196,25 @@ struct KeyPoint : public MetaData
 
 struct MetaDataDimensionsBatch
 {
-    std::vector<std::vector<size_t>>& bb_labels_dims() { return _bb_labels_dims; }
+    std::vector<std::vector<size_t>>& labels_dims() { return _labels_dims; }
     std::vector<std::vector<size_t>>& bb_cords_dims() { return _bb_coords_dims; }
     void clear()
     {
-        _bb_labels_dims.clear();
+        _labels_dims.clear();
         _bb_coords_dims.clear();
     }
     void resize(size_t size)
     {
-        _bb_labels_dims.resize(size);
+        _labels_dims.resize(size);
         _bb_coords_dims.resize(size);
     }
     void insert(MetaDataDimensionsBatch &other)
     {
-        _bb_labels_dims.insert(_bb_labels_dims.end(), other.bb_labels_dims().begin(), other.bb_labels_dims().end());
+        _labels_dims.insert(_labels_dims.end(), other.labels_dims().begin(), other.labels_dims().end());
         _bb_coords_dims.insert(_bb_coords_dims.end(), other.bb_cords_dims().begin(), other.bb_cords_dims().end());
     }
 private:
-    std::vector<std::vector<size_t>> _bb_labels_dims = {};
+    std::vector<std::vector<size_t>> _labels_dims = {};
     std::vector<std::vector<size_t>> _bb_coords_dims = {};
 };
 
@@ -239,7 +241,7 @@ struct MetaDataBatch : public MetaDataInfoBatch
         return this;
     }
     virtual std::shared_ptr<MetaDataBatch> clone()  = 0;
-    virtual std::vector<BoundingBoxLabels>& get_label_batch() { };
+    virtual std::vector<Labels>& get_label_batch() { };
     virtual std::vector<BoundingBoxCords>& get_bb_cords_batch() { };
     virtual std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() { };
     std::vector<uint>& get_image_id_batch() { return _info_batch._img_ids; }
@@ -286,7 +288,7 @@ struct LabelBatch : public MetaDataBatch
     {
         return std::make_shared<LabelBatch>(*this);
     }
-    explicit LabelBatch(std::vector<BoundingBoxLabels>& labels)
+    explicit LabelBatch(std::vector<Labels>& labels)
     {
         _label_ids = std::move(labels);
     }
@@ -306,9 +308,9 @@ struct LabelBatch : public MetaDataBatch
         _buffer_size.emplace_back(_total_objects_count * sizeof(int));
         return _buffer_size;
     }
-    std::vector<BoundingBoxLabels>& get_label_batch() { return _label_ids; }
+    std::vector<Labels>& get_label_batch() { return _label_ids; }
     protected:
-    std::vector<BoundingBoxLabels> _label_ids = {};
+    std::vector<Labels> _label_ids = {};
     std::vector<size_t> _buffer_size;
 };
 
@@ -355,13 +357,13 @@ struct BoundingBoxBatch: public LabelBatch
             THROW("The buffers are insufficient") // TODO -change
         int *labels_buffer = (int *)buffer[0];
         double *bbox_buffer = (double *)buffer[1];
-        auto bb_labels_dims = _metadata_dimensions.bb_labels_dims();
+        auto labels_dims = _metadata_dimensions.labels_dims();
         auto bb_coords_dims = _metadata_dimensions.bb_cords_dims();
         for(unsigned i = 0; i < _label_ids.size(); i++)
         {
-            memcpy(labels_buffer, _label_ids[i].data(), bb_labels_dims[i][0] * sizeof(int));
+            memcpy(labels_buffer, _label_ids[i].data(), labels_dims[i][0] * sizeof(int));
             memcpy(bbox_buffer, _bb_cords[i].data(), bb_coords_dims[i][0] * sizeof(BoundingBoxCord));
-            labels_buffer += bb_labels_dims[i][0];
+            labels_buffer += labels_dims[i][0];
             bbox_buffer += (bb_coords_dims[i][0] * 4);
         }
     }

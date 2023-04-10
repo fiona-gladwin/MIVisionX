@@ -53,13 +53,13 @@ void BoundingBoxGraph::update_random_bbox_meta_data(MetaDataBatch *input_meta_da
     {
         auto bb_count = input_meta_data->get_label_batch()[i].size();
         BoundingBoxCords coords_buf;
-        BoundingBoxLabels labels_buf;
+        Labels labels_buf;
         coords_buf.resize(bb_count);
         labels_buf.resize(bb_count);
         memcpy(labels_buf.data(), input_meta_data->get_label_batch()[i].data(), sizeof(int) * bb_count);
         memcpy((void *)coords_buf.data(), input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
         BoundingBoxCords bb_coords;
-        BoundingBoxLabels bb_labels;
+        Labels bb_labels;
         BoundingBoxCord crop_box;
         crop_box.l = crop_cords[i][0];
         crop_box.t = crop_cords[i][1];
@@ -92,7 +92,7 @@ void BoundingBoxGraph::update_random_bbox_meta_data(MetaDataBatch *input_meta_da
         }
         input_meta_data->get_bb_cords_batch()[i] = bb_coords;
         input_meta_data->get_label_batch()[i] = bb_labels;
-        input_meta_data->get_metadata_dimensions_batch().bb_labels_dims()[i][0] = bb_labels.size();
+        input_meta_data->get_metadata_dimensions_batch().labels_dims()[i][0] = bb_labels.size();
         input_meta_data->get_metadata_dimensions_batch().bb_cords_dims()[i][0] = bb_coords.size();
     }
 }
@@ -141,13 +141,13 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
         BoundingBoxCord *bbox_anchors = reinterpret_cast<BoundingBoxCord *>(anchors->data());
         auto bb_count = full_batch_meta_data->get_label_batch()[i].size();
         std::vector<BoundingBoxCord> bb_coords;
-        BoundingBoxLabels bb_labels;
+        Labels bb_labels;
         bb_labels.resize(bb_count);
         bb_coords.resize(bb_count);
         memcpy(bb_labels.data(), full_batch_meta_data->get_label_batch()[i].data(), sizeof(int) * bb_count);
         memcpy((void *)bb_coords.data(), full_batch_meta_data->get_bb_cords_batch()[i].data(), full_batch_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
         BoundingBoxCords_xcycwh encoded_bb;
-        BoundingBoxLabels encoded_labels;
+        Labels encoded_labels;
         unsigned anchors_size = anchors->size() / 4; // divide the anchors_size by 4 to get the total number of anchors
         //Calculate Ious
         //ious size - bboxes count x anchors count

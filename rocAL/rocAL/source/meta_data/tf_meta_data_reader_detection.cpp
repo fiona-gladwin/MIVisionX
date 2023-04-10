@@ -47,7 +47,7 @@ bool TFMetaDataReaderDetection::exists(const std::string& _image_name)
 }
 
 
-void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size, uint image_id)
+void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, uint image_id)
 {
     if(exists(image_name))
     {
@@ -86,6 +86,10 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
             _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
             _output->get_label_batch()[i] = it->second->get_label();
             _output->get_img_sizes_batch()[i] = it->second->get_img_size();
+            // TODO - Check condition
+            _output->increment_object_count(it->second->get_object_count());
+            _output->get_metadata_dimensions_batch().labels_dims()[i] = it->second->get_label_dims();
+            _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
         }
     }
 }
@@ -93,7 +97,7 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
 void TFMetaDataReaderDetection::print_map_contents()
 {
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
 
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
@@ -155,7 +159,7 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
     size_b_xmin = single_feature.float_list().value().size();
 
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
     BoundingBoxCord box;
 
     sf_label = feature.at(user_label_key);
