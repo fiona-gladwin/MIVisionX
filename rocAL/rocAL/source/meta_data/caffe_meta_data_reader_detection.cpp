@@ -45,7 +45,7 @@ bool CaffeMetaDataReaderDetection::exists(const std::string &_image_name)
     return _map_content.find(_image_name) != _map_content.end();
 }
 
-void CaffeMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size)
+void CaffeMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size, uint image_id)
 {
     if (exists(image_name))
     {
@@ -54,7 +54,7 @@ void CaffeMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords 
         it->second->get_bb_labels().push_back(bb_labels[0]);
         return;
     }
-    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size);
+    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size, image_id);
     _map_content.insert(pair<std::string, std::shared_ptr<BoundingBox>>(image_name, info));
 }
 
@@ -75,7 +75,7 @@ void CaffeMetaDataReaderDetection::lookup(const std::vector<std::string> &_image
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name)
         _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-        _output->get_bb_labels_batch()[i] = it->second->get_bb_labels();
+        _output->get_label_batch()[i] = it->second->get_bb_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
     }
 }
@@ -174,7 +174,7 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
 
                 bb_coords.push_back(box);
                 bb_labels.push_back(label);
-                add(file_name.c_str(), bb_coords, bb_labels, img_size);
+                add(file_name.c_str(), bb_coords, bb_labels, img_size, -1);
                 bb_coords.clear();
                 bb_labels.clear();
             }
@@ -185,7 +185,7 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
             box.r = box.b = 1;
             bb_coords.push_back(box);
             bb_labels.push_back(0);
-            add(file_name.c_str(), bb_coords, bb_labels, img_size);
+            add(file_name.c_str(), bb_coords, bb_labels, img_size, -1);
         }
     }
     // Closing all the LMDB environment and cursor handles

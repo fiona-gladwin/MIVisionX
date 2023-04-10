@@ -107,9 +107,9 @@ void SSDRandomCropNode::update_node()
     size_t sample = 0;
     for (uint i = 0; i < _batch_size; i++)
     {
-        int bb_count = _meta_data_info->get_bb_labels_batch()[i].size();
+        int bb_count = _meta_data_info->get_label_batch()[i].size();
         std::vector<int> labels_buf(bb_count);
-        memcpy(labels_buf.data(), _meta_data_info->get_bb_labels_batch()[i].data(), sizeof(int) * bb_count);
+        memcpy(labels_buf.data(), _meta_data_info->get_label_batch()[i].data(), sizeof(int) * bb_count);
         std::vector<float> coords_buf(bb_count * 4);
         memcpy(coords_buf.data(), _meta_data_info->get_bb_cords_batch()[i].data(), _meta_data_info->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
 
