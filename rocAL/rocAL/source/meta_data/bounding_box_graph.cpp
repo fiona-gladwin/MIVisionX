@@ -41,7 +41,7 @@ void BoundingBoxGraph::update_meta_data(MetaDataBatch *input_meta_data, decoded_
     {
         float _dst_to_src_width_ratio = roi_width[i] / float(original_width[i]);
         float _dst_to_src_height_ratio = roi_height[i] / float(original_height[i]);
-        unsigned bb_count = input_meta_data->get_bb_labels_batch()[i].size();
+        unsigned bb_count = input_meta_data->get_labels_batch()[i].size();
         float mask_data[MAX_BUFFER];
         int poly_size = 0;
         if (segmentation)
@@ -265,6 +265,8 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
         full_batch_meta_data->get_labels_batch()[i] = encoded_labels;
         bb_coords.clear();
         bb_labels.clear();
+        full_batch_meta_data->get_metadata_dimensions_batch().labels_dims()[i][0] = anchors_size;
+        full_batch_meta_data->get_metadata_dimensions_batch().bb_cords_dims()[i][0] = anchors_size;
     }
 }
 

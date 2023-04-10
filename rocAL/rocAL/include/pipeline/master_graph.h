@@ -98,7 +98,7 @@ public:
     bool is_sequence_reader_output() {return _is_sequence_reader_output; }
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
-    Status get_bbox_encoded_buffers(float **boxes_buf_ptr, int **labels_buf_ptr, size_t num_encoded_boxes);
+    std::vector<rocalTensorList *> get_bbox_encoded_buffers(size_t num_encoded_boxes);
     size_t bounding_box_batch_count(int* buf, pMetaDataBatch meta_data_batch);
 #if ENABLE_OPENCL
     cl_command_queue get_ocl_cmd_q() { return _device.resources()->cmd_queue; }
@@ -130,6 +130,7 @@ private:
     std::vector<rocalTensorList *> _metadata_output_tensor_list;
     rocalTensorList _labels_tensor_list;
     rocalTensorList _bbox_tensor_list;
+    rocalTensorList _mask_tensor_list;
     std::vector<std::vector<unsigned>> _labels_tensor_dims;
     std::vector<std::vector<unsigned>> _bbox_tensor_dims;
     std::vector<std::vector<unsigned>> _mask_tensor_dims;

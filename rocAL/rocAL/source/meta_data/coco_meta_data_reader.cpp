@@ -33,7 +33,10 @@ void COCOMetaDataReader::init(const MetaDataConfig &cfg)
 {
     _path = cfg.path();
     _mask = cfg.mask();
-    _output = new BoundingBoxBatch();
+    if (_mask)
+        _output = new InstanceSegmentationBatch();
+    else
+        _output = new BoundingBoxBatch();
 }
 
 bool COCOMetaDataReader::exists(const std::string &image_name)
@@ -62,18 +65,32 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         _output->get_labels_batch()[i] = labels;
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         _output->get_metadata_dimensions_batch().labels_dims()[i] = {labels.size()};
-        _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = {labels.size(),4};
+        _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = {labels.size(), 4};
         if (_mask)
         {
-            _output->get_mask_cords_batch()[i] = it->second->get_mask_cords();
+            auto mask_cords = it->second->get_mask_cords();
+            _output->get_mask_cords_batch()[i] = mask_cords;
             _output->get_mask_polygons_count_batch()[i] = it->second->get_polygon_count();
             _output->get_mask_vertices_count_batch()[i] = it->second->get_vertices_count();
-            _output->get_metadata_dimensions_batch().mask_cords_dims()[i] = it->second->get_mask_cords_dims();
-            _output->increment_mask_coords_count(it->second->get_mask_coords_count());
+            _output->get_metadata_dimensions_batch().mask_cords_dims()[i] = {mask_cords.size(),1};
         }
     }
-    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
-    _map_content.insert(pair<std::string, std::shared_ptr<BoundingBox>>(image_name, info));
+}
+
+void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
+{
+    if (exists(image_name))
+    {
+        auto it = _map_content.find(image_name);
+        it->second->get_bb_cords().push_back(bb_coords[0]);
+        it->second->get_labels().push_back(bb_labels[0]);
+        it->second->get_mask_cords().insert(it->second->get_mask_cords().end(), mask_cords.begin(), mask_cords.end());
+        it->second->get_polygon_count().push_back(polygon_count[0]);
+        it->second->get_vertices_count().push_back(vertices_count[0]);
+        return;
+    }
+    pMetaDataInstanceSegmentation info = std::make_shared<InstanceSegmentation>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
+    _map_content.insert(pair<std::string, std::shared_ptr<InstanceSegmentation>>(image_name, info));
 }
 
 void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, uint image_id)
@@ -105,9 +122,6 @@ void COCOMetaDataReader::print_map_contents()
         bb_coords = elem.second->get_bb_cords();
         bb_labels = elem.second->get_labels();
         img_size = elem.second->get_img_size();
-        mask_cords = elem.second->get_mask_cords();
-        polygon_size = elem.second->get_polygon_count();
-        vertices_count = elem.second->get_vertices_count();
         std::cout << "<wxh, num of bboxes>: " << img_size.w << " X " << img_size.h << " , " << bb_coords.size() << std::endl;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
@@ -116,6 +130,9 @@ void COCOMetaDataReader::print_map_contents()
         if (_mask)
         {
             int count = 0;
+            mask_cords = elem.second->get_mask_cords();
+            polygon_size = elem.second->get_polygon_count();
+            vertices_count = elem.second->get_vertices_count();
             std::cout << "\nNumber of objects : " << bb_coords.size() << std::endl;
             for (unsigned int i = 0; i < bb_coords.size(); i++)
             {
@@ -124,7 +141,7 @@ void COCOMetaDataReader::print_map_contents()
                 {
                     std::cout << "\nPolygon size :" << vertices_count[i][j] << "Elements::";
                     for (int k = 0; k < vertices_count[i][j]; k++, count++)
-                        std::cout << "\t " << mask_cords[count + vertices_count[i][j]];
+                        std::cout << "\t " << mask_cords[count];
                 }
             }
         }
@@ -341,7 +358,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     box.b = (bbox[1] + bbox[3]) / image_size.h;
                     bb_coords.push_back(box);
                     bb_labels.push_back(label);
-                    add(file_name, bb_coords, bb_labels, image_size);
+                    add(file_name, bb_coords, bb_labels, image_size, id);
                     bb_coords.clear();
                     bb_labels.clear();
                 }
