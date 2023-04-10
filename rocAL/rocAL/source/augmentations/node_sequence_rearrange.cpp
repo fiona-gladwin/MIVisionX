@@ -41,15 +41,13 @@ void SequenceRearrangeNode::create_node()
     status = vxAddArrayItems(_sequence_array, _new_sequence_length, _new_order.data(), sizeof(vx_uint32));
     if(status != VX_SUCCESS)
         THROW("Adding array items failed: "+ TOSTR(status));
-    vx_scalar layout = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_UINT32,&_layout);
-    _node = vxExtrppNode_SequenceRearrange(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle(), _sequence_array, _new_sequence_length, _sequence_length, _sequence_count, layout);
+    _node = vxExtrppNode_SequenceRearrange(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle(), _sequence_array, _new_sequence_length, _sequence_length, _sequence_count, _input_layout);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the sequence rearrange (vxExtrppNode_SequenceRearrange) node failed: "+ TOSTR(status))
 }
 
 void SequenceRearrangeNode::init(unsigned int* new_order, unsigned int new_sequence_length, unsigned int sequence_length, unsigned int sequence_count)
 {
-    _layout = (unsigned) _inputs[0]->info().layout();
     _new_sequence_length = _outputs[0]->info().dims()[1];
     _sequence_length = _inputs[0]->info().dims()[1];
     _sequence_count = _outputs[0]->info().dims()[0];

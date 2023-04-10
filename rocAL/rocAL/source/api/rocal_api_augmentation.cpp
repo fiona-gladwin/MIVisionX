@@ -678,7 +678,7 @@ rocalColorTwist(RocalContext p_context,
         output_info.set_data_type(op_tensorDataType);
 
         output = context->master_graph->create_tensor(output_info, is_output);
-        context->master_graph->add_node<ColorTwistNode>({input}, {output})->init(alpha, beta, hue ,sat, layout);
+        context->master_graph->add_node<ColorTwistNode>({input}, {output})->init(alpha, beta, hue, sat);
     }
     catch(const std::exception& e)
     {

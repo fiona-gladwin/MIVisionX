@@ -45,7 +45,7 @@ public:
     ///\param dev
     ///\param sub_buffer_size
     ///\param sub_buffer_count
-    void init(RocalMemType mem_type, void *dev, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count);
+    void init(RocalMemType mem_type, void *dev, std::vector<size_t> &sub_buffer_size);
     void initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size);
     void init_metadata(RocalMemType mem_type, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count);
     void release_gpu_res();

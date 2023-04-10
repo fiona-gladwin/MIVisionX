@@ -32,8 +32,8 @@ public:
     ColorTwistNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     ColorTwistNode() = delete;
 
-    void init( float alpha, float beta,float hue , float sat, int layout);
-    void init( FloatParam* alpha_param, FloatParam* beta_param,  FloatParam* hue_param,  FloatParam* sat_param, int layout);
+    void init(float alpha, float beta, float hue, float sat);
+    void init(FloatParam* alpha_param, FloatParam* beta_param, FloatParam* hue_param, FloatParam* sat_param);
 
 protected:
     void create_node() override ;
@@ -44,8 +44,6 @@ private:
     ParameterVX<float> _beta;
     ParameterVX<float> _hue;
     ParameterVX<float> _sat;
-
-    unsigned _layout, _roi_type;
     constexpr static float ALPHA_RANGE [2] = {0.1, 1.95};
     constexpr static float   BETA_RANGE [2] = {0, 25};
     constexpr static float HUE_RANGE [2] = {5.0, 170.0};

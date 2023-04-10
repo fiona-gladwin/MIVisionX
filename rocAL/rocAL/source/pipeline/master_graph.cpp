@@ -278,9 +278,9 @@ MasterGraph::build()
         THROW("No output tensors are there, cannot create the pipeline")
 
 #if ENABLE_HIP || ENABLE_OPENCL
-    _ring_buffer.init(_mem_type, (void *)_device.resources(), _internal_tensor_list.data_size(), _internal_tensor_list.size());
+    _ring_buffer.init(_mem_type, (void *)_device.resources(), _internal_tensor_list.data_size());
 #else
-    _ring_buffer.init(_mem_type, nullptr, _internal_tensor_list.data_size(), _internal_tensor_list.size());
+    _ring_buffer.init(_mem_type, nullptr, _internal_tensor_list.data_size());
 #endif
     if (_is_box_encoder) _ring_buffer.initBoxEncoderMetaData(_mem_type, _user_batch_size*_num_anchors*4*sizeof(float), _user_batch_size*_num_anchors*sizeof(int));
     create_single_graph();
@@ -518,9 +518,7 @@ void MasterGraph::output_routine()
 
             // Swap handles on the output tensor, so that new processed tensor will be written to the a new buffer
             for (size_t idx = 0; idx < _internal_tensor_list.size(); idx++)
-            {
                 _internal_tensor_list[idx]->swap_handle(write_buffers[idx]);
-            }
 
             if (!_processing)
                 break;
@@ -568,7 +566,6 @@ void MasterGraph::output_routine()
             _process_time.start();
             _graph->process();
             _process_time.end();
-
             _bencode_time.start();
             if(_is_box_encoder )
             {
@@ -1233,11 +1230,6 @@ ImgSizes& MasterGraph::get_image_sizes()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     return _ring_buffer.get_meta_data().second->get_img_sizes_batch();
-}
-
-std::vector<size_t> MasterGraph::tensor_output_byte_size()
-{
-    return _internal_tensor_list.data_size();
 }
 
 void MasterGraph::notify_user_thread()

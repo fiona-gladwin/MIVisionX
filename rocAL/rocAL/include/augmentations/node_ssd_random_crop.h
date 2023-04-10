@@ -90,5 +90,4 @@ private:
     bool _entire_iou = false;
     std::shared_ptr<RocalRandomCropParam> _crop_param;
     SeededRNG<std::mt19937, 4> _rngs;     // setting the state_size to 4 for 4 random parameters.
-    unsigned _layout, _roi_type;
 };

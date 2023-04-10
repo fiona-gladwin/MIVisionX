@@ -49,13 +49,7 @@ void SSDRandomCropNode::create_node()
         THROW("Uninitialized destination dimension")
 
     _crop_param->create_array(_graph);
-    int input_layout = (int)_inputs[0]->info().layout();
-    int output_layout = (int)_outputs[0]->info().layout();
-    int roi_type = (int)_inputs[0]->info().roi_type();
-    vx_scalar in_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
-    vx_scalar out_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
-    vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
-    _node = vxExtrppNode_Crop(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), in_layout_vx, out_layout_vx, roi_type_vx);
+    _node = vxExtrppNode_Crop(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
@@ -218,5 +212,4 @@ void SSDRandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspe
     _crop_param->set_area_factor(core(crop_area_factor));
     _crop_param->set_aspect_ratio(core(crop_aspect_ratio));
     _num_of_attempts = num_of_attempts;
-    _layout = (unsigned)_outputs[0]->info().layout();
 }

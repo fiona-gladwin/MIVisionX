@@ -124,12 +124,12 @@ void RingBuffer::unblock_writer()
     _wait_for_unload.notify_all();
 }
 
-void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count)
+void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &sub_buffer_size)
 {
     _mem_type = mem_type;
     _dev = devres;
     _sub_buffer_size = sub_buffer_size;
-    _sub_buffer_count = sub_buffer_count;
+    auto sub_buffer_count = sub_buffer_size.size();
     if(BUFF_DEPTH < 2)
         THROW ("Error internal buffer size for the ring buffer should be greater than one")
 
@@ -147,8 +147,8 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> s
         {
             cl_mem_flags flags = CL_MEM_READ_ONLY;
 
-            _dev_sub_buffer[buffIdx].resize(_sub_buffer_count);
-            for(unsigned sub_idx = 0; sub_idx < _sub_buffer_count; sub_idx++)
+            _dev_sub_buffer[buffIdx].resize(sub_buffer_count);
+            for(unsigned sub_idx = 0; sub_idx < sub_buffer_count; sub_idx++)
             {
                 _dev_sub_buffer[buffIdx][sub_idx] =  clCreateBuffer(dev_ocl->context, flags, _sub_buffer_size[sub_idx], NULL, &err);
 
@@ -177,8 +177,8 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> s
 
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
-            _dev_sub_buffer[buffIdx].resize(_sub_buffer_count);
-            for(unsigned sub_idx = 0; sub_idx < _sub_buffer_count; sub_idx++)
+            _dev_sub_buffer[buffIdx].resize(sub_buffer_count);
+            for(unsigned sub_idx = 0; sub_idx < sub_buffer_count; sub_idx++)
             {
 
                 hipError_t err =  hipMalloc(&_dev_sub_buffer[buffIdx][sub_idx], _sub_buffer_size[sub_idx]);
@@ -198,8 +198,8 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> s
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
             // a minimum of extra MEM_ALIGNMENT is allocated
-            _host_sub_buffers[buffIdx].resize(_sub_buffer_count);
-            for(size_t sub_buff_idx = 0; sub_buff_idx < _sub_buffer_count; sub_buff_idx++)
+            _host_sub_buffers[buffIdx].resize(sub_buffer_count);
+            for(size_t sub_buff_idx = 0; sub_buff_idx < sub_buffer_count; sub_buff_idx++)
                 _host_sub_buffers[buffIdx][sub_buff_idx] = aligned_alloc(MEM_ALIGNMENT, MEM_ALIGNMENT * (_sub_buffer_size[sub_buff_idx] / MEM_ALIGNMENT + 1));
         }
 #if ENABLE_OPENCL || ENABLE_HIP

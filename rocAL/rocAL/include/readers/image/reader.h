@@ -49,12 +49,10 @@ enum class StorageType
 };
 
 #ifdef ROCAL_VIDEO
-struct SequenceInfo
-{
+struct SequenceInfo {
     size_t start_frame_number;
     std::string video_file_name;
 };
-
 #endif
 
 struct ReaderConfig

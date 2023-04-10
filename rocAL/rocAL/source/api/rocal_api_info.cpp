@@ -69,6 +69,50 @@ ROCAL_API_CALL rocalGetTimingInfo(RocalContext p_context)
     return {info.image_read_time, info.image_decode_time, info.image_process_time, info.copy_to_output};
 }
 
+RocalMetaData
+    ROCAL_API_CALL
+    rocalCreateCaffe2LMDBLabelReader(RocalContext p_context, const char *source_path, bool is_output)
+{
+
+    if (!p_context)
+        THROW("Invalid rocal context passed to rocalCreateCaffe2LMDBLabelReader")
+
+    auto context = static_cast<Context *>(p_context);
+    return context->master_graph->create_caffe2_lmdb_record_meta_data_reader(source_path, MetaDataReaderType::CAFFE2_META_DATA_READER, MetaDataType::Label);
+}
+
+RocalMetaData
+    ROCAL_API_CALL
+    rocalCreateCaffe2LMDBReaderDetection(RocalContext p_context, const char *source_path, bool is_output)
+{
+    if (!p_context)
+        THROW("Invalid rocal context passed to rocalCreateCaffe2LMDBReaderDetection")
+    auto context = static_cast<Context *>(p_context);
+
+    return context->master_graph->create_caffe2_lmdb_record_meta_data_reader(source_path, MetaDataReaderType::CAFFE2_DETECTION_META_DATA_READER, MetaDataType::BoundingBox);
+}
+
+RocalMetaData
+    ROCAL_API_CALL
+    rocalCreateCaffeLMDBLabelReader(RocalContext p_context, const char *source_path)
+{
+
+    if (!p_context)
+        THROW("Invalid rocal context passed to rocalCreateCaffeLMDBLabelReader")
+    auto context = static_cast<Context *>(p_context);
+    return context->master_graph->create_caffe_lmdb_record_meta_data_reader(source_path, MetaDataReaderType::CAFFE_META_DATA_READER, MetaDataType::Label);
+}
+
+RocalMetaData
+    ROCAL_API_CALL
+    rocalCreateCaffeLMDBReaderDetection(RocalContext p_context, const char *source_path)
+{
+    if (!p_context)
+        THROW("Invalid rocal context passed to rocalCreateCaffeLMDBReaderDetection")
+    auto context = static_cast<Context *>(p_context);
+
+    return context->master_graph->create_caffe_lmdb_record_meta_data_reader(source_path, MetaDataReaderType::CAFFE_DETECTION_META_DATA_READER, MetaDataType::BoundingBox);
+}
 
 size_t ROCAL_API_CALL rocalIsEmpty(RocalContext p_context)
 {

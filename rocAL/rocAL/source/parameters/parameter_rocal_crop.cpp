@@ -50,7 +50,7 @@ void RocalCropParam::fill_crop_dims() {
     for(uint img_idx = 0; img_idx < batch_size; img_idx++) {
         if (!(_random)) {
             // Evaluating user given crop
-            cropw_arr_val[img_idx] = (crop_w <= in_roi[img_idx].x2&& crop_w > 0) ? crop_w : in_roi[img_idx].x2;
+            cropw_arr_val[img_idx] = (crop_w <= in_roi[img_idx].x2 && crop_w > 0) ? crop_w : in_roi[img_idx].x2;
             croph_arr_val[img_idx] = (crop_h <= in_roi[img_idx].y2 && crop_h > 0) ? crop_h : in_roi[img_idx].y2;
             if (_is_fixed_crop) {
                 x1_arr_val[img_idx] = static_cast<size_t>(std::nearbyintf(_crop_anchor[0] * (in_roi[img_idx].x2 - cropw_arr_val[img_idx])));

@@ -44,7 +44,7 @@ THE SOFTWARE.
 #endif
 #include "randombboxcrop_meta_data_reader.h"
 #define MAX_STRING_LENGTH 100
-#define MAX_OBJECTS 50 // Max number of objects/image in COCO dataset is 93 
+#define MAX_OBJECTS 50 // Max number of objects/image in COCO dataset is 93
 #define BBOX_COUNT 4
 #define MAX_NUM_ANCHORS 8732
 #define MAX_MASK_BUFFER 10000
@@ -61,7 +61,6 @@ public:
     std::vector<uint32_t> output_resize_width();
     std::vector<uint32_t> output_resize_height();
     rocalTensorList *get_output_tensors();
-    std::vector<size_t> tensor_output_byte_size();
     void sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum); // Returns the starting frame number of the sequences
     void sequence_frame_timestamps(std::vector<std::vector<float>> &sequence_frame_timestamp); // Returns the timestamps of the frames in the sequences
     Status build();
@@ -117,11 +116,11 @@ private:
     void stop_processing();
     void output_routine();
     void decrease_image_count();
-    /// notify_user_thread() is called when the internal processing thread is done with processing all available images
+    /// notify_user_thread() is called when the internal processing thread is done with processing all available tensors
     void notify_user_thread();
-    /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed images
+    /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed tensors
     bool no_more_processed_data();
-    RingBuffer _ring_buffer;//!< The queue that keeps the images that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
+    RingBuffer _ring_buffer;//!< The queue that keeps the tensors that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
     MetaDataBatch* _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
     CropCordBatch* _random_bbox_crop_cords_data = nullptr;
     std::thread _output_thread;
@@ -152,7 +151,7 @@ private:
     std::shared_ptr<Graph> _graph = nullptr;
     RocalAffinity _affinity;
     const int _gpu_id;//!< Defines the device id used for processing
-    pLoaderModule _loader_module; //!< Keeps the loader module used to feed the input the images of the graph
+    pLoaderModule _loader_module; //!< Keeps the loader module used to feed the input the tensors of the graph
     TimingDBG _convert_time, _process_time, _bencode_time;
     const size_t _user_batch_size;//!< Batch size provided by the user
     vx_context _context;
@@ -204,7 +203,7 @@ std::shared_ptr<T> MasterGraph::add_node(const std::vector<rocalTensor *> &input
     for(auto& input: inputs)
     {
         if (_tensor_map.find(input) == _tensor_map.end())
-            THROW("Input image is invalid, cannot be found among output of previously created nodes")
+            THROW("Input tensor is invalid, cannot be found among output of previously created nodes")
 
         auto parent_node = _tensor_map.find(input)->second;
         parent_node->add_next(node);
@@ -256,7 +255,7 @@ template<> inline std::shared_ptr<ImageLoaderSingleShardNode> MasterGraph::add_n
     auto node = std::make_shared<ImageLoaderSingleShardNode>(outputs[0], (void *)_device.resources());
 #else
     auto node = std::make_shared<ImageLoaderSingleShardNode>(outputs[0], nullptr);
-#endif    
+#endif
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _root_nodes.push_back(node);
@@ -293,7 +292,7 @@ template<> inline std::shared_ptr<FusedJpegCropSingleShardNode> MasterGraph::add
     auto node = std::make_shared<FusedJpegCropSingleShardNode>(outputs[0], (void *)_device.resources());
 #else
     auto node = std::make_shared<FusedJpegCropSingleShardNode>(outputs[0], nullptr);
-#endif    
+#endif
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _loader_module->set_random_bbox_data_reader(_randombboxcrop_meta_data_reader);
@@ -334,9 +333,9 @@ template<> inline std::shared_ptr<VideoLoaderNode> MasterGraph::add_node(const s
         THROW("A loader already exists, cannot have more than one loader")
 #if ENABLE_HIP || ENABLE_OPENCL
     auto node = std::make_shared<VideoLoaderNode>(outputs[0], (void *)_device.resources());
-#else    
+#else
     auto node = std::make_shared<VideoLoaderNode>(outputs[0], nullptr);
-#endif 
+#endif
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _root_nodes.push_back(node);
@@ -354,7 +353,7 @@ template<> inline std::shared_ptr<VideoLoaderSingleShardNode> MasterGraph::add_n
     auto node = std::make_shared<VideoLoaderSingleShardNode>(outputs[0], (void *)_device.resources());
 #else
     auto node = std::make_shared<VideoLoaderSingleShardNode>(outputs[0], nullptr);
-#endif    
+#endif
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _root_nodes.push_back(node);

@@ -86,6 +86,17 @@ ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_
     return context->master_graph->create_coco_meta_data_reader(source_path, is_output, mask, MetaDataReaderType::COCO_META_DATA_READER,  MetaDataType::BoundingBox, is_box_encoder, is_box_iou_matcher);
 }
 
+#if 0 // Disable keypoints reader for now
+RocalMetaData
+ROCAL_API_CALL rocalCreateCOCOReaderKeyPoints(RocalContext p_context, const char* source_path, bool is_output, float sigma, unsigned pose_output_width, unsigned pose_output_height){
+    if (!p_context)
+        THROW("Invalid rocal context passed to rocalCreateCOCOReaderKeyPoints")
+    auto context = static_cast<Context*>(p_context);
+
+    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_KEY_POINTS_META_DATA_READER, MetaDataType::KeyPoints, sigma, pose_output_width, pose_output_height);
+}
+#endif
+
 RocalMetaData
 ROCAL_API_CALL rocalCreateTFReader(RocalContext p_context, const char* source_path, bool is_output,const char* user_key_for_label, const char* user_key_for_filename)
 {
@@ -472,4 +483,26 @@ ROCAL_API_CALL rocalGetEncodedBoxesAndLables(RocalContext p_context, int num_enc
     auto context = static_cast<Context *>(p_context);
     return context->master_graph->get_bbox_encoded_buffers(num_encoded_boxes);
 }
+
+#if 0 // Commented out keypoints for now
+void
+ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **joints_data)
+{
+    if (!p_context)
+        THROW("Invalid rocal context passed to rocalGetBoundingBoxCords")
+    auto context = static_cast<Context*>(p_context);
+    auto meta_data = context->master_graph->meta_data();
+    size_t meta_data_batch_size = meta_data.second->get_joints_data_batch().center_batch.size();
+
+    if(context->user_batch_size() != meta_data_batch_size)
+        THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
+    if(!meta_data.second)
+    {
+        WRN("No label has been loaded for this output image")
+        return;
+    }
+
+    *joints_data = (RocalJointsData *)(&(meta_data.second->get_joints_data_batch()));
+}
+#endif
 

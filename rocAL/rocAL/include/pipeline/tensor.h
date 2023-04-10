@@ -259,7 +259,7 @@ public:
         _tensor_list.emplace_back(tensor);
         _tensor_data_size.emplace_back(tensor->info().data_size());
     }
-    std::vector<uint64_t> data_size() { return _tensor_data_size; }
+    std::vector<uint64_t> &data_size() { return _tensor_data_size; }
     void release() {
         for (auto& tensor : _tensor_list) delete tensor;
     }

@@ -315,7 +315,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         case 11: //coco detection segmentation
         {
             std::cout << ">>>>>>> Running COCO READER" << std::endl;
-            pipeline_type = 4;
+            pipeline_type = 3;
             if (strcmp(rocal_data_path.c_str(), "") == 0)
             {
                 std::cout << "\n ROCAL_DATA_PATH env variable has not been set. ";
@@ -381,8 +381,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     case 26:
     {
          std::cout << ">>>>>>> Running "
-                  << "rocalcrop" << std::endl;
-        // image1 = rocalCrop(handle, input1, true, tensorLayout, tensorOutputType, resize_w, resize_h, 0, 0, 0);
+                  << "rocalcrop center fixed" << std::endl;
+        image1 = rocalCropCenterFixed(handle, input1, 100, 100, true, tensorLayout, tensorOutputType);
 
     }
     break;
@@ -467,7 +467,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 }
             }
             break;
-            case 4: //detection + segmentation pipeline
+            case 3: //detection + segmentation pipeline
             {
                 RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
                 RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
@@ -508,7 +508,6 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 }
             }
             break;
-#if 0
             case 4: // keypoints pipeline
             {
                 int size = inputBatchSize;
@@ -531,7 +530,6 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 }
             }
             break;
-#endif
             default:
             {
                 std::cout << "Not a valid pipeline type ! Exiting!\n";

@@ -216,8 +216,8 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCOCOFileSourcePartialSingleShar
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
 extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCOCOFileSourceSingleShard(RocalContext context,
-                                                                           const char* json_path,
                                                                            const char* source_path,
+                                                                           const char* json_path,
                                                                            RocalImageColor color_format,
                                                                            unsigned shard_id,
                                                                            unsigned shard_count,
@@ -481,6 +481,34 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalC
                                                                       unsigned out_width=0, unsigned out_height=0,
                                                                       const char* record_name_prefix = "");
 
+/// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems.
+/// \param context Rocal context
+/// \param source_path A NULL terminated char string pointing to the location on the disk.
+/// source_path can be a video file, folder containing videos or a text file
+/// \param color_format The color format the frames will be decoded to.
+/// \param rocal_decode_device Enables software or hardware decoding. Currently only software decoding is supported.
+/// \param internal_shard_count Defines the parallelism level by internally sharding the input dataset and load/decode using multiple decoder/loader instances.
+/// \param sequence_length: The number of frames in a sequence.
+/// \param shuffle: to shuffle sequences.
+/// \param is_output Determines if the user wants the loaded sequence of frames to be part of the output or not.
+/// \param loop: repeat data loading.
+/// \param step: Frame interval between each sequence.
+/// \param stride: Frame interval between frames in a sequence.
+/// \param file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
+/// \return
+extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileSource(RocalContext context,
+                                                        const char* source_path,
+                                                        RocalImageColor color_format,
+                                                        RocalDecodeDevice rocal_decode_device,
+                                                        unsigned internal_shard_count,
+                                                        unsigned sequence_length,
+                                                        bool is_output = false,
+                                                        bool shuffle = false,
+                                                        bool loop = false,
+                                                        unsigned step = 0,
+                                                        unsigned stride = 0,
+                                                        bool file_list_frame_num = true);
+
 /// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. It accepts external sharding information to load a singe shard only.
 /// \param context Rocal context
 /// \param source_path A NULL terminated char string pointing to the location on the disk.
@@ -511,7 +539,7 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalCon
                                                                     unsigned stride = 0,
                                                                     bool file_list_frame_num = true);
 
-/// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems.
+/// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. Resizes the decoded frames to the dest width and height.
 /// \param context Rocal context
 /// \param source_path A NULL terminated char string pointing to the location on the disk.
 /// source_path can be a video file, folder containing videos or a text file
@@ -519,6 +547,46 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalCon
 /// \param rocal_decode_device Enables software or hardware decoding. Currently only software decoding is supported.
 /// \param internal_shard_count Defines the parallelism level by internally sharding the input dataset and load/decode using multiple decoder/loader instances.
 /// \param sequence_length: The number of frames in a sequence.
+/// \param dest_width The output width of frames.
+/// \param dest_height The output height of frames.
+/// \param shuffle: to shuffle sequences.
+/// \param is_output Determines if the user wants the loaded sequence of frames to be part of the output or not.
+/// \param loop: repeat data loading.
+/// \param step: Frame interval between each sequence.
+/// \param stride: Frame interval between frames in a sequence.
+/// \param file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
+/// \return
+extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileResize(RocalContext context,
+                                                        const char* source_path,
+                                                        RocalImageColor color_format,
+                                                        RocalDecodeDevice rocal_decode_device,
+                                                        unsigned internal_shard_count,
+                                                        unsigned sequence_length,
+                                                        unsigned dest_width,
+                                                        unsigned dest_height,
+                                                        bool shuffle = false,
+                                                        bool is_output = false,
+                                                        bool loop = false,
+                                                        unsigned step = 0,
+                                                        unsigned stride = 0,
+                                                        bool file_list_frame_num = true,
+                                                        RocalResizeScalingMode scaling_mode = ROCAL_SCALING_MODE_DEFAULT,
+                                                        std::vector<unsigned> max_size = {},
+                                                        unsigned resize_shorter = 0,
+                                                        unsigned resize_longer = 0,
+                                                        RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
+
+/// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. Resizes the decoded frames to the dest width and height. It accepts external sharding information to load a singe shard only.
+/// \param context Rocal context
+/// \param source_path A NULL terminated char string pointing to the location on the disk.
+/// source_path can be a video file, folder containing videos or a text file
+/// \param color_format The color format the frames will be decoded to.
+/// \param rocal_decode_device Enables software or hardware decoding. Currently only software decoding is supported.
+/// \param shard_id Shard id for this loader.
+/// \param shard_count Total shard count.
+/// \param sequence_length: The number of frames in a sequence.
+/// \param dest_width The output width of frames.
+/// \param dest_height The output height of frames.
 /// \param shuffle: to shuffle sequences.
 /// \param is_output Determines if the user wants the loaded sequence of frames to be part of the output or not.
 /// \param loop: repeat data loading.
