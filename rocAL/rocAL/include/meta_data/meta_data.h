@@ -131,24 +131,14 @@ struct Label : public MetaData
 struct BoundingBox : public Label
 {
     BoundingBox()= default;
-    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids)
-    {
-        _bb_cords =std::move(bb_cords);
-        _label_ids = std::move(bb_label_ids);
-    }
-    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, uint img_id = 0)
+    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size = ImgSize{0,0}, uint img_id = 0)
     {
         _bb_cords =std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
         _info._img_size = std::move(img_size);
         _info._img_id = img_id;
     }
-    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids)
-    {
-        _bb_cords_xcycwh =std::move(bb_cords_xcycwh);
-        _label_ids = std::move(bb_label_ids);
-    }
-    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids, ImgSize img_size, uint img_id = 0)
+    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids, ImgSize img_size = ImgSize{0,0}, uint img_id = 0)
     {
         _bb_cords_xcycwh =std::move(bb_cords_xcycwh);
         _label_ids = std::move(bb_label_ids);
@@ -204,6 +194,21 @@ public:
     std::vector<uint> _img_ids = {};
     std::vector<std::string> _img_names = {};
     std::vector<ImgSize> _img_sizes = {};
+    void clear() {
+        _img_ids.clear();
+        _img_names.clear();
+        _img_sizes.clear();
+    }
+    void resize(int batch_size) {
+        _img_ids.resize(batch_size);
+        _img_names.resize(batch_size);
+        _img_sizes.resize(batch_size);
+    }
+    MetaDataInfoBatch&  operator += (MetaDataInfoBatch& other) {
+        _img_sizes.insert(_img_sizes.end(), other._img_sizes.begin(), other._img_sizes.end());
+        _img_ids.insert(_img_ids.end(), other._img_ids.begin(), other._img_ids.end());
+        _img_names.insert(_img_names.end(), other._img_names.begin(), other._img_names.end());
+    }
 };
 
 
@@ -230,6 +235,7 @@ struct MetaDataBatch
     ImgSizes& get_img_sizes_batch() { return _info_batch._img_sizes; }
     JointsDataBatch & get_joints_data_batch() { return _joints_data; }
     MetaDataDimensionsBatch& get_metadata_dimensions_batch() { return _metadata_dimensions; }
+    MetaDataInfoBatch& get_info_batch() { return _info_batch; };
 protected:
     MetaDataDimensionsBatch _metadata_dimensions;
     MetaDataInfoBatch _info_batch;
@@ -297,8 +303,7 @@ struct BoundingBoxBatch: public LabelBatch
     {
         _bb_cords.clear();
         _label_ids.clear();
-        _info_batch._img_sizes.clear();
-        _info_batch._img_ids.clear();
+        _info_batch.clear();
         _metadata_dimensions.clear();
         _buffer_size.clear();
     }
@@ -306,8 +311,7 @@ struct BoundingBoxBatch: public LabelBatch
     {
         _bb_cords.insert(_bb_cords.end(), other.get_bb_cords_batch().begin(), other.get_bb_cords_batch().end());
         _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
-        _info_batch._img_sizes.insert(_info_batch._img_sizes.end(), other.get_img_sizes_batch().begin(), other.get_img_sizes_batch().end());
-        _info_batch._img_ids.insert(_info_batch._img_ids.end(), other.get_image_id_batch().begin(), other.get_image_id_batch().end());
+        _info_batch += other.get_info_batch();
         _metadata_dimensions.insert(other.get_metadata_dimensions_batch());
         return *this;
     }
@@ -315,8 +319,7 @@ struct BoundingBoxBatch: public LabelBatch
     {
         _bb_cords.resize(batch_size);
         _label_ids.resize(batch_size);
-        _info_batch._img_sizes.resize(batch_size);
-        _info_batch._img_ids.resize(batch_size);
+        _info_batch.resize(batch_size);
         _metadata_dimensions.resize(batch_size);
     }
     int size() override
