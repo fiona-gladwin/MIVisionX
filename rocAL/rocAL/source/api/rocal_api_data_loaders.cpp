@@ -156,7 +156,7 @@ rocalJpegFileSourceSingleShard(
 
         INFO("Internal buffer size width = "+ TOSTR(width)+ " height = "+ TOSTR(height) + " depth = "+ TOSTR(num_of_planes))
 
-        std::vector<size_t> dims = {context->user_batch_size(), height, width, num_of_planes};
+        std::vector<size_t> dims = {context->user_batch_size(), height, width, static_cast<unsigned>(num_of_planes)};
         auto info  = rocalTensorInfo(std::move(dims),
                                      context->master_graph->mem_type(),
                                      RocalTensorDataType::UINT8);
