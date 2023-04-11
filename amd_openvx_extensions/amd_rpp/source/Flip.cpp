@@ -27,8 +27,8 @@ struct FlipLocalData {
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    vx_uint32 *alpha;
-    vx_uint32 *beta;
+    vx_uint32 *h_flag;
+    vx_uint32 *v_flag;
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
     RpptDesc dstDesc;
@@ -46,8 +46,8 @@ struct FlipLocalData {
 
 static vx_status VX_CALLBACK refreshFlip(vx_node node, const vx_reference *parameters, vx_uint32 num, FlipLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_uint32), data->alpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_uint32), data->beta, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_uint32), data->h_flag, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_uint32), data->v_flag, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -66,8 +66,8 @@ static vx_status VX_CALLBACK refreshFlip(vx_node node, const vx_reference *param
         for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
-                data->alpha[index + f] = data->alpha[n];
-                data->beta[index + f] = data->beta[n];
+                data->h_flag[index + f] = data->h_flag[n];
+                data->v_flag[index + f] = data->v_flag[n];
                 data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
                 data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
                 data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
@@ -137,12 +137,12 @@ static vx_status VX_CALLBACK processFlip(vx_node node, const vx_reference *param
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshFlip(node, parameters, num, data);
-        rpp_status = rppt_flip_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->alpha, data->beta, data->roiPtr, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_flip_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->h_flag, data->v_flag, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshFlip(node, parameters, num, data);
-        rpp_status = rppt_flip_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->alpha, data->beta, data->roiPtr, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_flip_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->h_flag, data->v_flag, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -177,8 +177,8 @@ static vx_status VX_CALLBACK initializeFlip(vx_node node, const vx_reference *pa
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
-    data->alpha = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
-    data->beta = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
+    data->h_flag = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
+    data->v_flag = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
     refreshFlip(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -189,8 +189,8 @@ static vx_status VX_CALLBACK uninitializeFlip(vx_node node, const vx_reference *
     FlipLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
-    free(data->alpha);
-    free(data->beta);
+    free(data->h_flag);
+    free(data->v_flag);
     delete (data);
     return VX_SUCCESS;
 }

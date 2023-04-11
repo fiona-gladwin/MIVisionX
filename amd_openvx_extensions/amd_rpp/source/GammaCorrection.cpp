@@ -139,7 +139,21 @@ static vx_status VX_CALLBACK processGammaCorrection(vx_node node, const vx_refer
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshGammaCorrection(node, parameters, num, data);
+        // if (1) {
+        //     float *temp1 = ((float *)calloc(100, sizeof(float)));
+        //     for (int i = 0; i < 100; i++) {
+        //         temp1[i] = (float)*((unsigned char *)(data->pSrc) + i);
+        //         std::cout << temp1[i] << " ";
+        //     }
+        // }
         rpp_status = rppt_gamma_correction_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->alpha, data->roiPtr, data->roiType, data->handle->rppHandle);
+        if (1) {
+            float *temp1 = ((float *)calloc(100, sizeof(float)));
+            for (int i = 0; i < 100; i++) {
+                temp1[i] = (float)*((unsigned char *)(data->pDst) + i);
+                std::cout << temp1[i] << " ";
+            }
+        }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;

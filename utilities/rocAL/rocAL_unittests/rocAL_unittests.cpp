@@ -619,14 +619,14 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalGammaFixed" << std::endl;
-        // image1 = rocalGammaFixed(handle, image0, 0.5, true);
+        image1 = rocalGammaFixed(handle, input1, true, 0.5, tensorLayout, tensorOutputType);
     }
     break;
     case 34:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalContrastFixed" << std::endl;
-        // image1 = rocalContrastFixed(handle, image0, 30, 80, true);
+        image1 = rocalContrastFixed(handle, input1, true, 30, 80, tensorLayout, tensorOutputType);
     }
     break;
     case 35:
@@ -718,7 +718,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalFlipFixed" << std::endl;
-        // image1 = rocalFlipFixed(handle, image0, 2, true);
+        image1 = rocalFlipFixed(handle, input1, true, 1, 0, tensorLayout, tensorOutputType);
     }
     break;
     case 48:
