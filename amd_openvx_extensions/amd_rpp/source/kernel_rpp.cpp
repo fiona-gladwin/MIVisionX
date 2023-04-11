@@ -1857,13 +1857,13 @@ VX_API_CALL vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph, v
     vx_context context = vxGetContext((vx_reference)graph);
     if(vxGetStatus((vx_reference)context) == VX_SUCCESS) {
         vx_uint32 dev_type = getGraphAffinity(graph);
-        vx_scalar DEV_TYPE = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &dev_type);
+        vx_scalar dev_type_scalar = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &dev_type);
         vx_reference params[] = {
             (vx_reference) pSrc,
             (vx_reference) pDst,
             (vx_reference) newOrder,
             (vx_reference) layout,
-            (vx_reference) DEV_TYPE
+            (vx_reference) dev_type_scalar
         };
         node = createNode(graph, VX_KERNEL_RPP_SEQUENCEREARRANGE, params, 5);
     }

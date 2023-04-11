@@ -346,7 +346,7 @@ rocalSequenceReader(
         context->master_graph->set_loop(loop);
 
         if(is_output) {
-            auto actual_output = context->master_graph->create_image(info, is_output);
+            auto actual_output = context->master_graph->create_tensor(info, is_output);
             context->master_graph->add_node<CopyNode>({output}, {actual_output});
         }
 

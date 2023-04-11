@@ -202,7 +202,7 @@ static vx_status VX_CALLBACK uninitializeSequenceRearrange(vx_node node, const v
     SequenceRearrangeLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
-    free(data->newOrder);
+    if(data->newOrder) free(data->newOrder);
     delete (data);
     return VX_SUCCESS;
 }

@@ -31,6 +31,10 @@ THE SOFTWARE.
 #include "video_properties.h"
 
 #ifdef ROCAL_VIDEO
+struct SequenceInfo {
+    size_t start_frame_number;
+    std::string video_file_name;
+};
 
 class VideoReader
 {
