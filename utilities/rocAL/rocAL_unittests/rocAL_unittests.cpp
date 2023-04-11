@@ -867,7 +867,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 for(int i = 0; i < bbox_labels->size(); i++)
                 {
                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-                    float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
+                    double *bbox_buffer = (double *)(bbox_coords->at(i)->buffer());
                     std::cerr << "\n>>>>> BBOX LABELS : ";
                     for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
                         std::cerr << labels_buffer[j] << " ";
@@ -894,7 +894,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 for(int i = 0; i < bbox_labels->size(); i++)
                 {
                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-                    float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
+                    double *bbox_buffer = (double *)(bbox_coords->at(i)->buffer());
                     float *mask_buffer = (float *)(mask_data->at(i)->buffer());
                     std::cerr << "\n>>>>> BBOX LABELS : ";
                     for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
