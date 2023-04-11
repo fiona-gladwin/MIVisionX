@@ -135,7 +135,7 @@ int main(int argc, const char **argv)
 int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height, int num_of_classes, int display_all)
 {
     size_t num_threads = 1;
-    unsigned int inputBatchSize = 2;
+    unsigned int inputBatchSize = 1;
     int decode_max_width = width;
     int decode_max_height = height;
     int pipeline_type;
@@ -311,6 +311,22 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
+
+        case 11:
+        {
+             std::cout << ">>>>>>> Running CAFFE2 DETECTION READER" << std::endl;
+            pipeline_type = 2;
+            rocalCreateMXNetReader(handle, path, true);
+            input1 = rocalMXNetRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+        }
+
+        case 12:
+        {
+             std::cout << ">>>>>>> Running CAFFE2 DETECTION READER" << std::endl;
+            pipeline_type = 2;
+            rocalCreateTextCifar10LabelReader(handle, path, true);
+            input1 = rocalRawCIFAR10Source(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+        }
 #endif
         default:
         {
@@ -408,10 +424,10 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     break;
     case 2:
     {
-        std::cout << ">>>>>>> Running "
-                  << "rocalRotate" << std::endl;
-        // image1 = rocalRotate(handle, image0, true);
-        image1 = rocalRotate(handle, input1, true, NULL, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+        // std::cout << ">>>>>>> Running "
+        //           << "rocalRotate" << std::endl;
+        // // image1 = rocalRotate(handle, image0, true);
+        // image1 = rocalRotate(handle, input1, true, NULL, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
 
     }
     break;
@@ -467,11 +483,11 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     break;
     case 9:
     {
-        std::cout << ">>>>>>> Running "
-                  << "rocalWarpAffine" << std::endl;
-        // image1 = rocalWarpAffine(handle, image0, true);
-        // image1 = rocalWarpAffine(handle, input1, tensorLayout, tensorOutputType, true);
-        image1 = rocalWarpAffine(handle, input1, true, NULL, NULL,  NULL, NULL, NULL, NULL, 0, tensorLayout, tensorOutputType);
+        std::cout << ">>>>>>> Running " << std::endl;
+        //           << "rocalWarpAffine" << std::endl;
+        // // image1 = rocalWarpAffine(handle, image0, true);
+        // // image1 = rocalWarpAffine(handle, input1, tensorLayout, tensorOutputType, true);
+        // image1 = rocalWarpAffine(handle, input1, true, NULL, NULL,  NULL, NULL, NULL, NULL, 0, tensorLayout, tensorOutputType);
 
 
     }
@@ -862,6 +878,10 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             break;
             case 2: //detection pipeline
             {
+                int img_size = rocalGetImageNameLen(handle, image_name_length);
+                char img_name[img_size];
+                rocalGetImageName(handle, img_name);
+                std::cerr << "\nPrinting image names of batch: " << img_name;
                 RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
                 RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
                 for(int i = 0; i < bbox_labels->size(); i++)
@@ -872,8 +892,10 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                     for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
                         std::cerr << labels_buffer[j] << " ";
                     std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->info().dims().at(0) << " : \n";
-                    for(int j = 0, j4 = 0; j < bbox_coords->at(i)->info().dims().at(0); j++, j4 = j * 4)
+                    for(int j = 0, j4 = 0; j < bbox_coords->at(i)->info().dims().at(0); j++){
+                        j4 = j * 4;
                         std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
+                    }
 
                 }
             }
