@@ -77,8 +77,8 @@ static vx_status VX_CALLBACK validateSequenceRearrange(vx_node node, const vx_re
     input_param = vxGetParameterByIndex(node, 0);
     STATUS_ERROR_CHECK(vxQueryParameter(input_param, VX_PARAMETER_ATTRIBUTE_REF, &input, sizeof(vx_tensor)));
     STATUS_ERROR_CHECK(vxQueryTensor(input, VX_TENSOR_NUMBER_OF_DIMS, &in_num_tensor_dims, sizeof(in_num_tensor_dims)));
-    if(in_num_tensor_dims < 5)
-        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: SequenceRearrange: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", in_num_tensor_dims);
+    if(in_num_tensor_dims != 5)
+        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: SequenceRearrange: tensor: #0 dimensions=%lu (must be equal to 5)\n", in_num_tensor_dims);
 
     // Check for output parameters
     vx_tensor output;
@@ -90,6 +90,8 @@ static vx_status VX_CALLBACK validateSequenceRearrange(vx_node node, const vx_re
     output_param = vxGetParameterByIndex(node, 1);
     STATUS_ERROR_CHECK(vxQueryParameter(output_param, VX_PARAMETER_ATTRIBUTE_REF, &output, sizeof(vx_tensor)));
     STATUS_ERROR_CHECK(vxQueryTensor(output, VX_TENSOR_NUMBER_OF_DIMS, &out_num_tensor_dims, sizeof(out_num_tensor_dims)));
+    if(out_num_tensor_dims != 5)
+        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: SequenceRearrange: tensor: #1 dimensions=%lu (must be equal to 5)\n", out_num_tensor_dims);
     STATUS_ERROR_CHECK(vxQueryTensor(output, VX_TENSOR_DIMS, &tensor_dims, sizeof(tensor_dims)));
     STATUS_ERROR_CHECK(vxQueryTensor(output, VX_TENSOR_DATA_TYPE, &tensor_type, sizeof(tensor_type)));
     STATUS_ERROR_CHECK(vxQueryTensor(output, VX_TENSOR_FIXED_POINT_POSITION, &tensor_fixed_point_position, sizeof(tensor_fixed_point_position)));
