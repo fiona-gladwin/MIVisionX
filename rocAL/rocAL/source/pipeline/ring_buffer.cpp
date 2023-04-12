@@ -272,13 +272,13 @@ void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bb
 #endif
 }
 
-void RingBuffer::init_metadata(RocalMemType mem_type, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count)
+void RingBuffer::init_metadata(RocalMemType mem_type, std::vector<size_t> sub_buffer_size)
 {
     if(BUFF_DEPTH < 2)
         THROW ("Error internal buffer size for the ring buffer should be greater than one")
 
     // Allocating buffers
-    _meta_data_sub_buffer_count = sub_buffer_count;
+    _meta_data_sub_buffer_count = sub_buffer_size.size();
     if(mem_type== RocalMemType::OCL || mem_type== RocalMemType::HIP)
     {
         THROW("Metadata is not supported with GPU backends")
@@ -289,8 +289,8 @@ void RingBuffer::init_metadata(RocalMemType mem_type, std::vector<size_t> sub_bu
         _meta_data_sub_buffer_size.resize(BUFF_DEPTH);
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
-            _host_meta_data_buffers[buffIdx].resize(sub_buffer_count);
-            for(size_t sub_buff_idx = 0; sub_buff_idx < sub_buffer_count; sub_buff_idx++)
+            _host_meta_data_buffers[buffIdx].resize(_meta_data_sub_buffer_count);
+            for(size_t sub_buff_idx = 0; sub_buff_idx < _meta_data_sub_buffer_count; sub_buff_idx++)
             {
                 _meta_data_sub_buffer_size[buffIdx].emplace_back(sub_buffer_size[sub_buff_idx]);
                 _host_meta_data_buffers[buffIdx][sub_buff_idx] = malloc(sub_buffer_size[sub_buff_idx]);
@@ -426,16 +426,13 @@ void RingBuffer::set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data, b
     else
     {
         _last_image_meta_data = std::move(std::make_pair(std::move(names), meta_data));
-        if(!_box_encoder_gpu)
+        auto actual_buffer_size = meta_data->get_buffer_size();
+        for(unsigned i = 0; i < actual_buffer_size.size(); i++)
         {
-            auto actual_buffer_size = meta_data->get_buffer_size();
-            for(unsigned i = 0; i < actual_buffer_size.size(); i++)
-            {
-                if(actual_buffer_size[i] > _meta_data_sub_buffer_size[_write_ptr][i])
-                    rellocate_meta_data_buffer(_host_meta_data_buffers[_write_ptr][i], actual_buffer_size[i], i);
-            }
-            meta_data->copy_data(_host_meta_data_buffers[_write_ptr]);
+            if(actual_buffer_size[i] > _meta_data_sub_buffer_size[_write_ptr][i])
+                rellocate_meta_data_buffer(_host_meta_data_buffers[_write_ptr][i], actual_buffer_size[i], i);
         }
+        meta_data->copy_data(_host_meta_data_buffers[_write_ptr]);
     }
 }
 
