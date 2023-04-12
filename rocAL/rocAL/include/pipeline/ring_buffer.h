@@ -55,7 +55,6 @@ public:
     std::pair<void*, void*> get_box_encode_write_buffers();
     std::pair<void*, void*> get_box_encode_read_buffers();
     MetaDataNamePair& get_meta_data();
-    pMetaDataBatch& get_meta_data_info();
     std::vector<void*> get_meta_read_buffers();
     std::vector<void*> get_meta_write_buffers();
     void set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data, bool is_segmentation = false);
