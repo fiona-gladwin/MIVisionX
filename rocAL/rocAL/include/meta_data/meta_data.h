@@ -205,59 +205,25 @@ struct KeyPoint : public BoundingBox
     JointsData _joints_data = {};
 };
 
-struct MetaDataDimensionsBatch
-{
-    std::vector<std::vector<size_t>>& labels_dims() { return _labels_dims; }
-    std::vector<std::vector<size_t>>& bb_cords_dims() { return _bb_coords_dims; }
-    std::vector<std::vector<size_t>>& mask_cords_dims() { return _mask_coords_dims; }
-    void clear()
-    {
-        _labels_dims.clear();
-        _bb_coords_dims.clear();
-        _mask_coords_dims.clear();
-    }
-    void resize(size_t size)
-    {
-        _labels_dims.resize(size);
-        _bb_coords_dims.resize(size);
-        _mask_coords_dims.resize(size);
-    }
-    void insert(MetaDataDimensionsBatch &other)
-    {
-        _labels_dims.insert(_labels_dims.end(), other.labels_dims().begin(), other.labels_dims().end());
-        _bb_coords_dims.insert(_bb_coords_dims.end(), other.bb_cords_dims().begin(), other.bb_cords_dims().end());
-        _mask_coords_dims.insert(_mask_coords_dims.end(), other.mask_cords_dims().begin(), other.mask_cords_dims().end());
-    }
-private:
-    std::vector<std::vector<size_t>> _labels_dims = {};
-    std::vector<std::vector<size_t>> _bb_coords_dims = {};
-    std::vector<std::vector<size_t>> _mask_coords_dims = {};
-};
-
 struct MetaDataInfoBatch {
 public:
     std::vector<uint> img_ids = {};
     std::vector<std::string> img_names = {};
     std::vector<ImgSize> img_sizes = {};
-    MetaDataDimensionsBatch metadata_dimensions;
-    MetaDataDimensionsBatch& get_metadata_dimensions_batch() { return metadata_dimensions; }
     void clear() {
         img_ids.clear();
         img_names.clear();
         img_sizes.clear();
-        metadata_dimensions.clear();
     }
     void resize(int batch_size) {
         img_ids.resize(batch_size);
         img_names.resize(batch_size);
         img_sizes.resize(batch_size);
-        metadata_dimensions.resize(batch_size);
     }
     void insert(MetaDataInfoBatch &other) {
         img_sizes.insert(img_sizes.end(), other.img_sizes.begin(), other.img_sizes.end());
         img_ids.insert(img_ids.end(), other.img_ids.begin(), other.img_ids.end());
         img_names.insert(img_names.end(), other.img_names.begin(), other.img_names.end());
-        metadata_dimensions.insert(other.get_metadata_dimensions_batch());
     }
 };
 
@@ -391,14 +357,12 @@ struct BoundingBoxBatch: public LabelBatch
             THROW("The buffers are insufficient") // TODO -change
         int *labels_buffer = (int *)buffer[0];
         double *bbox_buffer = (double *)buffer[1];
-        auto labels_dims = _info_batch.metadata_dimensions.labels_dims();
-        auto bb_coords_dims = _info_batch.metadata_dimensions.bb_cords_dims();
         for(unsigned i = 0; i < _label_ids.size(); i++)
         {
-            memcpy(labels_buffer, _label_ids[i].data(), labels_dims[i][0] * sizeof(int));
-            memcpy(bbox_buffer, _bb_cords[i].data(), bb_coords_dims[i][0] * sizeof(BoundingBoxCord));
-            labels_buffer += labels_dims[i][0];
-            bbox_buffer += (bb_coords_dims[i][0] * 4);
+            memcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
+            memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
+            labels_buffer += _label_ids[i].size();
+            bbox_buffer += (_label_ids[i].size() * 4);
         }
     }
     std::vector<size_t>& get_buffer_size() override
@@ -461,18 +425,15 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
             THROW("The buffers are insufficient") // TODO -change
         int *labels_buffer = (int *)buffer[0];
         double *bbox_buffer = (double *)buffer[1];
-        auto labels_dims = _info_batch.metadata_dimensions.labels_dims();
-        auto bb_coords_dims = _info_batch.metadata_dimensions.bb_cords_dims();
         float *mask_buffer = (float *)buffer[2];
-        auto mask_coords_dims = _info_batch.metadata_dimensions.mask_cords_dims();
         for(unsigned i = 0; i < _label_ids.size(); i++)
         {
-            mempcpy(labels_buffer, _label_ids[i].data(), labels_dims[i][0] * sizeof(int));
-            memcpy(bbox_buffer, _bb_cords[i].data(), bb_coords_dims[i][0] * sizeof(BoundingBoxCord));
-            memcpy(mask_buffer, _mask_cords[i].data(), mask_coords_dims[i][0] * sizeof(float));
-            labels_buffer += labels_dims[i][0];
-            bbox_buffer += (bb_coords_dims[i][0] * 4);
-            mask_buffer += mask_coords_dims[i][0];
+            mempcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
+            memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
+            memcpy(mask_buffer, _mask_cords[i].data(), _mask_cords[i].size() * sizeof(float));
+            labels_buffer += _label_ids[i].size();
+            bbox_buffer += (_label_ids[i].size() * 4);
+            mask_buffer += _mask_cords[i].size();
         }
     }
     std::vector<size_t>& get_buffer_size() override

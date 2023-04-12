@@ -457,12 +457,12 @@ MetaDataNamePair& RingBuffer::get_meta_data()
     return  _meta_ring_buffer.front();
 }
 
-MetaDataDimensionsBatch& RingBuffer::get_meta_data_info()
+pMetaDataBatch& RingBuffer::get_meta_data_info()
 {
     block_if_empty();
     std::unique_lock<std::mutex> lock(_names_buff_lock);
     if(_level != _meta_ring_buffer.size())
         THROW("ring buffer internals error, image and metadata sizes not the same "+TOSTR(_level) + " != "+TOSTR(_meta_ring_buffer.size()))
-    return  _meta_ring_buffer.front().second->get_info_batch().get_metadata_dimensions_batch();
+    return  _meta_ring_buffer.front().second;
 }
 

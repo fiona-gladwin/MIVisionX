@@ -1112,10 +1112,10 @@ rocalTensorList * MasterGraph::bbox_labels_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[0]; // Get labels buffer from ring buffer
-    auto labels_tensor_dims = _ring_buffer.get_meta_data_info().labels_dims();
+    auto labels = _ring_buffer.get_meta_data_info()->get_labels_batch();
     for(unsigned i = 0; i < _labels_tensor_list.size(); i++)
     {
-        _labels_tensor_list[i]->set_dims(labels_tensor_dims[i]);
+        _labels_tensor_list[i]->set_dims({labels[i].size()});
         _labels_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
         meta_data_buffers += _labels_tensor_list[i]->info().data_size();
     }
@@ -1127,10 +1127,10 @@ rocalTensorList * MasterGraph::bbox_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[1]; // Get bbox buffer from ring buffer
-    auto bbox_tensor_dims = _ring_buffer.get_meta_data_info().bb_cords_dims();
+    auto labels = _ring_buffer.get_meta_data_info()->get_labels_batch();
     for(unsigned i = 0; i < _bbox_tensor_list.size(); i++)
     {
-        _bbox_tensor_list[i]->set_dims(bbox_tensor_dims[i]);
+        _bbox_tensor_list[i]->set_dims({labels[i].size(),4});
         _bbox_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
         meta_data_buffers += _bbox_tensor_list[i]->info().data_size();
     }
@@ -1143,10 +1143,10 @@ rocalTensorList * MasterGraph::mask_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get bbox buffer from ring buffer
-    auto mask_tensor_dims = _ring_buffer.get_meta_data_info().mask_cords_dims();
+    auto mask_cords = _ring_buffer.get_meta_data_info()->get_mask_cords_batch();
     for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
     {
-        _mask_tensor_list[i]->set_dims(mask_tensor_dims[i]);
+        _mask_tensor_list[i]->set_dims({mask_cords[i].size(),1});
         _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
         meta_data_buffers += _mask_tensor_list[i]->info().data_size();
     }
@@ -1185,15 +1185,14 @@ MasterGraph::get_bbox_encoded_buffers(float **boxes_buf_ptr, int **labels_buf_pt
         auto encoded_boxes_and_lables = _ring_buffer.get_box_encode_read_buffers();
         unsigned char *boxes_buf_ptr = (unsigned char *) encoded_boxes_and_lables.first;
         unsigned char *labels_buf_ptr = (unsigned char *) encoded_boxes_and_lables.second;
-        auto labels_tensor_dims = _ring_buffer.get_meta_data_info().labels_dims();
-        auto bbox_tensor_dims = _ring_buffer.get_meta_data_info().bb_cords_dims();
+        auto labels = _ring_buffer.get_meta_data_info()->get_labels_batch();
 
         if(_bbox_tensor_list.size() != _labels_tensor_list.size())
             THROW("The number of tensors between bbox and bbox_labels do not match")
         for(unsigned i = 0; i < _bbox_tensor_list.size(); i++)
         {
-            _labels_tensor_list[i]->set_dims(labels_tensor_dims[i]);
-            _bbox_tensor_list[i]->set_dims(bbox_tensor_dims[i]);
+            _labels_tensor_list[i]->set_dims({labels[i].size()});
+            _bbox_tensor_list[i]->set_dims({labels[i].size(),4});
             _labels_tensor_list[i]->set_mem_handle((void *)labels_buf_ptr);
             _bbox_tensor_list[i]->set_mem_handle((void *)boxes_buf_ptr);
             labels_buf_ptr += _labels_tensor_list[i]->info().data_size();
