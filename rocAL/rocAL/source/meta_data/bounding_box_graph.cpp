@@ -44,7 +44,7 @@ void BoundingBoxGraph::update_meta_data(MetaDataBatch *input_meta_data, decoded_
         unsigned bb_count = input_meta_data->get_labels_batch()[i].size();
         float mask_data[MAX_BUFFER];
         int poly_size = 0;
-        if (input_meta_data->metadata_type() == MetaDataType::PolygonMask)
+        if (input_meta_data->get_metadata_type() == MetaDataType::PolygonMask)
         {
             auto ptr = mask_data;
             auto mask_data_ptr = input_meta_data->get_mask_cords_batch()[i].data();
