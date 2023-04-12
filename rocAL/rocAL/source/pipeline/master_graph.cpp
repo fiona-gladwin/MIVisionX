@@ -412,8 +412,6 @@ MasterGraph::reset()
     // restart processing of the images
     _first_run = true;
     _output_routine_finished_processing = false;
-    _resize_width.clear();
-    _resize_height.clear();
     start_processing();
     return Status::OK;
 }
