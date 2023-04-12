@@ -81,8 +81,9 @@ ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_
     if (!p_context)
         THROW("Invalid rocal context passed to rocalCreateCOCOReader")
     auto context = static_cast<Context*>(p_context);
-
-    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, mask, MetaDataReaderType::COCO_META_DATA_READER,  MetaDataType::BoundingBox, is_box_encoder);
+    if(mask)
+        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask);
+    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox);
 }
 
 RocalMetaData

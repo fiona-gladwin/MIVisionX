@@ -22,16 +22,16 @@ THE SOFTWARE.
 #include "bounding_box_graph.h"
 #define MAX_BUFFER 10000
 
-void BoundingBoxGraph::process(MetaDataBatch *meta_data, bool segmentation)
+void BoundingBoxGraph::process(MetaDataBatch *meta_data)
 {
     for (auto &meta_node : _meta_nodes)
     {
-        meta_node->update_parameters(meta_data, segmentation);
+        meta_node->update_parameters(meta_data);
     }
 }
 
 //update_meta_data is not required since the bbox are normalized in the very beggining -> removed the call in master graph also except for MaskRCNN
-void BoundingBoxGraph::update_meta_data(MetaDataBatch *input_meta_data, decoded_image_info decode_image_info, bool segmentation)
+void BoundingBoxGraph::update_meta_data(MetaDataBatch *input_meta_data, decoded_image_info decode_image_info)
 {
     std::vector<uint32_t> original_height = decode_image_info._original_height;
     std::vector<uint32_t> original_width = decode_image_info._original_width;
@@ -44,7 +44,7 @@ void BoundingBoxGraph::update_meta_data(MetaDataBatch *input_meta_data, decoded_
         unsigned bb_count = input_meta_data->get_labels_batch()[i].size();
         float mask_data[MAX_BUFFER];
         int poly_size = 0;
-        if (segmentation)
+        if (input_meta_data->metadata_type() == MetaDataType::PolygonMask)
         {
             auto ptr = mask_data;
             auto mask_data_ptr = input_meta_data->get_mask_cords_batch()[i].data();

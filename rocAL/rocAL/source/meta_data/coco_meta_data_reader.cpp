@@ -32,7 +32,7 @@ using namespace std;
 void COCOMetaDataReader::init(const MetaDataConfig &cfg)
 {
     _path = cfg.path();
-    _mask = cfg.mask();
+    _mask = cfg.type() == MetaDataType::PolygonMask ? true : false;
     if (_mask)
         _output = new InstanceSegmentationBatch();
     else
