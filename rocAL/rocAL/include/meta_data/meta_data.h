@@ -101,19 +101,20 @@ public:
 
 struct MetaData
 {
-    virtual std::vector<int>& get_labels();
-    virtual void set_labels(Labels label_ids);
-    virtual BoundingBoxCords& get_bb_cords();
-    virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh();
-    virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh);
-    virtual void set_bb_cords(BoundingBoxCords bb_cords);
-    virtual std::vector<int>& get_polygon_count();
-    virtual std::vector<std::vector<int>>& get_vertices_count();
-    virtual MaskCords& get_mask_cords();
-    virtual void set_mask_cords(MaskCords mask_cords);
-    virtual void set_polygon_counts(std::vector<int> polygon_count);
-    virtual void set_vertices_counts(std::vector<std::vector<int>> vertices_count);
-    virtual JointsData& get_joints_data();
+    virtual std::vector<int>& get_labels() {};
+    virtual void set_labels(Labels label_ids) {};
+    virtual BoundingBoxCords& get_bb_cords() {};
+    virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() {};
+    virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) {};
+    virtual void set_bb_cords(BoundingBoxCords bb_cords) {};
+    virtual std::vector<int>& get_polygon_count() {};
+    virtual std::vector<std::vector<int>>& get_vertices_count() {};
+    virtual MaskCords& get_mask_cords() {};
+    virtual void set_mask_cords(MaskCords mask_cords) {};
+    virtual void set_polygon_counts(std::vector<int> polygon_count) {};
+    virtual void set_vertices_counts(std::vector<std::vector<int>> vertices_count) {};
+    virtual JointsData& get_joints_data() {};
+    virtual void set_joints_data(JointsData *joints_data) {};
     ImgSize& get_img_size() {return _info.img_size; }
     std::string& get_image_name() { return _info.img_name; }
     uint& get_image_id() { return _info.img_id; }
@@ -135,8 +136,8 @@ struct Label : public MetaData
     {
         _label_ids = {-1};
     }
-    std::vector<int>& get_labels() { return _label_ids; }
-    void set_labels(Labels label_ids)
+    std::vector<int>& get_labels() override { return _label_ids; }
+    void set_labels(Labels label_ids) override
     {
         _label_ids = std::move(label_ids);
     }
@@ -161,10 +162,10 @@ struct BoundingBox : public Label
         _info.img_size = std::move(img_size);
         _info.img_id = img_id;
     }
-    BoundingBoxCords& get_bb_cords() { return _bb_cords; }
-    BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { return _bb_cords_xcycwh; }
-    void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) { _bb_cords_xcycwh = std::move(bb_cords_xcycwh); }
-    void set_bb_cords(BoundingBoxCords bb_cords) { _bb_cords = std::move(bb_cords); }
+    BoundingBoxCords& get_bb_cords() override { return _bb_cords; }
+    BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() override { return _bb_cords_xcycwh; }
+    void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) override { _bb_cords_xcycwh = std::move(bb_cords_xcycwh); }
+    void set_bb_cords(BoundingBoxCords bb_cords) override { _bb_cords = std::move(bb_cords); }
 protected:
     BoundingBoxCords _bb_cords = {}; // For bb use
     BoundingBoxCords_xcycwh _bb_cords_xcycwh = {}; // For bb use
@@ -180,12 +181,12 @@ struct InstanceSegmentation : public BoundingBox {
         _polygon_count = std::move(polygon_count);
         _vertices_count = std::move(vertices_count);
     }
-    std::vector<int>& get_polygon_count() { return _polygon_count; }
-    std::vector<std::vector<int>>& get_vertices_count() { return _vertices_count; }
-    MaskCords& get_mask_cords() { return _mask_cords;}
-    void set_mask_cords(MaskCords mask_cords) { _mask_cords = std::move(mask_cords); }
-    void set_polygon_counts(std::vector<int> polygon_count) { _polygon_count = std::move(polygon_count); }
-    void set_vertices_counts(std::vector<std::vector<int>> vertices_count) { _vertices_count = std::move(vertices_count); }
+    std::vector<int>& get_polygon_count() override { return _polygon_count; }
+    std::vector<std::vector<int>>& get_vertices_count() override { return _vertices_count; }
+    MaskCords& get_mask_cords() override { return _mask_cords;}
+    void set_mask_cords(MaskCords mask_cords) override { _mask_cords = std::move(mask_cords); }
+    void set_polygon_counts(std::vector<int> polygon_count) override { _polygon_count = std::move(polygon_count); }
+    void set_vertices_counts(std::vector<std::vector<int>> vertices_count) override { _vertices_count = std::move(vertices_count); }
     protected:
     MaskCords _mask_cords = {};
     std::vector<int> _polygon_count = {};
@@ -200,8 +201,8 @@ struct KeyPoint : public BoundingBox
         _info.img_size = std::move(img_size);
         _joints_data = std::move(*joints_data);
     }
-    void set_joints_data(JointsData *joints_data) { _joints_data = std::move(*joints_data); }
-    JointsData& get_joints_data(){ return _joints_data; }
+    void set_joints_data(JointsData *joints_data) override { _joints_data = std::move(*joints_data); }
+    JointsData& get_joints_data() override { return _joints_data; }
     protected:
     JointsData _joints_data = {};
 };
@@ -244,14 +245,14 @@ struct MetaDataBatch
         return this;
     }
     virtual std::shared_ptr<MetaDataBatch> clone() = 0;
-    virtual int mask_size();
-    virtual std::vector<Labels>& get_labels_batch();
-    virtual std::vector<BoundingBoxCords>& get_bb_cords_batch();
-    virtual std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh();
-    virtual std::vector<MaskCords>& get_mask_cords_batch();
-    virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch();
-    virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch();
-    virtual JointsDataBatch & get_joints_data_batch();
+    virtual int mask_size() {};
+    virtual std::vector<Labels>& get_labels_batch() {};
+    virtual std::vector<BoundingBoxCords>& get_bb_cords_batch() {};
+    virtual std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() {};
+    virtual std::vector<MaskCords>& get_mask_cords_batch() {};
+    virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch() {};
+    virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() {};
+    virtual JointsDataBatch & get_joints_data_batch() {};
     std::vector<uint>& get_image_id_batch() { return _info_batch.img_ids; }
     std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
     ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
