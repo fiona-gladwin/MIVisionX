@@ -101,19 +101,19 @@ public:
 
 struct MetaData
 {
-    virtual std::vector<int>& get_labels() { };
-    virtual void set_labels(Labels label_ids) { };
-    virtual BoundingBoxCords& get_bb_cords() { };
-    virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { };
-    virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) { };
-    virtual void set_bb_cords(BoundingBoxCords bb_cords) { };
-    virtual std::vector<int>& get_polygon_count() { };
-    virtual std::vector<std::vector<int>>& get_vertices_count() { };
-    virtual MaskCords& get_mask_cords() { };
-    virtual void set_mask_cords(MaskCords mask_cords) { };
-    virtual void set_polygon_counts(std::vector<int> polygon_count) { };
-    virtual void set_vertices_counts(std::vector<std::vector<int>> vertices_count) { };
-    virtual JointsData& get_joints_data(){  };
+    virtual std::vector<int>& get_labels();
+    virtual void set_labels(Labels label_ids);
+    virtual BoundingBoxCords& get_bb_cords();
+    virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh();
+    virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh);
+    virtual void set_bb_cords(BoundingBoxCords bb_cords);
+    virtual std::vector<int>& get_polygon_count();
+    virtual std::vector<std::vector<int>>& get_vertices_count();
+    virtual MaskCords& get_mask_cords();
+    virtual void set_mask_cords(MaskCords mask_cords);
+    virtual void set_polygon_counts(std::vector<int> polygon_count);
+    virtual void set_vertices_counts(std::vector<std::vector<int>> vertices_count);
+    virtual JointsData& get_joints_data();
     ImgSize& get_img_size() {return _info.img_size; }
     std::string& get_image_name() { return _info.img_name; }
     uint& get_image_id() { return _info.img_id; }
@@ -243,15 +243,15 @@ struct MetaDataBatch
         *this += *other;
         return this;
     }
-    virtual std::shared_ptr<MetaDataBatch> clone()  = 0;
-    virtual int mask_size() { };
-    virtual std::vector<Labels>& get_labels_batch() { };
-    virtual std::vector<BoundingBoxCords>& get_bb_cords_batch() { };
-    virtual std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() { };
-    virtual std::vector<MaskCords>& get_mask_cords_batch() { };
-    virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch() { };
-    virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() { };
-    virtual JointsDataBatch & get_joints_data_batch() { };
+    virtual std::shared_ptr<MetaDataBatch> clone() = 0;
+    virtual int mask_size();
+    virtual std::vector<Labels>& get_labels_batch();
+    virtual std::vector<BoundingBoxCords>& get_bb_cords_batch();
+    virtual std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh();
+    virtual std::vector<MaskCords>& get_mask_cords_batch();
+    virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch();
+    virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch();
+    virtual JointsDataBatch & get_joints_data_batch();
     std::vector<uint>& get_image_id_batch() { return _info_batch.img_ids; }
     std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
     ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
@@ -287,7 +287,7 @@ struct LabelBatch : public MetaDataBatch
     }
     int size() override
     {
-        return _label_ids.size();
+        return (int)_label_ids.size();
     }
     std::shared_ptr<MetaDataBatch> clone() override
     {
@@ -303,7 +303,7 @@ struct LabelBatch : public MetaDataBatch
         if(buffer.size() < 1)
             THROW("The buffers are insufficient") // TODO -change
         auto labels_buffer = (int *)buffer[0];
-        for (int i = 0; i < _label_ids.size(); i++) {
+        for (unsigned i = 0; i < (unsigned int)_label_ids.size(); i++) {
             memcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
             labels_buffer += _label_ids[i].size();
         }
@@ -316,7 +316,7 @@ struct LabelBatch : public MetaDataBatch
         _buffer_size.emplace_back(size * sizeof(int));
         return _buffer_size;
     }
-    std::vector<Labels>& get_labels_batch() { return _label_ids; }
+    std::vector<Labels>& get_labels_batch() override { return _label_ids; }
     protected:
     std::vector<Labels> _label_ids = {};
     std::vector<size_t> _buffer_size;
@@ -358,7 +358,7 @@ struct BoundingBoxBatch: public LabelBatch
             THROW("The buffers are insufficient") // TODO -change
         int *labels_buffer = (int *)buffer[0];
         double *bbox_buffer = (double *)buffer[1];
-        for(unsigned i = 0; i < _label_ids.size(); i++)
+        for(unsigned i = 0; i < (unsigned int)_label_ids.size(); i++)
         {
             memcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
             memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
@@ -375,8 +375,8 @@ struct BoundingBoxBatch: public LabelBatch
         _buffer_size.emplace_back(size * 4 * sizeof(double));
         return _buffer_size;
     }
-    std::vector<BoundingBoxCords>& get_bb_cords_batch() { return _bb_cords; }
-    std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() { return _bb_cords_xcycwh; }
+    std::vector<BoundingBoxCords>& get_bb_cords_batch() override { return _bb_cords; }
+    std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() override { return _bb_cords_xcycwh; }
     protected:
     std::vector<BoundingBoxCords> _bb_cords = {};
     std::vector<BoundingBoxCords_xcycwh> _bb_cords_xcycwh = {};
@@ -412,10 +412,10 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
         _polygon_counts.resize(batch_size);
         _vertices_counts.resize(batch_size);
     }
-    std::vector<MaskCords>& get_mask_cords_batch() { return _mask_cords; }
-    std::vector<std::vector<int>>& get_mask_polygons_count_batch() { return _polygon_counts; }
-    std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() { return _vertices_counts; }
-    int mask_size() { return _mask_cords.size(); }
+    std::vector<MaskCords>& get_mask_cords_batch() override { return _mask_cords; }
+    std::vector<std::vector<int>>& get_mask_polygons_count_batch() override { return _polygon_counts; }
+    std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() override { return _vertices_counts; }
+    int mask_size() override { return _mask_cords.size(); }
     std::shared_ptr<MetaDataBatch> clone() override
     {
         return std::make_shared<InstanceSegmentationBatch>(*this);
@@ -427,7 +427,7 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
         int *labels_buffer = (int *)buffer[0];
         double *bbox_buffer = (double *)buffer[1];
         float *mask_buffer = (float *)buffer[2];
-        for(unsigned i = 0; i < _label_ids.size(); i++)
+        for(unsigned i = 0; i < (unsigned int)_label_ids.size(); i++)
         {
             mempcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
             memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
@@ -500,7 +500,7 @@ struct KeyPointBatch : public BoundingBoxBatch
     {
         return std::make_shared<KeyPointBatch>(*this);
     }
-    JointsDataBatch & get_joints_data_batch() { return _joints_data; }
+    JointsDataBatch& get_joints_data_batch() override { return _joints_data; }
     void copy_data(std::vector<void*> buffer) override {}
     std::vector<size_t>& get_buffer_size() override { return _buffer_size; }
     protected:

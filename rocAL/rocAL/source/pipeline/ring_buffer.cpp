@@ -434,6 +434,7 @@ void RingBuffer::set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data, b
         }
         meta_data->copy_data(_host_meta_data_buffers[_write_ptr]);
     }
+
 }
 
 void RingBuffer::rellocate_meta_data_buffer(void * buffer, size_t buffer_size, unsigned buff_idx)
