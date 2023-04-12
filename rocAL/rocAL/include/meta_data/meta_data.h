@@ -85,9 +85,9 @@ typedef struct
 
 typedef struct MetaDataInfo {
 public:
-    uint _img_id = -1;
-    std::string _img_name = "";
-    ImgSize _img_size = {};
+    uint img_id = -1;
+    std::string img_name = "";
+    ImgSize img_size = {};
 } MetaDataInfo;
 
 struct MetaData
@@ -105,12 +105,12 @@ struct MetaData
     virtual void set_polygon_counts(std::vector<int> polygon_count) { };
     virtual void set_vertices_counts(std::vector<std::vector<int>> vertices_count) { };
     virtual JointsData& get_joints_data(){  };
-    ImgSize& get_img_size() {return _info._img_size; }
-    std::string& get_image_name() { return _info._img_name; }
-    uint& get_image_id() { return _info._img_id; }
-    void set_img_size(ImgSize img_size) { _info._img_size = std::move(img_size); }
-    void set_img_id(uint img_id) { _info._img_id = img_id; }
-    void set_img_name(std::string img_name) { _info._img_name = std::move(img_name); }
+    ImgSize& get_img_size() {return _info.img_size; }
+    std::string& get_image_name() { return _info.img_name; }
+    uint& get_image_id() { return _info.img_id; }
+    void set_img_size(ImgSize img_size) { _info.img_size = std::move(img_size); }
+    void set_img_id(uint img_id) { _info.img_id = img_id; }
+    void set_img_name(std::string img_name) { _info.img_name = std::move(img_name); }
     void set_metadata_info(MetaDataInfo info) { _info = std::move(info); }
     protected:
     MetaDataInfo _info;
@@ -144,15 +144,15 @@ struct BoundingBox : public Label
     {
         _bb_cords =std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
-        _info._img_size = std::move(img_size);
-        _info._img_id = img_id;
+        _info.img_size = std::move(img_size);
+        _info.img_id = img_id;
     }
     BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids, ImgSize img_size = ImgSize{0,0}, uint img_id = 0)
     {
         _bb_cords_xcycwh =std::move(bb_cords_xcycwh);
         _label_ids = std::move(bb_label_ids);
-        _info._img_size = std::move(img_size);
-        _info._img_id = img_id;
+        _info.img_size = std::move(img_size);
+        _info.img_id = img_id;
     }
     BoundingBoxCords& get_bb_cords() { return _bb_cords; }
     BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { return _bb_cords_xcycwh; }
@@ -168,7 +168,7 @@ struct InstanceSegmentation : public BoundingBox {
     {
         _bb_cords = std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
-        _info._img_size = std::move(img_size);
+        _info.img_size = std::move(img_size);
         _mask_cords = std::move(mask_cords);
         _polygon_count = std::move(polygon_count);
         _vertices_count = std::move(vertices_count);
@@ -190,7 +190,7 @@ struct KeyPoint : public BoundingBox
     KeyPoint()= default;
     KeyPoint(ImgSize img_size, JointsData *joints_data)
     {
-        _info._img_size = std::move(img_size);
+        _info.img_size = std::move(img_size);
         _joints_data = std::move(*joints_data);
     }
     void set_joints_data(JointsData *joints_data) { _joints_data = std::move(*joints_data); }
