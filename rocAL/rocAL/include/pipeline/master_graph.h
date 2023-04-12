@@ -58,8 +58,6 @@ public:
     ~MasterGraph();
     Status reset();
     size_t remaining_count();
-    std::vector<uint32_t> output_resize_width();
-    std::vector<uint32_t> output_resize_height();
     rocalTensorList *get_output_tensors();
     void sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum); // Returns the starting frame number of the sequences
     void sequence_frame_timestamps(std::vector<std::vector<float>> &sequence_frame_timestamp); // Returns the timestamps of the frames in the sequences
@@ -167,8 +165,6 @@ private:
     bool _output_routine_finished_processing = false;
     const RocalTensorDataType _out_data_type;
     bool _is_random_bbox_crop = false;
-    std::vector<std::vector<uint32_t>> _resize_width;
-    std::vector<std::vector<uint32_t>> _resize_height;
     std::vector<std::vector<size_t>> _sequence_start_framenum_vec; //!< Stores the starting frame number of the sequences.
     std::vector<std::vector<std::vector<float>>>_sequence_frame_timestamps_vec; //!< Stores the timestamps of the frames in a sequences.
     size_t _sequence_batch_size = 0; //!< Indicates the _user_batch_size when sequence reader outputs are required

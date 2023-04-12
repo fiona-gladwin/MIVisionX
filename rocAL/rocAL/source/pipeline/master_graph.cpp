@@ -378,24 +378,6 @@ MasterGraph::update_node_parameters()
     return Status::OK;
 }
 
-std::vector<uint32_t>
-MasterGraph::output_resize_width()
-{
-    std::vector<uint32_t> resize_width_vector;
-    resize_width_vector = _resize_width.back();
-    _resize_width.pop_back();
-    return resize_width_vector;
-}
-
-std::vector<uint32_t>
-MasterGraph::output_resize_height()
-{
-    std::vector<uint32_t> resize_height_vector;
-    resize_height_vector = _resize_height.back();
-    _resize_height.pop_back();
-    return resize_height_vector;
-}
-
 void
 MasterGraph::sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum)
 {
@@ -430,8 +412,6 @@ MasterGraph::reset()
     // restart processing of the images
     _first_run = true;
     _output_routine_finished_processing = false;
-    _resize_width.clear();
-    _resize_height.clear();
     start_processing();
     return Status::OK;
 }
@@ -560,8 +540,6 @@ void MasterGraph::output_routine()
             //     temp_width_arr.push_back(_internal_tensor_list.front()->info().get_roi()[i].x2);
             //     temp_height_arr.push_back(_internal_tensor_list.front()->info().get_roi()[i].y2);
             // }
-            // _resize_width.insert(_resize_width.begin(), temp_width_arr);
-            // _resize_height.insert(_resize_height.begin(), temp_height_arr);
 
             _process_time.start();
             _graph->process();
