@@ -1168,7 +1168,7 @@ rocalTensorList * MasterGraph::bbox_labels_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[0]; // Get labels buffer from ring buffer
-    auto labels = _ring_buffer.get_meta_data_info()->get_labels_batch();
+    auto labels = _ring_buffer.get_meta_data().second->get_labels_batch();
     for(unsigned i = 0; i < _labels_tensor_list.size(); i++)
     {
         _labels_tensor_list[i]->set_dims({labels[i].size()});
@@ -1196,7 +1196,7 @@ rocalTensorList * MasterGraph::bbox_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[1]; // Get bbox buffer from ring buffer
-    auto labels = _ring_buffer.get_meta_data_info()->get_labels_batch();
+    auto labels = _ring_buffer.get_meta_data().second->get_labels_batch();
     for(unsigned i = 0; i < _bbox_tensor_list.size(); i++)
     {
         _bbox_tensor_list[i]->set_dims({labels[i].size(),4});
@@ -1212,7 +1212,7 @@ rocalTensorList * MasterGraph::mask_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get bbox buffer from ring buffer
-    auto mask_cords = _ring_buffer.get_meta_data_info()->get_mask_cords_batch();
+    auto mask_cords = _ring_buffer.get_meta_data().second->get_mask_cords_batch();
     for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
     {
         _mask_tensor_list[i]->set_dims({mask_cords[i].size(),1});
@@ -1255,7 +1255,7 @@ MasterGraph::get_bbox_encoded_buffers(size_t num_encoded_boxes)
         auto encoded_boxes_and_lables = _ring_buffer.get_box_encode_read_buffers();
         unsigned char *boxes_buf_ptr = (unsigned char *) encoded_boxes_and_lables.first;
         unsigned char *labels_buf_ptr = (unsigned char *) encoded_boxes_and_lables.second;
-        auto labels = _ring_buffer.get_meta_data_info()->get_labels_batch();
+        auto labels = _ring_buffer.get_meta_data().second->get_labels_batch();
 
         if(_bbox_tensor_list.size() != _labels_tensor_list.size())
             THROW("The number of tensors between bbox and bbox_labels do not match")
