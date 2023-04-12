@@ -83,12 +83,8 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
         else
         {
             _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-            auto labels = it->second->get_labels();
-            _output->get_labels_batch()[i] = labels;
+            _output->get_labels_batch()[i] = it->second->get_labels();
             _output->get_img_sizes_batch()[i] = it->second->get_img_size();
-            // TODO - Check condition
-            _output->get_info_batch().get_metadata_dimensions_batch().labels_dims()[i] = {labels.size()};
-            _output->get_info_batch().get_metadata_dimensions_batch().bb_cords_dims()[i] = {labels.size(),4};
         }
     }
 }

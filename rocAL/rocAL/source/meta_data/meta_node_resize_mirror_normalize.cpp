@@ -71,7 +71,5 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(MetaDataBatch *input_meta_
         }
         input_meta_data->get_bb_cords_batch()[i] = bb_coords;
         input_meta_data->get_labels_batch()[i] = bb_labels;
-        input_meta_data->get_info_batch().get_metadata_dimensions_batch().labels_dims()[i][0] = bb_labels.size();
-        input_meta_data->get_info_batch().get_metadata_dimensions_batch().bb_cords_dims()[i][0] = bb_coords.size();
     }
 }
