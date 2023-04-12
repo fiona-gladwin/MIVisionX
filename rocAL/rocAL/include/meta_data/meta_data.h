@@ -58,6 +58,14 @@ typedef std::vector<float> Joint,JointVisibility,ScoreBatch,RotationBatch;
 typedef std::vector<std::vector<float>> Joints,JointsVisibility, CenterBatch, ScaleBatch;
 typedef std::vector<std::vector<std::vector<float>>> JointsBatch, JointsVisibilityBatch;
 
+enum class MetaDataType
+{
+    Label,
+    BoundingBox,
+    PolygonMask,
+    KeyPoints
+};
+
 typedef struct
 {
     int image_id;
@@ -283,8 +291,11 @@ struct MetaDataBatch
     std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
     ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
     MetaDataInfoBatch& get_info_batch() { return _info_batch; }
+    void set_metadata_type(MetaDataType metadata_type) { _type = metadata_type; }
+    MetaDataType metadata_type() { return _type; }
 protected:
     MetaDataInfoBatch _info_batch;
+    MetaDataType _type;
 };
 
 struct LabelBatch : public MetaDataBatch
