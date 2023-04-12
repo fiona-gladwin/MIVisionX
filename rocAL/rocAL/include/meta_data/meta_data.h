@@ -49,9 +49,8 @@ typedef  std::vector<BoundingBoxCord_xcycwh> BoundingBoxCords_xcycwh;
 typedef  std::vector<int> Labels;
 typedef  struct { int w; int h; } ImgSize;
 typedef  std::vector<ImgSize> ImgSizes;
-typedef std::vector<std::vector<float>> coords;
-typedef std::vector<float> MaskCords;
 
+typedef std::vector<float> MaskCords;
 typedef std::vector<int> ImageIDBatch,AnnotationIDBatch;
 typedef std::vector<std::string> ImagePathBatch;
 typedef std::vector<float> Joint,JointVisibility,ScoreBatch,RotationBatch;
@@ -172,7 +171,7 @@ protected:
 };
 
 struct InstanceSegmentation : public BoundingBox {
-    InstanceSegmentation(BoundingBoxCords bb_cords,Labels bb_label_ids ,ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
+    InstanceSegmentation(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
     {
         _bb_cords = std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
@@ -258,7 +257,7 @@ struct MetaDataBatch
     ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
     MetaDataInfoBatch& get_info_batch() { return _info_batch; }
     void set_metadata_type(MetaDataType metadata_type) { _type = metadata_type; }
-    MetaDataType metadata_type() { return _type; }
+    MetaDataType get_metadata_type() { return _type; }
 protected:
     MetaDataInfoBatch _info_batch;
     MetaDataType _type;
@@ -451,7 +450,7 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
         _buffer_size.emplace_back(size * sizeof(float));
         return _buffer_size;
     }
-    protected:
+protected:
     std::vector<MaskCords> _mask_cords = {};
     std::vector<std::vector<int>> _polygon_counts = {};
     std::vector<std::vector<std::vector<int>>> _vertices_counts = {};
