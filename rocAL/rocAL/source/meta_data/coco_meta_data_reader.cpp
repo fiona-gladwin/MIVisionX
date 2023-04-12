@@ -64,15 +64,15 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         auto labels = it->second->get_labels();
         _output->get_labels_batch()[i] = labels;
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
-        _output->get_metadata_dimensions_batch().labels_dims()[i] = {labels.size()};
-        _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = {labels.size(), 4};
+        _output->get_info_batch().get_metadata_dimensions_batch().labels_dims()[i] = {labels.size()};
+        _output->get_info_batch().get_metadata_dimensions_batch().bb_cords_dims()[i] = {labels.size(), 4};
         if (_mask)
         {
             auto mask_cords = it->second->get_mask_cords();
             _output->get_mask_cords_batch()[i] = mask_cords;
             _output->get_mask_polygons_count_batch()[i] = it->second->get_polygon_count();
             _output->get_mask_vertices_count_batch()[i] = it->second->get_vertices_count();
-            _output->get_metadata_dimensions_batch().mask_cords_dims()[i] = {mask_cords.size(),1};
+            _output->get_info_batch().get_metadata_dimensions_batch().mask_cords_dims()[i] = {mask_cords.size(),1};
         }
     }
 }

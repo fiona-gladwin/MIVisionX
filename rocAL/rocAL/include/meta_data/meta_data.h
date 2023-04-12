@@ -231,20 +231,25 @@ public:
     std::vector<uint> img_ids = {};
     std::vector<std::string> img_names = {};
     std::vector<ImgSize> img_sizes = {};
+    MetaDataDimensionsBatch metadata_dimensions;
+    MetaDataDimensionsBatch& get_metadata_dimensions_batch() { return metadata_dimensions; }
     void clear() {
         img_ids.clear();
         img_names.clear();
         img_sizes.clear();
+        metadata_dimensions.clear();
     }
     void resize(int batch_size) {
         img_ids.resize(batch_size);
         img_names.resize(batch_size);
         img_sizes.resize(batch_size);
+        metadata_dimensions.resize(batch_size);
     }
     void insert(MetaDataInfoBatch &other) {
         img_sizes.insert(img_sizes.end(), other.img_sizes.begin(), other.img_sizes.end());
         img_ids.insert(img_ids.end(), other.img_ids.begin(), other.img_ids.end());
         img_names.insert(img_names.end(), other.img_names.begin(), other.img_names.end());
+        metadata_dimensions.insert(other.get_metadata_dimensions_batch());
     }
 };
 
@@ -275,10 +280,8 @@ struct MetaDataBatch
     std::vector<uint>& get_image_id_batch() { return _info_batch.img_ids; }
     std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
     ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
-    MetaDataDimensionsBatch& get_metadata_dimensions_batch() { return _metadata_dimensions; }
     MetaDataInfoBatch& get_info_batch() { return _info_batch; }
 protected:
-    MetaDataDimensionsBatch _metadata_dimensions;
     MetaDataInfoBatch _info_batch;
 };
 
@@ -290,7 +293,6 @@ struct LabelBatch : public MetaDataBatch
             label.clear();
         }
         _info_batch.clear();
-        _metadata_dimensions.clear();
         _label_ids.clear();
         _buffer_size.clear();
     }
@@ -298,14 +300,12 @@ struct LabelBatch : public MetaDataBatch
     {
         _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
         _info_batch.insert(other.get_info_batch());
-        _metadata_dimensions.insert(other.get_metadata_dimensions_batch());
         return *this;
     }
     void resize(int batch_size) override
     {
         _label_ids.resize(batch_size);
         _info_batch.resize(batch_size);
-        _metadata_dimensions.resize(batch_size);
     }
     int size() override
     {
@@ -351,7 +351,6 @@ struct BoundingBoxBatch: public LabelBatch
         _bb_cords.clear();
         _label_ids.clear();
         _info_batch.clear();
-        _metadata_dimensions.clear();
         _buffer_size.clear();
     }
     MetaDataBatch&  operator += (MetaDataBatch& other) override
@@ -359,7 +358,6 @@ struct BoundingBoxBatch: public LabelBatch
         _bb_cords.insert(_bb_cords.end(), other.get_bb_cords_batch().begin(), other.get_bb_cords_batch().end());
         _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
         _info_batch.insert(other.get_info_batch());
-        _metadata_dimensions.insert(other.get_metadata_dimensions_batch());
         return *this;
     }
     void resize(int batch_size) override
@@ -367,7 +365,6 @@ struct BoundingBoxBatch: public LabelBatch
         _bb_cords.resize(batch_size);
         _label_ids.resize(batch_size);
         _info_batch.resize(batch_size);
-        _metadata_dimensions.resize(batch_size);
     }
     int size() override
     {
@@ -383,8 +380,8 @@ struct BoundingBoxBatch: public LabelBatch
             THROW("The buffers are insufficient") // TODO -change
         int *labels_buffer = (int *)buffer[0];
         double *bbox_buffer = (double *)buffer[1];
-        auto labels_dims = _metadata_dimensions.labels_dims();
-        auto bb_coords_dims = _metadata_dimensions.bb_cords_dims();
+        auto labels_dims = _info_batch.metadata_dimensions.labels_dims();
+        auto bb_coords_dims = _info_batch.metadata_dimensions.bb_cords_dims();
         for(unsigned i = 0; i < _label_ids.size(); i++)
         {
             memcpy(labels_buffer, _label_ids[i].data(), labels_dims[i][0] * sizeof(int));
@@ -418,7 +415,6 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
         _mask_cords.clear();
         _polygon_counts.clear();
         _vertices_counts.clear();
-        _metadata_dimensions.clear();
         _buffer_size.clear();
     }
     MetaDataBatch&  operator += (MetaDataBatch& other) override
@@ -429,7 +425,6 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
         _mask_cords.insert(_mask_cords.end(),other.get_mask_cords_batch().begin(), other.get_mask_cords_batch().end());
         _polygon_counts.insert(_polygon_counts.end(),other.get_mask_polygons_count_batch().begin(), other.get_mask_polygons_count_batch().end());
         _vertices_counts.insert(_vertices_counts.end(),other.get_mask_vertices_count_batch().begin(), other.get_mask_vertices_count_batch().end());
-        _metadata_dimensions.insert(other.get_metadata_dimensions_batch());
         return *this;
     }
     void resize(int batch_size) override
@@ -440,7 +435,6 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
         _mask_cords.resize(batch_size);
         _polygon_counts.resize(batch_size);
         _vertices_counts.resize(batch_size);
-        _metadata_dimensions.resize(batch_size);
     }
     std::vector<MaskCords>& get_mask_cords_batch() { return _mask_cords; }
     std::vector<std::vector<int>>& get_mask_polygons_count_batch() { return _polygon_counts; }
@@ -456,10 +450,10 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
             THROW("The buffers are insufficient") // TODO -change
         int *labels_buffer = (int *)buffer[0];
         double *bbox_buffer = (double *)buffer[1];
-        auto labels_dims = _metadata_dimensions.labels_dims();
-        auto bb_coords_dims = _metadata_dimensions.bb_cords_dims();
+        auto labels_dims = _info_batch.metadata_dimensions.labels_dims();
+        auto bb_coords_dims = _info_batch.metadata_dimensions.bb_cords_dims();
         float *mask_buffer = (float *)buffer[2];
-        auto mask_coords_dims = _metadata_dimensions.mask_cords_dims();
+        auto mask_coords_dims = _info_batch.metadata_dimensions.mask_cords_dims();
         for(unsigned i = 0; i < _label_ids.size(); i++)
         {
             mempcpy(labels_buffer, _label_ids[i].data(), labels_dims[i][0] * sizeof(int));
