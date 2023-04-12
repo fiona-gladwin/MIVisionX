@@ -112,7 +112,7 @@ struct MetaData
     uint& get_image_id() { return _info.img_id; }
     void set_img_size(ImgSize img_size) { _info.img_size = std::move(img_size); }
     void set_img_id(uint img_id) { _info.img_id = img_id; }
-    void set_img_name(std::string img_name) { _info.img_name = std::move(img_name); }
+    void set_img_name(std::string img_name) { _info.img_name = img_name; }
     void set_metadata_info(MetaDataInfo info) { _info = std::move(info); }
     protected:
     MetaDataInfo _info;
@@ -123,13 +123,11 @@ struct Label : public MetaData
 {
     Label(int label)
     {
-        _label_ids.resize(1);
-        _label_ids[0] = label;
+        _label_ids = {label};
     }
     Label()
     {
-        _label_ids.resize(1);
-        _label_ids[0] = -1;
+        _label_ids = {-1};
     }
     std::vector<int>& get_labels() { return _label_ids; }
     void set_labels(Labels label_ids)
@@ -159,8 +157,8 @@ struct BoundingBox : public Label
     }
     BoundingBoxCords& get_bb_cords() { return _bb_cords; }
     BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() { return _bb_cords_xcycwh; }
-    void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) { _bb_cords_xcycwh =std::move(bb_cords_xcycwh); }
-    void set_bb_cords(BoundingBoxCords bb_cords) { _bb_cords =std::move(bb_cords); }
+    void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) { _bb_cords_xcycwh = std::move(bb_cords_xcycwh); }
+    void set_bb_cords(BoundingBoxCords bb_cords) { _bb_cords = std::move(bb_cords); }
 protected:
     BoundingBoxCords _bb_cords = {}; // For bb use
     BoundingBoxCords_xcycwh _bb_cords_xcycwh = {}; // For bb use
@@ -233,23 +231,23 @@ private:
 
 struct MetaDataInfoBatch {
 public:
-    std::vector<uint> _img_ids = {};
-    std::vector<std::string> _img_names = {};
-    std::vector<ImgSize> _img_sizes = {};
+    std::vector<uint> img_ids = {};
+    std::vector<std::string> img_names = {};
+    std::vector<ImgSize> img_sizes = {};
     void clear() {
-        _img_ids.clear();
-        _img_names.clear();
-        _img_sizes.clear();
+        img_ids.clear();
+        img_names.clear();
+        img_sizes.clear();
     }
     void resize(int batch_size) {
-        _img_ids.resize(batch_size);
-        _img_names.resize(batch_size);
-        _img_sizes.resize(batch_size);
+        img_ids.resize(batch_size);
+        img_names.resize(batch_size);
+        img_sizes.resize(batch_size);
     }
-    MetaDataInfoBatch&  operator += (MetaDataInfoBatch& other) {
-        _img_sizes.insert(_img_sizes.end(), other._img_sizes.begin(), other._img_sizes.end());
-        _img_ids.insert(_img_ids.end(), other._img_ids.begin(), other._img_ids.end());
-        _img_names.insert(_img_names.end(), other._img_names.begin(), other._img_names.end());
+    void insert(MetaDataInfoBatch &other) {
+        img_sizes.insert(img_sizes.end(), other.img_sizes.begin(), other.img_sizes.end());
+        img_ids.insert(img_ids.end(), other.img_ids.begin(), other.img_ids.end());
+        img_names.insert(img_names.end(), other.img_names.begin(), other.img_names.end());
     }
 };
 
@@ -277,9 +275,9 @@ struct MetaDataBatch
     virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch() { };
     virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() { };
     virtual JointsDataBatch & get_joints_data_batch() { };
-    std::vector<uint>& get_image_id_batch() { return _info_batch._img_ids; }
-    std::vector<std::string>& get_image_names_batch() {return _info_batch._img_names; }
-    ImgSizes& get_img_sizes_batch() { return _info_batch._img_sizes; }
+    std::vector<uint>& get_image_id_batch() { return _info_batch.img_ids; }
+    std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
+    ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
     MetaDataDimensionsBatch& get_metadata_dimensions_batch() { return _metadata_dimensions; }
     MetaDataInfoBatch& get_info_batch() { return _info_batch; }
 protected:
@@ -302,7 +300,7 @@ struct LabelBatch : public MetaDataBatch
     MetaDataBatch&  operator += (MetaDataBatch& other) override
     {
         _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
-        _info_batch += other.get_info_batch();
+        _info_batch.insert(other.get_info_batch());
         _metadata_dimensions.insert(other.get_metadata_dimensions_batch());
         return *this;
     }
@@ -363,7 +361,7 @@ struct BoundingBoxBatch: public LabelBatch
     {
         _bb_cords.insert(_bb_cords.end(), other.get_bb_cords_batch().begin(), other.get_bb_cords_batch().end());
         _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
-        _info_batch += other.get_info_batch();
+        _info_batch.insert(other.get_info_batch());
         _metadata_dimensions.insert(other.get_metadata_dimensions_batch());
         return *this;
     }
@@ -430,7 +428,7 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
     {
         _bb_cords.insert(_bb_cords.end(), other.get_bb_cords_batch().begin(), other.get_bb_cords_batch().end());
         _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
-        _info_batch += other.get_info_batch();
+        _info_batch.insert(other.get_info_batch());
         _mask_cords.insert(_mask_cords.end(),other.get_mask_cords_batch().begin(), other.get_mask_cords_batch().end());
         _polygon_counts.insert(_polygon_counts.end(),other.get_mask_polygons_count_batch().begin(), other.get_mask_polygons_count_batch().end());
         _vertices_counts.insert(_vertices_counts.end(),other.get_mask_vertices_count_batch().begin(), other.get_mask_vertices_count_batch().end());
@@ -513,7 +511,7 @@ struct KeyPointBatch : public BoundingBoxBatch
         _joints_data.joints_visibility_batch.insert(_joints_data.joints_visibility_batch.end(), other.get_joints_data_batch().joints_visibility_batch.begin(), other.get_joints_data_batch().joints_visibility_batch.end());
         _joints_data.score_batch.insert(_joints_data.score_batch.end(), other.get_joints_data_batch().score_batch.begin(), other.get_joints_data_batch().score_batch.end());
         _joints_data.rotation_batch.insert(_joints_data.rotation_batch.end(), other.get_joints_data_batch().rotation_batch.begin(), other.get_joints_data_batch().rotation_batch.end());
-        _info_batch += other.get_info_batch();
+        _info_batch.insert(other.get_info_batch());
         return *this;
     }
     void resize(int batch_size) override
