@@ -128,9 +128,6 @@ private:
     rocalTensorList _labels_tensor_list;
     rocalTensorList _bbox_tensor_list;
     rocalTensorList _mask_tensor_list;
-    std::vector<std::vector<unsigned>> _labels_tensor_dims;
-    std::vector<std::vector<unsigned>> _bbox_tensor_dims;
-    std::vector<std::vector<unsigned>> _mask_tensor_dims;
     std::vector<size_t> _meta_data_buffer_size;
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU
