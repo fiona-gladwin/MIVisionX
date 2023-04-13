@@ -64,8 +64,7 @@ void TextFileMetaDataReader::lookup(const std::vector<std::string> &image_names)
         auto it = _map_content.find(image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ image_name )
-        auto labels = it->second->get_labels();
-        _output->get_labels_batch()[i] = labels;
+        _output->get_labels_batch()[i] = it->second->get_labels();
     }
 }
 
