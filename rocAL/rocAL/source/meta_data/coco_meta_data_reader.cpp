@@ -62,8 +62,7 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name)
         _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-        auto labels = it->second->get_labels();
-        _output->get_labels_batch()[i] = labels;
+        _output->get_labels_batch()[i] = it->second->get_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
         {
