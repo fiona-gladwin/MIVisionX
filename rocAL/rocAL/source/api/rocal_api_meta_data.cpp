@@ -238,12 +238,7 @@ ROCAL_API_CALL rocalGetBoundingBoxCount(RocalContext p_context)
     size_t meta_data_batch_size = meta_data.second->get_labels_batch().size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
-    size_t size = 0;
-    for(unsigned i = 0; i < meta_data_batch_size; i++)
-    {
-        size += meta_data.second->get_labels_batch()[i].size();
-    }
-    return size;
+    return context->master_graph->bounding_box_batch_count(meta_data.second);
 }
 
 RocalTensorList

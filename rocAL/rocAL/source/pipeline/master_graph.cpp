@@ -998,14 +998,12 @@ const std::pair<ImageNameBatch,pMetaDataBatch>& MasterGraph::meta_data()
     return _ring_buffer.get_meta_data();
 }
 
-size_t MasterGraph::bounding_box_batch_count(int *buf, pMetaDataBatch meta_data_batch)
+size_t MasterGraph::bounding_box_batch_count(pMetaDataBatch meta_data_batch)
 {
     size_t size = 0;
     for(unsigned i = 0; i < _user_batch_size; i++)
-    {
-        buf[i] = _is_box_encoder? _num_anchors: meta_data_batch->get_labels_batch()[i].size();
-        size += buf[i];
-    }
+        size += _is_box_encoder ? _num_anchors : meta_data_batch->get_labels_batch()[i].size();
+
     return size;
 }
 
