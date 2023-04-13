@@ -255,7 +255,7 @@ ROCAL_API_CALL rocalGetBoundingBoxLabel(RocalContext p_context)
     if (!p_context)
         THROW("Invalid rocal context passed to rocalGetBoundingBoxLabel")
     auto context = static_cast<Context*>(p_context);
-    return context->master_graph->bbox_labels_meta_data();
+    return context->master_graph->labels_meta_data();
 }
 
 RocalTensorList
