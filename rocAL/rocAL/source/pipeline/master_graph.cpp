@@ -678,7 +678,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
             _mask_tensor_list.push_back(new rocalTensor(mask_info));
         }
     }
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
+    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     if(is_output)
     {
         if (_augmented_meta_data)
@@ -759,7 +759,7 @@ std::vector<rocalTensorList *> MasterGraph::create_tf_record_meta_data_reader(co
         _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
     }
 
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
+    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     if (_augmented_meta_data)
         THROW("Metadata can only have a single output")
     else
@@ -792,7 +792,7 @@ std::vector<rocalTensorList *> MasterGraph::create_label_reader(const char *sour
         auto info = default_labels_info;
         _labels_tensor_list.push_back(new rocalTensor(info));
     }
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
+    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     if (_augmented_meta_data)
         THROW("Metadata can only have a single output")
     else
@@ -830,7 +830,7 @@ std::vector<rocalTensorList *> MasterGraph::create_video_label_reader(const char
         auto tensor = new rocalTensor(info);
         _labels_tensor_list.push_back(tensor);
     }
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
+    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
 
     _meta_data_reader->read_all(source_path);
     if (_augmented_meta_data)
@@ -868,7 +868,7 @@ std::vector<rocalTensorList *> MasterGraph::create_mxnet_label_reader(const char
         _labels_tensor_list.push_back(tensor);
     }
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
+    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     if(is_output)
     {
         if (_augmented_meta_data)
@@ -975,7 +975,7 @@ std::vector<rocalTensorList *> MasterGraph::create_caffe2_lmdb_record_meta_data_
         _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
     }
 
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
+    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     if (_augmented_meta_data)
         THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
     else
@@ -1045,7 +1045,7 @@ std::vector<rocalTensorList *> MasterGraph::create_caffe_lmdb_record_meta_data_r
         _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
     }
 
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
+    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     if (_augmented_meta_data)
         THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
     else
@@ -1080,7 +1080,7 @@ std::vector<rocalTensorList *> MasterGraph::create_cifar10_label_reader(const ch
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
 
 
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size, _meta_data_buffer_size.size());
+    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     if (_augmented_meta_data)
         THROW("Metadata can only have a single output")
     else
