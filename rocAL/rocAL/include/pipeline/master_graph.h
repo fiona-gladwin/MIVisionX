@@ -48,7 +48,7 @@ THE SOFTWARE.
 #define BBOX_COUNT 4
 #define MAX_NUM_ANCHORS 8732  // Num of bbox achors used in SSD training
 #define MAX_MASK_BUFFER 10000
-
+#define MAX_ANCHORS 120087
 class MasterGraph
 {
 public:
