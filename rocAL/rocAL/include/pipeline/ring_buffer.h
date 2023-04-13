@@ -57,7 +57,7 @@ public:
     MetaDataNamePair& get_meta_data();
     std::vector<void*> get_meta_read_buffers();
     std::vector<void*> get_meta_write_buffers();
-    void set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data, bool is_segmentation = false);
+    void set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data);
     void rellocate_meta_data_buffer(void * buffer, size_t buffer_size, unsigned buff_idx);
     void reset();
     void pop();
@@ -96,4 +96,5 @@ private:
     size_t _level;
     std::mutex  _names_buff_lock;
     const size_t MEM_ALIGNMENT = 256;
+    bool _box_encoder_gpu = false;
 };
