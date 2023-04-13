@@ -186,7 +186,6 @@ void COCOMetaDataReader::read_all(const std::string &path)
     {
         if (0 == std::strcmp(key, "images"))
         {
-            int original_id;
             RAPIDJSON_ASSERT(parser.PeekType() == kArrayType);
             parser.EnterArray();
             while (parser.NextArrayValue())
