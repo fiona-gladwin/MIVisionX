@@ -1091,21 +1091,9 @@ size_t MasterGraph::bounding_box_batch_count(int *buf, pMetaDataBatch meta_data_
     return size;
 }
 
+
+
 rocalTensorList * MasterGraph::labels_meta_data()
-{
-    if(_ring_buffer.level() == 0)
-        THROW("No meta data has been loaded")
-    auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[0]; // Get labels buffer from ring buffer
-    for(unsigned i = 0; i < _labels_tensor_list.size(); i++)
-    {
-        _labels_tensor_list[i]->set_mem_handle((void *)meta_data_buffers); // TODO - Need to update according to the metadata
-        meta_data_buffers += _labels_tensor_list[i]->info().data_size();
-    }
-
-    return &_labels_tensor_list;
-}
-
-rocalTensorList * MasterGraph::bbox_labels_meta_data()
 {
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
