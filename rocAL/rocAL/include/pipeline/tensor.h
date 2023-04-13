@@ -102,7 +102,7 @@ public:
             dims_mapping = {0, 1, 3, 4, 2};
         } else {
             THROW("Invalid layout conversion")
-        }
+        }   
         for(unsigned i = 0; i < _num_of_dims; i++)
             new_dims[i] = _dims.at(dims_mapping[i]);
     }

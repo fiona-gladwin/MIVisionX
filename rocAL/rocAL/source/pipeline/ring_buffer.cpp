@@ -459,3 +459,4 @@ MetaDataNamePair& RingBuffer::get_meta_data()
         THROW("ring buffer internals error, image and metadata sizes not the same "+TOSTR(_level) + " != "+TOSTR(_meta_ring_buffer.size()))
     return  _meta_ring_buffer.front();
 }
+

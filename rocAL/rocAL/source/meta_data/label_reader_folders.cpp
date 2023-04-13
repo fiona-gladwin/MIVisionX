@@ -93,6 +93,7 @@ void LabelReaderFolders::lookup(const std::vector<std::string>& image_names)
     }
     if(image_names.size() != (unsigned)_output->size())
         _output->resize(image_names.size());
+
     for(unsigned i = 0; i < image_names.size(); i++)
     {
         auto image_name = image_names[i];
