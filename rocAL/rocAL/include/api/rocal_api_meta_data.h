@@ -133,6 +133,18 @@ extern "C" unsigned ROCAL_API_CALL rocalGetBoundingBoxCount(RocalContext rocal_c
 
 ///
 /// \param rocal_context
+/// \param buf the imageIdx in the output batch
+/// \return The size of the buffer needs to be provided by user to get mask box info associated with image_idx in the output batch.
+extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int* buf);
+
+///
+/// \param rocal_context
+/// \param bufcount The user's buffer that will be filled with polygon size for the mask info
+/// \return The tensorlist with the mask coordinates
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int* bufcount);
+
+///
+/// \param rocal_context
 /// \param buf The user's buffer that will be filled with bounding box label info for the images in the output batch. It needs to be of size returned by a call to the rocalGetBoundingBoxCount
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetBoundingBoxLabel(RocalContext rocal_context);
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetBoundingBoxCords(RocalContext rocal_context);
@@ -191,9 +203,5 @@ extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext p_context,  int* buf
 /// \param rocal_context
 /// \param joints_data The user's RocalJointsData pointer that will be pointed to JointsDataBatch pointer
 extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **joints_data);
-
-extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int* buf);
-
-extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int* bufcount);
 
 #endif //MIVISIONX_ROCAL_API_META_DATA_H
