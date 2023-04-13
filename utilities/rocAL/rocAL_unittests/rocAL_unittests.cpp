@@ -207,9 +207,9 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             std::string json_path = rocal_data_path + "/rocal_data/coco/coco_10_img/annotations/instances_train2017.json";
             rocalCreateCOCOReader(handle, json_path.c_str(), true);
             if (decode_max_height <= 0 || decode_max_width <= 0)
-                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, false, false);
             else
-                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 3: //coco detection partial
