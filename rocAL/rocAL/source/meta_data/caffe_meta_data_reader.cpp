@@ -92,7 +92,7 @@ void CaffeMetaDataReader::lookup(const std::vector<std::string>& image_names)
         WRN("No image names passed")
         return;
     }
-    if(image_names.size() != (unsigned)_output->size())
+    if(image_names.size() != (unsigned)_output->size())   
         _output->resize(image_names.size());
 
     for(unsigned i = 0; i < image_names.size(); i++)
@@ -108,7 +108,7 @@ void CaffeMetaDataReader::lookup(const std::vector<std::string>& image_names)
 
 void CaffeMetaDataReader::read_all(const std::string& _path)
 {
-    string tmp1 = _path + "/data.mdb";
+    string tmp1 = _path + "/data.mdb";   
     string tmp2 = _path + "/lock.mdb";
     uint file_size, file_size1, file_bytes;
 
@@ -130,7 +130,7 @@ void CaffeMetaDataReader::read_lmdb_record(std::string _path, uint file_byte_siz
     CHECK_LMDB_RETURN_STATUS(mdb_env_create(&_mdb_env));
     // Setting the size of the memory map to use for this environment.
     // The size of the memory map is also the maximum size of the database.
-    CHECK_LMDB_RETURN_STATUS(mdb_env_set_mapsize(_mdb_env, file_byte_size));
+    CHECK_LMDB_RETURN_STATUS(mdb_env_set_mapsize(_mdb_env, file_byte_size)); 
     // Opening an environment handle.
     CHECK_LMDB_RETURN_STATUS(mdb_env_open(_mdb_env, _path.c_str(), MDB_RDONLY, 0664));
     // Creating a transaction for use with the environment
@@ -141,8 +141,8 @@ void CaffeMetaDataReader::read_lmdb_record(std::string _path, uint file_byte_siz
     // A cursor is associated with a specific transaction and database
     CHECK_LMDB_RETURN_STATUS(mdb_cursor_open(_mdb_txn, _mdb_dbi, &_mdb_cursor));
 
-    Datum datum;
-    // Retrieve by cursor. It retrieves key/data pairs from the database
+    Datum datum; 
+    // Retrieve by cursor. It retrieves key/data pairs from the database   
 	while((rc = mdb_cursor_get(_mdb_cursor, &_mdb_key, &_mdb_value, MDB_NEXT)) == 0)
     {
         std::string file_name = string((char*) _mdb_key.mv_data);

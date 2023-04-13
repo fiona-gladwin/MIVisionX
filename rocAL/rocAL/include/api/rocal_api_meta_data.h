@@ -194,6 +194,6 @@ extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, Roc
 
 extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int* buf);
 
-extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int *bufcount);
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int* bufcount);
 
 #endif //MIVISIONX_ROCAL_API_META_DATA_H

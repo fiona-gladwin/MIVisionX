@@ -241,7 +241,7 @@ ROCAL_API_CALL rocalGetBoundingBoxCount(RocalContext p_context)
     size_t size = 0;
     for(unsigned i = 0; i < meta_data_batch_size; i++)
     {
-        size += meta_data.second->get_labels_batch()[i].size();;
+        size += meta_data.second->get_labels_batch()[i].size();
     }
     return size;
 }

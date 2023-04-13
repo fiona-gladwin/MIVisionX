@@ -46,9 +46,8 @@ THE SOFTWARE.
 #define MAX_STRING_LENGTH 100
 #define MAX_OBJECTS 50 // Max number of objects/image in COCO dataset is 93 
 #define BBOX_COUNT 4
-#define MAX_NUM_ANCHORS 8732
+#define MAX_NUM_ANCHORS 8732  // Num of bbox achors used in SSD training
 #define MAX_MASK_BUFFER 10000
-#define MAX_ANCHORS 120087
 
 class MasterGraph
 {
