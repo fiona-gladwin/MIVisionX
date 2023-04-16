@@ -67,9 +67,9 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
         {
             auto mask_cords = it->second->get_mask_cords();
-            _output->get_mask_cords_batch()[i] = mask_cords;
-            _output->get_mask_polygons_count_batch()[i] = it->second->get_polygon_count();
-            _output->get_mask_vertices_count_batch()[i] = it->second->get_vertices_count();
+            getMetadatabatchValues<std::vector<MaskCords>>(*_output,&MetaDataBatch::get_mask_cords_batch)[i] = mask_cords;
+            getMetadatabatchValues<std::vector<std::vector<int>>>(*_output,&MetaDataBatch::get_mask_polygons_count_batch)[i] = it->second->get_polygon_count();
+            getMetadatabatchValues<std::vector<std::vector<std::vector<int>>>>(*_output,&MetaDataBatch::get_mask_vertices_count_batch)[i] = it->second->get_vertices_count();
         }
     }
 }
