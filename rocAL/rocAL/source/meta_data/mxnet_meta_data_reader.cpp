@@ -71,7 +71,7 @@ void MXNetMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         auto it = _map_content.find(_image_name);
         if(_map_content.end() == it)
             THROW("MXNetMetaDataReader ERROR: Given name not present in the map"+ _image_name )
-        _output->get_labels_batch()[i] = it->second->get_labels();
+        getMetadatabatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = it->second->get_labels();
     }
 }
 

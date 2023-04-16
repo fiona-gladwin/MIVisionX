@@ -41,12 +41,12 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(MetaDataBatch *input_meta_
 
     for (int i = 0; i < _batch_size; i++)
     {
-        auto bb_count = input_meta_data->get_labels_batch()[i].size();
+        auto bb_count = getMetadatabatchValues<std::vector<Labels>>(*input_meta_data,&MetaDataBatch::get_labels_batch)[i].size();
         BoundingBoxCords coords_buf;
         Labels labels_buf;
         coords_buf.resize(bb_count);
         labels_buf.resize(bb_count);
-        memcpy(labels_buf.data(), input_meta_data->get_labels_batch()[i].data(), sizeof(int) * bb_count);
+        memcpy(labels_buf.data(), getMetadatabatchValues<std::vector<Labels>>(*input_meta_data,&MetaDataBatch::get_labels_batch)[i].data(), sizeof(int) * bb_count);
         memcpy((void *)coords_buf.data(), input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
         BoundingBoxCords bb_coords;
         Labels bb_labels;
@@ -70,6 +70,6 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(MetaDataBatch *input_meta_
             bb_labels.push_back(labels_buf[j]);
         }
         input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_labels_batch()[i] = bb_labels;
+        getMetadatabatchValues<std::vector<Labels>>(*input_meta_data,&MetaDataBatch::get_labels_batch)[i] = bb_labels;
     }
 }

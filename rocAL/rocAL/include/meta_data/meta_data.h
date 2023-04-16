@@ -245,7 +245,7 @@ struct MetaDataBatch
         return this;
     }
     virtual std::shared_ptr<MetaDataBatch> clone() = 0;
-    virtual std::vector<Labels>& get_labels_batch() {};
+    virtual void get_labels_batch(std::vector<Labels>** label_ids) {};
     virtual std::vector<BoundingBoxCords>& get_bb_cords_batch() {};
     virtual void get_bb_cords_batch_xcycxwh(std::vector<BoundingBoxCords_xcycwh>** bb_cords_xcycwh) {};
     virtual void get_mask_cords_batch(std::vector<MaskCords>** mask_cords) {};
@@ -286,7 +286,9 @@ struct LabelBatch : public MetaDataBatch
     }
     MetaDataBatch&  operator += (MetaDataBatch& other) override
     {
-        _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
+        _label_ids.insert(_label_ids.end(),
+                          getMetadatabatchValues<std::vector<Labels>>(other,&MetaDataBatch::get_labels_batch).begin(),
+                          getMetadatabatchValues<std::vector<Labels>>(other,&MetaDataBatch::get_labels_batch).end());
         _info_batch.insert(other.get_info_batch());
         return *this;
     }
@@ -326,7 +328,7 @@ struct LabelBatch : public MetaDataBatch
         _buffer_size.emplace_back(size * sizeof(int));
         return _buffer_size;
     }
-    std::vector<Labels>& get_labels_batch() override { return _label_ids; }
+    void get_labels_batch(std::vector<Labels>** label_ids) override { *label_ids = &_label_ids; }
     protected:
     std::vector<Labels> _label_ids = {};
     std::vector<size_t> _buffer_size;
@@ -344,7 +346,9 @@ struct BoundingBoxBatch: public LabelBatch
     MetaDataBatch&  operator += (MetaDataBatch& other) override
     {
         _bb_cords.insert(_bb_cords.end(), other.get_bb_cords_batch().begin(), other.get_bb_cords_batch().end());
-        _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
+        _label_ids.insert(_label_ids.end(),
+                          getMetadatabatchValues<std::vector<Labels>>(other,&MetaDataBatch::get_labels_batch).begin(),
+                          getMetadatabatchValues<std::vector<Labels>>(other,&MetaDataBatch::get_labels_batch).end());
         _info_batch.insert(other.get_info_batch());
         return *this;
     }
@@ -406,7 +410,9 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
     MetaDataBatch&  operator += (MetaDataBatch& other) override
     {
         _bb_cords.insert(_bb_cords.end(), other.get_bb_cords_batch().begin(), other.get_bb_cords_batch().end());
-        _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
+        _label_ids.insert(_label_ids.end(),
+                          getMetadatabatchValues<std::vector<Labels>>(other,&MetaDataBatch::get_labels_batch).begin(),
+                          getMetadatabatchValues<std::vector<Labels>>(other,&MetaDataBatch::get_labels_batch).end());
         _info_batch.insert(other.get_info_batch());
         _mask_cords.insert(_mask_cords.end(),
                            getMetadatabatchValues<std::vector<MaskCords>>(other,&MetaDataBatch::get_mask_cords_batch).begin(),

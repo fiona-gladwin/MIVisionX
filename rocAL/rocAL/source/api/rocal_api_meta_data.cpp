@@ -238,7 +238,7 @@ ROCAL_API_CALL rocalGetBoundingBoxCount(RocalContext p_context)
     auto meta_data = context->master_graph->meta_data();
     if(!meta_data.second)
         THROW("No label has been loaded for this output image")
-    size_t meta_data_batch_size = meta_data.second->get_labels_batch().size();
+    size_t meta_data_batch_size = getMetadatabatchValues<std::vector<Labels>>(*meta_data.second,&MetaDataBatch::get_labels_batch).size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
     return context->master_graph->bounding_box_batch_count(meta_data.second);
@@ -274,14 +274,14 @@ ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext p_context, int* buf, int n
         WRN("No label has been loaded for this output image")
         return;
     }
-    size_t meta_data_batch_size = meta_data.second->get_labels_batch().size();
+    size_t meta_data_batch_size = getMetadatabatchValues<std::vector<Labels>>(*meta_data.second,&MetaDataBatch::get_labels_batch).size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
 
     int labels_buf[meta_data_batch_size];
     int one_hot_encoded[meta_data_batch_size*numOfClasses];
     memset(one_hot_encoded, 0, sizeof(int) * meta_data_batch_size * numOfClasses);
-    memcpy(labels_buf, meta_data.second->get_labels_batch().data(),  sizeof(int)*meta_data_batch_size);
+    memcpy(labels_buf, getMetadatabatchValues<std::vector<Labels>>(*meta_data.second,&MetaDataBatch::get_labels_batch).data(),  sizeof(int)*meta_data_batch_size);
 
     for(uint i = 0; i < meta_data_batch_size; i++)
     {
@@ -338,7 +338,7 @@ ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int* buf)
         THROW("No mask has been loaded for this output image")
     for(unsigned i = 0; i < meta_data_batch_size; i++)
     {
-        unsigned object_count = meta_data.second->get_labels_batch()[i].size();
+        unsigned object_count = getMetadatabatchValues<std::vector<Labels>>(*meta_data.second,&MetaDataBatch::get_labels_batch)[i].size();
         for(unsigned int j = 0; j < object_count; j++) {
             unsigned polygon_count = getMetadatabatchValues<std::vector<std::vector<int>>>(*meta_data.second,&MetaDataBatch::get_mask_polygons_count_batch)[i][j];
             buf[count++] = polygon_count;
@@ -363,7 +363,7 @@ ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int *bufcount)
     int size = 0;
     for(unsigned image_idx = 0; image_idx < meta_data_batch_size; image_idx++)
     {
-        unsigned object_count = meta_data.second->get_labels_batch()[image_idx].size();
+        unsigned object_count = getMetadatabatchValues<std::vector<Labels>>(*meta_data.second,&MetaDataBatch::get_labels_batch)[image_idx].size();
         for(unsigned int i = 0; i < object_count; i++)
         {
             unsigned polygon_count = getMetadatabatchValues<std::vector<std::vector<int>>>(*meta_data.second,&MetaDataBatch::get_mask_polygons_count_batch)[image_idx][i];
