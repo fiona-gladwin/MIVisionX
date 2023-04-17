@@ -32,7 +32,7 @@ public:
     /// \param device_resources shard count from user
 
     /// internal_shard_count number of loader/decoders are created and each shard is loaded and decoded using separate and independent resources increasing the parallelism and performance.
-    FusedJpegCropNode(Image *output, void *device_resources_hip);
+    FusedJpegCropNode(rocalTensor *output, void *device_resources_hip);
     ~FusedJpegCropNode() override;
     FusedJpegCropNode() = delete;
     ///

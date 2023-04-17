@@ -95,7 +95,7 @@ class Pipeline(object):
     _handle = None
     _current_pipeline = None
 
-    def __init__(self, batch_size=-1, num_threads=-1, device_id=-1, seed=1,
+    def __init__(self, batch_size=-1, num_threads=-1, device_id=-1, seed=-1,
                  exec_pipelined=True, prefetch_queue_depth=2,
                  exec_async=True, bytes_per_sample=0,
                  rocal_cpu=False, max_streams=-1, default_cuda_stream_priority=0, tensor_layout = types.NCHW, reverse_channels = False, multiplier = [1.0,1.0,1.0], offset = [0.0, 0.0, 0.0], tensor_dtype=types.FLOAT):
@@ -137,6 +137,7 @@ class Pipeline(object):
         self._name = None
         self._anchors = None
         self._BoxEncoder = None
+        self._BoxIOUMatcher = None
         self._encode_tensor = None
         self._numOfClasses = None
         self._oneHotEncoding = False
@@ -155,7 +156,7 @@ class Pipeline(object):
             exit(0)
         return self
 
-    def run(self):
+    def rocalRun(self):
         """ Run the pipeline using rocalRun call
         """
         status = b.rocalRun(self._handle)
@@ -229,7 +230,7 @@ class Pipeline(object):
 
     def set_outputs(self, *output_list):
         self._output_list_length = len(output_list)
-        b.setOutputImages(self._handle,len(output_list),output_list)
+        b.setOutputImages(self._handle, len(output_list), output_list)
 
     def __enter__(self):
         Pipeline._current_pipeline = self
@@ -329,6 +330,44 @@ class Pipeline(object):
 
     def Timing_Info(self):
         return b.getTimingInfo(self._handle)
+        
+    def rocalGetImageLabels(self):
+        return b.rocalGetImageLabels(self._handle)
+ 
+    def rocalGetBoundingBoxLabel(self):
+        return b.rocalGetBoundingBoxLabel(self._handle)
+
+    def rocalGetBoundingBoxCords(self):
+        return b.rocalGetBoundingBoxCords(self._handle)
+    
+    def rocalGetBoundingBoxCount(self):
+        return b.rocalGetBoundingBoxCount(self._handle)
+    
+    def rocalGetMatchedIndices(self):
+        return b.rocalGetMatchedIndices(self._handle)
+
+    def copy_out_data_ptr(self, data_ptr):
+        return b.copy_data_ptr(self._handle, data_ptr)
+
+    def rocalGetOutputTensors(self):
+        return b.rocalGetOutputTensors(self._handle)
+
+    def run(self):
+        """
+        It rises StopIteration if data set reached its end.
+        return:
+        :return:
+        A list of `rocalTensorList` objects for respective pipeline outputs.
+        """
+        try:
+            print("getRemainingImages :", self.getRemainingImages())
+            if self.getRemainingImages() > 0:
+                self.rocalRun()
+                return b.rocalGetOutputTensors(self._handle)
+        except:
+                print("Raise stop iter")
+                raise StopIteration
+
 
 def _discriminate_args(func, **func_kwargs):
     """Split args on those applicable to Pipeline constructor and the decorated function."""

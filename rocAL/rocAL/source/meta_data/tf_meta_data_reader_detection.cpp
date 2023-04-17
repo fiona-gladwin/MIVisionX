@@ -69,12 +69,12 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
     }
     if(image_names.size() != (unsigned)_output->size())   
         _output->resize(image_names.size());
-
+    _output->reset_objects_count();
     for(unsigned i = 0; i < image_names.size(); i++)
     {
         auto image_name = image_names[i];
         auto it = _map_content.find(image_name);
-	
+ 
         if(_map_content.end() == it)
         {
             _output->get_bb_cords_batch()[i] = {{0, 0, 0, 0}};
@@ -86,6 +86,10 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
             _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
             _output->get_bb_labels_batch()[i] = it->second->get_bb_labels();
             _output->get_img_sizes_batch()[i] = it->second->get_img_size();
+            // TODO - Check condition
+            _output->increment_object_count(it->second->get_object_count());
+            _output->get_metadata_dimensions_batch().bb_labels_dims()[i] = it->second->get_bb_label_dims();
+            _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
         }
     }
 }

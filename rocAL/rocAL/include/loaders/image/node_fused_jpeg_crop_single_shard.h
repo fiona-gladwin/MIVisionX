@@ -29,7 +29,7 @@ THE SOFTWARE.
 class FusedJpegCropSingleShardNode: public Node
 {
 public:
-    FusedJpegCropSingleShardNode(Image *output, void *device_resources);
+    FusedJpegCropSingleShardNode(rocalTensor *output, void *device_resources);
     ~FusedJpegCropSingleShardNode() override;
 
     /// \param user_shard_count shard count from user

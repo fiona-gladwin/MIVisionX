@@ -34,7 +34,7 @@ public:
     ~CIFAR10DataLoader() override;
     LoaderModuleStatus load_next() override;
     void initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool keep_orig_size=true) override;
-    void set_output_image (Image* output_image) override;
+    void set_output (rocalTensor* output_image) override;
     void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) override;
     size_t remaining_count() override;
     void reset() override;
@@ -78,6 +78,6 @@ private:
     bool _loop;//<! If true the reader will wrap around at the end of the media (files/images/...) and wouldn't stop
     size_t _image_counter = 0;//!< How many images have been loaded already
     size_t _remaining_image_count;//!< How many images are there yet to be loaded
-    Image *_output_image;
+    rocalTensor *_output_image;
     std::shared_ptr<RandomBBoxCrop_MetaDataReader> _randombboxcrop_meta_data_reader = nullptr;
 };

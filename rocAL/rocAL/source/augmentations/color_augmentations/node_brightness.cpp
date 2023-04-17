@@ -25,43 +25,38 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-BrightnessNode::BrightnessNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+BrightnessNode::BrightnessNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
         _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
         _beta (BETA_RANGE[0], BETA_RANGE[1])
 {
 }
 
-void BrightnessNode::create_node()
-{
+void BrightnessNode::create_node() {
     if(_node)
         return;
 
     _alpha.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
     _beta.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-
-    _node = vxExtrppNode_BrightnessbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), _batch_size);/*A temporary fix for time being*/
+    _node = vxExtrppNode_Brightness(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness_batch (vxExtrppNode_BrightnessbatchPD) node failed: "+ TOSTR(status))
+        THROW("Adding the brightness (vxExtrppNode_Brightness) node failed: "+ TOSTR(status))
 }
 
-void BrightnessNode::init( float alpha, float beta)
-{
+void BrightnessNode::init( float alpha, float beta) {
     _alpha.set_param(alpha);
     _beta.set_param(beta);
 }
 
-void BrightnessNode::init( FloatParam* alpha, FloatParam* beta)
-{
+void BrightnessNode::init( FloatParam* alpha, FloatParam* beta) {
     _alpha.set_param(core(alpha));
     _beta.set_param(core(beta));
 }
 
 
-void BrightnessNode::update_node()
-{
+void BrightnessNode::update_node() {
     _alpha.update_array();
     _beta.update_array();
 }

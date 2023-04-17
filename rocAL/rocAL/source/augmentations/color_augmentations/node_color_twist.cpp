@@ -24,19 +24,17 @@ THE SOFTWARE.
 #include "node_color_twist.h"
 #include "exception.h"
 
-
-ColorTwistBatchNode::ColorTwistBatchNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+ColorTwistNode::ColorTwistNode(const std::vector<rocalTensor *> &inputs,const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
         _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
         _beta (BETA_RANGE[0], BETA_RANGE[1]),
-        _hue(ALPHA_RANGE[0], HUE_RANGE[1]),
-        _sat (BETA_RANGE[0], SAT_RANGE[1])
+        _hue(HUE_RANGE[0], HUE_RANGE[1]),
+        _sat(SAT_RANGE[0], SAT_RANGE[1])
 {
 }
 
-void ColorTwistBatchNode::create_node()
+void ColorTwistNode::create_node()
 {
-
     if(_node)
         return;
 
@@ -44,15 +42,14 @@ void ColorTwistBatchNode::create_node()
     _beta.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
     _hue.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
     _sat.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-
-    _node = vxExtrppNode_ColorTwistbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), _hue.default_array(), _sat.default_array(), _batch_size);/*A temporary fix for time being*/
+    _node = vxExtrppNode_ColorTwist(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), _hue.default_array(), _sat.default_array(), _input_layout, _roi_type, _batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the ColorTwist_batch (vxExtrppNode_ColorTwistbatchPD) node failed: "+ TOSTR(status))
+        THROW("Adding the colortwist_batch (vxExtrppNode_ColotTwsit) node failed: "+ TOSTR(status))
 }
 
-void ColorTwistBatchNode::init(float alpha, float beta, float hue, float sat)
+void ColorTwistNode::init( float alpha, float beta, float hue , float sat)
 {
     _alpha.set_param(alpha);
     _beta.set_param(beta);
@@ -60,7 +57,7 @@ void ColorTwistBatchNode::init(float alpha, float beta, float hue, float sat)
     _sat.set_param(sat);
 }
 
-void ColorTwistBatchNode::init(FloatParam *alpha, FloatParam *beta, FloatParam *hue, FloatParam *sat)
+void ColorTwistNode::init( FloatParam* alpha, FloatParam* beta, FloatParam* hue, FloatParam* sat)
 {
     _alpha.set_param(core(alpha));
     _beta.set_param(core(beta));
@@ -68,7 +65,8 @@ void ColorTwistBatchNode::init(FloatParam *alpha, FloatParam *beta, FloatParam *
     _sat.set_param(core(sat));
 }
 
-void ColorTwistBatchNode::update_node()
+
+void ColorTwistNode::update_node()
 {
     _alpha.update_array();
     _beta.update_array();

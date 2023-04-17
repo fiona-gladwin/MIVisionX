@@ -35,12 +35,14 @@ THE SOFTWARE.
 
 #include <half/half.hpp>
 using half_float::half;
+#include "tensor.h"
 
 typedef void * RocalFloatParam;
 typedef void * RocalIntParam;
 typedef void * RocalContext;
-typedef void * RocalImage;
-typedef void * RocalMetaData;
+typedef std::vector<rocalTensorList *> RocalMetaData;
+typedef rocalTensor * RocalTensor;
+typedef rocalTensorList * RocalTensorList;
 
 typedef std::vector<int> ImageIDBatch,AnnotationIDBatch;
 typedef std::vector<std::string> ImagePathBatch;
@@ -118,14 +120,17 @@ enum RocalDecodeDevice
 enum RocalTensorLayout
 {
     ROCAL_NHWC = 0,
-    ROCAL_NCHW = 1
+    ROCAL_NCHW = 1,
+    ROCAL_NFHWC = 2,
+    ROCAL_NFCHW = 3
 };
 
 enum RocalTensorOutputType
 {
     ROCAL_FP32 = 0,
     ROCAL_FP16 = 1,
-    ROCAL_U8   = 2,
+    ROCAL_UINT8 = 2,
+    ROCAL_INT8 = 3
 };
 
 enum RocalDecoderType
@@ -134,10 +139,10 @@ enum RocalDecoderType
     ROCAL_DECODER_OPENCV = 1,
     ROCAL_DECODER_HW_JPEG = 2,
     ROCAL_DECODER_VIDEO_FFMPEG_SW = 3,
-    ROCAL_DECODER_VIDEO_FFMPEG_HW = 4
+    ROCAL_DECODER_VIDEO_FFMPEG_HW = 4,
 };
 
-// rocal external memcpy flags 
+// rocal external memcpy flags
 #define    ROCAL_MEMCPY_TO_HOST      1      // force copy to user provided host memory
 #define    ROCAL_MEMCPY_TO_DEVICE    2      // force copy to user provided device memory (gpu)
 #define    ROCAL_MEMCPY_IS_PINNED    4      // for future use

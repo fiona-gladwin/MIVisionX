@@ -63,7 +63,7 @@ list(APPEND SOURCES
         source/ColorTemperaturebatchPD.cpp
         source/ColorTwistbatchPD.cpp
         source/ContrastbatchPD.cpp
-        source/copy.cpp
+        source/CopybatchPD.cpp
         source/CropMirrorNormalizePD.cpp
         source/CropPD.cpp
         source/CustomConvolutionbatchPD.cpp
@@ -100,7 +100,7 @@ list(APPEND SOURCES
         source/NoisebatchPD.cpp
         source/NonLinearFilterbatchPD.cpp
         source/NonMaxSupressionbatchPD.cpp
-        source/nop.cpp
+        source/NopbatchPD.cpp
         source/PhasebatchPD.cpp
         source/PixelatebatchPD.cpp
         source/RainbatchPD.cpp
@@ -115,7 +115,7 @@ list(APPEND SOURCES
         source/RotatebatchPD.cpp
         source/SaturationbatchPD.cpp
         source/ScalebatchPD.cpp
-        source/SequenceRearrange.cpp
+        source/SequenceRearrangebatchPD.cpp
         source/SnowbatchPD.cpp
         source/SobelbatchPD.cpp
         source/SubtractbatchPD.cpp
@@ -128,6 +128,15 @@ list(APPEND SOURCES
         source/VignettebatchPD.cpp
         source/WarpAffinebatchPD.cpp
         source/WarpPerspectivebatchPD.cpp
+        source/Brightness.cpp
+        source/Copy.cpp
+        source/CropMirrorNormalize.cpp
+        source/Nop.cpp
+        source/Resize.cpp
+        source/Crop.cpp
+        source/ColorTwist.cpp
+        source/ResizeMirrorNormalize.cpp
+        source/SequenceRearrange.cpp
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp
     )

@@ -19,7 +19,6 @@
 # THE SOFTWARE.
 
 
-
 # RocalStatus
 from rocal_pybind.types import OK
 from rocal_pybind.types import CONTEXT_INVALID
@@ -34,6 +33,7 @@ from rocal_pybind.types import CPU
 #  RocalTensorOutputType
 from rocal_pybind.types import FLOAT
 from rocal_pybind.types import FLOAT16
+from rocal_pybind.types import UINT8
 
 # RocalImageSizeEvaluationPolicy
 from rocal_pybind.types import MAX_SIZE
@@ -89,6 +89,7 @@ _known_types = {
     CPU: ("CPU", CPU),
     FLOAT: ("FLOAT", FLOAT),
     FLOAT16: ("FLOAT16", FLOAT16),
+    UINT8 : ("UINT8", UINT8),
 
     MAX_SIZE: ("MAX_SIZE", MAX_SIZE),
     USER_GIVEN_SIZE: ("USER_GIVEN_SIZE", USER_GIVEN_SIZE),

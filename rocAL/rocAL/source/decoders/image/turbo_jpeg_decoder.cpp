@@ -29,7 +29,7 @@ TJDecoder::TJDecoder(){
 
 #if 0
     int num_avail_scalings = 0;
-    auto scaling_factors = tjGetScalingFactors	(&num_avail_scalings);	
+    auto scaling_factors = tjGetScalingFactors	(&num_avail_scalings); 
     for(int i = 0; i < num_avail_scalings; i++) {
         if(scaling_factors[i].num < scaling_factors[i].denom) {
 

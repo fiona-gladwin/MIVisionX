@@ -22,33 +22,36 @@ import cupy as cp
 import numpy as np
 import rocal_pybind as b
 import amd.rocal.types as types
+import ctypes
 
 class ROCALGenericImageIterator(object):
     def __init__(self, pipeline):
         self.loader = pipeline
-        self.w = b.getOutputWidth(self.loader._handle)
-        self.h = b.getOutputHeight(self.loader._handle)
-        self.n = b.getOutputImageCount(self.loader._handle)
-        color_format = b.getOutputColorFormat(self.loader._handle)
-        self.p = (1 if (color_format == int(types.GRAY)) else 3)
-        height = self.h*self.n
-        self.out_tensor = None
-        self.out_bbox = None
-        self.out_image = np.zeros((height, self.w, self.p), dtype = "uint8")
-        self.bs = pipeline._batch_size
+        self.batch_size = pipeline._batch_size
+        self.out = None
 
     def next(self):
         return self.__next__()
 
     def __next__(self):
+
         if(self.loader.isEmpty()):
             raise StopIteration
 
         if self.loader.run() != 0:
             raise StopIteration
 
-        self.loader.copyImage(self.out_image)
-        return self.out_image , self.out_tensor
+        else:
+            self.output_tensor_list = self.loader.rocalGetOutputTensors()
+
+        self.augmentation_count = len(self.output_tensor_list)
+        self.w = self.output_tensor_list[0].batch_width() if self.w is None else self.w
+        self.h = self.output_tensor_list[0].batch_height() if self.h is None else self.h
+        self.batch_size = self.output_tensor_list[0].batch_size() if self.batch_size is None else self.batch_size
+        self.color_format = self.output_tensor_list[0].color_format() if self.color_format is None else self.color_format
+        self.output_tensor_list[0].copy_data(ctypes.c_void_p(self.out.data_ptr()))
+
+        return self.out
 
     def reset(self):
         b.rocalResetLoaders(self.loader._handle)
@@ -68,48 +71,13 @@ class ROCALGenericIterator(object):
         self.reverse_channels = reverse_channels
         self.tensor_dtype = tensor_dtype
         self.display = display
-        self.w = b.getOutputWidth(self.loader._handle)
-        self.h = b.getOutputHeight(self.loader._handle)
-        self.n = b.getOutputImageCount(self.loader._handle)
         self.bs = pipeline._batch_size
         if self.loader._name is None:
             self.loader._name= self.loader._reader
         color_format = b.getOutputColorFormat(self.loader._handle)
         self.p = (1 if (color_format == int(types.GRAY)) else 3)
         self.labels_size = ((self.bs*self.loader._numOfClasses) if (self.loader._oneHotEncoding == True) else self.bs)
-        if tensor_layout == types.NCHW:
-            if self.device == "cpu":
-                if self.tensor_dtype == types.FLOAT:
-                    self.out = np.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=np.float32)
-                elif self.tensor_dtype == types.FLOAT16:
-                    self.out = np.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=np.float16)
-                self.labels = np.empty(self.labels_size, dtype = np.int32)
-
-            else:
-                with cp.cuda.Device(device=self.device_id):
-                    if self.tensor_dtype == types.FLOAT:
-                        self.out = cp.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=cp.float32)
-                    elif self.tensor_dtype == types.FLOAT16:
-                        self.out = cp.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=cp.float16)
-                    self.labels = cp.empty(self.labels_size, dtype = cp.int32)
-
-        else: #NHWC
-            if self.device == "cpu":
-                if self.tensor_dtype == types.FLOAT:
-                    self.out = np.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=np.float32)
-                elif self.tensor_dtype == types.FLOAT16:
-                    self.out = np.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=np.float16)
-                self.labels = np.empty(self.labels_size, dtype = np.int32)
-
-            else:
-                with cp.cuda.Device(device=self.device_id):
-                    if self.tensor_dtype == types.FLOAT:
-                        self.out = cp.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=cp.float32)
-                    elif self.tensor_dtype == types.FLOAT16:
-                        self.out = cp.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=cp.float16)
-                    self.labels = cp.empty(self.labels_size, dtype = cp.int32)
-
-
+        self.out = None
         if self.bs != 0:
             self.len = b.getRemainingImages(self.loader._handle)//self.bs
         else:
@@ -119,27 +87,65 @@ class ROCALGenericIterator(object):
         return self.__next__()
 
     def __next__(self):
+        
         if(b.isEmpty(self.loader._handle)):
             raise StopIteration
-
         if self.loader.run() != 0:
             raise StopIteration
-
-        if(types.NCHW == self.tensor_format):
-            self.loader.copyToTensorNCHW(self.out, self.multiplier, self.offset, self.reverse_channels, int(self.tensor_dtype))
         else:
-            self.loader.copyToTensorNHWC(self.out, self.multiplier, self.offset, self.reverse_channels, int(self.tensor_dtype))
-    
+            self.output_tensor_list =
+
+        self.augmentation_count = len(self.output_tensor_list)
+        self.w = self.output_tensor_list[0].batch_width() if self.w is None else self.w
+        self.h = self.output_tensor_list[0].batch_height() if self.h is None else self.h
+        self.batch_size = self.output_tensor_list[0].batch_size() if self.batch_size is None else self.batch_size
+        self.color_format = self.output_tensor_list[0].color_format() if self.color_format is None else self.color_format
+        
+        if self.out is None:
+            if self.tensor_layout == types.NCHW:
+                if self.device == "cpu":
+                    if self.tensor_dtype == types.FLOAT:
+                        self.out = np.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=np.float32)
+                    elif self.tensor_dtype == types.FLOAT16:
+                        self.out = np.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=np.float16)
+                    self.labels = np.empty(self.labels_size, dtype = np.int32)
+
+                else:
+                    with cp.cuda.Device(device=self.device_id):
+                        if self.tensor_dtype == types.FLOAT:
+                            self.out = cp.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=cp.float32)
+                        elif self.tensor_dtype == types.FLOAT16:
+                            self.out = cp.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=cp.float16)
+                        self.labels = cp.empty(self.labels_size, dtype = cp.int32)
+
+            else: #NHWC
+                if self.device == "cpu":
+                    if self.tensor_dtype == types.FLOAT:
+                        self.out = np.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=np.float32)
+                    elif self.tensor_dtype == types.FLOAT16:
+                        self.out = np.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=np.float16)
+                    self.labels = np.empty(self.labels_size, dtype = np.int32)
+
+                else:
+                    with cp.cuda.Device(device=self.device_id):
+                        if self.tensor_dtype == types.FLOAT:
+                            self.out = cp.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=cp.float32)
+                        elif self.tensor_dtype == types.FLOAT16:
+                            self.out = cp.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=cp.float16)
+                        self.labels = cp.empty(self.labels_size, dtype = cp.int32)
+                        
+        self.output_tensor_list[0].copy_data(ctypes.c_void_p(self.out.data_ptr()))
+        
         if(self.loader._name == "labelReader"):
             if(self.loader._oneHotEncoding == True):
-                self.loader.GetOneHotEncodedLabels(self.labels, self.device)
-                self.labels_tensor = self.labels.reshape(-1, self.bs, self.loader._numOfClasses)
+                print("Support for OneHotLabels not given yet")
+                exit(0)
             else:
                 if self.display:
                     for i in range(self.bs):
                         img = (self.out)
                         draw_patches(img[i], i, 0)
-                self.loader.getImageLabels(self.labels)
+                self.labels = self.loader.rocalGetImageLabels()
                 if self.device == "cpu":
                     self.labels_tensor = self.labels.astype(dtype=np.int_)
                 else:

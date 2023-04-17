@@ -23,64 +23,8 @@ THE SOFTWARE.
 #include "commons.h"
 #include "context.h"
 #include "rocal_api.h"
-size_t ROCAL_API_CALL rocalGetImageWidth(RocalImage p_image)
-{
-    auto image = static_cast<Image *>(p_image);
-    return image->info().width();
-}
-size_t ROCAL_API_CALL rocalGetImageHeight(RocalImage p_image)
-{
-    auto image = static_cast<Image *>(p_image);
-    return image->info().height_batch();
-}
 
-size_t ROCAL_API_CALL rocalGetImagePlanes(RocalImage p_image)
-{
-    auto image = static_cast<Image *>(p_image);
-    return image->info().color_plane_count();
-}
-
-int ROCAL_API_CALL rocalGetOutputWidth(RocalContext p_context)
-{
-    auto context = static_cast<Context *>(p_context);
-    return context->master_graph->output_width();
-}
-
-int ROCAL_API_CALL rocalGetOutputHeight(RocalContext p_context)
-{
-    auto context = static_cast<Context *>(p_context);
-    return context->master_graph->output_height();
-}
-
-int ROCAL_API_CALL rocalGetOutputColorFormat(RocalContext p_context)
-{
-    auto context = static_cast<Context *>(p_context);
-    auto translate_color_format = [](RocalColorFormat color_format)
-    {
-        switch (color_format)
-        {
-        case RocalColorFormat::RGB24:
-            return 0;
-        case RocalColorFormat::BGR24:
-            return 1;
-        case RocalColorFormat::U8:
-            return 2;
-        case RocalColorFormat::RGB_PLANAR:
-            return 3;
-        default:
-            THROW("Unsupported Image type" + TOSTR(color_format))
-        }
-    };
-
-    return translate_color_format(context->master_graph->output_color_format());
-}
-size_t ROCAL_API_CALL rocalGetAugmentationBranchCount(RocalContext p_context)
-{
-    auto context = static_cast<Context *>(p_context);
-    return context->master_graph->augmentation_branch_count();
-}
-
-size_t ROCAL_API_CALL
+size_t  ROCAL_API_CALL
 rocalGetRemainingImages(RocalContext p_context)
 {
     auto context = static_cast<Context *>(p_context);
@@ -115,17 +59,14 @@ const char *ROCAL_API_CALL rocalGetErrorMessage(RocalContext p_context)
     return context->error_msg();
 }
 TimingInfo
-    ROCAL_API_CALL
-    rocalGetTimingInfo(RocalContext p_context)
+ROCAL_API_CALL rocalGetTimingInfo(RocalContext p_context)
 {
     auto context = static_cast<Context *>(p_context);
     auto info = context->timing();
     // INFO("shuffle time "+ TOSTR(info.shuffle_time)); to display time taken for shuffling dataset
     // INFO("bbencode time "+ TOSTR(info.bb_process_time)); //to display time taken for bbox encoder
-    if (context->master_graph->is_video_loader())
-        return {info.video_read_time, info.video_decode_time, info.video_process_time, info.copy_to_output};
-    else
-        return {info.image_read_time, info.image_decode_time, info.image_process_time, info.copy_to_output};
+
+    return {info.image_read_time, info.image_decode_time, info.image_process_time, info.copy_to_output};
 }
 
 RocalMetaData

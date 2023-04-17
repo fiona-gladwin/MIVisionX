@@ -96,7 +96,10 @@ if(${BUILD_ROCAL_PYBIND})
 
     link_directories(${ROCM_PATH}/lib)
 
-    include_directories(../rocAL/include/api/
+    include_directories(../rocAL/include/
+                        ../rocAL/include/api/
+                        ../rocAL/include/pipeline/
+                        ../rocAL/include/device/
                         third_party_lib/
                         ../../amd_openvx/openvx/include/)
 

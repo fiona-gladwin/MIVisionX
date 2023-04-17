@@ -61,10 +61,10 @@ void VideoLoaderSharded::fast_forward_through_empty_loaders()
         increment_loader_idx();
 }
 
-VideoLoaderModuleStatus VideoLoaderSharded::load_next()
+LoaderModuleStatus VideoLoaderSharded::load_next()
 {
     if (!_initialized)
-        return VideoLoaderModuleStatus::NOT_INITIALIZED;
+        return LoaderModuleStatus::NOT_INITIALIZED;
 
     increment_loader_idx();
 
@@ -75,7 +75,7 @@ VideoLoaderModuleStatus VideoLoaderSharded::load_next()
     return ret;
 }
 
-void VideoLoaderSharded::initialize(VideoReaderConfig reader_cfg, VideoDecoderConfig decoder_cfg, RocalMemType mem_type,
+void VideoLoaderSharded::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type,
                                     unsigned batch_size, bool keep_orig_size)
 {
     if (_initialized)
@@ -93,7 +93,7 @@ void VideoLoaderSharded::initialize(VideoReaderConfig reader_cfg, VideoDecoderCo
     // Initialize loader modules
     for (size_t idx = 0; idx < _shard_count; idx++)
     {
-        _loaders[idx]->set_output_image(_output_image);
+        _loaders[idx]->set_output(_output_tensor);
         reader_cfg.set_shard_count(_shard_count);
         reader_cfg.set_shard_id(idx);
         _loaders[idx]->initialize(reader_cfg, decoder_cfg, mem_type, batch_size, keep_orig_size);
@@ -130,9 +130,9 @@ void VideoLoaderSharded::shut_down()
 
 }
 
-void VideoLoaderSharded::set_output_image(Image *output_image)
+void VideoLoaderSharded::set_output(rocalTensor *output_tensor)
 {
-    _output_image = output_image;
+    _output_tensor = output_tensor;
 }
 
 size_t VideoLoaderSharded::remaining_count()
@@ -154,19 +154,19 @@ void VideoLoaderSharded::increment_loader_idx()
     _loader_idx = (_loader_idx + 1) % _shard_count;
 }
 
-std::vector<size_t> VideoLoaderSharded::get_sequence_start_frame_number()
-{
-    if (!_initialized)
-        THROW("get_sequence_start_frame_number() should be called after initialize() function");
-    return _loaders[_loader_idx]->get_sequence_start_frame_number();
-}
+// std::vector<size_t> VideoLoaderSharded::get_sequence_start_frame_number()
+// {
+//     if (!_initialized)
+//         THROW("get_sequence_start_frame_number() should be called after initialize() function");
+//     return _loaders[_loader_idx]->get_sequence_start_frame_number();
+// }
 
-std::vector<std::vector<float>> VideoLoaderSharded::get_sequence_frame_timestamps()
-{
-    if (!_initialized)
-        THROW("get_sequence_frame_timestamps() should be called after initialize() function");
-    return _loaders[_loader_idx]->get_sequence_frame_timestamps();
-}
+// std::vector<std::vector<float>> VideoLoaderSharded::get_sequence_frame_timestamps()
+// {
+//     if (!_initialized)
+//         THROW("get_sequence_frame_timestamps() should be called after initialize() function");
+//     return _loaders[_loader_idx]->get_sequence_frame_timestamps();
+// }
 
 Timing VideoLoaderSharded::timing()
 {
@@ -184,9 +184,9 @@ Timing VideoLoaderSharded::timing()
         max_decode_time = (info.video_decode_time > max_decode_time) ? info.video_decode_time : max_decode_time;
         swap_handle_time += info.video_process_time;
     }
-    t.video_decode_time = max_decode_time;
-    t.video_read_time = max_read_time;
-    t.video_process_time = swap_handle_time;
+    t.image_decode_time = max_decode_time;
+    t.image_read_time = max_read_time;
+    t.image_process_time = swap_handle_time;
     return t;
 }
 #endif

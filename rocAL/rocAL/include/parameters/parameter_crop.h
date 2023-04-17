@@ -50,18 +50,15 @@ public:
         x_drift_factor     = default_x_drift_factor();
         y_drift_factor     = default_y_drift_factor();
     }
-    void set_image_dimensions( const std::vector<uint32_t>& in_width_, const std::vector<uint32_t>& in_height_)
+    void set_image_dimensions(RocalROI *roi)
     {
-        if(in_width_.size() != in_width.size() || in_height.size() != in_height_.size())
-            THROW("wrong input width = "+ TOSTR(in_width.size())+" or height size = "+TOSTR(in_height_.size()))
-        in_width  = in_width_;
-        in_height = in_height_;
+        in_roi = roi;
     }
     void set_random() {_random = true;}
     void set_fixed_crop(float anchor_x, float anchor_y) { _is_fixed_crop = true; _random = false; _crop_anchor[0] = anchor_x; _crop_anchor[1] = anchor_y;}
     void set_x_drift_factor(Parameter<float>* x_drift);
     void set_y_drift_factor(Parameter<float>* y_drift);
-    std::vector<uint32_t> in_width, in_height;
+    const RocalROI * in_roi;
     unsigned int  x1, y1, x2, y2;
     const unsigned int batch_size;
     void set_batch_size(unsigned int batch_size);

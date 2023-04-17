@@ -76,6 +76,9 @@ void Caffe2MetaDataReaderDetection::lookup(const std::vector<std::string> &_imag
         _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
         _output->get_bb_labels_batch()[i] = it->second->get_bb_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
+        _output->increment_object_count(it->second->get_object_count());
+        _output->get_metadata_dimensions_batch().bb_labels_dims()[i] = it->second->get_bb_label_dims();
+        _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
     }
 }
 

@@ -24,9 +24,7 @@ THE SOFTWARE.
 #include <graph.h>
 #include "node_resize.h"
 #include "exception.h"
-
-
-ResizeNode::ResizeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+ResizeNode::ResizeNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs)
 {
 }
@@ -34,9 +32,8 @@ ResizeNode::ResizeNode(const std::vector<Image *> &inputs, const std::vector<Ima
 void ResizeNode::create_node() {
     if(_node)
         return;
-
-    std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().width());
-    std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().height_single());
+    std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().max_shape()[0]);
+    std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
 
     _dst_roi_width = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
     _dst_roi_height = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
@@ -45,32 +42,31 @@ void ResizeNode::create_node() {
 
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
-     if(width_status != 0 || height_status != 0)
-        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
-#if ENABLE_OPENCL
-    // fall back to batch_pd version since there is no tensor implementation for OPENCL    
-    _node = vxExtrppNode_ResizebatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width, _dst_roi_height, _batch_size);
-#else
-   _node = vxExtrppNode_Resizetensor(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width, _dst_roi_height, _interpolation_type, _batch_size);
-#endif
+    if(width_status != 0 || height_status != 0)
+        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_Resize) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status));
+
+    vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_INT32,&_interpolation_type);
+   _node = vxExtrppNode_Resize(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _dst_roi_width, 
+                               _dst_roi_height, interpolation_vx, _input_layout, _output_layout, _roi_type, _batch_size);
+
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the resize (vxExtrppNode_Resizetensor) node failed: "+ TOSTR(status))
+        THROW("Adding the resize (vxExtrppNode_Resize) node failed: "+ TOSTR(status))
 }
 
 void ResizeNode::update_node() {
     std::vector<uint32_t> src_h_dims, src_w_dims;
     // Using original width and height instead of the decoded width and height for computing resize dimensions
-    src_w_dims = _inputs[0]->info().get_original_width_vec();
-    src_h_dims = _inputs[0]->info().get_original_height_vec();
+    src_w_dims = _inputs[0]->info().get_orig_roi_width_vec();
+    src_h_dims = _inputs[0]->info().get_orig_roi_height_vec();
     for (unsigned i = 0; i < _batch_size; i++) {
         _src_width = src_w_dims[i];
         _src_height = src_h_dims[i];
         _dst_width = _out_width;
         _dst_height = _out_height;
         adjust_out_roi_size();
-        _dst_width = std::min(_dst_width, _outputs[0]->info().width());
-        _dst_height = std::min(_dst_height, _outputs[0]->info().height_single());
+        _dst_width = std::min(_dst_width, (unsigned)_outputs[0]->info().max_shape()[0]);
+        _dst_height = std::min(_dst_height, (unsigned)_outputs[0]->info().max_shape()[1]);
         _dst_roi_width_vec.push_back(_dst_width);
         _dst_roi_height_vec.push_back(_dst_height);
     }
@@ -79,7 +75,7 @@ void ResizeNode::update_node() {
     height_status = vxCopyArrayRange((vx_array)_dst_roi_height, 0, _batch_size, sizeof(vx_uint32), _dst_roi_height_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     if(width_status != 0 || height_status != 0)
         WRN("ERROR: vxCopyArrayRange _dst_roi_width or _dst_roi_height failed " + TOSTR(width_status) + "  " + TOSTR(height_status));
-    _outputs[0]->update_image_roi(_dst_roi_width_vec, _dst_roi_height_vec);
+    _outputs[0]->update_tensor_roi(_dst_roi_width_vec, _dst_roi_height_vec);
     _dst_roi_width_vec.clear();
     _dst_roi_height_vec.clear();
 }

@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "node_fused_jpeg_crop.h"
 #include "exception.h"
 
-FusedJpegCropNode::FusedJpegCropNode(Image *output, void *device_resources):
+FusedJpegCropNode::FusedJpegCropNode(rocalTensor *output, void *device_resources):
         Node({}, {output})
 {
     _loader_module = std::make_shared<ImageLoaderSharded>(device_resources);
@@ -37,7 +37,7 @@ void FusedJpegCropNode::init(unsigned internal_shard_count, const std::string &s
         THROW("ERROR: loader module is not set for FusedJpegCropNode, cannot initialize")
     if(internal_shard_count < 1)
         THROW("Shard count should be greater than or equal to one")
-    _loader_module->set_output_image(_outputs[0]);
+    _loader_module->set_output(_outputs[0]);
     // Set reader and decoder config accordingly for the FusedJpegCropNode
     auto reader_cfg = ReaderConfig(storage_type, source_path, json_path, std::map<std::string, std::string>(), shuffle, loop);
     reader_cfg.set_shard_count(internal_shard_count);

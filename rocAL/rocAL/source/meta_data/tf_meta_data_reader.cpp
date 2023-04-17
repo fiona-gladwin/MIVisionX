@@ -66,6 +66,7 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
     }
     if(_image_names.size() != (unsigned)_output->size())   
         _output->resize(_image_names.size());
+    _output->reset_objects_count();
 
     for(unsigned i = 0; i < _image_names.size(); i++)
     {
@@ -74,6 +75,7 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ _image_name )
         _output->get_label_batch()[i] = it->second->get_label();
+        _output->increment_object_count(it->second->get_object_count());
     }
 
 }
@@ -190,7 +192,7 @@ void TFMetaDataReader::read_files(const std::string& _path)
         _file_names.push_back(_entity->d_name);  
     }
     if(_file_names.empty())
-        WRN("LabelReader: Could not find any file in " + _path)
+        WRN("TFMetadataReader: Could not find any file in " + _path)
     closedir(_src_dir);
 }
 

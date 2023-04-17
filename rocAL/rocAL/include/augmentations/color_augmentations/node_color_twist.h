@@ -26,16 +26,17 @@ THE SOFTWARE.
 #include "parameter_vx.h"
 #include "graph.h"
 
-class ColorTwistBatchNode : public Node
+class ColorTwistNode : public Node
 {
 public:
-    ColorTwistBatchNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
-    ColorTwistBatchNode() = delete;
+    ColorTwistNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
+    ColorTwistNode() = delete;
+
     void init(float alpha, float beta, float hue, float sat);
-    void init(FloatParam *alpha, FloatParam *beta, FloatParam *hue, FloatParam *sat);
+    void init(FloatParam* alpha_param, FloatParam* beta_param, FloatParam* hue_param, FloatParam* sat_param);
 
 protected:
-    void create_node() override;
+    void create_node() override ;
     void update_node() override;
 private:
 
@@ -43,9 +44,8 @@ private:
     ParameterVX<float> _beta;
     ParameterVX<float> _hue;
     ParameterVX<float> _sat;
-
-    constexpr static float   ALPHA_RANGE [2] = {0.1, 1.95};
-    constexpr static float   BETA_RANGE [2] = {0.1, 25.0};
-    constexpr static float   HUE_RANGE [2] = {5.0, 170.0};
-    constexpr static float   SAT_RANGE [2] = {0.1, 0.4};
+    constexpr static float ALPHA_RANGE [2] = {0.1, 1.95};
+    constexpr static float   BETA_RANGE [2] = {0, 25};
+    constexpr static float HUE_RANGE [2] = {5.0, 170.0};
+    constexpr static float SAT_RANGE [2] = {0.1, 0.4};
 };

@@ -32,7 +32,7 @@ VideoLoader::VideoLoader(void *dev_resources):
 _circ_buff(dev_resources),
 _swap_handle_time("Swap_handle_time", DBG_TIMING)
 {
-    _output_image = nullptr;
+    _output_tensor = nullptr;
     _mem_type = RocalMemType::HOST;
     _internal_thread_running = false;
     _output_mem_size = 0;
@@ -96,16 +96,16 @@ void VideoLoader::de_init()
     _is_initialized = false;
 }
 
-VideoLoaderModuleStatus
+LoaderModuleStatus
 VideoLoader::load_next()
 {
     return update_output_image();
 }
 
-void VideoLoader::set_output_image(Image *output_image)
+void VideoLoader::set_output(rocalTensor *output_tensor)
 {
-    _output_image = output_image;
-    _output_mem_size = _output_image->info().data_size();
+    _output_tensor = output_tensor;
+    _output_mem_size = _output_tensor->info().data_size();
 }
 
 void VideoLoader::stop_internal_thread()
@@ -119,7 +119,7 @@ void VideoLoader::stop_internal_thread()
         _load_thread.join();
 }
 
-void VideoLoader::initialize(VideoReaderConfig reader_cfg, VideoDecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool decoder_keep_original)
+void VideoLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool decoder_keep_original)
 {
     if (_is_initialized)
         WRN("initialize() function is already called and loader module is initialized")
@@ -129,7 +129,6 @@ void VideoLoader::initialize(VideoReaderConfig reader_cfg, VideoDecoderConfig de
     _batch_size = batch_size;
     _loop = reader_cfg.loop();
     _sequence_length = reader_cfg.get_sequence_length();
-    _sequence_count = _batch_size / _sequence_length;
     _decoder_keep_original = decoder_keep_original;
     _video_loader = std::make_shared<VideoReadAndDecode>();
     try
@@ -141,7 +140,10 @@ void VideoLoader::initialize(VideoReaderConfig reader_cfg, VideoDecoderConfig de
         de_init();
         throw;
     }
-    _decoded_img_info._image_names.resize(_sequence_count);
+    _max_decoded_width = _output_tensor->info().max_shape().at(0);
+    _max_decoded_height = _output_tensor->info().max_shape().at(1);
+    _decoded_img_info._image_names.resize(_batch_size);
+    // TODO -the below 4 lines need change?
     _decoded_img_info._roi_height.resize(_batch_size);
     _decoded_img_info._roi_width.resize(_batch_size);
     _decoded_img_info._original_height.resize(_batch_size);
@@ -160,11 +162,11 @@ void VideoLoader::start_loading()
     _load_thread = std::thread(&VideoLoader::load_routine, this);
 }
 
-VideoLoaderModuleStatus
+LoaderModuleStatus
 VideoLoader::load_routine()
 {
     LOG("Started the internal loader thread");
-    VideoLoaderModuleStatus last_load_status = VideoLoaderModuleStatus::OK;
+    LoaderModuleStatus last_load_status = LoaderModuleStatus::OK;
 
     // Initially record number of all the frames that are going to be loaded, this is used to know how many still there
     while (_internal_thread_running)
@@ -173,33 +175,33 @@ VideoLoader::load_routine()
         if (!_internal_thread_running)
             break;
 
-        auto load_status = VideoLoaderModuleStatus::NO_MORE_DATA_TO_READ;
+        auto load_status = LoaderModuleStatus::NO_MORE_DATA_TO_READ;
         {
-            load_status = _video_loader->load(data,
+            load_status = _video_loader->load((unsigned char*)data,
                                               _decoded_img_info._image_names,
-                                              _output_image->info().width(),
-                                              _output_image->info().height_single(),
+                                              _max_decoded_width,
+                                              _max_decoded_height,
                                               _decoded_img_info._roi_width,
                                               _decoded_img_info._roi_height,
                                               _decoded_img_info._original_width,
                                               _decoded_img_info._original_height,
                                               _sequence_start_framenum_vec,
                                               _sequence_frame_timestamps_vec,
-                                              _output_image->info().color_format());
+                                              _output_tensor->info().color_format());
 
-            if (load_status == VideoLoaderModuleStatus::OK)
+            if (load_status == LoaderModuleStatus::OK)
             {
                 _circ_buff.set_image_info(_decoded_img_info);
                 _circ_buff.push();
-                _image_counter += _output_image->info().batch_size();
+                _image_counter += _output_tensor->info().batch_size();
             }
         }
-        if (load_status != VideoLoaderModuleStatus::OK)
+        if (load_status != LoaderModuleStatus::OK)
         {
             if (last_load_status != load_status)
             {
-                if (load_status == VideoLoaderModuleStatus::NO_MORE_DATA_TO_READ ||
-                    load_status == VideoLoaderModuleStatus::NO_FILES_TO_READ)
+                if (load_status == LoaderModuleStatus::NO_MORE_DATA_TO_READ ||
+                    load_status == LoaderModuleStatus::NO_FILES_TO_READ)
                 {
                     LOG("Cycled through all images, count " + TOSTR(_image_counter));
                 }
@@ -220,22 +222,22 @@ VideoLoader::load_routine()
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
-    return VideoLoaderModuleStatus::OK;
+    return LoaderModuleStatus::OK;
 }
 
 bool VideoLoader::is_out_of_data()
 {
-    return (remaining_count() < _sequence_count);
+    return (remaining_count() < _batch_size);
 }
 
-VideoLoaderModuleStatus
+LoaderModuleStatus
 VideoLoader::update_output_image()
 {
-    VideoLoaderModuleStatus status = VideoLoaderModuleStatus::OK;
+    LoaderModuleStatus status = LoaderModuleStatus::OK;
     if (is_out_of_data())
-        return VideoLoaderModuleStatus::NO_MORE_DATA_TO_READ;
+        return LoaderModuleStatus::NO_MORE_DATA_TO_READ;
     if (_stopped)
-        return VideoLoaderModuleStatus::OK;
+        return LoaderModuleStatus::OK;
 
     // _circ_buff.get_read_buffer_x() is blocking and puts the caller on sleep until new images are written to the _circ_buff
     //if (_mem_type == RocalMemType::OCL)
@@ -243,26 +245,26 @@ VideoLoader::update_output_image()
     {
         auto data_buffer = _circ_buff.get_read_buffer_dev();
         _swap_handle_time.start();
-        if (_output_image->swap_handle(data_buffer) != 0)
-            return VideoLoaderModuleStatus ::DEVICE_BUFFER_SWAP_FAILED;
+        if (_output_tensor->swap_handle(data_buffer) != 0)
+            return LoaderModuleStatus ::DEVICE_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
     else
     {
         auto data_buffer = _circ_buff.get_read_buffer_host();
         _swap_handle_time.start();
-        if (_output_image->swap_handle(data_buffer) != 0)
-            return VideoLoaderModuleStatus::HOST_BUFFER_SWAP_FAILED;
+        if (_output_tensor->swap_handle(data_buffer) != 0)
+            return LoaderModuleStatus::HOST_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
     if (_stopped)
-        return VideoLoaderModuleStatus::OK;
+        return LoaderModuleStatus::OK;
     _output_decoded_img_info = _circ_buff.get_image_info();
     _output_names = _output_decoded_img_info._image_names;
-    _output_image->update_image_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
+    _output_tensor->update_tensor_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
     _circ_buff.pop();
     if (!_loop)
-        _remaining_sequences_count -= _sequence_count;
+        _remaining_sequences_count -= _batch_size;
     return status;
 }
 
@@ -273,7 +275,7 @@ Timing VideoLoader::timing()
     return t;
 }
 
-VideoLoaderModuleStatus VideoLoader::set_cpu_affinity(cpu_set_t cpu_mask)
+LoaderModuleStatus VideoLoader::set_cpu_affinity(cpu_set_t cpu_mask)
 {
     if (!_internal_thread_running)
         THROW("set_cpu_affinity() should be called after start_loading function is called")
@@ -284,10 +286,10 @@ VideoLoaderModuleStatus VideoLoader::set_cpu_affinity(cpu_set_t cpu_mask)
     if (ret != 0)
         WRN("Error calling pthread_setaffinity_np: " + TOSTR(ret));
 #endif
-    return VideoLoaderModuleStatus::OK;
+    return LoaderModuleStatus::OK;
 }
 
-VideoLoaderModuleStatus VideoLoader::set_cpu_sched_policy(struct sched_param sched_policy)
+LoaderModuleStatus VideoLoader::set_cpu_sched_policy(struct sched_param sched_policy)
 {
     if (!_internal_thread_running)
         THROW("set_cpu_sched_policy() should be called after start_loading function is called")
@@ -297,7 +299,7 @@ VideoLoaderModuleStatus VideoLoader::set_cpu_sched_policy(struct sched_param sch
     if (ret != 0)
         WRN("Unsuccessful in setting thread realtime priority for loader thread err = " + TOSTR(ret))
 #endif
-    return VideoLoaderModuleStatus::OK;
+    return LoaderModuleStatus::OK;
 }
 
 std::vector<std::string> VideoLoader::get_id()
@@ -310,19 +312,19 @@ decoded_image_info VideoLoader::get_decode_image_info()
     return _output_decoded_img_info;
 }
 
-std::vector<size_t> VideoLoader::get_sequence_start_frame_number()
-{
-    std::vector<size_t> sequence_start_framenum;
-    sequence_start_framenum = _sequence_start_framenum_vec.back();
-    _sequence_start_framenum_vec.pop_back();
-    return sequence_start_framenum;
-}
+// std::vector<size_t> VideoLoader::get_sequence_start_frame_number()
+// {
+//     std::vector<size_t> sequence_start_framenum;
+//     sequence_start_framenum = _sequence_start_framenum_vec.back();
+//     _sequence_start_framenum_vec.pop_back();
+//     return sequence_start_framenum;
+// }
 
-std::vector<std::vector<float>> VideoLoader::get_sequence_frame_timestamps()
-{
-    std::vector<std::vector<float>> sequence_frame_timestamp;
-    sequence_frame_timestamp = _sequence_frame_timestamps_vec.back();
-    _sequence_frame_timestamps_vec.pop_back();
-    return sequence_frame_timestamp;
-}
+// std::vector<std::vector<float>> VideoLoader::get_sequence_frame_timestamps()
+// {
+//     std::vector<std::vector<float>> sequence_frame_timestamp;
+//     sequence_frame_timestamp = _sequence_frame_timestamps_vec.back();
+//     _sequence_frame_timestamps_vec.pop_back();
+//     return sequence_frame_timestamp;
+// }
 #endif

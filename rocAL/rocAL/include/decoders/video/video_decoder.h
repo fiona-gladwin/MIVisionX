@@ -44,20 +44,6 @@ extern "C"
 #endif
 #include "parameter_factory.h"
 
-enum class VideoDecoderType
-{
-    FFMPEG_SOFTWARE_DECODE = 0,
-    FFMPEG_HARDWARE_DECODE = 1,
-};
-
-class VideoDecoderConfig
-{
-public:
-    VideoDecoderConfig() {}
-    explicit VideoDecoderConfig(VideoDecoderType type) : _type(type) {}
-    virtual VideoDecoderType type() { return _type; };
-    VideoDecoderType _type = VideoDecoderType::FFMPEG_SOFTWARE_DECODE;
-};
 
 #ifdef ROCAL_VIDEO
 class VideoDecoder

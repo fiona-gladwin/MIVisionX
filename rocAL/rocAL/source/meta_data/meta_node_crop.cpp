@@ -40,8 +40,7 @@ void CropMetaNode::update_parameters(MetaDataBatch* input_meta_data)
     _crop_height = _meta_crop_param->croph_arr;
     _x1 = _meta_crop_param->x1_arr;
     _y1 = _meta_crop_param->y1_arr;
-    _input_width_val = _meta_crop_param->in_width;
-    _input_height_val = _meta_crop_param->in_height;
+    auto input_roi = _meta_crop_param->in_roi;
     vxCopyArrayRange((vx_array)_crop_width, 0, _batch_size, sizeof(uint),_crop_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_crop_height, 0, _batch_size, sizeof(uint),_crop_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint),_x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
@@ -58,10 +57,10 @@ void CropMetaNode::update_parameters(MetaDataBatch* input_meta_data)
         BoundingBoxCord temp_box;
         BoundingBoxLabels bb_labels;
         BoundingBoxCord crop_box;
-        crop_box.l = (float)_x1_val[i]/_input_width_val[i];
-        crop_box.t = (float)_y1_val[i]/_input_height_val[i];
-        crop_box.r = (float)(_x1_val[i] + _crop_width_val[i])/_input_width_val[i];
-        crop_box.b = (float)(_y1_val[i] + _crop_height_val[i])/_input_height_val[i];
+        crop_box.l = (float)_x1_val[i] / input_roi[i].x2;
+        crop_box.t = (float)_y1_val[i] / input_roi[i].y2;
+        crop_box.r = (float)(_x1_val[i] + _crop_width_val[i]) / input_roi[i].x2;
+        crop_box.b = (float)(_y1_val[i] + _crop_height_val[i]) / input_roi[i].y2;
 
         for(uint j = 0; j < bb_count; j++)
         {
@@ -90,5 +89,7 @@ void CropMetaNode::update_parameters(MetaDataBatch* input_meta_data)
         }
         input_meta_data->get_bb_cords_batch()[i] = bb_coords;
         input_meta_data->get_bb_labels_batch()[i] = bb_labels;
+        input_meta_data->get_metadata_dimensions_batch().bb_labels_dims()[i][0] = bb_labels.size();
+        input_meta_data->get_metadata_dimensions_batch().bb_cords_dims()[i][0] = bb_coords.size();
     }
 }

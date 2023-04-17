@@ -27,7 +27,7 @@ THE SOFTWARE.
 class CopyNode : public Node
 {
 public:
-    CopyNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    CopyNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     CopyNode() = delete;
 
 protected:

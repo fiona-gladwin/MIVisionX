@@ -108,7 +108,7 @@ CIFAR10DataLoader::load_next()
 }
 
 void
-CIFAR10DataLoader::set_output_image (Image* output_image)
+CIFAR10DataLoader::set_output (rocalTensor* output_image)
 {
     _output_image = output_image;
     _output_mem_size = _output_image->info().data_size();
@@ -201,8 +201,8 @@ CIFAR10DataLoader::load_routine()
                 }
                 _actual_read_size[file_counter] = _reader->read_data(read_ptr, readSize);
                 _raw_img_info._image_names[file_counter] = _reader->id();
-                _raw_img_info._roi_width[file_counter] = _output_image->info().width();
-                _raw_img_info._roi_height[file_counter] = _output_image->info().height_single();
+                _raw_img_info._roi_width[file_counter] = _output_image->info().max_shape()[0];
+                _raw_img_info._roi_height[file_counter] = _output_image->info().max_shape()[1];
                 _reader->close();
                 file_counter++;
             }
@@ -278,7 +278,7 @@ CIFAR10DataLoader::update_output_image()
 
     _output_decoded_img_info = _circ_buff.get_image_info();
     _output_names = _output_decoded_img_info._image_names;
-    _output_image->update_image_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
+    _output_image->update_tensor_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
 
     _circ_buff.pop();
     if(!_loop)

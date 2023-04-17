@@ -46,7 +46,7 @@ unsigned VideoFileSourceReader::count_items()
     return ((ret <= 0) ? 0 : ret);
 }
 
-VideoReader::Status VideoFileSourceReader::initialize(VideoReaderConfig desc)
+VideoReader::Status VideoFileSourceReader::initialize(ReaderConfig desc)
 {
     auto ret = VideoReader::Status::OK;
     _sequence_id = 0;

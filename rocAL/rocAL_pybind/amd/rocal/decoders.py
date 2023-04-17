@@ -43,9 +43,9 @@ def image(*inputs, user_feature_key_map=None, path='', file_root='', annotations
             "shuffle": random_shuffle,
             "loop": False,
             "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height,
-            "dec_type": decoder_type}
+            "max_width": max_decoded_width, # 1024
+            "max_height": max_decoded_height, # 1024
+            "dec_type": decoder_type} # USER_GIVEN_SIZE_ORIG
         decoded_image = b.COCO_ImageDecoderShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
 
     elif (reader == "TFRecordReaderClassification" or reader == "TFRecordReaderDetection"):
@@ -164,8 +164,6 @@ def image_random_crop(*inputs, user_feature_key_map=None, path='', file_root='',
             "color_format": output_type,
             "num_shards": num_shards,
             'is_output': False,
-            "user_key_for_encoded": user_feature_key_map["image/encoded"],
-            "user_key_for_filename": user_feature_key_map["image/filename"],
             "shuffle": random_shuffle,
             "loop": False,
             "decode_size_policy": decode_size_policy,
@@ -303,3 +301,5 @@ def image_slice(*inputs, file_root='', path='', annotations_file='', shard_id=0,
             "max_height": max_decoded_height}
         image_decoder_slice = b.FusedDecoderCropShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (image_decoder_slice)
+
+

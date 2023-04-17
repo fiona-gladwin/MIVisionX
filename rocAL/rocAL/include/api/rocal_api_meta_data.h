@@ -61,7 +61,7 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
 /// \param rocal_context
 /// \param source_path path to the coco json file
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
-extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output);
+extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool is_box_encoder = false, bool is_box_iou_matcher = false);
 
 ///
 /// \param rocal_context
@@ -115,6 +115,12 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateMXNetReader(RocalContext roca
 /// \param buf user buffer provided to be filled with output image names for images in the output batch.
 extern "C" void ROCAL_API_CALL rocalGetImageName(RocalContext rocal_context,  char* buf);
 
+
+///
+/// \param rocal_context
+/// \param buf user buffer provided to be filled with output image names for images in the output batch.
+extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext rocal_context,  int* buf);
+
 ///
 /// \param rocal_context
 /// \param buf userbuffer provided to be filled with the length of the image names in the output batch
@@ -123,21 +129,27 @@ extern "C" unsigned ROCAL_API_CALL rocalGetImageNameLen(RocalContext rocal_conte
 
 /// \param meta_data RocalMetaData object that contains info about the images and labels
 /// \param buf user's buffer that will be filled with labels. Its needs to be at least of size batch_size.
-extern "C" void ROCAL_API_CALL rocalGetImageLabels(RocalContext rocal_context, void* buf,  unsigned int flags=0);
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetImageLabels(RocalContext rocal_context);
+
+/// \param meta_data RocalMetaData object that contains info about the images and labels
+/// \param numOfClasses the number of classes for a image dataset
+/// \param buf user's buffer that will be filled with labels. Its needs to be at least of size batch_size.
+extern "C" void ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext rocal_context,int *buf, int numOfClasses);
+
+///
+/// \param rocal_context
+/// \param buf The user's buffer that will be filled with bounding box label info for the images in the output batch. It needs to be of size returned by a call to the rocalGetBoundingBoxCount
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetBoundingBoxLabel(RocalContext rocal_context);
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetBoundingBoxCords(RocalContext rocal_context);
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetMatchedIndices(RocalContext rocal_context);
+
+extern "C" void ROCAL_API_CALL rocalGetImageSizes(RocalContext rocal_context, int* buf );
 
 ///
 /// \param rocal_context
 /// \param buf The user's buffer that will be filled with number of object in the images.
 /// \return The size of the buffer needs to be provided by user to get bounding box info for all images in the output batch.
-extern "C" unsigned ROCAL_API_CALL rocalGetBoundingBoxCount(RocalContext rocal_context, int* buf);
-
-///
-/// \param rocal_context
-/// \param buf The user's buffer that will be filled with bounding box label info for the images in the output batch. It needs to be of size returned by a call to the rocalGetBoundingBoxCount
-extern "C" void ROCAL_API_CALL rocalGetBoundingBoxLabel(RocalContext rocal_context, int* buf);
-extern "C" void ROCAL_API_CALL rocalGetBoundingBoxCords(RocalContext rocal_context, float* buf);
-
-extern "C" void ROCAL_API_CALL rocalGetImageSizes(RocalContext rocal_context, int* buf);
+extern "C" unsigned ROCAL_API_CALL rocalGetBoundingBoxCount(RocalContext rocal_context);
 
 ///
 /// \param rocal_context
@@ -146,12 +158,13 @@ extern "C" void ROCAL_API_CALL rocalGetImageSizes(RocalContext rocal_context, in
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTextCifar10LabelReader(RocalContext rocal_context, const char* source_path, const char* file_prefix);
 
+#if 0
 /// \param meta_data RocalMetaData object that contains info about the images and labels
 /// \param numOfClasses the number of classes for a image dataset
 /// \param buf user's buffer that will be filled with labels. Its needs to be at least of size batch_size.
 /// \param dest destination can be host=0 / device=1
-extern "C" void ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext rocal_context,void *buf, int numOfClasses, int dest);
-
+extern "C" void ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext rocal_context,int *buf, int numOfClasses);
+#endif
 extern "C" void ROCAL_API_CALL rocalRandomBBoxCrop(RocalContext p_context, bool all_boxes_overlap, bool no_crop, RocalFloatParam aspect_ratio = NULL, bool has_shape = false, int crop_width = 0, int crop_height = 0, int num_attempts = 1, RocalFloatParam scaling = NULL, int total_num_attempts = 0, int64_t seed = 0);
 
 ///
@@ -176,20 +189,14 @@ extern "C" void ROCAL_API_CALL rocalBoxEncoder(RocalContext p_context, std::vect
 
 /// \param boxes_buf  user's buffer that will be filled with encoded bounding boxes . Its needs to be at least of size batch_size.
 /// \param labels_buf  user's buffer that will be filled with encoded labels . Its needs to be at least of size batch_size.
-extern "C" void ROCAL_API_CALL rocalCopyEncodedBoxesAndLables(RocalContext p_context, float* boxes_buf, int* labels_buf);
-
-/// \param boxes_buf  ptr to user's buffer that will be filled with encoded bounding boxes . Its needs to be at least of size batch_size.
-/// \param labels_buf  user's buffer that will be filled with encoded labels . Its needs to be at least of size batch_size.
-extern "C" void ROCAL_API_CALL rocalGetEncodedBoxesAndLables(RocalContext p_context, float **boxes_buf_ptr, int **labels_buf_ptr, int num_encoded_boxes);
-
-///
-/// \param rocal_context
-/// \param buf The user's buffer that will be filled with image id info for the images in the output batch.
-extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext p_context,  int* buf);
+extern "C" RocalMetaData ROCAL_API_CALL rocalGetEncodedBoxesAndLables(RocalContext p_context, int num_encoded_boxes);
 
 ///
 /// \param rocal_context
 /// \param joints_data The user's RocalJointsData pointer that will be pointed to JointsDataBatch pointer
 extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **joints_data);
+
+extern "C" void ROCAL_API_CALL rocalBoxIOUMatcher(RocalContext p_context, std::vector<float> &anchors, float criteria,
+                                             float high_threshold, float low_threshold ,  bool allow_low_quality_matches = true);
 
 #endif //MIVISIONX_ROCAL_API_META_DATA_H

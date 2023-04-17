@@ -28,7 +28,7 @@ THE SOFTWARE.
 class ImageLoaderSingleShardNode : public Node
 {
 public:
-    ImageLoaderSingleShardNode(Image *output, void *device_resources);
+    ImageLoaderSingleShardNode(rocalTensor *output, void *device_resources);
     ~ImageLoaderSingleShardNode() override;
 
     /// \param user_shard_count shard count from user

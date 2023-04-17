@@ -71,7 +71,7 @@ int main(int argc, const char **argv)
     const int MIN_ARG_COUNT = 2;
     if (argc < MIN_ARG_COUNT)
     {
-        printf("Usage: rocal_video_unittests <video_file/video_dataset_folder/text file> <reader_case> <processing_device=1/cpu=0> <hardware_decode_mode=0/1> <batch_size> <sequence_length> <frame_step> <frame_stride> <gray_scale/rgb> <display_on_off> <shuffle:0/1> <resize_width> <resize_height> <filelist_framenum:0/1> <enable_meta_data:0/1> <enable_framenumber:0/1> <enable_timestamps:0/1> <enable_sequence_rearrange:0/1>\n");
+        printf("Usage: rocal_video_unittests <video_file/video_dataset_folder/text file> <reader_case> <processing_device=1/cpu=0> <batch_size> <sequence_length> <frame_step> <frame_stride> <gray_scale/rgb> <display_on_off> <shuffle:0/1> <resize_width> <resize_height> <filelist_framenum:0/1> <enable_meta_data:0/1> <enable_framenumber:0/1> <enable_timestamps:0/1> <enable_sequence_rearrange:0/1>\n");
         return -1;
     }
 
@@ -96,7 +96,10 @@ int main(int argc, const char **argv)
     bool enable_timestamps = true;
     bool enable_sequence_rearrange = false;
     bool is_output = true;
+    unsigned video_mode = 0;
     unsigned hardware_decode_mode = 0;
+    // auto decoder_mode = ((video_mode == 1) ? RocalDecodeDevice::ROCAL_HW_DECODE : RocalDecodeDevice::ROCAL_SW_DECODE); // Hardware decoder support will be added in future
+
     if (argc >= argIdx + MIN_ARG_COUNT)
         reader_case = atoi(argv[++argIdx]);
     if (argc >= argIdx + MIN_ARG_COUNT)
@@ -138,10 +141,10 @@ int main(int argc, const char **argv)
         std::cout << "\nThe folder/file path does not exist\n";
         return -1;
     }
-    if (enable_sequence_rearrange)
-    {
-        is_output = false;
-    }
+    // if (enable_sequence_rearrange)
+    // {
+    //     is_output = false;
+    // }
     std::cerr << "Batch size : " << input_batch_size << std::endl;
     std::cerr << "Sequence length : " << sequence_length << std::endl;
     std::cerr << "Frame step : " << frame_step << std::endl;
@@ -180,29 +183,29 @@ int main(int argc, const char **argv)
     else if (enable_metadata)
     {
         std::cout << "\n>>>> META DATA READER\n";
-        rocalCreateVideoLabelReader(handle, source_path, sequence_length, frame_step, frame_stride, file_list_frame_num);
+        RocalMetaData meta_data = rocalCreateVideoLabelReader(handle, source_path, sequence_length, frame_step, frame_stride, file_list_frame_num);
     }
 
-    RocalImage input1;
+    RocalTensor input1;
     switch (reader_case)
     {
         default:
         {
             std::cout << "\n>>>> VIDEO READER\n";
-            input1 = rocalVideoFileSource(handle, source_path, color_format, decoder_mode, shard_count, sequence_length, shuffle, is_output, false, frame_step, frame_stride, file_list_frame_num);
+            input1 = rocalVideoFileSource(handle, source_path, color_format, decoder_mode, shard_count, sequence_length, is_output, shuffle, false, frame_step, frame_stride, file_list_frame_num);
             break;
         }
-        case 2:
-        {
-            std::cout << "\n>>>> VIDEO READER RESIZE\n";
-            if (resize_width == 0 || resize_height == 0)
-            {
-                std::cerr << "\n[ERR]Resize width and height are passed as NULL values\n";
-                return -1;
-            }
-            input1 = rocalVideoFileResize(handle, source_path, color_format, decoder_mode, shard_count, sequence_length, resize_width, resize_height, shuffle, is_output, false, frame_step, frame_stride, file_list_frame_num);
-            break;
-        }
+        // case 2:
+        // {
+        //     std::cout << "\n>>>> VIDEO READER RESIZE\n";
+        //     if (resize_width == 0 || resize_height == 0)
+        //     {
+        //         std::cerr << "\n[ERR]Resize width and height are passed as NULL values\n";
+        //         return -1;
+        //     }
+        //     input1 = rocalVideoFileResize(handle, source_path, color_format, decoder_mode, shard_count, sequence_length, resize_width, resize_height, shuffle, is_output, false, frame_step, frame_stride, file_list_frame_num);
+        //     break;
+        // }
         case 3:
         {
             std::cout << "\n>>>> SEQUENCE READER\n";
@@ -211,10 +214,11 @@ int main(int argc, const char **argv)
             break;
         }
     }
+
     if (enable_sequence_rearrange)
     {
         std::cout << "\n>>>> ENABLE SEQUENCE REARRANGE\n";
-        unsigned int new_order[] = {0, 0, 1, 1, 0}; // The integers in new order should range only from 0 to sequence_length - 1
+        unsigned int new_order[] = {0, 1}; // The integers in new order should range only from 0 to sequence_length - 1
         unsigned new_sequence_length = sizeof(new_order) / sizeof(new_order[0]);
         ouput_frames_per_sequence = new_sequence_length;
         input1 = rocalSequenceRearrange(handle, input1, new_order, new_sequence_length, sequence_length, true);
@@ -236,19 +240,12 @@ int main(int argc, const char **argv)
         return -1;
     }
     std::cout << "\nRemaining images " << rocalGetRemainingImages(handle) << std::endl;
-    std::cout << "Augmented copies count " << rocalGetAugmentationBranchCount(handle) << std::endl;
-
+    RocalTensorList output_tensor_list;
     /*>>>>>>>>>>>>>>>>>>> Diplay using OpenCV <<<<<<<<<<<<<<<<<*/
     if(save_frames)
-        mkdir("output_frames", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // Create directory in which images will be stored
-    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle);
-    int w = rocalGetOutputWidth(handle);
-    int p = ((color_format == RocalImageColor::ROCAL_COLOR_RGB24) ? 3 : 1);
-    int single_image_height = h / (input_batch_size * ouput_frames_per_sequence);
-    std::cout << "output width " << w << " output height " << h << " color planes " << p << std::endl;
+        mkdir("output_images", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // Create directory in which images will be stored
     auto cv_color_format = ((color_format == RocalImageColor::ROCAL_COLOR_RGB24) ? CV_8UC3 : CV_8UC1);
-    cv::Mat mat_input(h, w, cv_color_format);
-    cv::Mat mat_color, mat_output;
+    cv::Mat mat_input, mat_color, mat_output;
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     int counter = 0;
     int color_temp_increment = 1;
@@ -263,91 +260,112 @@ int main(int argc, const char **argv)
             color_temp_increment *= -1;
 
         rocalUpdateIntParameter(rocalGetIntValue(color_temp_adj) + color_temp_increment, color_temp_adj);
-        rocalCopyToOutput(handle, mat_input.data, h * w * p);
+        output_tensor_list = rocalGetOutputTensors(handle);
         counter += input_batch_size;
         if (save_frames)
         {
-            std::string batch_path = "output_frames/" + std::to_string(count);
+            std::string batch_path = "output_images/" + std::to_string(count);
             int status = mkdir(batch_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
             if (status) continue;
-            for(unsigned b = 0; b < input_batch_size; b++) // Iterates over each sequence in the batch
+            for(unsigned idx = 0; idx < output_tensor_list->size(); idx++)
             {
-		        std::string seq_path = batch_path + "/seq_" + std::to_string(b);
-                std::string save_video_path = seq_path + "_output_video.avi" ;
+                RocalTensor output_tensor = output_tensor_list->at(idx);
+                int h = output_tensor->info().max_shape().at(1);
+                int w = output_tensor->info().max_shape().at(0);
+                int frames = output_tensor->info().dims().at(1);
+                if(output_tensor->info().num_of_dims() < 5)
+                    THROW("Number of dims in Video tensor is lesser than 5")
+                
+                mat_input = cv::Mat(h * input_batch_size * frames, w, cv_color_format);
+                mat_output = cv::Mat(h, w, cv_color_format);
 
-		        int frame_width = static_cast<int>(w); //get the width of frames of the video
-                int frame_height = static_cast<int>(single_image_height); //get the height of frames of the video
-                Size frame_size(frame_width, frame_height);
-                int frames_per_second = 10;
-
-                //Create and initialize the VideoWriter object
-                VideoWriter video_writer(save_video_path, VideoWriter::fourcc('M', 'J', 'P', 'G'),
-                                                               frames_per_second, frame_size, true);
-		        //If the VideoWriter object is not initialized successfully, exit the program
-                if (video_writer.isOpened() == false)
+                unsigned char *out_tensor_buffer;
+                if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HIP)
                 {
-                    std::cout << "Cannot save the video to a file" << std::endl;
-			        return -1;
+                    out_tensor_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->info().data_size());
+                    output_tensor_list->at(idx)->copy_data(out_tensor_buffer);
                 }
-
-                for(unsigned i = 0; i < ouput_frames_per_sequence; i++) // Iterates over the frames in each sequence
+                else if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HOST)
+                    out_tensor_buffer = (unsigned char *)(output_tensor_list->at(idx)->buffer());
+                
+                mat_input.data = out_tensor_buffer;
+                for(unsigned b = 0; b < input_batch_size; b++) // Iterates over each sequence in the batch
                 {
-                    std::string save_image_path = seq_path + "_output_" + std::to_string(i) + ".png";
-		            mat_output=mat_input(cv::Rect(0, ((b * single_image_height * ouput_frames_per_sequence) + (i * single_image_height)), w, single_image_height));
-                    if (color_format == RocalImageColor::ROCAL_COLOR_RGB24)
+                    std::string seq_path = batch_path + "/" + std::to_string(idx) + "_seq_" + std::to_string(b);
+                    std::string save_video_path = seq_path + "_output_video.avi" ;
+
+                    int frame_width = static_cast<int>(w); //get the width of frames of the video
+                    int frame_height = static_cast<int>(h); //get the height of frames of the video
+                    Size frame_size(frame_width, frame_height);
+                    int frames_per_second = 10;
+
+                    //Create and initialize the VideoWriter object
+                    VideoWriter video_writer(save_video_path, VideoWriter::fourcc('M', 'J', 'P', 'G'),
+                                                                   frames_per_second, frame_size, true);
+                    //If the VideoWriter object is not initialized successfully, exit the program
+                    if (video_writer.isOpened() == false)
                     {
-                        cv::cvtColor(mat_output, mat_color, CV_RGB2BGR);
-                        cv::imwrite(save_image_path, mat_color);
-			            video_writer.write(mat_color);
+                        std::cout << "Cannot save the video to a file" << std::endl;
+                        return -1;
                     }
-                    else
+                    for(unsigned i = 0; i < frames; i++) // Iterates over the frames in each sequence
                     {
-                        cv::imwrite(save_image_path, mat_output);
-			            video_writer.write(mat_output);
+                        std::string save_image_path = seq_path + "_output_" + std::to_string(i) + ".png";
+                        mat_output=mat_input(cv::Rect(0, (b * h * frames) + (i * h), w, h));
+                        if (color_format == RocalImageColor::ROCAL_COLOR_RGB24)
+                        {
+                            cv::cvtColor(mat_output, mat_color, CV_RGB2BGR);
+                            cv::imwrite(save_image_path, mat_color);
+                            video_writer.write(mat_color);
+                        }
+                        else
+                        {
+                            cv::imwrite(save_image_path, mat_output);
+                            video_writer.write(mat_output);
+                        }
                     }
+                    video_writer.release();
                 }
-		        video_writer.release();
+                mat_input.release();
+                mat_output.release();
             }
         }
         if (enable_metadata)
         {
-            int label_id[input_batch_size];
             int image_name_length[input_batch_size];
-            if (processing_device == 1)
-                rocalGetImageLabels(handle, label_id, ROCAL_MEMCPY_TO_HOST);
-            else
-                rocalGetImageLabels(handle, label_id);
             int img_size = rocalGetImageNameLen(handle, image_name_length);
             char img_name[img_size];
             rocalGetImageName(handle, img_name);
 
             std::cout << "\nPrinting image names of batch: " << img_name << "\n";
-            std::cout << "\t Printing label_id : ";
-            for (unsigned i = 0; i < input_batch_size; i++)
+            RocalTensorList labels = rocalGetImageLabels(handle);
+
+            for(int i = 0; i < labels->size(); i++)
             {
-                std::cout << label_id[i] << "\t";
+                int * labels_buffer = (int *)(labels->at(i)->buffer());
+                std::cerr << ">>>>> LABELS : " << labels_buffer[0] << "\t";
             }
             std::cout << std::endl;
         }
-        if (enable_framenumbers || enable_timestamps)
-        {
-            unsigned int start_frame_num[input_batch_size];
-            float frame_timestamps[input_batch_size * sequence_length];
-            rocalGetSequenceStartFrameNumber(handle, start_frame_num);
-            if (enable_timestamps)
-            {
-                rocalGetSequenceFrameTimestamps(handle, frame_timestamps);
-            }
-            for (unsigned i = 0; i < input_batch_size; i++)
-            {
-                if (enable_framenumbers)
-                    std::cout << "\nFrame number : " << start_frame_num[i] << std::endl;
-                if (enable_timestamps)
-                    for (unsigned j = 0; j < sequence_length; j++)
-                        std::cout << "T" << j << " : " << frame_timestamps[(i * sequence_length) + j] << "\t";
-                std::cout << "\n";
-            }
-        }
+        // if (enable_framenumbers || enable_timestamps)
+        // {
+        //     unsigned int start_frame_num[input_batch_size];
+        //     float frame_timestamps[input_batch_size * sequence_length];
+        //     rocalGetSequenceStartFrameNumber(handle, start_frame_num);
+        //     if (enable_timestamps)
+        //     {
+        //         rocalGetSequenceFrameTimestamps(handle, frame_timestamps);
+        //     }
+        //     for (unsigned i = 0; i < input_batch_size; i++)
+        //     {
+        //         if (enable_framenumbers)
+        //             std::cout << "\nFrame number : " << start_frame_num[i] << std::endl;
+        //         if (enable_timestamps)
+        //             for (unsigned j = 0; j < sequence_length; j++)
+        //                 std::cout << "T" << j << " : " << frame_timestamps[(i * sequence_length) + j] << "\t";
+        //         std::cout << "\n";
+        //     }
+        // }
     }
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto dur = duration_cast<microseconds>(t2 - t1).count();
@@ -358,6 +376,5 @@ int main(int argc, const char **argv)
     std::cout << "Transfer time " << rocal_timing.transfer_time << std::endl;
     std::cout << ">>>>> " << counter << " images/frames Processed. Total Elapsed Time " << dur / 1000000 << " sec " << dur % 1000000 << " us " << std::endl;
     rocalRelease(handle);
-    mat_input.release();
     return 0;
 }

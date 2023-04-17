@@ -24,13 +24,13 @@ THE SOFTWARE.
 #include "exception.h"
 #ifdef ROCAL_VIDEO
 
-VideoLoaderSingleShardNode::VideoLoaderSingleShardNode(Image *output, void *device_resources):
+VideoLoaderSingleShardNode::VideoLoaderSingleShardNode(rocalTensor *output, void *device_resources):
 	Node({}, {output})
 {
     _loader_module = std::make_shared<VideoLoader>(device_resources);
 }
 
-void VideoLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, const std::string &source_path, VideoStorageType storage_type, VideoDecoderType decoder_type, DecodeMode decoder_mode,
+void VideoLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, const std::string &source_path, StorageType storage_type, DecoderType decoder_type, DecodeMode decoder_mode,
                                       unsigned sequence_length, unsigned step, unsigned stride, VideoProperties &video_prop, bool shuffle, bool loop, size_t load_batch_count, RocalMemType mem_type)
 {
     _decode_mode = decoder_mode; // for future use
@@ -40,9 +40,9 @@ void VideoLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, c
         THROW("Shard count should be greater than or equal to one")
     if (shard_id >= shard_count)
         THROW("Shard is should be smaller than shard count")
-    _loader_module->set_output_image(_outputs[0]);
+    _loader_module->set_output(_outputs[0]);
     // Set reader and decoder config accordingly for the ImageLoaderNode
-    auto reader_cfg = VideoReaderConfig(storage_type, source_path, shuffle, loop);
+    auto reader_cfg = ReaderConfig(storage_type, source_path, "", std::map<std::string, std::string>(), shuffle, loop);
     reader_cfg.set_shard_count(shard_count);
     reader_cfg.set_shard_id(shard_id);
     reader_cfg.set_batch_count(load_batch_count);
@@ -50,11 +50,11 @@ void VideoLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, c
     reader_cfg.set_frame_step(step);
     reader_cfg.set_frame_stride(stride);
     reader_cfg.set_video_properties(video_prop);
-    _loader_module->initialize(reader_cfg, VideoDecoderConfig(decoder_type), mem_type, _batch_size);
+    _loader_module->initialize(reader_cfg, DecoderConfig(decoder_type), mem_type, _batch_size);
     _loader_module->start_loading();
 }
 
-std::shared_ptr<VideoLoaderModule> VideoLoaderSingleShardNode::get_loader_module()
+std::shared_ptr<LoaderModule> VideoLoaderSingleShardNode::get_loader_module()
 {
     if (!_loader_module)
         WRN("VideoLoaderSingleShardNode's loader module is null, not initialized")
