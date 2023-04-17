@@ -130,28 +130,19 @@ template <typename T>
 void (MetaData::*pGetMetaDataFunction)(T **val);
 
 template <typename T>
-T& getMetaDataValues(MetaData &metadata,void(MetaData::*pGetMetaDataFunction)(T **val)) {
+T& getMetaDataValues(MetaData &metadata,void(MetaData::*pGetMetaDataFunction)(T **val))
+{
     T *val;
     (metadata.*pGetMetaDataFunction)(&val);
     return *val;
 };
 
-
 struct Label : public MetaData
 {
-    Label(int label)
-    {
-        _label_ids = {label};
-    }
-    Label()
-    {
-        _label_ids = {-1};
-    }
+    Label(int label) { _label_ids = {label}; }
+    Label() { _label_ids = {-1}; }
     void get_labels(std::vector<int>** label_ids) override { *label_ids = &_label_ids; }
-    void set_labels(Labels label_ids) override
-    {
-        _label_ids = std::move(label_ids);
-    }
+    void set_labels(Labels label_ids) override { _label_ids = std::move(label_ids); }
     protected:
     Labels _label_ids = {}; // For label use only
 };
