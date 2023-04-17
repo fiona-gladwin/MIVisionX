@@ -120,15 +120,15 @@ struct MetaData
     void set_img_id(uint img_id) { _info.img_id = img_id; }
     void set_img_name(std::string img_name) { _info.img_name = img_name; }
     void set_metadata_info(MetaDataInfo info) { _info = std::move(info); }
-    protected:
+protected:
     MetaDataInfo _info;
 };
 
 template <typename T>
-void (MetaData::*pGetMetaDataFunction)(T** val);
+void (MetaData::*pGetMetaDataFunction)(T** ptr);
 
 template <typename T>
-T& getMetaDataValues(MetaData &metadata, void(MetaData::*pGetMetaDataFunction)(T** val))
+T& getMetaDataValues(MetaData &metadata, void(MetaData::*pGetMetaDataFunction)(T** ptr))
 {
     T* val;
     (metadata.*pGetMetaDataFunction)(&val);
@@ -141,21 +141,21 @@ struct Label : public MetaData
     Label() { _label_ids = {-1}; }
     void get_labels(std::vector<int>** label_ids) override { *label_ids = &_label_ids; }
     void set_labels(Labels label_ids) override { _label_ids = std::move(label_ids); }
-    protected:
+protected:
     Labels _label_ids = {}; // For label use only
 };
 
 struct BoundingBox : public Label
 {
     BoundingBox()= default;
-    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size = ImgSize{0,0}, uint img_id = 0)
+    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size = ImgSize{0, 0}, uint img_id = 0)
     {
         _bb_cords =std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
         _info.img_size = std::move(img_size);
         _info.img_id = img_id;
     }
-    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids, ImgSize img_size = ImgSize{0,0}, uint img_id = 0)
+    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids, ImgSize img_size = ImgSize{0, 0}, uint img_id = 0)
     {
         _bb_cords_xcycwh =std::move(bb_cords_xcycwh);
         _label_ids = std::move(bb_label_ids);
@@ -187,7 +187,7 @@ struct InstanceSegmentation : public BoundingBox {
     void set_mask_cords(MaskCords mask_cords) override { _mask_cords = std::move(mask_cords); }
     void set_polygon_counts(std::vector<int> polygon_count) override { _polygon_count = std::move(polygon_count); }
     void set_vertices_counts(std::vector<std::vector<int>> vertices_count) override { _vertices_count = std::move(vertices_count); }
-    protected:
+protected:
     MaskCords _mask_cords = {};
     std::vector<int> _polygon_count = {};
     std::vector<std::vector<int>> _vertices_count = {};
@@ -203,7 +203,7 @@ struct KeyPoint : public BoundingBox
     }
     void set_joints_data(JointsData* joints_data) override { _joints_data = std::move(*joints_data); }
     void get_joints_data(JointsData** joints_data) override { *joints_data = &_joints_data; }
-    protected:
+protected:
     JointsData _joints_data = {};
 };
 
@@ -263,10 +263,10 @@ protected:
 };
 
 template <typename T>
-void (MetaDataBatch::*pGetMetaDataBatchFunction)(T **val);
+void (MetaDataBatch::*pGetMetaDataBatchFunction)(T **ptr);
 
 template <typename T>
-T& getMetaDataBatchValues(MetaDataBatch &metadatabatch,void(MetaDataBatch::*pGetMetaDataBatchFunction)(T **val)) {
+T& getMetaDataBatchValues(MetaDataBatch &metadatabatch, void(MetaDataBatch::*pGetMetaDataBatchFunction)(T **ptr)) {
     T *val;
     (metadatabatch.*pGetMetaDataBatchFunction)(&val);
     return *val;
@@ -314,7 +314,7 @@ struct LabelBatch : public MetaDataBatch
         if(buffer.size() < 1)
             THROW("The buffers are insufficient") // TODO -change
         auto labels_buffer = (int *)buffer[0];
-        for (int i = 0; i < _label_ids.size(); i++) {
+        for (unsigned i = 0; i < _label_ids.size(); i++) {
             memcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
             labels_buffer += _label_ids[i].size();
         }
@@ -328,7 +328,7 @@ struct LabelBatch : public MetaDataBatch
         return _buffer_size;
     }
     void get_labels_batch(std::vector<Labels>** label_ids) override { *label_ids = &_label_ids; }
-    protected:
+protected:
     std::vector<Labels> _label_ids = {};
     std::vector<size_t> _buffer_size;
 };
@@ -392,7 +392,7 @@ struct BoundingBoxBatch: public LabelBatch
     }
     void get_bb_cords_batch(std::vector<BoundingBoxCords>** bb_cords) override { *bb_cords = &_bb_cords; }
     void get_bb_cords_batch_xcycxwh(std::vector<BoundingBoxCords_xcycwh>** bb_cords_xcycwh) override { *bb_cords_xcycwh = &_bb_cords_xcycwh; }
-    protected:
+protected:
     std::vector<BoundingBoxCords> _bb_cords = {};
     std::vector<BoundingBoxCords_xcycwh> _bb_cords_xcycwh = {};
 };
