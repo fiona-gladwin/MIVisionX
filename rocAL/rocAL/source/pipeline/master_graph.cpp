@@ -1007,8 +1007,6 @@ size_t MasterGraph::bounding_box_batch_count(pMetaDataBatch meta_data_batch)
     return size;
 }
 
-
-
 rocalTensorList * MasterGraph::labels_meta_data()
 {
     if(_ring_buffer.level() == 0)
@@ -1054,13 +1052,6 @@ rocalTensorList * MasterGraph::mask_meta_data()
     }
 
     return &_mask_tensor_list;
-}
-
-ImgSizes& MasterGraph::get_image_sizes()
-{
-    if(_ring_buffer.level() == 0)
-        THROW("No meta data has been loaded")
-    return _ring_buffer.get_meta_data().second->get_img_sizes_batch();
 }
 
 void MasterGraph::notify_user_thread()
