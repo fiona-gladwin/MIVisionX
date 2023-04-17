@@ -86,7 +86,7 @@ void VideoLabelReader::print_map_contents()
     std::cerr << "\nMap contents: \n";
     for (auto &elem : _map_content)
     {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << getMetaDataValues<std::vector<int>>(*elem.second,&MetaData::get_labels)[0] << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << getMetaDataValues<std::vector<int>>(*elem.second, &MetaData::get_labels)[0] << std::endl;
     }
 }
 
@@ -121,7 +121,7 @@ void VideoLabelReader::lookup(const std::vector<std::string> &frame_names)
         auto it = _map_content.find(frame_name);
         if (_map_content.end() == it)
             THROW("ERROR: Video label reader folders Given name not present in the map" + frame_name)
-        getMetaDataBatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = getMetaDataValues<std::vector<int>>(*it->second,&MetaData::get_labels);
+        getMetaDataBatchValues<std::vector<Labels>>(*_output, &MetaDataBatch::get_labels_batch)[i] = getMetaDataValues<std::vector<int>>(*it->second, &MetaData::get_labels);
     }
 }
 

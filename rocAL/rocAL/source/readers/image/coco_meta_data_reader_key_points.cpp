@@ -60,7 +60,7 @@ void COCOMetaDataReaderKeyPoints::lookup(const std::vector<std::string> &image_n
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name);
         const JointsData *joints_data;
-        joints_data = &(getMetaDataValues<JointsData>(*it->second,&MetaData::get_joints_data));
+        joints_data = &(getMetaDataValues<JointsData>(*it->second, &MetaData::get_joints_data));
         joints_data_batch.image_id_batch.push_back(joints_data->image_id);
         joints_data_batch.annotation_id_batch.push_back(joints_data->annotation_id);
         joints_data_batch.image_path_batch.push_back(joints_data->image_path);
@@ -71,7 +71,7 @@ void COCOMetaDataReaderKeyPoints::lookup(const std::vector<std::string> &image_n
         joints_data_batch.score_batch.push_back(joints_data->score);
         joints_data_batch.rotation_batch.push_back(joints_data->rotation);
     }
-    getMetaDataBatchValues<JointsDataBatch>(*_output,&MetaDataBatch::get_joints_data_batch) = joints_data_batch;
+    getMetaDataBatchValues<JointsDataBatch>(*_output, &MetaDataBatch::get_joints_data_batch) = joints_data_batch;
 }
 
 void COCOMetaDataReaderKeyPoints::add(std::string image_id, ImgSize image_size, JointsData *joints_data)
@@ -86,7 +86,7 @@ void COCOMetaDataReaderKeyPoints::print_map_contents()
     for (auto &elem : _map_content)
     {
         std::cout << "\nName :\t " << elem.first<<std::endl;
-        joints_data = getMetaDataValues<JointsData>(*elem.second,&MetaData::get_joints_data);
+        joints_data = getMetaDataValues<JointsData>(*elem.second, &MetaData::get_joints_data);
         std::cout << "ImageID: " << joints_data.image_id << std::endl;
         std::cout << "AnnotationID: " << joints_data.annotation_id << std::endl;
         std::cout << "ImagePath: "<< joints_data.image_path<<std::endl;
