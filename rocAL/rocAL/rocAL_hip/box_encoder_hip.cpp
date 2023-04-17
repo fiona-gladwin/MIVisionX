@@ -239,7 +239,7 @@ void BoxEncoderGpu::Run(pMetaDataBatch full_batch_meta_data, float *encoded_boxe
     int total_num_boxes = 0;
     for (int i = 0; i < _cur_batch_size; i++) {
         auto sample = &_samples_host_buf[i];
-        sample->in_box_count = full_batch_meta_data->get_labels_batch()[i].size();
+        sample->in_box_count = getMetaDataBatchValues<std::vector<Labels>>(*full_batch_meta_data, &MetaDataBatch::get_labels_batch)[i].size();
         total_num_boxes += sample->in_box_count;
     }
     if (total_num_boxes > MAX_NUM_BOXES_TOTAL)
@@ -248,8 +248,11 @@ void BoxEncoderGpu::Run(pMetaDataBatch full_batch_meta_data, float *encoded_boxe
     for (int sample_idx = 0; sample_idx < _cur_batch_size; sample_idx++) {
         auto sample = &_samples_host_buf[sample_idx];
         //sample->in_box_count = full_batch_meta_data->get_bb_labels_batch()[sample_idx].size();
-        HIP_ERROR_CHECK_STATUS( hipMemcpyHtoDAsync((void *)boxes_in_temp, full_batch_meta_data->get_bb_cords_batch()[sample_idx].data(), sample->in_box_count*sizeof(float)*4, _stream));
-        HIP_ERROR_CHECK_STATUS( hipMemcpyHtoDAsync((void *)labels_in_temp, full_batch_meta_data->get_labels_batch()[sample_idx].data(), sample->in_box_count*sizeof(int), _stream));
+        HIP_ERROR_CHECK_STATUS( hipMemcpyHtoDAsync((void *)boxes_in_temp,
+                                                    getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*full_batch_meta_data, &MetaDataBatch::get_bb_cords_batch)[sample_idx].data(),
+                                                    sample->in_box_count*sizeof(float)*4, _stream));
+        HIP_ERROR_CHECK_STATUS( hipMemcpyHtoDAsync((void *)labels_in_temp,
+                                                   getMetaDataBatchValues<std::vector<Labels>>(*full_batch_meta_data, &MetaDataBatch::get_labels_batch)[sample_idx].data(), sample->in_box_count*sizeof(int), _stream));
         sample->boxes_in = reinterpret_cast<const float4 *>(boxes_in_temp);
         sample->labels_in = reinterpret_cast<const int *>(labels_in_temp);
         sample->boxes_out = reinterpret_cast<float4 *>(encoded_boxes_data + sample_idx*_anchor_count*4);
