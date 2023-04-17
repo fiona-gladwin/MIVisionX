@@ -615,19 +615,6 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         default_mask_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_mask_info.data_size());
     }
-    if(is_box_iou_matcher)
-    {
-        _is_box_iou_matcher = true;
-        unsigned num_of_dims = 1;
-        dims.resize(num_of_dims);
-        dims.at(0) = MAX_ANCHORS;
-        default_matches_info  = rocalTensorInfo(dims,
-                                        _mem_type,
-                                        RocalTensorDataType::INT32);
-        default_matches_info.set_metadata();
-        default_matches_info.set_tensor_layout(RocalTensorlayout::NONE);
-        _meta_data_buffer_size.emplace_back(dims.at(0) * _user_batch_size * sizeof(vx_int32)); // TODO - replace with data size from info   // shobi check if this needs to be changed to double
-    }
 
     for(unsigned i = 0; i < _user_batch_size; i++) // Create rocALTensorList for each metadata
     {
@@ -635,11 +622,6 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         auto bbox_info = default_bbox_info;
         _labels_tensor_list.push_back(new rocalTensor(labels_info));
         _bbox_tensor_list.push_back(new rocalTensor(bbox_info));
-        if(is_box_iou_matcher)
-        {
-            auto matches_info = default_matches_info;
-            _matches_tensor_list.push_back(new rocalTensor(matches_info));
-        }
         if(metadata_type == MetaDataType::PolygonMask)
         {
             auto mask_info = default_mask_info;
@@ -658,8 +640,6 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
     if(metadata_type == MetaDataType::PolygonMask)
         _metadata_output_tensor_list.emplace_back(&_mask_tensor_list);
-    if(is_box_iou_matcher)
-        _metadata_output_tensor_list.emplace_back(&_matches_tensor_list);
 
     return _metadata_output_tensor_list;
 }
@@ -987,7 +967,7 @@ std::vector<rocalTensorList *> MasterGraph::create_cifar10_label_reader(const ch
         THROW("Metadata can only have a single output")
     else
         _augmented_meta_data = _meta_data_reader->get_output();
-    return _meta_data_reader->get_output();
+    return _metadata_output_tensor_list;
 }
 
 
@@ -1068,9 +1048,10 @@ bool MasterGraph::no_more_processed_data()
 }
 
 
-MasterGraph::Status
-MasterGraph::get_bbox_encoded_buffers(float **boxes_buf_ptr, int **labels_buf_ptr, size_t num_encoded_boxes)
+std::vector<rocalTensorList *>
+MasterGraph::get_bbox_encoded_buffers(size_t num_encoded_boxes)
 {
+    std::vector<rocalTensorList *> bbox_encoded_output;
     if (_is_box_encoder) {
         if (num_encoded_boxes != _user_batch_size*_num_anchors) {
             THROW("num_encoded_boxes is not correct");
@@ -1085,7 +1066,7 @@ MasterGraph::get_bbox_encoded_buffers(float **boxes_buf_ptr, int **labels_buf_pt
         for(unsigned i = 0; i < _bbox_tensor_list.size(); i++)
         {
             _labels_tensor_list[i]->set_dims({labels[i].size()});
-            _bbox_tensor_list[i]->set_dims({labels[i].size(),4});
+            _bbox_tensor_list[i]->set_dims({labels[i].size(), 4});
             _labels_tensor_list[i]->set_mem_handle((void *)labels_buf_ptr);
             _bbox_tensor_list[i]->set_mem_handle((void *)boxes_buf_ptr);
             labels_buf_ptr += _labels_tensor_list[i]->info().data_size();
@@ -1094,5 +1075,5 @@ MasterGraph::get_bbox_encoded_buffers(float **boxes_buf_ptr, int **labels_buf_pt
         bbox_encoded_output.emplace_back(&_labels_tensor_list);
         bbox_encoded_output.emplace_back(&_bbox_tensor_list);
     }
-    return Status::OK;
+    return bbox_encoded_output;
 }
