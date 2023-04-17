@@ -101,7 +101,7 @@ public:
 
 struct MetaData
 {
-    virtual std::vector<int>& get_labels() {};
+    virtual void get_labels(std::vector<int>** label_ids) {};
     virtual void set_labels(Labels label_ids) {};
     virtual void get_bb_cords(BoundingBoxCords** bb_cords) {};
     virtual void get_bb_cords_xcycwh(BoundingBoxCords_xcycwh** bb_cords_xcycwh) {};
@@ -147,7 +147,7 @@ struct Label : public MetaData
     {
         _label_ids = {-1};
     }
-    std::vector<int>& get_labels() override { return _label_ids; }
+    void get_labels(std::vector<int>** label_ids) override { *label_ids = &_label_ids; }
     void set_labels(Labels label_ids) override
     {
         _label_ids = std::move(label_ids);
