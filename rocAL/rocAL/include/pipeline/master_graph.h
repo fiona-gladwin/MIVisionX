@@ -87,7 +87,6 @@ public:
     rocalTensorList * bbox_meta_data();
     rocalTensorList * mask_meta_data();
     rocalTensorList * matches_meta_data();
-    ImgSizes& get_image_sizes();
 
     void set_loop(bool val) { _loop = val; }
     void set_output(rocalTensor* output_tensor);

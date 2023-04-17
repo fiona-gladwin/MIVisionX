@@ -383,19 +383,19 @@ ROCAL_API_CALL rocalGetImageSizes(RocalContext p_context, int* buf)
     if (!p_context)
         THROW("Invalid rocal context passed to rocalGetImageSizes")
     auto context = static_cast<Context*>(p_context);
-    auto img_sizes = context->master_graph->get_image_sizes();
-    size_t meta_data_batch_size = img_sizes.size();
+    auto meta_data = context->master_graph->meta_data();
+    size_t meta_data_batch_size = meta_data.second->get_img_sizes_batch().size();
 
 
-    if(img_sizes.size() == 0)
+    if(!meta_data.second)
     {
         WRN("No sizes has been loaded for this output image")
         return;
     }
     for(unsigned i = 0; i < meta_data_batch_size; i++)
     {
-        memcpy(buf, &(img_sizes[i]), sizeof(ImgSize));
-        buf += 3;
+        memcpy(buf, &(meta_data.second->get_img_sizes_batch()[i]), sizeof(ImgSize));
+        buf += 3; // TODO - To be checked if this is valid anymore
     }
 }
 
