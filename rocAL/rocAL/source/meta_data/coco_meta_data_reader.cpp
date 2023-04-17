@@ -61,15 +61,15 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         auto it = _map_content.find(image_name);
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name)
-        _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-        getMetadatabatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = it->second->get_labels();
+        getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_output,&MetaDataBatch::get_bb_cords_batch)[i] = it->second->get_bb_cords();
+        getMetaDataBatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = it->second->get_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
         {
             auto mask_cords = it->second->get_mask_cords();
-            getMetadatabatchValues<std::vector<MaskCords>>(*_output,&MetaDataBatch::get_mask_cords_batch)[i] = mask_cords;
-            getMetadatabatchValues<std::vector<std::vector<int>>>(*_output,&MetaDataBatch::get_mask_polygons_count_batch)[i] = it->second->get_polygon_count();
-            getMetadatabatchValues<std::vector<std::vector<std::vector<int>>>>(*_output,&MetaDataBatch::get_mask_vertices_count_batch)[i] = it->second->get_vertices_count();
+            getMetaDataBatchValues<std::vector<MaskCords>>(*_output,&MetaDataBatch::get_mask_cords_batch)[i] = mask_cords;
+            getMetaDataBatchValues<std::vector<std::vector<int>>>(*_output,&MetaDataBatch::get_mask_polygons_count_batch)[i] = it->second->get_polygon_count();
+            getMetaDataBatchValues<std::vector<std::vector<std::vector<int>>>>(*_output,&MetaDataBatch::get_mask_vertices_count_batch)[i] = it->second->get_vertices_count();
         }
     }
 }

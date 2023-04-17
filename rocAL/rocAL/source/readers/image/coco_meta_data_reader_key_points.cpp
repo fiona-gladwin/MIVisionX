@@ -71,7 +71,7 @@ void COCOMetaDataReaderKeyPoints::lookup(const std::vector<std::string> &image_n
         joints_data_batch.score_batch.push_back(joints_data->score);
         joints_data_batch.rotation_batch.push_back(joints_data->rotation);
     }
-    getMetadatabatchValues<JointsDataBatch>(*_output,&MetaDataBatch::get_joints_data_batch) = joints_data_batch;
+    getMetaDataBatchValues<JointsDataBatch>(*_output,&MetaDataBatch::get_joints_data_batch) = joints_data_batch;
 }
 
 void COCOMetaDataReaderKeyPoints::add(std::string image_id, ImgSize image_size, JointsData *joints_data)

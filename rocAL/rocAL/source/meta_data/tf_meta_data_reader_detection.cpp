@@ -76,14 +76,14 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
 
         if(_map_content.end() == it)
         {
-            _output->get_bb_cords_batch()[i] = {{0, 0, 0, 0}};
-            getMetadatabatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = {{0}};
+            getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_output,&MetaDataBatch::get_bb_cords_batch)[i] = {{0, 0, 0, 0}};
+            getMetaDataBatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = {{0}};
             _output->get_img_sizes_batch()[i] = {0, 0};
         }
         else
         {
-            _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-            getMetadatabatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = it->second->get_labels();
+            getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_output,&MetaDataBatch::get_bb_cords_batch)[i] = it->second->get_bb_cords();
+            getMetaDataBatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = it->second->get_labels();
             _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         }
     }

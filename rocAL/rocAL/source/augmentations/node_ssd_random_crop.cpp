@@ -105,12 +105,13 @@ void SSDRandomCropNode::update_node()
     size_t sample = 0;
     for (uint i = 0; i < _batch_size; i++)
     {
-        int bb_count = getMetadatabatchValues<std::vector<Labels>>(*_meta_data_info,&MetaDataBatch::get_labels_batch)[i].size();
+        int bb_count = getMetaDataBatchValues<std::vector<Labels>>(*_meta_data_info,&MetaDataBatch::get_labels_batch)[i].size();
         std::vector<int> labels_buf(bb_count);
-        memcpy(labels_buf.data(), getMetadatabatchValues<std::vector<Labels>>(*_meta_data_info,&MetaDataBatch::get_labels_batch)[i].data(), sizeof(int) * bb_count);
+        memcpy(labels_buf.data(), getMetaDataBatchValues<std::vector<Labels>>(*_meta_data_info,&MetaDataBatch::get_labels_batch)[i].data(), sizeof(int) * bb_count);
         std::vector<float> coords_buf(bb_count * 4);
-        memcpy(coords_buf.data(), _meta_data_info->get_bb_cords_batch()[i].data(), _meta_data_info->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
-
+        memcpy(coords_buf.data(),
+               getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_meta_data_info,&MetaDataBatch::get_bb_cords_batch)[i].data(),
+               getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_meta_data_info,&MetaDataBatch::get_bb_cords_batch)[i].size() * sizeof(BoundingBoxCord));
         crop_box.b = _y1_val[i] + _crop_height_val[i];
         crop_box.r = _x1_val[i] + _crop_width_val[i];
         crop_box.l = _x1_val[i];

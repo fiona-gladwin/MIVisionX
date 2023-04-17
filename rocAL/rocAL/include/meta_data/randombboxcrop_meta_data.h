@@ -43,7 +43,7 @@ struct CropCord
         crop_top = t;
         crop_right= r;
         crop_bottom = b;
-        
+
     }
     float crop_left;
     float crop_top;
