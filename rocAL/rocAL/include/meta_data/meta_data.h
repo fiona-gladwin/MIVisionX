@@ -104,16 +104,16 @@ struct MetaData
     virtual std::vector<int>& get_labels() {};
     virtual void set_labels(Labels label_ids) {};
     virtual BoundingBoxCords& get_bb_cords() {};
-    virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() {};
+    virtual void get_bb_cords_xcycwh(BoundingBoxCords_xcycwh** bb_cords_xcycwh) {};
     virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) {};
     virtual void set_bb_cords(BoundingBoxCords bb_cords) {};
-    virtual std::vector<int>& get_polygon_count() {};
-    virtual std::vector<std::vector<int>>& get_vertices_count() {};
-    virtual MaskCords& get_mask_cords() {};
+    virtual void get_polygon_count(std::vector<int>** polygon_count) {};
+    virtual void get_vertices_count(std::vector<std::vector<int>>** vertices_count) {};
+    virtual void get_mask_cords(MaskCords** mask_cords) {};
     virtual void set_mask_cords(MaskCords mask_cords) {};
     virtual void set_polygon_counts(std::vector<int> polygon_count) {};
     virtual void set_vertices_counts(std::vector<std::vector<int>> vertices_count) {};
-    virtual JointsData& get_joints_data() {};
+    virtual void get_joints_data(JointsData** joints_data) {};
     virtual void set_joints_data(JointsData *joints_data) {};
     ImgSize& get_img_size() {return _info.img_size; }
     std::string& get_image_name() { return _info.img_name; }
@@ -125,6 +125,17 @@ struct MetaData
     protected:
     MetaDataInfo _info;
 };
+
+template <typename T>
+void (MetaData::*pGetMetaDataFunction)(T **val);
+
+template <typename T>
+T& getMetaDataValues(MetaData &metadata,void(MetaData::*pGetMetaDataFunction)(T **val)) {
+    T *val;
+    (metadata.*pGetMetaDataFunction)(&val);
+    return *val;
+};
+
 
 struct Label : public MetaData
 {
@@ -163,7 +174,7 @@ struct BoundingBox : public Label
         _info.img_id = img_id;
     }
     BoundingBoxCords& get_bb_cords() override { return _bb_cords; }
-    BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() override { return _bb_cords_xcycwh; }
+    void get_bb_cords_xcycwh(BoundingBoxCords_xcycwh** bb_cords_xcycwh) override { *bb_cords_xcycwh = &_bb_cords_xcycwh; }
     void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) override { _bb_cords_xcycwh = std::move(bb_cords_xcycwh); }
     void set_bb_cords(BoundingBoxCords bb_cords) override { _bb_cords = std::move(bb_cords); }
 protected:
@@ -181,9 +192,9 @@ struct InstanceSegmentation : public BoundingBox {
         _polygon_count = std::move(polygon_count);
         _vertices_count = std::move(vertices_count);
     }
-    std::vector<int>& get_polygon_count() override { return _polygon_count; }
-    std::vector<std::vector<int>>& get_vertices_count() override { return _vertices_count; }
-    MaskCords& get_mask_cords() override { return _mask_cords;}
+    void get_polygon_count(std::vector<int>** polygon_count) override { *polygon_count = &_polygon_count; }
+    void get_vertices_count(std::vector<std::vector<int>>** vertices_count) override { *vertices_count = &_vertices_count; }
+    void get_mask_cords(MaskCords** mask_cords) override { *mask_cords = &_mask_cords; }
     void set_mask_cords(MaskCords mask_cords) override { _mask_cords = std::move(mask_cords); }
     void set_polygon_counts(std::vector<int> polygon_count) override { _polygon_count = std::move(polygon_count); }
     void set_vertices_counts(std::vector<std::vector<int>> vertices_count) override { _vertices_count = std::move(vertices_count); }
@@ -202,7 +213,7 @@ struct KeyPoint : public BoundingBox
         _joints_data = std::move(*joints_data);
     }
     void set_joints_data(JointsData *joints_data) override { _joints_data = std::move(*joints_data); }
-    JointsData& get_joints_data() override { return _joints_data; }
+    void get_joints_data(JointsData** joints_data) override { *joints_data = &_joints_data; }
     protected:
     JointsData _joints_data = {};
 };
