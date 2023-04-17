@@ -61,7 +61,7 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         auto it = _map_content.find(image_name);
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name)
-        getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_output,&MetaDataBatch::get_bb_cords_batch)[i] = it->second->get_bb_cords();
+        getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_output,&MetaDataBatch::get_bb_cords_batch)[i] = getMetaDataValues<BoundingBoxCords>(*it->second,&MetaData::get_bb_cords);
         getMetaDataBatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = it->second->get_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
@@ -79,7 +79,7 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
     if (exists(image_name))
     {
         auto it = _map_content.find(image_name);
-        it->second->get_bb_cords().push_back(bb_coords[0]);
+        getMetaDataValues<BoundingBoxCords>(*it->second,&MetaData::get_bb_cords).push_back(bb_coords[0]);
         it->second->get_labels().push_back(bb_labels[0]);
         getMetaDataValues<MaskCords>(*it->second,&MetaData::get_mask_cords).insert(getMetaDataValues<MaskCords>(*it->second,&MetaData::get_mask_cords).end(),
                                                                                    mask_cords.begin(), mask_cords.end());
@@ -96,7 +96,7 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
     if (exists(image_name))
     {
         auto it = _map_content.find(image_name);
-        it->second->get_bb_cords().push_back(bb_coords[0]);
+        getMetaDataValues<BoundingBoxCords>(*it->second,&MetaData::get_bb_cords).push_back(bb_coords[0]);
         it->second->get_labels().push_back(bb_labels[0]);
         return;
     }
@@ -117,7 +117,7 @@ void COCOMetaDataReader::print_map_contents()
     for (auto &elem : _map_content)
     {
         std::cout << "\nName :\t " << elem.first;
-        bb_coords = elem.second->get_bb_cords();
+        bb_coords = getMetaDataValues<BoundingBoxCords>(*elem.second,&MetaData::get_bb_cords);
         bb_labels = elem.second->get_labels();
         img_size = elem.second->get_img_size();
         std::cout << "<wxh, num of bboxes>: " << img_size.w << " X " << img_size.h << " , " << bb_coords.size() << std::endl;
@@ -372,7 +372,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
     }
     for (auto &elem : _map_content)
     {
-        bb_coords = elem.second->get_bb_cords();
+        bb_coords = getMetaDataValues<BoundingBoxCords>(*elem.second,&MetaData::get_bb_cords);
         bb_labels = elem.second->get_labels();
         Labels continuous_label_id;
         for (unsigned int i = 0; i < bb_coords.size(); i++)

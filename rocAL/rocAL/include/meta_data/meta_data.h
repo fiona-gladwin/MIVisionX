@@ -103,7 +103,7 @@ struct MetaData
 {
     virtual std::vector<int>& get_labels() {};
     virtual void set_labels(Labels label_ids) {};
-    virtual BoundingBoxCords& get_bb_cords() {};
+    virtual void get_bb_cords(BoundingBoxCords** bb_cords) {};
     virtual void get_bb_cords_xcycwh(BoundingBoxCords_xcycwh** bb_cords_xcycwh) {};
     virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) {};
     virtual void set_bb_cords(BoundingBoxCords bb_cords) {};
@@ -173,7 +173,7 @@ struct BoundingBox : public Label
         _info.img_size = std::move(img_size);
         _info.img_id = img_id;
     }
-    BoundingBoxCords& get_bb_cords() override { return _bb_cords; }
+    void get_bb_cords(BoundingBoxCords** bb_cords) override { *bb_cords = &_bb_cords; }
     void get_bb_cords_xcycwh(BoundingBoxCords_xcycwh** bb_cords_xcycwh) override { *bb_cords_xcycwh = &_bb_cords_xcycwh; }
     void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) override { _bb_cords_xcycwh = std::move(bb_cords_xcycwh); }
     void set_bb_cords(BoundingBoxCords bb_cords) override { _bb_cords = std::move(bb_cords); }

@@ -52,7 +52,7 @@ void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_
     if(exists(image_name))
     {
         auto it = _map_content.find(image_name);
-        it->second->get_bb_cords().push_back(bb_coords[0]);
+        getMetaDataValues<BoundingBoxCords>(*it->second,&MetaData::get_bb_cords).push_back(bb_coords[0]);
         it->second->get_labels().push_back(bb_labels[0]);
         return;
     }
@@ -82,7 +82,7 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
         }
         else
         {
-            getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_output,&MetaDataBatch::get_bb_cords_batch)[i] = it->second->get_bb_cords();
+            getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_output,&MetaDataBatch::get_bb_cords_batch)[i] = getMetaDataValues<BoundingBoxCords>(*it->second,&MetaData::get_bb_cords);
             getMetaDataBatchValues<std::vector<Labels>>(*_output,&MetaDataBatch::get_labels_batch)[i] = it->second->get_labels();
             _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         }
@@ -97,7 +97,7 @@ void TFMetaDataReaderDetection::print_map_contents()
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
         std::cerr << "Name :\t " << elem.first;
-        bb_coords = elem.second->get_bb_cords() ;
+        bb_coords = getMetaDataValues<BoundingBoxCords>(*elem.second,&MetaData::get_bb_cords);
         bb_labels = elem.second->get_labels();
         std::cerr << "\nsize of the element  : "<< bb_coords.size() << std::endl;
         for(unsigned int i = 0; i < bb_coords.size(); i++){
