@@ -110,6 +110,17 @@ extern "C" RocalTensor ROCAL_API_CALL rocalWarpAffine(RocalContext context, Roca
                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
+extern "C" RocalTensor ROCAL_API_CALL rocalWarpAffineFixed(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      float x0 = NULL,
+                                                      float x1 = NULL,
+                                                      float y0 = NULL,
+                                                      float y1 = NULL,
+                                                      float o0 = NULL,
+                                                      float o1 = NULL,
+                                                      int interpolation_type = 0,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 extern "C" RocalTensor ROCAL_API_CALL rocalFlipFixed(RocalContext context, RocalTensor input,
                                                       bool is_output,

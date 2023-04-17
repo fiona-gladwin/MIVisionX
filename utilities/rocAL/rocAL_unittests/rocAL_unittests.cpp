@@ -667,6 +667,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalWarpAffineFixed" << std::endl;
         // image1 = rocalWarpAffineFixed(handle, image0, 0.25, 0.25, 1, 1, 5, 5, true);
+        image1 = rocalWarpAffineFixed(handle, input1, true, 1, 1, 0.5, 0.5, 7, 7, 0, tensorLayout, tensorOutputType);
+
     }
     break;
     case 38:

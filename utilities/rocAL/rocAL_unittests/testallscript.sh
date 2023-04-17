@@ -93,7 +93,7 @@ do
 
         # tf classification
         ./rocAL_unittests 4 "$tf_classification_path" "${output_path}Blend_${rgb_name[$rgb]}_${device_name}" $width $height 36 $device $rgb 0 $display
-        # ./rocAL_unittests 4 "$tf_classification_path" "${output_path}WarpAffine_${rgb_name[$rgb]}_${device_name}" $width $height 37 $device $rgb 0 $display
+        ./rocAL_unittests 4 "$tf_classification_path" "${output_path}WarpAffine_${rgb_name[$rgb]}_${device_name}" $width $height 37 $device $rgb 0 $display
         # ./rocAL_unittests 4 "$tf_classification_path" "${output_path}Blur_${rgb_name[$rgb]}_${device_name}" $width $height 35 $device $rgb 0 $display
 
         # # tf detection

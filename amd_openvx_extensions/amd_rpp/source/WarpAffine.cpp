@@ -47,7 +47,7 @@ struct WarpAffineLocalData {
 
 static vx_status VX_CALLBACK refreshWarpAffine(vx_node node, const vx_reference *parameters, vx_uint32 num, WarpAffineLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->alpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n*6, sizeof(vx_float32), data->alpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -148,7 +148,8 @@ static vx_status VX_CALLBACK processWarpAffine(vx_node node, const vx_reference 
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshWarpAffine(node, parameters, num, data);
-        // rpp_status = rppt_brightness_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->alpha, data->beta, data->roiPtr, data->roiType, data->handle->rppHandle);
+        std::cerr<<"\n val in warpaffine "<< data->alpha[0]<<"  "<<data->alpha[1]<<"  "<<data->alpha[2]<<"  "<<data->alpha[3]<<"  "<<data->alpha[4]<<"  "<<data->alpha[5]<<"  ";
+        rpp_status = rppt_warp_affine_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->alpha,  RpptInterpolationType::BILINEAR, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
