@@ -107,6 +107,40 @@ rocalBrightness(
 }
 
 RocalTensor ROCAL_API_CALL
+rocalBrightnessFixed(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output,
+        float p_alpha,
+        float p_beta,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<rocalTensor*>(p_input);
+    // auto alpha = static_cast<FloatParam*>(p_alpha);
+    // auto beta = static_cast<FloatParam*>(p_beta);
+    try {
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        context->master_graph->add_node<BrightnessNode>({input}, {output})->init(p_alpha, p_beta);
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
+
+RocalTensor ROCAL_API_CALL
 rocalGamma(
         RocalContext p_context,
         RocalTensor p_input,

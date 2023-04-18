@@ -396,7 +396,9 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalResize" << std::endl;
         //auto image_int = rocalResize(handle, image0, resize_w , resize_h , false);
-        image1 = rocalResize(handle, input1, 0, 0, true, ROCAL_SCALING_MODE_NOT_SMALLER, {}, 256, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+        // image1 = rocalResize(handle, input1, 0, 0, true, ROCAL_SCALING_MODE_NOT_SMALLER, {}, 256, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+        image1 = rocalResize(handle, input1, resize_w, resize_h, true, ROCAL_SCALING_MODE_DEFAULT, {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+
     }
     break;
     case 1:
@@ -590,7 +592,9 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::vector<float> sdev{1, 1, 1};
         std::cout << ">>>>>>> Running "
                   << " Crop Mirror Normalize " << std::endl;
-        image1 = rocalCropMirrorNormalize(handle, input1, resize_h, resize_w, 0, 0, mean, sdev, true, NULL, tensorLayout, tensorOutputType);
+        // image1 = rocalCropMirrorNormalize(handle, input1, resize_h, resize_w, 0, 0, mean, sdev, true, NULL, tensorLayout, tensorOutputType);
+        image1 = rocalCropMirrorNormalize(handle, input1, 224, 224, 0, 0, mean, sdev, true, NULL, tensorLayout, tensorOutputType);
+
     }
     break;
     case 26:
@@ -629,6 +633,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalBrightnessFixed" << std::endl;
         // image1 = rocalBrightnessFixed(handle, image0, 1.90, 20, true);
+        image1 = rocalBrightnessFixed(handle, input1, true, 1.90, 20, tensorLayout, tensorOutputType);
+
     }
     break;
     case 33:
@@ -769,6 +775,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalCropFixed" << std::endl;
         // image1 = rocalCropFixed(handle, input1, 50, 50, 1, true, 0, 0, 2);
+        // image1 = rocalCropFixed(handle, input1, 224, 224,0,0, true, tensorLayout, tensorOutputType);
+
     }
     break;
     case 52:
