@@ -237,5 +237,15 @@ extern "C" RocalTensor ROCAL_API_CALL rocalColorTwist(RocalContext context,
                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
+extern "C" RocalTensor ROCAL_API_CALL rocalColorTwistFixed(RocalContext context,
+                                                      RocalTensor input,
+                                                      bool is_output,
+                                                      float alpha = NULL,
+                                                      float beta = NULL,
+                                                      float hue = NULL,
+                                                      float sat = NULL,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
 
 #endif //MIVISIONX_ROCAL_API_AUGMENTATION_H

@@ -768,6 +768,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalColorTwistFixed" << std::endl;
         // image1 = rocalColorTwistFixed(handle, image0, 0.2, 10.0, 100.0, 0.25, true);
+        image1 = rocalColorTwistFixed(handle, input1, true, 0.2, 10.0, 100.0, 0.25, tensorLayout, tensorOutputType);
+
     }
     break;
     case 51:
