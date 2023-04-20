@@ -129,6 +129,19 @@ list(APPEND SOURCES
         source/WarpAffinebatchPD.cpp
         source/WarpPerspectivebatchPD.cpp
         source/Brightness.cpp
+        source/GammaCorrection.cpp
+        source/Contrast.cpp
+        source/Flip.cpp
+        source/Blend.cpp
+        source/Exposure.cpp
+        source/WarpAffine.cpp
+        source/Rotate.cpp
+        source/Noise.cpp
+        source/Pixelate.cpp
+        source/Vignette.cpp
+        source/Jitter.cpp
+        source/ColorTemperature.cpp
+        source/Glitch.cpp
         source/Copy.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp
@@ -136,6 +149,7 @@ list(APPEND SOURCES
         source/Crop.cpp
         source/ColorTwist.cpp
         source/ResizeMirrorNormalize.cpp
+        source/ResizeCropMirror.cpp
         source/SequenceRearrange.cpp
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp

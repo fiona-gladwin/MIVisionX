@@ -20,40 +20,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#pragma once
-
-#include "node_warp_affine.h"
-#include "node_exposure.h"
-#include "node_vignette.h"
-#include "node_jitter.h"
-#include "node_snp_noise.h"
-// #include "node_snow.h"
-// #include "node_rain.h"
-#include "node_color_temperature.h"
-// #include "node_fog.h"
-#include "node_pixelate.h"
-// #include "node_lens_correction.h"
+#include <vx_ext_rpp.h>
 #include "node_gamma.h"
-#include "node_flip.h"
-// #include "node_crop_resize.h"
-#include "node_brightness.h"
-#include "node_contrast.h"
-// #include "node_blur.h"
-// #include "node_fisheye.h"
-#include "node_blend.h"
-#include "node_resize.h"
-#include "node_rotate.h"
-#include "node_color_twist.h"
-// #include "node_hue.h"
-// #include "node_saturation.h"
-#include "node_crop_mirror_normalize.h"
-#include "node_resize_mirror_normalize.h"
-#include "node_resize_crop_mirror.h"
-#include "node_ssd_random_crop.h"
-#include "node_crop.h"
-// #include "node_random_crop.h"
-#include "node_copy.h"
-#include "node_nop.h"
-#include "node_sequence_rearrange.h"
-#include "node_glitch.h"
+#include "exception.h"
+
+
+GammaNode::GammaNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
+        Node(inputs, outputs),
+        _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1])
+{
+}
+
+void GammaNode::create_node() {
+    if(_node)
+        return;
+
+    _alpha.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtrppNode_GammaCorrection(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _input_layout, _output_layout, _roi_type);
+
+    vx_status status;
+    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Adding the brightness (vxExtrppNode_Gamma) node failed: "+ TOSTR(status))
+}
+
+void GammaNode::init( float alpha) {
+    _alpha.set_param(alpha);
+}
+
+void GammaNode::init( FloatParam* alpha) {
+    _alpha.set_param(core(alpha));
+}
+
+
+void GammaNode::update_node() {
+    _alpha.update_array();
+}
 
