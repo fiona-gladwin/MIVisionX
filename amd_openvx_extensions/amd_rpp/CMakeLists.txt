@@ -149,6 +149,7 @@ list(APPEND SOURCES
         source/Crop.cpp
         source/ColorTwist.cpp
         source/ResizeMirrorNormalize.cpp
+        source/ResizeCropMirror.cpp
         source/SequenceRearrange.cpp
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp

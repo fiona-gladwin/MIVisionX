@@ -278,5 +278,16 @@ extern "C" RocalTensor ROCAL_API_CALL rocalColorTwist(RocalContext context,
                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
+extern "C" RocalTensor ROCAL_API_CALL rocalResizeCropMirrorFixed(RocalContext context, RocalTensor input,
+                                                   unsigned dest_width, unsigned dest_height,
+                                                   unsigned crop_width, unsigned crop_height, RocalIntParam p_mirror,
+                                                   bool is_output,
+                                                   RocalResizeScalingMode scaling_mode = ROCAL_SCALING_MODE_STRETCH,
+                                                   std::vector<unsigned> max_size = {},
+                                                   unsigned resize_shorter = 0,
+                                                   unsigned resize_longer = 0,
+                                                   RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                   RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                   RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 #endif //MIVISIONX_ROCAL_API_AUGMENTATION_H

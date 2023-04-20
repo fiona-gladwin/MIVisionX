@@ -142,6 +142,8 @@ vx_status Vignette_Register(vx_context);
 vx_status Jitter_Register(vx_context);
 vx_status ColorTemperature_Register(vx_context);
 vx_status Glitch_Register(vx_context);
+vx_status ResizeCropMirror_Register(vx_context);
+
 
 
 
@@ -257,6 +259,7 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
 #define VX_KERNEL_RPP_CONTRAST_NAME                                          "org.rpp.Contrast"
 #define VX_KERNEL_RPP_FLIP_NAME                                              "org.rpp.Flip"
+#define VX_KERNEL_RPP_RESIZECROPMIRROR_NAME                                  "org.rpp.ResizeCropMirror"
 
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
