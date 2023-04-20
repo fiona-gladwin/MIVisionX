@@ -20,14 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#pragma once
-
-#include "meta_node_crop_mirror_normalize.h"
-#include "meta_node_resize.h"
-// #include "meta_node_crop_resize.h"
-#include "meta_node_crop.h"
 #include "meta_node_resize_crop_mirror.h"
-// #include "meta_node_rotate.h"
-#include "meta_node_ssd_random_crop.h"
-// #include "meta_node_flip.h"
-#include "meta_node_resize_mirror_normalize.h"
+void ResizeCropMirrorMetaNode::initialize()
+{
+    _src_height_val.resize(_batch_size);
+    _src_width_val.resize(_batch_size);
+}
+void ResizeCropMirrorMetaNode::update_parameters(MetaDataBatch* input_meta_data)
+{
+    initialize();
+    // nothing to do in normalized coordinates
+}

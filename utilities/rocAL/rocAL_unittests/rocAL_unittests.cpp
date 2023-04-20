@@ -223,7 +223,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
 
     // Creating uniformly distributed random objects to override some of the default augmentation parameters
     RocalIntParam color_temp_adj = rocalCreateIntParameter(-50);
-
+    RocalIntParam mirror = rocalCreateIntParameter(1);
 
     /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
 
@@ -234,6 +234,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
 
     RocalTensor input1;
     RocalTensorLayout tensorLayout = RocalTensorLayout::ROCAL_NHWC;
+    // if()
     RocalTensorOutputType tensorOutputType = RocalTensorOutputType::ROCAL_UINT8;
 
     // The jpeg file loader can automatically select the best size to decode all images to that size
@@ -490,8 +491,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalRotate" << std::endl;
         // image1 = rocalRotate(handle, image0, true);
-        image1 = rocalRotate(handle, input1, true, NULL, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
-
+        // image1 = rocalRotate(handle, input1, true, NULL, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
     }
     break;
     case 3:
@@ -870,6 +870,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalResizeCropMirrorFixed" << std::endl;
         // image1 = rocalResizeCropMirrorFixed(handle, image0, 100, 100, true, 50, 50, 0);
+        image1 = rocalResizeCropMirrorFixed(handle, input1, 400, 400,200, 200, mirror, true, ROCAL_SCALING_MODE_DEFAULT, {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
     }
     break;
     case 54:
