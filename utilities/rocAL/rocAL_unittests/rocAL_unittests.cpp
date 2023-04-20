@@ -87,8 +87,57 @@ void convert_nchw_to_nhwc(unsigned char * input_chw, unsigned char * output_hwc,
         }
     }
 }
+std::string get_interpolation_type(unsigned int val, RocalResizeInterpolationType &interpolation_type) {
+    switch(val) {
+        case 0: {
+            interpolation_type = ROCAL_NEAREST_NEIGHBOR_INTERPOLATION;
+            return "NearestNeighbor";
+        }
+        case 2: {
+            interpolation_type = ROCAL_CUBIC_INTERPOLATION;
+            return "Bicubic";
+        }
+        case 3: {
+            interpolation_type = ROCAL_LANCZOS_INTERPOLATION;
+            return "Lanczos";
+        }
+        case 4: {
+            interpolation_type = ROCAL_GAUSSIAN_INTERPOLATION;
+            return "Gaussian";
+        }
+        case 5: {
+            interpolation_type = ROCAL_TRIANGULAR_INTERPOLATION;
+            return "Triangular";
+        }
+        default: {
+            interpolation_type = ROCAL_LINEAR_INTERPOLATION;
+            return "Bilinear";
+        }
+    }
+}
 
-int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height,int num_of_classes, int display_all);
+std::string get_scaling_mode(unsigned int val, RocalResizeScalingMode &scale_mode) {
+    switch(val) {
+        case 1: {
+            scale_mode = ROCAL_SCALING_MODE_STRETCH;
+            return "Stretch";
+        }
+        case 2: {
+            scale_mode = ROCAL_SCALING_MODE_NOT_SMALLER;
+            return "NotSmaller";
+        }
+        case 3: {
+            scale_mode = ROCAL_SCALING_MODE_NOT_LARGER;
+            return "Notlarger";
+        }
+        default: {
+            scale_mode = ROCAL_SCALING_MODE_DEFAULT;
+            return "Default";
+        }
+    }
+}
+
+int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height,int num_of_classes, int display_all, int resize_interpolation_type, int resize_scaling_mode);
 int main(int argc, const char **argv)
 {
     // check command-line usage
@@ -111,6 +160,8 @@ int main(int argc, const char **argv)
     bool gpu = 1;
     int test_case = 3; // For Rotate
     int num_of_classes = 0;
+    int resize_interpolation_type = 1; // For Bilinear interpolations
+    int resize_scaling_mode = 0; // For Default scaling mode
 
     if (argc >= argIdx + MIN_ARG_COUNT)
         test_case = atoi(argv[++argIdx]);
@@ -126,13 +177,18 @@ int main(int argc, const char **argv)
 
     if (argc >= argIdx + MIN_ARG_COUNT)
         display_all = atoi(argv[++argIdx]);
-
-    test(test_case, reader_type, path, outName, rgb, gpu, width, height, num_of_classes, display_all);
+    
+    if (argc >= argIdx + MIN_ARG_COUNT)
+        resize_interpolation_type = atoi(argv[++argIdx]);
+    
+    if (argc >= argIdx + MIN_ARG_COUNT)
+        resize_scaling_mode = atoi(argv[++argIdx]);
+    test(test_case, reader_type, path, outName, rgb, gpu, width, height, num_of_classes, display_all,resize_interpolation_type, resize_scaling_mode);
 
     return 0;
 }
 
-int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height, int num_of_classes, int display_all)
+int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height, int num_of_classes, int display_all, int resize_interpolation_type, int resize_scaling_mode)
 {
     size_t num_threads = 1;
     unsigned int inputBatchSize = 2;
@@ -393,11 +449,32 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
     case 0:
     {
+        // std::cout << ">>>>>>> Running "
+        //           << "rocalResize" << std::endl;
+        // //auto image_int = rocalResize(handle, image0, resize_w , resize_h , false);
+        // // image1 = rocalResize(handle, input1, 0, 0, true, ROCAL_SCALING_MODE_NOT_SMALLER, {}, 256, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+        // image1 = rocalResize(handle, input1, 400, 400, true, ROCAL_SCALING_MODE_DEFAULT, {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
         std::cout << ">>>>>>> Running "
                   << "rocalResize" << std::endl;
-        //auto image_int = rocalResize(handle, image0, resize_w , resize_h , false);
-        // image1 = rocalResize(handle, input1, 0, 0, true, ROCAL_SCALING_MODE_NOT_SMALLER, {}, 256, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
-        image1 = rocalResize(handle, input1, resize_w, resize_h, true, ROCAL_SCALING_MODE_DEFAULT, {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
+        resize_w = 400;
+        resize_h = 400;
+        std::string interpolation_type_name, scaling_node_name;
+        RocalResizeInterpolationType interpolation_type;
+        RocalResizeScalingMode scale_mode;
+        interpolation_type_name = get_interpolation_type(resize_interpolation_type, interpolation_type);
+        scaling_node_name = get_scaling_mode(resize_scaling_mode, scale_mode);
+        std::cerr<<" \n Interpolation_type_name " << interpolation_type_name;
+        std::cerr<<" \n Scaling_node_name " << scaling_node_name<<"\n ";
+        if (scale_mode != ROCAL_SCALING_MODE_DEFAULT && interpolation_type != ROCAL_LINEAR_INTERPOLATION) { // (Reference output available for bilinear interpolation for this  
+            std::cerr<<" \n Running "<< scaling_node_name << " scaling mode with Bilinear interpolation for comparison \n";
+            interpolation_type = ROCAL_LINEAR_INTERPOLATION;
+        }
+        if(scale_mode == ROCAL_SCALING_MODE_STRETCH) // For reference Output comparison
+            image1 = rocalResize(handle, input1, resize_w, 480, true, scale_mode, {}, 0, 0, interpolation_type, tensorLayout, tensorOutputType);
+
+        else
+            image1 = rocalResize(handle, input1, resize_w, resize_h, true, scale_mode, {}, 0, 0, interpolation_type, tensorLayout, tensorOutputType);
+
 
     }
     break;
@@ -777,7 +854,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalCropFixed" << std::endl;
         // image1 = rocalCropFixed(handle, input1, 50, 50, 1, true, 0, 0, 2);
-        // image1 = rocalCropFixed(handle, input1, 224, 224,0,0, true, tensorLayout, tensorOutputType);
+        image1 = rocalCropFixed(handle, input1, true, 224, 224, 0, 0, tensorLayout, tensorOutputType);
 
     }
     break;
@@ -785,7 +862,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalCropCenterFixed" << std::endl;
-        image1 = rocalCropCenterFixed(handle, input1, 100, 100, true, tensorLayout, tensorOutputType);
+        image1 = rocalCropCenterFixed(handle, input1, 224, 224, true, tensorLayout, tensorOutputType);
     }
     break;
     case 53:

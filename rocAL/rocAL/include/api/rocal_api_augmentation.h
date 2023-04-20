@@ -200,10 +200,16 @@ extern "C" RocalTensor  ROCAL_API_CALL rocalCrop(RocalContext context, RocalTens
                                                 RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                 RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
-extern "C"  RocalTensor  ROCAL_API_CALL rocalCropFixed(RocalContext context, RocalTensor  input,
+// extern "C" RocalTensor  ROCAL_API_CALL rocalCropFixed(RocalContext context, RocalTensor input, bool is_output,
+//                                                 float crop_width = NULL,
+//                                                 float crop_height = NULL,
+//                                                 float crop_pox_x = NULL,
+//                                                 float crop_pos_y = NULL,
+//                                                 RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+//                                                 RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+extern "C"  RocalTensor  ROCAL_API_CALL rocalCropFixed(RocalContext context, RocalTensor  input, bool is_output,
                                                       unsigned crop_width,
                                                       unsigned crop_height,
-                                                      bool is_output,
                                                       float crop_pox_x,
                                                       float crop_pos_y,
                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,

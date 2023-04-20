@@ -717,6 +717,7 @@ rocalCrop(RocalContext p_context,
     return output; // Changed to input----------------IMPORTANT
 }
 
+
 //resizemirrornormalize
 RocalTensor
 ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context, 
@@ -848,9 +849,9 @@ RocalTensor  ROCAL_API_CALL
 rocalCropFixed(
         RocalContext p_context,
         RocalTensor p_input,
+        bool is_output,
         unsigned crop_width,
         unsigned crop_height,
-        bool is_output,
         float crop_pos_x,
         float crop_pos_y,
         RocalTensorLayout rocal_tensor_output_layout,
