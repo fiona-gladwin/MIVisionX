@@ -174,15 +174,6 @@ static vx_status VX_CALLBACK processResizeCropMirror(vx_node node, const vx_refe
         //     data->roi_ptr[i].xywhROI.roiWidth = 224;
         //     data->roi_ptr[i].xywhROI.roiHeight = 224;
         // }
-        std::cerr<<"\n data->dst_desc_ptr->w and height  "<<data->dst_desc_ptr->w<<"  "<<data->dst_desc_ptr->h;
-        std::cerr<<"\n dstImgSizes[i].width "<<data->dstImgSize[0].width<<"  "<<data->dstImgSize[0].height;
-        std::cerr<<"\n data->src_desc_ptr "<<data->src_desc_ptr->n <<"  "<<data->src_desc_ptr->c <<"  "<<data->src_desc_ptr->h <<"  "<<data->src_desc_ptr->w <<"  "<<data->src_desc_ptr->numDims <<"  "<<data->src_desc_ptr->offsetInBytes <<"  "<<data->src_desc_ptr->layout<<"  "<<data->src_desc_ptr->strides.nStride<<"  "<<data->src_desc_ptr->strides.nStride<<"  "<<data->src_desc_ptr->strides.cStride<<"  "<<data->src_desc_ptr->strides.hStride<<"  "<<data->src_desc_ptr->strides.wStride<<"\n";
-        std::cerr<<"\n data->dst_desc_ptr "<<data->dst_desc_ptr->n <<"  "<<data->dst_desc_ptr->c <<"  "<<data->dst_desc_ptr->h <<"  "<<data->dst_desc_ptr->w <<"  "<<data->dst_desc_ptr->numDims <<"  "<<data->dst_desc_ptr->offsetInBytes <<"  "<<data->dst_desc_ptr->layout<<"  "<<data->dst_desc_ptr->strides.nStride<<"  "<<data->dst_desc_ptr->strides.nStride<<"  "<<data->dst_desc_ptr->strides.cStride<<"  "<<data->dst_desc_ptr->strides.hStride<<"  "<<data->dst_desc_ptr->strides.wStride<<"\n";
-        std::cerr<<"\ndata->dstImgSize "<<data->dstImgSize[0].width<<"  "<<data->dstImgSize[0].height;
-        std::cerr<<"\n data->interpolation_type before rppt call "<<data->interpolation_type;
-        std::cerr<<"\n data->roiType "<<data->roiType;
-        std::cerr<<"\n data->roi_ptr "<<data->roi_ptr[0].xywhROI.xy.x <<"  "<<data->roi_ptr[0].xywhROI.xy.y<<"  "<<data->roi_ptr[0].xywhROI.roiWidth<<"  "<<data->roi_ptr[0].xywhROI.roiHeight;
-        
         rpp_status = rppt_resize_crop_mirror_host(data->pSrc, data->src_desc_ptr, data->pDst, data->dst_desc_ptr, data->dstImgSize, (RpptInterpolationType)data->interpolation_type, data->mirror, data->roi_ptr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
