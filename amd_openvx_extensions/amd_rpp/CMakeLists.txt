@@ -138,6 +138,10 @@ list(APPEND SOURCES
         source/WarpAffine.cpp
         source/Rotate.cpp
         source/Copy.cpp
+        source/Snow.cpp
+        source/Fog.cpp
+        source/Hue.cpp
+        source/Saturation.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp
         source/Resize.cpp
@@ -148,6 +152,7 @@ list(APPEND SOURCES
         source/SequenceRearrange.cpp
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp
+        
     )
 
 if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL"  AND OpenCL_FOUND)

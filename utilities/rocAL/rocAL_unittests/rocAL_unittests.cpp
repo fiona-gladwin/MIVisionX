@@ -590,6 +590,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalSnow" << std::endl;
         // image1 = rocalSnow(handle, image0, true);
+        image1 = rocalSnow(handle, input1, true, NULL,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 15:
@@ -611,6 +613,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalFog" << std::endl;
         // image1 = rocalFog(handle, image0, true);
+        image1 = rocalFog(handle, input1, true, NULL,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 18:
@@ -641,6 +645,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalHue" << std::endl;
         // image1 = rocalHue(handle, image0, true);
+        image1 = rocalHue(handle, input1, true, NULL,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 22:
@@ -648,6 +654,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalSaturation" << std::endl;
         // image1 = rocalSaturation(handle, image0, true);
+        image1 = rocalSaturation(handle, input1, true, NULL,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 23:
