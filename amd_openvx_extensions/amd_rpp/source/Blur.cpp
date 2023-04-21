@@ -22,13 +22,13 @@ THE SOFTWARE.
 
 #include "internal_publishKernels.h"
 
-struct RotateLocalData {
+struct BlurLocalData {
     RPPCommonHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    vx_float32 *angle;
-    Rpp32s interpolation_type; 
+    Rpp32u nbatchSize;
+    vx_uint32 *kernelSize;
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
     RpptDesc dstDesc;
@@ -42,12 +42,24 @@ struct RotateLocalData {
     size_t ouputTensorDims[RPP_MAX_TENSOR_DIMS];
     vx_enum inputTensorType;
     vx_enum outputTensorType;
+    RppiSize *srcDimensions; // TBR : Not present in tensor
+    RppiSize maxSrcDimensions;  // TBR : Not present in tensor
+    Rpp32u *srcBatch_width; // TBR : Not present in tensor
+    Rpp32u *srcBatch_height;    // TBR : Not present in tensor
 };
 
-static vx_status VX_CALLBACK refreshRotate(vx_node node, const vx_reference *parameters, vx_uint32 num, RotateLocalData *data) {
-    vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->angle, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+static vx_status VX_CALLBACK refreshBlur(vx_node node, const vx_reference *parameters, vx_uint32 num, BlurLocalData *data) {
+    std::cerr<<"\n check in refreshBlur";
 
+    vx_status status = VX_SUCCESS;
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->kernelSize, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    for (int i = 0; i < data->inputTensorDims[0]; i++)
+        {
+            std::cerr<<"\n check ";
+            data->srcDimensions[i].width = data->srcDescPtr->w;  //  640;//data->roiPtr[i].xywhROI.roiWidth;
+            data->srcDimensions[i].height = data->srcDescPtr->h; // 480;//data->roiPtr[i].xywhROI.roiHeight;
+        }
+        std::cerr<<"\n chec 222";
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &data->roiTensorPtr, sizeof(data->roiTensorPtr)));
@@ -65,7 +77,7 @@ static vx_status VX_CALLBACK refreshRotate(vx_node node, const vx_reference *par
         for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
-                data->angle[index + f] = data->angle[n];
+                data->kernelSize[index + f] = data->kernelSize[n];
                 data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
                 data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
                 data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
@@ -77,9 +89,15 @@ static vx_status VX_CALLBACK refreshRotate(vx_node node, const vx_reference *par
     return status;
 }
 
-static vx_status VX_CALLBACK validateRotate(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
+static vx_status VX_CALLBACK validateBlur(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
+    
+    std::cerr<<"\n check in validateBlur";
+
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
+    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[4], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
+    if (scalar_type != VX_TYPE_INT32)
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #4 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[5], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #5 type=%d (must be size)\n", scalar_type);
@@ -87,11 +105,8 @@ static vx_status VX_CALLBACK validateRotate(vx_node node, const vx_reference par
     if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #6 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[7], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
-    if (scalar_type != VX_TYPE_INT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #7 type=%d (must be size)\n", scalar_type);
-    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[8], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_UINT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #8 type=%d (must be size)\n", scalar_type);
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #7 type=%d (must be size)\n", scalar_type);
 
     // Check for input parameters
     vx_tensor input;
@@ -101,7 +116,7 @@ static vx_status VX_CALLBACK validateRotate(vx_node node, const vx_reference par
     STATUS_ERROR_CHECK(vxQueryParameter(input_param, VX_PARAMETER_ATTRIBUTE_REF, &input, sizeof(vx_tensor)));
     STATUS_ERROR_CHECK(vxQueryTensor(input, VX_TENSOR_NUMBER_OF_DIMS, &in_num_tensor_dims, sizeof(in_num_tensor_dims)));
     if(in_num_tensor_dims < 4)
-        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: Rotate: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", in_num_tensor_dims);
+        return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: Blur: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", in_num_tensor_dims);
 
     // Check for output parameters
     vx_tensor output;
@@ -127,35 +142,38 @@ static vx_status VX_CALLBACK validateRotate(vx_node node, const vx_reference par
     return status;
 }
 
-static vx_status VX_CALLBACK processRotate(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+static vx_status VX_CALLBACK processBlur(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+    std::cerr<<"\n check in processBlur";
+
     RppStatus rpp_status = RPP_SUCCESS;
     vx_status return_status = VX_SUCCESS;
-    RotateLocalData *data = NULL;
+    BlurLocalData *data = NULL;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
-        refreshRotate(node, parameters, num, data);
-        // rpp_status = rppt_rotate_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->angle, (RpptInterpolationType)data->interpolation_type, data->roiPtr, data->roiType, data->handle->rppHandle);
+        refreshBlur(node, parameters, num, data);
+        // rpp_status = rppt_gamma_correction_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->kernelSize, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        refreshRotate(node, parameters, num, data);
-        // rpp_status = rppt_rotate_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->angle, (RpptInterpolationType)data->interpolation_type, data->roiPtr, data->roiType, data->handle->rppHandle);
+        refreshBlur(node, parameters, num, data);
+        // rpp_status = rppt_gamma_correction_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->kernelSize, data->roiPtr, data->roiType, data->handle->rppHandle);
+        std::cerr<<"data->srcDimensions "<<data->srcDimensions[0].width<<" "<<data->srcDimensions[0].height;
+        rpp_status = rppi_blur_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->kernelSize, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
 }
 
-static vx_status VX_CALLBACK initializeRotate(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    RotateLocalData *data = new RotateLocalData;
+static vx_status VX_CALLBACK initializeBlur(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+    std::cerr<<"\n check in initializeBlur";
+    BlurLocalData *data = new BlurLocalData;
     memset(data, 0, sizeof(*data));
-
     int roi_type;
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &data->interpolation_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->inputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &data->outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &data->inputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
 
     // Querying for input tensor
@@ -176,18 +194,28 @@ static vx_status VX_CALLBACK initializeRotate(vx_node node, const vx_reference *
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
-    data->angle = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
-    refreshRotate(node, parameters, num, data);
+    data->kernelSize = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
+    data->srcDimensions = (RppiSize *)malloc(sizeof(RppiSize) * data->srcDescPtr->n);
+
+    if(1)
+    {
+        data->nbatchSize = data->inputTensorDims[0];
+        data->maxSrcDimensions.height = data->inputTensorDims[1];
+        data->maxSrcDimensions.width = data->inputTensorDims[2];
+    }
+    refreshBlur(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
 
-static vx_status VX_CALLBACK uninitializeRotate(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    RotateLocalData *data;
+static vx_status VX_CALLBACK uninitializeBlur(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+    BlurLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
-    free(data->angle);
+    free(data->kernelSize);
+    free(data->srcDimensions);
+
     delete (data);
     return VX_SUCCESS;
 }
@@ -209,16 +237,16 @@ static vx_status VX_CALLBACK query_target_support(vx_graph graph, vx_node node,
     return VX_SUCCESS;
 }
 
-vx_status Rotate_Register(vx_context context) {
+vx_status Blur_Register(vx_context context) {
     vx_status status = VX_SUCCESS;
     // Add kernel to the context with callbacks
-    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.Rotate",
-                                       VX_KERNEL_RPP_ROTATE,
-                                       processRotate,
-                                       9,
-                                       validateRotate,
-                                       initializeRotate,
-                                       uninitializeRotate);
+    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.Blur",
+                                       VX_KERNEL_RPP_BLUR,
+                                       processBlur,
+                                       8,
+                                       validateBlur,
+                                       initializeBlur,
+                                       uninitializeBlur);
     ERROR_CHECK_OBJECT(kernel);
     AgoTargetAffinityInfo affinity;
     vxQueryContext(context, VX_CONTEXT_ATTRIBUTE_AMD_AFFINITY, &affinity, sizeof(affinity));
@@ -238,11 +266,11 @@ vx_status Rotate_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 1, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
+        // PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 7, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
-        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 8, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxFinalizeKernel(kernel));
     }
     if (status != VX_SUCCESS) {

@@ -207,6 +207,12 @@ extern "C" RocalTensor ROCAL_API_CALL rocalGlitch(RocalContext context, RocalTen
                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
+extern "C" RocalTensor ROCAL_API_CALL rocalBlur(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalIntParam p_kernel_size = NULL,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
 /// Accepts U8 and RGB24 inputs
 /// \param context Rocal context
 /// \param input Input Rocal tensor

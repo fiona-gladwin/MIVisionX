@@ -142,6 +142,7 @@ list(APPEND SOURCES
         source/Jitter.cpp
         source/ColorTemperature.cpp
         source/Glitch.cpp
+        source/Blur.cpp
         source/Copy.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp

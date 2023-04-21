@@ -146,6 +146,7 @@ extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Vignette(vx_graph grap
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Jitter(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array kernel_size, vx_scalar seed, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ColorTemperature(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array adjust_value, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Glitch(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst,vx_array x_offset_r, vx_array y_offset_r, vx_array x_offset_g, vx_array y_offset_g, vx_array x_offset_b, vx_array y_offset_b, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Blur(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array alpha, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
 
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Copy(vx_graph graph, vx_tensor pSrc, vx_tensor pDst);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Nop(vx_graph graph, vx_tensor pSrc, vx_tensor pDst);
