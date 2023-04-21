@@ -151,6 +151,8 @@ extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Snow(vx_graph graph, v
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Fog(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array fogValue, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Hue(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array hueShift, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Saturation(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array saturationFactor, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_FishEye(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Rain(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array rainValue, vx_array rainWidth, vx_array rainHeight, vx_array rainTransperancy, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
 
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Copy(vx_graph graph, vx_tensor pSrc, vx_tensor pDst);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Nop(vx_graph graph, vx_tensor pSrc, vx_tensor pDst);

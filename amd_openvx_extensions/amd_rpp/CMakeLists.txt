@@ -147,6 +147,8 @@ list(APPEND SOURCES
         source/Fog.cpp
         source/Hue.cpp
         source/Saturation.cpp
+        source/FishEye.cpp
+        source/Rain.cpp
         source/Copy.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp

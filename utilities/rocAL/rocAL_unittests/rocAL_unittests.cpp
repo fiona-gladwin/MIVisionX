@@ -501,6 +501,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalFishEye" << std::endl;
         // image1 = rocalFishEye(handle, image0, true);
+        image1 = rocalFishEye(handle, input1, true,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 11:
@@ -540,6 +542,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalRain" << std::endl;
         // image1 = rocalRain(handle, image0, true);
+        image1 = rocalRain(handle, input1, true, NULL, NULL, NULL, NULL, tensorLayout, tensorOutputType);
     }
     break;
     case 16:

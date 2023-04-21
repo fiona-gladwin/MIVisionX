@@ -154,7 +154,8 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(Fog_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Hue_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Saturation_Register));
-
+    STATUS_ERROR_CHECK(ADD_KERNEL(FishEye_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Rain_Register));
 
     return status;
 }
