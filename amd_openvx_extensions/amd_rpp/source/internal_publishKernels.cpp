@@ -150,6 +150,11 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(Glitch_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(ResizeCropMirror_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Blur_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Snow_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Fog_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Hue_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Saturation_Register));
+
 
     return status;
 }

@@ -20,40 +20,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#pragma once
-
-#include "node_warp_affine.h"
-#include "node_exposure.h"
-#include "node_vignette.h"
-#include "node_jitter.h"
-#include "node_snp_noise.h"
-#include "node_snow.h"
-// #include "node_rain.h"
-#include "node_color_temperature.h"
-#include "node_fog.h"
-#include "node_pixelate.h"
-// #include "node_lens_correction.h"
-#include "node_gamma.h"
-#include "node_flip.h"
-// #include "node_crop_resize.h"
-#include "node_brightness.h"
-#include "node_contrast.h"
-#include "node_blur.h"
-// #include "node_fisheye.h"
-#include "node_blend.h"
-#include "node_resize.h"
-#include "node_rotate.h"
-#include "node_color_twist.h"
+#include <vx_ext_rpp.h>
 #include "node_hue.h"
-#include "node_saturation.h"
-#include "node_crop_mirror_normalize.h"
-#include "node_resize_mirror_normalize.h"
-#include "node_resize_crop_mirror.h"
-#include "node_ssd_random_crop.h"
-#include "node_crop.h"
-// #include "node_random_crop.h"
-#include "node_copy.h"
-#include "node_nop.h"
-#include "node_sequence_rearrange.h"
-#include "node_glitch.h"
+#include "exception.h"
+
+
+HueNode::HueNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
+        Node(inputs, outputs),
+        _hue(HUE_RANGE[0], HUE_RANGE[1])
+{
+}
+
+void HueNode::create_node() {
+    if(_node)
+        return;
+
+    _hue.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtrppNode_Hue(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _hue.default_array(), _input_layout, _output_layout, _roi_type);
+
+    vx_status status;
+    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Adding the hue (vxExtrppNode_Gamma) node failed: "+ TOSTR(status))
+}
+
+void HueNode::init( float hue) {
+    _hue.set_param(hue);
+}
+
+void HueNode::init( FloatParam* hue) {
+    _hue.set_param(core(hue));
+}
+
+
+void HueNode::update_node() {
+    _hue.update_array();
+}
 

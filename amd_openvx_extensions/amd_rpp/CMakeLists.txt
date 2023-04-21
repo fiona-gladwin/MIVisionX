@@ -143,6 +143,10 @@ list(APPEND SOURCES
         source/ColorTemperature.cpp
         source/Glitch.cpp
         source/Blur.cpp
+        source/Snow.cpp
+        source/Fog.cpp
+        source/Hue.cpp
+        source/Saturation.cpp
         source/Copy.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp

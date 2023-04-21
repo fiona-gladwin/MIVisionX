@@ -144,6 +144,11 @@ vx_status ColorTemperature_Register(vx_context);
 vx_status Glitch_Register(vx_context);
 vx_status ResizeCropMirror_Register(vx_context);
 vx_status Blur_Register(vx_context);
+vx_status Snow_Register(vx_context);
+vx_status Fog_Register(vx_context);
+vx_status Hue_Register(vx_context);
+vx_status Saturation_Register(vx_context);
+
 
 
 
@@ -263,6 +268,10 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_FLIP_NAME                                              "org.rpp.Flip"
 #define VX_KERNEL_RPP_RESIZECROPMIRROR_NAME                                  "org.rpp.ResizeCropMirror"
 #define VX_KERNEL_RPP_BLUR_NAME                                              "org.rpp.Blur"
+#define VX_KERNEL_RPP_SNOW_NAME                                              "org.rpp.Snow"
+#define VX_KERNEL_RPP_FOG_NAME                                              "org.rpp.Fog"
+#define VX_KERNEL_RPP_HUE_NAME                                              "org.rpp.Hue"
+#define VX_KERNEL_RPP_SATURATION_NAME                                        "org.rpp.Saturation"
 
 
 
