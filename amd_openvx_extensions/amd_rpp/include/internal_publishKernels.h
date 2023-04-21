@@ -122,6 +122,7 @@ vx_status Resizetensor_Register(vx_context);
 
 // Tensor registers which calls RPP Tensor API's.
 vx_status Blend_Register(vx_context);
+vx_status Blur_Register(vx_context);
 vx_status Brightness_Register(vx_context);
 vx_status ColorTwist_Register(vx_context);
 vx_status Contrast_Register(vx_context);
@@ -225,6 +226,7 @@ vx_status WarpAffine_Register(vx_context);
 
 // Tensor kernel names
 #define VX_KERNEL_RPP_BLEND_NAME                                             "org.rpp.Blend"
+#define VX_KERNEL_RPP_BLUR_NAME                                              "org.rpp.Blur"
 #define VX_KERNEL_RPP_BRIGHTNESS_NAME                                        "org.rpp.Brightness"
 #define VX_KERNEL_RPP_COLORTWIST_NAME                                        "org.rpp.ColorTwist"
 #define VX_KERNEL_RPP_CONTRAST_NAME                                          "org.rpp.Contrast"
@@ -239,7 +241,7 @@ vx_status WarpAffine_Register(vx_context);
 #define VX_KERNEL_RPP_RESIZE_NAME                                            "org.rpp.Resize"
 #define VX_KERNEL_RPP_RESIZEMIRROR_NAME                                      "org.rpp.ResizeMirrorNormalize"
 #define VX_KERNEL_RPP_RESIZECROPMIRROR_NAME                                  "org.rpp.ResizeCropMirror"
-#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
 #define VX_KERNEL_RPP_ROTATE_NAME                                            "org.rpp.Rotate"
+#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_

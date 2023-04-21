@@ -528,6 +528,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalBlur" << std::endl;
         // image1 = rocalBlur(handle, image0, true);
+        image1 = rocalBlur(handle, input1, true, NULL,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 8:
@@ -733,6 +735,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalBlurFixed" << std::endl;
         // image1 = rocalBlurFixed(handle, image0, 5, true);
+        image1 = rocalGammaFixed(handle, input1, true, 5, tensorLayout, tensorOutputType);
+
     }
     break;
     case 36:

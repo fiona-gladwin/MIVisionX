@@ -133,6 +133,7 @@ list(APPEND SOURCES
         source/Contrast.cpp
         source/Flip.cpp
         source/Blend.cpp
+        source/Blur.cpp
         source/Exposure.cpp
         source/WarpAffine.cpp
         source/Rotate.cpp
