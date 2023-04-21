@@ -296,4 +296,18 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResizeCropMirrorFixed(RocalContext co
                                                    RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                    RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
+extern "C" RocalTensor ROCAL_API_CALL rocalFishEye(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalRain(RocalContext context, RocalTensor input,
+                                                bool is_output,
+                                                RocalFloatParam rain_value = NULL,
+                                                RocalIntParam rain_width = NULL,
+                                                RocalIntParam rain_height = NULL,
+                                                RocalFloatParam rain_transparency = NULL,
+                                                RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
 #endif //MIVISIONX_ROCAL_API_AUGMENTATION_H
