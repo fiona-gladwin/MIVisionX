@@ -149,6 +149,7 @@ list(APPEND SOURCES
         source/Saturation.cpp
         source/FishEye.cpp
         source/Rain.cpp
+        source/LensCorrection.cpp
         source/Copy.cpp
         source/CropMirrorNormalize.cpp
         source/Nop.cpp

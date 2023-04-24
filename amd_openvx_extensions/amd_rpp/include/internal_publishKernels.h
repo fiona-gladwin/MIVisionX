@@ -150,6 +150,8 @@ vx_status Hue_Register(vx_context);
 vx_status Saturation_Register(vx_context);
 vx_status FishEye_Register(vx_context);
 vx_status Rain_Register(vx_context);
+vx_status LensCorrection_Register(vx_context);
+
 
 
 
@@ -278,6 +280,7 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_SATURATION_NAME                                        "org.rpp.Saturation"
 #define VX_KERNEL_RPP_FISHEYE_NAME                                          "org.rpp.FishEye"
 #define VX_KERNEL_RPP_RAIN_NAME                                             "org.rpp.Rain"
+#define VX_KERNEL_RPP_LENSCORRECTION_NAME                                   "org.rpp.LensCorrection"
 
 
 
