@@ -154,6 +154,8 @@ list(APPEND SOURCES
         source/SequenceRearrange.cpp
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp
+        source/LensCorrection.cpp
+
         
     )
 

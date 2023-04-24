@@ -625,6 +625,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalLensCorrection" << std::endl;
         // image1 = rocalLensCorrection(handle, image0, true);
+        image1 = rocalLensCorrection(handle, input1, true, NULL, NULL, tensorLayout, tensorOutputType);
+
     }
     break;
     case 19:

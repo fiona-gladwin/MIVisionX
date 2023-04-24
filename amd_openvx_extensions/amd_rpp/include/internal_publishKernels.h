@@ -142,6 +142,7 @@ vx_status Rotate_Register(vx_context);
 vx_status Saturation_Register(vx_context);
 vx_status FishEye_Register(vx_context);
 vx_status Rain_Register(vx_context);
+vx_status LensCorrection_Register(vx_context);
 vx_status SequenceRearrange_Register(vx_context);
 vx_status Snow_Register(vx_context);
 vx_status WarpAffine_Register(vx_context);
@@ -245,6 +246,7 @@ vx_status WarpAffine_Register(vx_context);
 #define VX_KERNEL_RPP_FOG_NAME                                              "org.rpp.Fog"
 #define VX_KERNEL_RPP_GAMMACORRECTION_NAME                                   "org.rpp.GammaCorrection"
 #define VX_KERNEL_RPP_HUE_NAME                                              "org.rpp.Hue"
+#define VX_KERNEL_RPP_LENSCORRECTION_NAME                                   "org.rpp.LensCorrection"
 #define VX_KERNEL_RPP_NOP_NAME                                               "org.rpp.Nop"
 #define VX_KERNEL_RPP_WARPAFFINE_NAME                                        "org.rpp.WarpAffine"
 #define VX_KERNEL_RPP_RAIN_NAME 
@@ -255,4 +257,5 @@ vx_status WarpAffine_Register(vx_context);
 #define VX_KERNEL_RPP_SATURATION_NAME                                        "org.rpp.Saturation"
 #define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
 #define VX_KERNEL_RPP_SNOW_NAME                                              "org.rpp.Snow"
+
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
