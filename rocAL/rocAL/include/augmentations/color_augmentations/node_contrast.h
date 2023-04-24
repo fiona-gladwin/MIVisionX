@@ -31,17 +31,14 @@ class ContrastNode : public Node
 public:
     ContrastNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     ContrastNode() = delete;
-
-    void init(  float c_factor, float c_center);
-    void init( FloatParam* c_factor, FloatParam* c_center);
-
+    void init(  float min, float max);
+    void init( FloatParam* min, FloatParam* max);
 protected:
-    void create_node() override ;
+    void create_node() override;
     void update_node() override;
 private:
-
-    ParameterVX<float> _factor;
-    ParameterVX<float> _center;
-    constexpr static float FACTOR_RANGE [2] = {0.1, 3.0};
-    constexpr static float   CENTER_RANGE [2] = {0, 128};
+    ParameterVX<float> _min;
+    ParameterVX<float> _max;
+    constexpr static float CONTRAST_MIN_RANGE [2] = {0, 30};
+    constexpr static float   CONTRAST_MAX_RANGE [2] = {60, 90};
 };

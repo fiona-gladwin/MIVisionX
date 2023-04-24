@@ -32,6 +32,7 @@ class ResizeCropMirrorNode : public Node {
 public:
     ResizeCropMirrorNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     ResizeCropMirrorNode() = delete;
+    ~ResizeCropMirrorNode();
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     void init(unsigned dest_width, unsigned dest_height, unsigned crop_width, unsigned crop_height, IntParam *mirror, RocalResizeScalingMode scaling_mode,

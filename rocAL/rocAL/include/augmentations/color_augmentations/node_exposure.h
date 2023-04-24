@@ -31,10 +31,8 @@ class ExposureNode : public Node
 public:
     ExposureNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     ExposureNode() = delete;
-
     void init( float shift );
     void init( FloatParam* shift_param);
-
 protected:
     void create_node() override ;
     void update_node() override;

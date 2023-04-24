@@ -24,22 +24,20 @@ THE SOFTWARE.
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"
-#include "graph.h"
 
 class BlendNode : public Node
 {
 public:
     BlendNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     BlendNode() = delete;
-
-    void init( float shift);
-    void init( FloatParam* shift);
+    void init( float ratio);
+    void init( FloatParam* ratio);
 
 protected:
     void create_node() override ;
     void update_node() override;
+    
 private:
-
-    ParameterVX<float> _shift;
-    constexpr static float SHIFT_RANGE [2] = {0.1, 0.9};
+    ParameterVX<float> _ratio;
+    constexpr static float RATIO_RANGE [2] = {0.1, 0.9};
 };

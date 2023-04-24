@@ -49,24 +49,18 @@ void WarpAffineNode::create_node() {
          _affine[i*6 + 3] = _y1.renew();
          _affine[i*6 + 4] = _o0.renew();
          _affine[i*6 + 5] = _o1.renew();
-
     }
-    // _alpha.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
     vx_status status;
     _affine_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 6);
     status = vxAddArrayItems(_affine_array,_batch_size * 6, _affine.data(), sizeof(vx_float32));
     vx_scalar interpolation = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_UINT32,&_interpolation_type);
-
-
-    // _node = vxExtrppNode_WarpAffine(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _input_layout, _output_layout, _roi_type);
     _node = vxExtrppNode_WarpAffine (_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _affine_array, interpolation, _input_layout, _output_layout, _roi_type);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness (vxExtrppNode_WarpAffine) node failed: "+ TOSTR(status))
+        THROW("Adding the WarpAffine (vxExtrppNode_WarpAffine) node failed: "+ TOSTR(status))
 }
-void WarpAffineNode::update_affine_array()
-{
-    for (uint i = 0; i < _batch_size; i++ )
-    {
+
+void WarpAffineNode::update_affine_array() {
+    for (uint i = 0; i < _batch_size; i++ ) {
         _affine[i*6 + 0] = _x0.renew();
         _affine[i*6 + 1] = _y0.renew();
         _affine[i*6 + 2] = _x1.renew();
@@ -79,6 +73,7 @@ void WarpAffineNode::update_affine_array()
     if(affine_status != 0)
         THROW(" vxCopyArrayRange failed in the WarpAffine(vxExtrppNode_WarpAffinePD) node: "+ TOSTR(affine_status))
 }
+
 void WarpAffineNode::init(float x0, float x1, float y0, float y1, float o0, float o1,int interpolation_type) {
     _x0.set_param(x0);
     _x1.set_param(x1);
@@ -86,7 +81,7 @@ void WarpAffineNode::init(float x0, float x1, float y0, float y1, float o0, floa
     _y1.set_param(y1);
     _o0.set_param(o0);
     _o1.set_param(o1);
-    _interpolation_type=interpolation_type;
+    _interpolation_type = interpolation_type;
 }
 
 void WarpAffineNode::init(FloatParam* x0, FloatParam* x1, FloatParam* y0, FloatParam* y1, FloatParam* o0, FloatParam* o1,int interpolation_type) {
@@ -96,11 +91,9 @@ void WarpAffineNode::init(FloatParam* x0, FloatParam* x1, FloatParam* y0, FloatP
     _y1.set_param(core(y1));
     _o0.set_param(core(o0));
     _o1.set_param(core(o1));
-    _interpolation_type=interpolation_type;
+    _interpolation_type = interpolation_type;
 }
-
 
 void WarpAffineNode::update_node() {
     update_affine_array();
 }
-

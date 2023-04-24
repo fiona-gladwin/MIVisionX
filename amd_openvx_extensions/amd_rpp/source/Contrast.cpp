@@ -27,8 +27,8 @@ struct ContrastLocalData {
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    vx_float32 *c_factor;
-    vx_float32 *c_centre;
+    vx_float32 *min;
+    vx_float32 *max;
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
     RpptDesc dstDesc;
@@ -46,8 +46,8 @@ struct ContrastLocalData {
 
 static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *parameters, vx_uint32 num, ContrastLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->c_factor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_float32), data->c_centre, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->min, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_float32), data->max, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -66,8 +66,8 @@ static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *p
         for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
-                data->c_factor[index + f] = data->c_factor[n];
-                data->c_centre[index + f] = data->c_centre[n];
+                data->min[index + f] = data->min[n];
+                data->max[index + f] = data->max[n];
                 data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
                 data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
                 data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
@@ -137,15 +137,12 @@ static vx_status VX_CALLBACK processContrast(vx_node node, const vx_reference *p
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshContrast(node, parameters, num, data);
-        rpp_status = rppt_contrast_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->c_factor, data->c_centre, data->roiPtr, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_contrast_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->min, data->max, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshContrast(node, parameters, num, data);
-        std::cerr<<"\n data->c_factor "<<data->c_factor[0]<<"  "<< data->c_centre[0];
-        std::cerr<<"\n data->c_factor[1] "<<data->c_factor[1]<<"  "<< data->c_centre[1];
-
-        rpp_status = rppt_contrast_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->c_factor, data->c_centre, data->roiPtr, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_contrast_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->min, data->max, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -180,8 +177,8 @@ static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
-    data->c_factor = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
-    data->c_centre = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
+    data->min = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
+    data->max = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     refreshContrast(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -192,8 +189,8 @@ static vx_status VX_CALLBACK uninitializeContrast(vx_node node, const vx_referen
     ContrastLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
-    free(data->c_factor);
-    free(data->c_centre);
+    free(data->min);
+    free(data->max);
     delete (data);
     return VX_SUCCESS;
 }

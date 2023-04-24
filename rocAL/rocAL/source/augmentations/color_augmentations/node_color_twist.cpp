@@ -33,8 +33,7 @@ ColorTwistNode::ColorTwistNode(const std::vector<rocalTensor *> &inputs,const st
 {
 }
 
-void ColorTwistNode::create_node()
-{
+void ColorTwistNode::create_node() {
     if(_node)
         return;
 
@@ -49,25 +48,21 @@ void ColorTwistNode::create_node()
         THROW("Adding the colortwist_batch (vxExtrppNode_ColotTwsit) node failed: "+ TOSTR(status))
 }
 
-void ColorTwistNode::init( float alpha, float beta, float hue , float sat)
-{
+void ColorTwistNode::init(float alpha, float beta, float hue , float sat) {
     _alpha.set_param(alpha);
     _beta.set_param(beta);
     _hue.set_param(hue);
     _sat.set_param(sat);
 }
 
-void ColorTwistNode::init( FloatParam* alpha, FloatParam* beta, FloatParam* hue, FloatParam* sat)
-{
+void ColorTwistNode::init(FloatParam* alpha, FloatParam* beta, FloatParam* hue, FloatParam* sat) {
     _alpha.set_param(core(alpha));
     _beta.set_param(core(beta));
     _hue.set_param(core(hue));
     _sat.set_param(core(sat));
 }
 
-
-void ColorTwistNode::update_node()
-{
+void ColorTwistNode::update_node() {
     _alpha.update_array();
     _beta.update_array();
     _hue.update_array();

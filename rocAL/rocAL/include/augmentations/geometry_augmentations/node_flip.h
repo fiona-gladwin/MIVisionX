@@ -24,24 +24,19 @@ THE SOFTWARE.
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"
-#include "graph.h"
 
 class FlipNode : public Node
 {
 public:
     FlipNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     FlipNode() = delete;
-
     void init( int h_flag, int v_flag);
     void init( IntParam* h_flag_param, IntParam* v_flag_param);
-
 protected:
-    void create_node() override ;
+    void create_node() override;
     void update_node() override;
 private:
-
-    ParameterVX<int> _horizontal;
-    ParameterVX<int> _vertical;
+    ParameterVX<int> _horizontal, _vertical;
     constexpr static int HORIZONTAL_RANGE [2] = {0, 2};
     constexpr static int   VERTICAL_RANGE [2] = {0, 2};
 };

@@ -23,6 +23,7 @@ THE SOFTWARE.
 #include <vx_ext_rpp.h>
 #include <graph.h>
 #include "node_resize_crop_mirror.h"
+#include "parameter_crop.h"
 #include "exception.h"
 ResizeCropMirrorNode::ResizeCropMirrorNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
@@ -111,7 +112,6 @@ void ResizeCropMirrorNode::update_node() {
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
-    std::cerr<<"\n crop_w_dims and crop_h_dims"<<crop_w_dims[0]<<"  "<<crop_h_dims[0];
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
     _mirror.update_array();
     
@@ -190,15 +190,15 @@ void ResizeCropMirrorNode::adjust_out_roi_size() {
     }
 }
 
-// ResizeCropMirrorNode::~ResizeCropMirrorNode() {
-//     if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
-// #if ENABLE_HIP
-//         hipError_t err = hipFree(_crop_coordinates);
-//         if(err != hipSuccess)
-//             std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
-// #endif
-//     } else {
-//         free(_crop_coordinates);
-//     }
-//     vxReleaseTensor(&_crop_tensor);
-// }
+ResizeCropMirrorNode::~ResizeCropMirrorNode() {
+    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
+#if ENABLE_HIP
+        hipError_t err = hipFree(_crop_coordinates);
+        if(err != hipSuccess)
+            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
+#endif
+    } else {
+        free(_crop_coordinates);
+    }
+    vxReleaseTensor(&_crop_tensor);
+}

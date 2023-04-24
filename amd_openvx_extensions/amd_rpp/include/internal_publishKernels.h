@@ -121,29 +121,23 @@ vx_status WarpPerspectivebatchPD_Register(vx_context);
 vx_status Resizetensor_Register(vx_context);
 
 // Tensor registers which calls RPP Tensor API's.
+vx_status Blend_Register(vx_context);
 vx_status Brightness_Register(vx_context);
+vx_status ColorTwist_Register(vx_context);
+vx_status Contrast_Register(vx_context);
 vx_status Copy_Register(vx_context);
+vx_status Crop_Register(vx_context);
 vx_status CropMirrorNormalize_Register(vx_context);
+vx_status Exposure_Register(vx_context);
+vx_status Flip_Register(vx_context);
+vx_status GammaCorrection_Register(vx_context);
 vx_status Nop_Register(vx_context);
 vx_status Resize_Register(vx_context);
-vx_status Crop_Register(vx_context);
-vx_status ColorTwist_Register(vx_context);
-vx_status ResizeMirrorNormalize_Register(vx_context);
-vx_status GammaCorrection_Register(vx_context);
-vx_status Contrast_Register(vx_context);
-vx_status Flip_Register(vx_context);
-vx_status Blend_Register(vx_context);
-vx_status Exposure_Register(vx_context);
-vx_status WarpAffine_Register(vx_context);
-vx_status Rotate_Register(vx_context);
 vx_status ResizeCropMirror_Register(vx_context);
-
-
-
-
-
-
+vx_status ResizeMirrorNormalize_Register(vx_context);
+vx_status Rotate_Register(vx_context);
 vx_status SequenceRearrange_Register(vx_context);
+vx_status WarpAffine_Register(vx_context);
 
 // kernel names
 #define VX_KERNEL_RPP_NOPBATCHPD_NAME                   "org.rpp.NopbatchPD"
@@ -230,24 +224,22 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_RESIZETENSOR_NAME      					"org.rpp.Resizetensor"
 
 // Tensor kernel names
-#define VX_KERNEL_RPP_NOP_NAME                                               "org.rpp.Nop"
-#define VX_KERNEL_RPP_COPY_NAME                                              "org.rpp.Copy"
-#define VX_KERNEL_RPP_BRIGHTNESS_NAME                                        "org.rpp.Brightness"
-#define VX_KERNEL_RPP_GAMMACORRECTION_NAME                                   "org.rpp.GammaCorrection"
 #define VX_KERNEL_RPP_BLEND_NAME                                             "org.rpp.Blend"
-#define VX_KERNEL_RPP_EXPOSURE_NAME                                          "org.rpp.Exposure"
-#define VX_KERNEL_RPP_WARPAFFINE_NAME                                          "org.rpp.WarpAffine"
-#define VX_KERNEL_RPP_ROTATE_NAME                                             "org.rpp.Rotate"
-
-#define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                               "org.rpp.CropMirrorNormalize"
-#define VX_KERNEL_RPP_RESIZE_NAME                                            "org.rpp.Resize"
-#define VX_KERNEL_RPP_CROP_NAME                                              "org.rpp.Crop"
+#define VX_KERNEL_RPP_BRIGHTNESS_NAME                                        "org.rpp.Brightness"
 #define VX_KERNEL_RPP_COLORTWIST_NAME                                        "org.rpp.ColorTwist"
-#define VX_KERNEL_RPP_RESIZEMIRROR_NAME                                      "org.rpp.ResizeMirrorNormalize"
-#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
 #define VX_KERNEL_RPP_CONTRAST_NAME                                          "org.rpp.Contrast"
+#define VX_KERNEL_RPP_COPY_NAME                                              "org.rpp.Copy"
+#define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                               "org.rpp.CropMirrorNormalize"
+#define VX_KERNEL_RPP_CROP_NAME                                              "org.rpp.Crop"
+#define VX_KERNEL_RPP_EXPOSURE_NAME                                          "org.rpp.Exposure"
 #define VX_KERNEL_RPP_FLIP_NAME                                              "org.rpp.Flip"
+#define VX_KERNEL_RPP_GAMMACORRECTION_NAME                                   "org.rpp.GammaCorrection"
+#define VX_KERNEL_RPP_NOP_NAME                                               "org.rpp.Nop"
+#define VX_KERNEL_RPP_WARPAFFINE_NAME                                        "org.rpp.WarpAffine"
+#define VX_KERNEL_RPP_RESIZE_NAME                                            "org.rpp.Resize"
+#define VX_KERNEL_RPP_RESIZEMIRROR_NAME                                      "org.rpp.ResizeMirrorNormalize"
 #define VX_KERNEL_RPP_RESIZECROPMIRROR_NAME                                  "org.rpp.ResizeCropMirror"
-
+#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
+#define VX_KERNEL_RPP_ROTATE_NAME                                            "org.rpp.Rotate"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_

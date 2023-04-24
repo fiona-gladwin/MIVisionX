@@ -26,9 +26,9 @@ struct BlendLocalData {
     RPPCommonHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
-    RppPtr_t pSrc_2;
+    RppPtr_t pSrc2;
     RppPtr_t pDst;
-    vx_float32 *shfit;
+    vx_float32 *alpha;
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
     RpptDesc dstDesc;
@@ -46,21 +46,19 @@ struct BlendLocalData {
 
 static vx_status VX_CALLBACK refreshBlend(vx_node node, const vx_reference *parameters, vx_uint32 num, BlendLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_float32), data->shfit, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_float32), data->alpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HIP, &data->roiTensorPtr, sizeof(data->roiTensorPtr)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &data->pSrc_2, sizeof(data->pSrc_2)));
-
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &data->pSrc2, sizeof(data->pSrc2)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->roiTensorPtr, sizeof(data->roiTensorPtr)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &data->pSrc_2, sizeof(data->pSrc_2)));
-
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &data->pSrc2, sizeof(data->pSrc2)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
     }
     data->roiPtr = (RpptROI *)data->roiTensorPtr;
@@ -69,11 +67,8 @@ static vx_status VX_CALLBACK refreshBlend(vx_node node, const vx_reference *para
         for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
-                data->shfit[index + f] = data->shfit[n];
-                data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
-                data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
-                data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
-                data->roiPtr[index + f].xywhROI.roiHeight = data->roiPtr[n].xywhROI.roiHeight;
+                data->alpha[index + f] = data->alpha[n];
+                data->roiPtr[index + f].xywhROI = data->roiPtr[n].xywhROI;
             }
         }
     }
@@ -139,12 +134,12 @@ static vx_status VX_CALLBACK processBlend(vx_node node, const vx_reference *para
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshBlend(node, parameters, num, data);
-        rpp_status = rppt_blend_gpu((void *)data->pSrc, (void *)data->pSrc_2, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->shfit, data->roiPtr, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_blend_gpu((void *)data->pSrc, (void *)data->pSrc2, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->alpha, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshBlend(node, parameters, num, data);
-        rpp_status = rppt_blend_host(data->pSrc, data->pSrc_2, data->srcDescPtr, data->pDst, data->dstDescPtr, data->shfit, data->roiPtr, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_blend_host(data->pSrc, data->pSrc2, data->srcDescPtr, data->pDst, data->dstDescPtr, data->alpha, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -179,7 +174,7 @@ static vx_status VX_CALLBACK initializeBlend(vx_node node, const vx_reference *p
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
-    data->shfit = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
+    data->alpha = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     refreshBlend(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -190,7 +185,7 @@ static vx_status VX_CALLBACK uninitializeBlend(vx_node node, const vx_reference 
     BlendLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
-    free(data->shfit);
+    free(data->alpha);
     delete (data);
     return VX_SUCCESS;
 }
@@ -242,7 +237,6 @@ vx_status Blend_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
-        // PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 7, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));

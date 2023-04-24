@@ -24,7 +24,6 @@ THE SOFTWARE.
 #include "node_exposure.h"
 #include "exception.h"
 
-
 ExposureNode::ExposureNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
         _shift(SHIFT_RANGE[0], SHIFT_RANGE[1])
@@ -40,19 +39,17 @@ void ExposureNode::create_node() {
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness (vxExtrppNode_Exposure) node failed: "+ TOSTR(status))
+        THROW("Adding the exposure (vxExtrppNode_Exposure) node failed: "+ TOSTR(status))
 }
 
-void ExposureNode::init( float shift) {
+void ExposureNode::init(float shift) {
     _shift.set_param(shift);
 }
 
-void ExposureNode::init( FloatParam* shift) {
+void ExposureNode::init(FloatParam* shift) {
     _shift.set_param(core(shift));
 }
-
 
 void ExposureNode::update_node() {
     _shift.update_array();
 }
-

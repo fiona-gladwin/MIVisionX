@@ -24,35 +24,37 @@ THE SOFTWARE.
 #include "node_gamma.h"
 #include "exception.h"
 
-
 GammaNode::GammaNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
-        _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1])
+        _shift(SHIFT_RANGE[0], SHIFT_RANGE[1])
 {
 }
 
 void GammaNode::create_node() {
     if(_node)
         return;
+    
+    if(_outputs.empty() || _inputs.empty())
+        THROW("Uninitialized input/output arguments")
 
-    _alpha.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _node = vxExtrppNode_GammaCorrection(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _input_layout, _output_layout, _roi_type);
+    _shift.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtrppNode_GammaCorrection(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _shift.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness (vxExtrppNode_Gamma) node failed: "+ TOSTR(status))
+        THROW("Adding the gamma (vxExtrppNode_Gamma) node failed: "+ TOSTR(status))
 }
 
-void GammaNode::init( float alpha) {
-    _alpha.set_param(alpha);
+void GammaNode::init(float shift) {
+    _shift.set_param(shift);
 }
 
-void GammaNode::init( FloatParam* alpha) {
-    _alpha.set_param(core(alpha));
+void GammaNode::init(FloatParam* shift) {
+    _shift.set_param(core(shift));
 }
 
 
 void GammaNode::update_node() {
-    _alpha.update_array();
+    _shift.update_array();
 }
 

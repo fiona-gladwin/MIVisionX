@@ -135,12 +135,12 @@ static vx_status VX_CALLBACK processRotate(vx_node node, const vx_reference *par
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshRotate(node, parameters, num, data);
-        rpp_status = rppt_rotate_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->angle, (RpptInterpolationType)data->interpolation_type, data->roiPtr, data->roiType, data->handle->rppHandle);
+        // rpp_status = rppt_rotate_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->angle, (RpptInterpolationType)data->interpolation_type, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshRotate(node, parameters, num, data);
-        rpp_status = rppt_rotate_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->angle, (RpptInterpolationType)data->interpolation_type, data->roiPtr, data->roiType, data->handle->rppHandle);
+        // rpp_status = rppt_rotate_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->angle, (RpptInterpolationType)data->interpolation_type, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;

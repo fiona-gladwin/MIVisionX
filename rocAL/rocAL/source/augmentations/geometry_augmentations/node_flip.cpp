@@ -28,7 +28,7 @@ THE SOFTWARE.
 FlipNode::FlipNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
         _horizontal(HORIZONTAL_RANGE[0], HORIZONTAL_RANGE[1]),
-        _vertical (VERTICAL_RANGE[0], VERTICAL_RANGE[1])
+        _vertical(VERTICAL_RANGE[0], VERTICAL_RANGE[1])
 {
 }
 
@@ -36,8 +36,8 @@ void FlipNode::create_node() {
     if(_node)
         return;
 
-    _horizontal.create_array(_graph , VX_TYPE_UINT32, _batch_size);
-    _vertical.create_array(_graph , VX_TYPE_UINT32, _batch_size);
+    _horizontal.create_array(_graph, VX_TYPE_UINT32, _batch_size);
+    _vertical.create_array(_graph, VX_TYPE_UINT32, _batch_size);
     _node = vxExtrppNode_Flip(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(),  _horizontal.default_array(), _vertical.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
@@ -45,19 +45,17 @@ void FlipNode::create_node() {
         THROW("Adding the flip (vxExtrppNode_Flip) node failed: "+ TOSTR(status))
 }
 
-void FlipNode::init( int h_flag, int v_flag) {
+void FlipNode::init(int h_flag, int v_flag) {
     _horizontal.set_param(h_flag);
     _vertical.set_param(v_flag);
 }
 
-void FlipNode::init( IntParam* h_flag, IntParam* v_flag) {
+void FlipNode::init(IntParam* h_flag, IntParam* v_flag) {
     _horizontal.set_param(core(h_flag));
     _vertical.set_param(core(v_flag));
 }
-
 
 void FlipNode::update_node() {
     _horizontal.update_array();
     _vertical.update_array();
 }
-

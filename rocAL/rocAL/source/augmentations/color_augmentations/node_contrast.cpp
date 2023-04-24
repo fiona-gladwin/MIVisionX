@@ -24,11 +24,10 @@ THE SOFTWARE.
 #include "node_contrast.h"
 #include "exception.h"
 
-
 ContrastNode::ContrastNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
-        _factor(FACTOR_RANGE[0], FACTOR_RANGE[1]),
-        _center(CENTER_RANGE[0], CENTER_RANGE[1])
+        _min(CONTRAST_MIN_RANGE[0], CONTRAST_MIN_RANGE[1]),
+        _max(CONTRAST_MAX_RANGE[0], CONTRAST_MAX_RANGE[1])
 {
 }
 
@@ -36,28 +35,26 @@ void ContrastNode::create_node() {
     if(_node)
         return;
 
-    _factor.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _center.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _node = vxExtrppNode_Contrast(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _factor.default_array(), _center.default_array(), _input_layout, _output_layout, _roi_type);
+    _min.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _max.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtrppNode_Contrast(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _min.default_array(), _max.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness (vxExtrppNode_Contrast) node failed: "+ TOSTR(status))
+        THROW("Adding the contrast (vxExtrppNode_Contrast) node failed: "+ TOSTR(status))
 }
 
-void ContrastNode::init( float alpha, float beta) {
-    _factor.set_param(alpha);
-    _center.set_param(beta);
+void ContrastNode::init(float min, float max) {
+    _min.set_param(min);
+    _max.set_param(max);
 }
 
-void ContrastNode::init( FloatParam* alpha, FloatParam* beta) {
-    _factor.set_param(core(alpha));
-    _center.set_param(core(beta));
+void ContrastNode::init(FloatParam* min, FloatParam* max) {
+    _min.set_param(core(min));
+    _max.set_param(core(max));
 }
-
 
 void ContrastNode::update_node() {
-    _factor.update_array();
-    _center.update_array();
+    _min.update_array();
+    _max.update_array();
 }
-

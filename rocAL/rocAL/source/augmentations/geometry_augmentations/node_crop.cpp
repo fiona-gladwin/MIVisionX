@@ -32,8 +32,7 @@ CropNode::CropNode(const std::vector<rocalTensor *> &inputs, const std::vector<r
     _crop_param = std::make_shared<RocalCropParam>(_batch_size);
 }
 
-void CropNode::create_node()
-{
+void CropNode::create_node() {
     if(_node)
         return;
 
@@ -63,8 +62,7 @@ void CropNode::create_node()
         THROW("Error adding the crop tensor (vxExtrppNode_Crop) failed: "+TOSTR(status))
 }
 
-void CropNode::update_node()
-{
+void CropNode::update_node() {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
@@ -83,8 +81,7 @@ void CropNode::update_node()
     }
 }
 
-void CropNode::init(unsigned int crop_h, unsigned int crop_w, float x_drift_, float y_drift_)
-{
+void CropNode::init(unsigned int crop_h, unsigned int crop_w, float x_drift_, float y_drift_) {
     _crop_param->crop_w = crop_w;
     _crop_param->crop_h = crop_h;
     _crop_param->x1     = x_drift_;
@@ -96,8 +93,7 @@ void CropNode::init(unsigned int crop_h, unsigned int crop_w, float x_drift_, fl
 }
 
 // This init is used only for centre crop
-void CropNode::init(unsigned int crop_h, unsigned int crop_w)
-{
+void CropNode::init(unsigned int crop_h, unsigned int crop_w) {
     _crop_param->crop_w = crop_w;
     _crop_param->crop_h = crop_h;
     _crop_param->x1 = 0; 
@@ -105,8 +101,7 @@ void CropNode::init(unsigned int crop_h, unsigned int crop_w)
     _crop_param->set_fixed_crop(0.5, 0.5);    // for center_crop
 }
 
-void CropNode::init(FloatParam *crop_h_factor, FloatParam  *crop_w_factor, FloatParam *x_drift, FloatParam *y_drift)
-{
+void CropNode::init(FloatParam *crop_h_factor, FloatParam  *crop_w_factor, FloatParam *x_drift, FloatParam *y_drift) {
     _crop_param->set_x_drift_factor(core(x_drift));
     _crop_param->set_y_drift_factor(core(y_drift));
     _crop_param->set_crop_height_factor(core(crop_h_factor));

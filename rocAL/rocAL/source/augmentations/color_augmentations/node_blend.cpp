@@ -24,10 +24,9 @@ THE SOFTWARE.
 #include "node_blend.h"
 #include "exception.h"
 
-
 BlendNode::BlendNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
         Node(inputs, outputs),
-        _shift(SHIFT_RANGE[0], SHIFT_RANGE[1])
+        _ratio(RATIO_RANGE[0], RATIO_RANGE[1])
 {
 }
 
@@ -35,24 +34,25 @@ void BlendNode::create_node() {
     if(_node)
         return;
 
-    _shift.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _node = vxExtrppNode_Blend(_graph->get(), _inputs[0]->handle(),  _inputs[1]->handle(), _src_tensor_roi, _outputs[0]->handle(), _shift.default_array(), _input_layout, _output_layout, _roi_type);
+    if(_inputs.size() < 2)
+        THROW("Blend node needs two input images")
+
+    _ratio.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtrppNode_Blend(_graph->get(), _inputs[0]->handle(), _inputs[1]->handle(), _src_tensor_roi, _outputs[0]->handle(), _ratio.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness (vxExtrppNode_Blend) node failed: "+ TOSTR(status))
+        THROW("Adding the blend (vxExtrppNode_Blend) node failed: "+ TOSTR(status))
 }
 
-void BlendNode::init( float shift) {
-    _shift.set_param(shift);
+void BlendNode::init(float ratio) {
+    _ratio.set_param(ratio);
 }
 
-void BlendNode::init( FloatParam* shift) {
-    _shift.set_param(core(shift));
+void BlendNode::init(FloatParam* ratio) {
+    _ratio.set_param(core(ratio));
 }
-
 
 void BlendNode::update_node() {
-    _shift.update_array();
+    _ratio.update_array();
 }
-

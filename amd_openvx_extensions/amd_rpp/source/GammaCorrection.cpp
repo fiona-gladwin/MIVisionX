@@ -27,7 +27,7 @@ struct GammaCorrectionLocalData {
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    vx_float32 *alpha;
+    vx_float32 *gamma;
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
     RpptDesc dstDesc;
@@ -45,7 +45,7 @@ struct GammaCorrectionLocalData {
 
 static vx_status VX_CALLBACK refreshGammaCorrection(vx_node node, const vx_reference *parameters, vx_uint32 num, GammaCorrectionLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->alpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->gamma, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -64,7 +64,7 @@ static vx_status VX_CALLBACK refreshGammaCorrection(vx_node node, const vx_refer
         for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
-                data->alpha[index + f] = data->alpha[n];
+                data->gamma[index + f] = data->gamma[n];
                 data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
                 data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
                 data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
@@ -134,26 +134,12 @@ static vx_status VX_CALLBACK processGammaCorrection(vx_node node, const vx_refer
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshGammaCorrection(node, parameters, num, data);
-        rpp_status = rppt_gamma_correction_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->alpha, data->roiPtr, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_gamma_correction_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->gamma, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshGammaCorrection(node, parameters, num, data);
-        // if (1) {
-        //     float *temp1 = ((float *)calloc(100, sizeof(float)));
-        //     for (int i = 0; i < 100; i++) {
-        //         temp1[i] = (float)*((unsigned char *)(data->pSrc) + i);
-        //         std::cout << temp1[i] << " ";
-        //     }
-        // }
-        rpp_status = rppt_gamma_correction_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->alpha, data->roiPtr, data->roiType, data->handle->rppHandle);
-        if (1) {
-            float *temp1 = ((float *)calloc(100, sizeof(float)));
-            for (int i = 0; i < 100; i++) {
-                temp1[i] = (float)*((unsigned char *)(data->pDst) + i);
-                std::cout << temp1[i] << " ";
-            }
-        }
+        rpp_status = rppt_gamma_correction_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->gamma, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -188,7 +174,7 @@ static vx_status VX_CALLBACK initializeGammaCorrection(vx_node node, const vx_re
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
-    data->alpha = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
+    data->gamma = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     refreshGammaCorrection(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -199,7 +185,7 @@ static vx_status VX_CALLBACK uninitializeGammaCorrection(vx_node node, const vx_
     GammaCorrectionLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
-    free(data->alpha);
+    free(data->gamma);
     delete (data);
     return VX_SUCCESS;
 }
@@ -250,7 +236,7 @@ vx_status GammaCorrection_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 1, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
-        // PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
+        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));

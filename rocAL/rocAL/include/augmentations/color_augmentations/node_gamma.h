@@ -24,22 +24,19 @@ THE SOFTWARE.
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"
-#include "graph.h"
 
 class GammaNode : public Node
 {
 public:
     GammaNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     GammaNode() = delete;
-
-    void init( float alpha);
-    void init( FloatParam* alpha_param);
-
+    void init( float shift);
+    void init( FloatParam* shift);
 protected:
     void create_node() override ;
     void update_node() override;
 private:
-
-    ParameterVX<float> _alpha;
-    constexpr static float ALPHA_RANGE [2] = {0.3, 7.00};
+    ParameterVX<float> _shift;
+    constexpr static float SHIFT_RANGE [2] = {0.3, 7.00};
 };
+

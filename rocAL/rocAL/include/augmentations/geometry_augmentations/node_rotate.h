@@ -33,15 +33,12 @@ class RotateNode : public Node
 public:
     RotateNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     RotateNode() = delete;
-
-    void init( float angle, RocalResizeInterpolationType interpolation_type);
-    void init( FloatParam* angle_param, RocalResizeInterpolationType interpolation_type);
-
+    void init(float angle, RocalResizeInterpolationType interpolation_type);
+    void init(FloatParam* angle_param, RocalResizeInterpolationType interpolation_type);
 protected:
-    void create_node() override ;
+    void create_node() override;
     void update_node() override;
 private:
-
     ParameterVX<float> _angle;
     int _interpolation_type;
     constexpr static float ROTATE_ANGLE_RANGE [2] = {0, 180};
