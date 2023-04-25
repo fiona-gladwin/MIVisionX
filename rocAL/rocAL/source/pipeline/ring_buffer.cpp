@@ -442,7 +442,7 @@ void RingBuffer::set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data)
                 if(actual_buffer_size[i] > _meta_data_sub_buffer_size[_write_ptr][i])
                     rellocate_meta_data_buffer(_host_meta_data_buffers[_write_ptr][i], actual_buffer_size[i], i);
             }
-            meta_data->copy_data(_host_meta_data_buffers[_write_ptr]);    
+            meta_data->copy_data(_host_meta_data_buffers[_write_ptr]);
         }
     }
 
