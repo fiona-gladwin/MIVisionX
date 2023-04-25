@@ -1076,10 +1076,10 @@ rocalTensorList * MasterGraph::bbox_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[1]; // Get bbox buffer from ring buffer
-    auto labels = _ring_buffer.get_meta_data().second->get_labels_batch();
+    auto bbox_cords = _ring_buffer.get_meta_data().second->get_bb_cords_batch();
     for(unsigned i = 0; i < _bbox_tensor_list.size(); i++)
     {
-        _bbox_tensor_list[i]->set_dims({labels[i].size(),4});
+        _bbox_tensor_list[i]->set_dims({bbox_cords[i].size(), 4});
         _bbox_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
         meta_data_buffers += _bbox_tensor_list[i]->info().data_size();
     }
@@ -1091,7 +1091,7 @@ rocalTensorList * MasterGraph::mask_meta_data()
 {
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
-    auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get bbox buffer from ring buffer
+    auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get mask buffer from ring buffer
     auto mask_cords = _ring_buffer.get_meta_data().second->get_mask_cords_batch();
     for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
     {
