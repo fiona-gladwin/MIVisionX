@@ -33,7 +33,7 @@ void COCOMetaDataReader::init(const MetaDataConfig &cfg)
 {
     _path = cfg.path();
     if (cfg.type() == MetaDataType::PolygonMask)
-        _output = new InstanceSegmentationBatch();
+        _output = new PolygonMaskBatch();
     else
         _output = new BoundingBoxBatch();
     _output->set_metadata_type(cfg.type());
@@ -86,8 +86,8 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
         it->second->get_vertices_count().push_back(vertices_count[0]);
         return;
     }
-    pMetaDataInstanceSegmentation info = std::make_shared<InstanceSegmentation>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
-    _map_content.insert(pair<std::string, std::shared_ptr<InstanceSegmentation>>(image_name, info));
+    pMetaDataPolygonMask info = std::make_shared<PolygonMask>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
+    _map_content.insert(pair<std::string, std::shared_ptr<PolygonMask>>(image_name, info));
 }
 
 void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, uint image_id)
