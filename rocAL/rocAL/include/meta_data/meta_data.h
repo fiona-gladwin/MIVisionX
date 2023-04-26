@@ -173,8 +173,8 @@ protected:
     BoundingBoxCords_xcycwh _bb_cords_xcycwh = {}; // For bb use
 };
 
-struct InstanceSegmentation : public BoundingBox {
-    InstanceSegmentation(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
+struct PolygonMask : public BoundingBox {
+    PolygonMask(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
     {
         _bb_cords = std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
@@ -400,7 +400,7 @@ protected:
     std::vector<BoundingBoxCords_xcycwh> _bb_cords_xcycwh = {};
 };
 
-struct InstanceSegmentationBatch: public BoundingBoxBatch {
+struct PolygonMaskBatch: public BoundingBoxBatch {
     void clear() override
     {
         _bb_cords.clear();
@@ -451,7 +451,7 @@ struct InstanceSegmentationBatch: public BoundingBoxBatch {
     }
     std::shared_ptr<MetaDataBatch> clone() override
     {
-        return std::make_shared<InstanceSegmentationBatch>(*this);
+        return std::make_shared<PolygonMaskBatch>(*this);
     }
     void copy_data(std::vector<void*> buffer) override
     {
@@ -544,7 +544,7 @@ struct KeyPointBatch : public BoundingBoxBatch
 using ImageNameBatch = std::vector<std::string>;
 using pMetaData = std::shared_ptr<Label>;
 using pMetaDataBox = std::shared_ptr<BoundingBox>;
-using pMetaDataInstanceSegmentation = std::shared_ptr<InstanceSegmentation>;
+using pMetaDataPolygonMask = std::shared_ptr<PolygonMask>;
 using pMetaDataKeyPoint = std::shared_ptr<KeyPoint>;
 using pMetaDataBatch = std::shared_ptr<MetaDataBatch>;
 
