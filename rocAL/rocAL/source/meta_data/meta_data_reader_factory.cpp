@@ -53,7 +53,7 @@ std::shared_ptr<MetaDataReader> create_meta_data_reader(const MetaDataConfig& co
         case MetaDataReaderType::VIDEO_LABEL_READER:
         {
             if(config.type() != MetaDataType::Label)
-                THROW("FOLDER_BASED_LABEL_READER can only be used to load labels")
+                THROW("VIDEO_LABEL_READER can only be used to load labels")
             auto ret = std::make_shared<VideoLabelReader>();
             ret->init(config);
             return ret;
@@ -81,7 +81,7 @@ std::shared_ptr<MetaDataReader> create_meta_data_reader(const MetaDataConfig& co
         case MetaDataReaderType::TF_DETECTION_META_DATA_READER:
         {
             if(config.type() != MetaDataType::BoundingBox)
-                THROW("FOLDER_BASED_LABEL_READER can only be used to load bounding boxes")
+                THROW("TF_DETECTION_META_DATA_READER can only be used to load bounding boxes")
             auto ret = std::make_shared<TFMetaDataReaderDetection>();
             ret->init(config);
             return ret;
@@ -90,7 +90,7 @@ std::shared_ptr<MetaDataReader> create_meta_data_reader(const MetaDataConfig& co
         case MetaDataReaderType::COCO_META_DATA_READER:
         {
             if(config.type() != MetaDataType::BoundingBox && config.type() != MetaDataType::PolygonMask)
-                THROW("FOLDER_BASED_LABEL_READER can only be used to load bounding boxes")
+                THROW("COCO_META_DATA_READER can only be used to load bounding boxes and mask coordinates")
             auto ret = std::make_shared<COCOMetaDataReader>();
             ret->init(config);
             return ret;
