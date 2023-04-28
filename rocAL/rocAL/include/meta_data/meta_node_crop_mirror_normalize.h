@@ -32,7 +32,7 @@ class CropMirrorNormalizeMetaNode:public MetaNode
 {
     public:
         CropMirrorNormalizeMetaNode() {};
-        void update_parameters(std::shared_ptr<MetaDataBatch> input_meta_data)override;
+        void update_parameters(pMetaDataBatch input_meta_data)override;
         std::shared_ptr<CropMirrorNormalizeNode> _node = nullptr;
     private:
         void initialize();

@@ -115,7 +115,7 @@ private:
     /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed tensors
     bool no_more_processed_data();
     RingBuffer _ring_buffer;//!< The queue that keeps the tensors that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
-    std::shared_ptr<MetaDataBatch> _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
+    pMetaDataBatch _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
     std::shared_ptr<CropCordBatch> _random_bbox_crop_cords_data = nullptr;
     std::thread _output_thread;
     rocalTensorList _internal_tensor_list;  //!< Keeps a list of ovx tensors that are used to store the augmented outputs (there is an augmentation output batch per element in the list)
