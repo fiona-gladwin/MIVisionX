@@ -27,7 +27,7 @@ void FlipMetaNode::initialize()
     _src_width_val.resize(_batch_size);
     _flip_axis_val.resize(_batch_size);
 }
-void FlipMetaNode::update_parameters(std::shared_ptr<MetaDataBatch> input_meta_data)
+void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data)
 {
     initialize();
     if(_batch_size != input_meta_data->size())

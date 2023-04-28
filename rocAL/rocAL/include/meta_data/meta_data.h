@@ -122,7 +122,7 @@ public:
     void set_img_id(uint img_id) { _info.img_id = img_id; }
     void set_img_name(std::string img_name) { _info.img_name = img_name; }
     void set_metadata_info(MetaDataInfo info) { _info = std::move(info); }
-protected:
+    protected:
     MetaDataInfo _info;
 };
 

@@ -33,8 +33,8 @@ class MetaDataGraph
 {
 public:
     virtual ~MetaDataGraph()= default;
-    virtual void process(std::shared_ptr<MetaDataBatch> meta_data) = 0;
-    virtual void update_random_bbox_meta_data(std::shared_ptr<MetaDataBatch> meta_data, decoded_image_info decoded_image_info,crop_image_info crop_image_info) = 0;
+    virtual void process(pMetaDataBatch meta_data) = 0;
+    virtual void update_random_bbox_meta_data(pMetaDataBatch meta_data, decoded_image_info decoded_image_info,crop_image_info crop_image_info) = 0;
     virtual void update_box_encoder_meta_data(std::vector<float> *anchors, pMetaDataBatch full_batch_meta_data , float criteria, bool offset , float scale, std::vector<float> &means, std::vector<float> &stds) = 0;
     std::list<std::shared_ptr<MetaNode>> _meta_nodes;
 };
