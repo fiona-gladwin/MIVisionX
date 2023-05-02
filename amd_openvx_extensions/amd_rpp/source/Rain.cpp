@@ -58,8 +58,8 @@ static vx_status VX_CALLBACK refreshRain(vx_node node, const vx_reference *param
 
     for (int i = 0; i < data->inputTensorDims[0]; i++)
         {
-            data->srcDimensions[i].width = data->srcDescPtr->w;  //  640;//data->roiPtr[i].xywhROI.roiWidth;
-            data->srcDimensions[i].height = data->srcDescPtr->h; // 480;//data->roiPtr[i].xywhROI.roiHeight;
+            data->srcDimensions[i].width = data->srcDescPtr->w;
+            data->srcDimensions[i].height = data->srcDescPtr->h;
         }
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -197,13 +197,10 @@ static vx_status VX_CALLBACK initializeRain(vx_node node, const vx_reference *pa
     data->rainHeight = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
     data->rainTransperancy = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     data->srcDimensions = (RppiSize *)malloc(sizeof(RppiSize) * data->srcDescPtr->n);
-
-    if(1)
-    {
-        data->nbatchSize = data->inputTensorDims[0];
-        data->maxSrcDimensions.height = data->inputTensorDims[1];
-        data->maxSrcDimensions.width = data->inputTensorDims[2];
-    }
+    
+    data->nbatchSize = data->srcDescPtr->n;
+    data->maxSrcDimensions.height = data->srcDescPtr->h;
+    data->maxSrcDimensions.width = data->srcDescPtr->w;
     refreshRain(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));

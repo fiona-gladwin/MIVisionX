@@ -28,7 +28,6 @@ struct FishEyeLocalData {
     RppPtr_t pSrc;
     RppPtr_t pDst;
     Rpp32u nbatchSize;
-    // vx_uint32 *kernelSize;
     RpptDescPtr srcDescPtr;
     RpptDesc srcDesc;
     RpptDesc dstDesc;
@@ -53,8 +52,8 @@ static vx_status VX_CALLBACK refreshFishEye(vx_node node, const vx_reference *pa
     // STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->kernelSize, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     for (int i = 0; i < data->inputTensorDims[0]; i++)
         {
-            data->srcDimensions[i].width = data->srcDescPtr->w;  //  640;//data->roiPtr[i].xywhROI.roiWidth;
-            data->srcDimensions[i].height = data->srcDescPtr->h; // 480;//data->roiPtr[i].xywhROI.roiHeight;
+            data->srcDimensions[i].width = data->srcDescPtr->w;
+            data->srcDimensions[i].height = data->srcDescPtr->h;
         }
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
@@ -73,7 +72,6 @@ static vx_status VX_CALLBACK refreshFishEye(vx_node node, const vx_reference *pa
         for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
-                // data->kernelSize[index + f] = data->kernelSize[n];
                 data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
                 data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
                 data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
@@ -143,7 +141,6 @@ static vx_status VX_CALLBACK processFishEye(vx_node node, const vx_reference *pa
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshFishEye(node, parameters, num, data);
-        // rpp_status = rppt_gamma_correction_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->kernelSize, data->roiPtr, data->roiType, data->handle->rppHandle);
         rpp_status = rppi_fisheye_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->nbatchSize, data->handle->rppHandle);
 
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
@@ -183,16 +180,11 @@ static vx_status VX_CALLBACK initializeFishEye(vx_node node, const vx_reference 
     data->dstDescPtr->dataType = getRpptDataType(data->outputTensorType);
     data->dstDescPtr->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
-
-    // data->kernelSize = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
     data->srcDimensions = (RppiSize *)malloc(sizeof(RppiSize) * data->srcDescPtr->n);
 
-    if(1)
-    {
-        data->nbatchSize = data->inputTensorDims[0];
-        data->maxSrcDimensions.height = data->inputTensorDims[1];
-        data->maxSrcDimensions.width = data->inputTensorDims[2];
-    }
+    data->nbatchSize = data->srcDescPtr->n;
+    data->maxSrcDimensions.height = data->srcDescPtr->h;
+    data->maxSrcDimensions.width = data->srcDescPtr->w;
     refreshFishEye(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));

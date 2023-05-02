@@ -49,17 +49,13 @@ struct BlurLocalData {
 };
 
 static vx_status VX_CALLBACK refreshBlur(vx_node node, const vx_reference *parameters, vx_uint32 num, BlurLocalData *data) {
-    std::cerr<<"\n check in refreshBlur";
-
     vx_status status = VX_SUCCESS;
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->srcDescPtr->n, sizeof(vx_float32), data->kernelSize, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     for (int i = 0; i < data->inputTensorDims[0]; i++)
         {
-            std::cerr<<"\n check ";
-            data->srcDimensions[i].width = data->srcDescPtr->w;  //  640;//data->roiPtr[i].xywhROI.roiWidth;
-            data->srcDimensions[i].height = data->srcDescPtr->h; // 480;//data->roiPtr[i].xywhROI.roiHeight;
+            data->srcDimensions[i].width = data->srcDescPtr->w;
+            data->srcDimensions[i].height = data->srcDescPtr->h;
         }
-        std::cerr<<"\n chec 222";
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &data->roiTensorPtr, sizeof(data->roiTensorPtr)));
@@ -90,9 +86,6 @@ static vx_status VX_CALLBACK refreshBlur(vx_node node, const vx_reference *param
 }
 
 static vx_status VX_CALLBACK validateBlur(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
-    
-    std::cerr<<"\n check in validateBlur";
-
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[4], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
@@ -143,8 +136,6 @@ static vx_status VX_CALLBACK validateBlur(vx_node node, const vx_reference param
 }
 
 static vx_status VX_CALLBACK processBlur(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    std::cerr<<"\n check in processBlur";
-
     RppStatus rpp_status = RPP_SUCCESS;
     vx_status return_status = VX_SUCCESS;
     BlurLocalData *data = NULL;
@@ -152,15 +143,11 @@ static vx_status VX_CALLBACK processBlur(vx_node node, const vx_reference *param
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshBlur(node, parameters, num, data);
-        // rpp_status = rppt_gamma_correction_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->kernelSize, data->roiPtr, data->roiType, data->handle->rppHandle);
         rpp_status = rppi_blur_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->kernelSize, data->nbatchSize, data->handle->rppHandle);
-
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshBlur(node, parameters, num, data);
-        // rpp_status = rppt_gamma_correction_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->kernelSize, data->roiPtr, data->roiType, data->handle->rppHandle);
-        std::cerr<<"data->srcDimensions "<<data->srcDimensions[0].width<<" "<<data->srcDimensions[0].height;
         rpp_status = rppi_blur_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->kernelSize, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
@@ -168,7 +155,6 @@ static vx_status VX_CALLBACK processBlur(vx_node node, const vx_reference *param
 }
 
 static vx_status VX_CALLBACK initializeBlur(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    std::cerr<<"\n check in initializeBlur";
     BlurLocalData *data = new BlurLocalData;
     memset(data, 0, sizeof(*data));
     int roi_type;
@@ -199,12 +185,9 @@ static vx_status VX_CALLBACK initializeBlur(vx_node node, const vx_reference *pa
     data->kernelSize = (vx_uint32 *)malloc(sizeof(vx_uint32) * data->srcDescPtr->n);
     data->srcDimensions = (RppiSize *)malloc(sizeof(RppiSize) * data->srcDescPtr->n);
 
-    if(1)
-    {
-        data->nbatchSize = data->inputTensorDims[0];
-        data->maxSrcDimensions.height = data->inputTensorDims[1];
-        data->maxSrcDimensions.width = data->inputTensorDims[2];
-    }
+    data->nbatchSize = data->srcDescPtr->n;
+    data->maxSrcDimensions.height = data->srcDescPtr->h;
+    data->maxSrcDimensions.width = data->srcDescPtr->w;
     refreshBlur(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -268,7 +251,6 @@ vx_status Blur_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 1, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
-        // PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));

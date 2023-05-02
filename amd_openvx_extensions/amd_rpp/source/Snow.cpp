@@ -54,8 +54,8 @@ static vx_status VX_CALLBACK refreshSnow(vx_node node, const vx_reference *param
     for (int i = 0; i < data->inputTensorDims[0]; i++)
         {
             std::cerr<<"\n check ";
-            data->srcDimensions[i].width = data->srcDescPtr->w;  //  640;//data->roiPtr[i].xywhROI.roiWidth;
-            data->srcDimensions[i].height = data->srcDescPtr->h; // 480;//data->roiPtr[i].xywhROI.roiHeight;
+            data->srcDimensions[i].width = data->srcDescPtr->w;
+            data->srcDimensions[i].height = data->srcDescPtr->h;
         }
         std::cerr<<"\n chec 222";
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
@@ -150,15 +150,12 @@ static vx_status VX_CALLBACK processSnow(vx_node node, const vx_reference *param
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshSnow(node, parameters, num, data);
-        // rpp_status = rppt_gamma_correction_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->snowValue, data->roiPtr, data->roiType, data->handle->rppHandle);
         rpp_status = rppi_snow_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->snowValue, data->nbatchSize, data->handle->rppHandle);
 
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshSnow(node, parameters, num, data);
-        // rpp_status = rppt_gamma_correction_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->snowValue, data->roiPtr, data->roiType, data->handle->rppHandle);
-        std::cerr<<"data->srcDimensions "<<data->srcDimensions[0].width<<" "<<data->srcDimensions[0].height;
         rpp_status = rppi_snow_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->snowValue, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
@@ -166,7 +163,6 @@ static vx_status VX_CALLBACK processSnow(vx_node node, const vx_reference *param
 }
 
 static vx_status VX_CALLBACK initializeSnow(vx_node node, const vx_reference *parameters, vx_uint32 num) {
-    std::cerr<<"\n check in initializeSnow";
     SnowLocalData *data = new SnowLocalData;
     memset(data, 0, sizeof(*data));
     int roi_type;
@@ -197,12 +193,9 @@ static vx_status VX_CALLBACK initializeSnow(vx_node node, const vx_reference *pa
     data->snowValue = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     data->srcDimensions = (RppiSize *)malloc(sizeof(RppiSize) * data->srcDescPtr->n);
 
-    if(1)
-    {
-        data->nbatchSize = data->inputTensorDims[0];
-        data->maxSrcDimensions.height = data->inputTensorDims[1];
-        data->maxSrcDimensions.width = data->inputTensorDims[2];
-    }
+    data->nbatchSize = data->srcDescPtr->n;
+    data->maxSrcDimensions.height = data->srcDescPtr->h;
+    data->maxSrcDimensions.width = data->srcDescPtr->w;
     refreshSnow(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -266,7 +259,6 @@ vx_status Snow_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 1, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
-        // PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
