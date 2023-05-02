@@ -423,7 +423,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalCropResize" << std::endl;
-        // image1 = rocalCropResize(handle, input1, resize_w, resize_h, true);
+        image1 = rocalCropResize(handle, input1, 640, 480, true);
+
     }
     break;
     case 2:
@@ -631,7 +632,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalCropResizeFixed" << std::endl;
-        // image1 = rocalCropResizeFixed(handle, image0, resize_w, resize_h, true, 0.25, 1.2, 0.6, 0.4);
+        image1 = rocalCropResizeFixed(handle, input1, 640, 480, true,0.25, 1.2, 0.6, 0.4);
     }
     break;
     case 31:

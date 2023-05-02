@@ -152,6 +152,8 @@ vx_status ColorTemperature_Register(vx_context);
 vx_status Glitch_Register(vx_context);
 vx_status WarpAffine_Register(vx_context);
 vx_status Noise_Register(vx_context);
+vx_status ResizeCrop_Register(vx_context);
+
 
 // kernel names
 #define VX_KERNEL_RPP_NOPBATCHPD_NAME                   "org.rpp.NopbatchPD"
@@ -269,5 +271,7 @@ vx_status Noise_Register(vx_context);
 #define VX_KERNEL_RPP_JITTER_NAME                                            "org.rpp.Jitter"
 #define VX_KERNEL_RPP_COLORTEMPERATURE_NAME                                  "org.rpp.ColorTemperature"
 #define VX_KERNEL_RPP_GLITCH_NAME                                            "org.rpp.Glitch"
+#define VX_KERNEL_RPP_RESIZECROP_NAME                                       "org.rpp.ResizeCrop"
+
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_

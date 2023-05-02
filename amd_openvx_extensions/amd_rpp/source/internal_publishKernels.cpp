@@ -157,6 +157,8 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(ColorTemperature_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Glitch_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Noise_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(ResizeCrop_Register));
+
 
     return status;
 }

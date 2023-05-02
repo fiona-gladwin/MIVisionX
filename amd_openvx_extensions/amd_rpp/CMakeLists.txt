@@ -161,6 +161,8 @@ list(APPEND SOURCES
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp
         source/LensCorrection.cpp
+        source/ResizeCrop.cpp
+
 
         
     )
