@@ -58,8 +58,6 @@ struct ResizeCropLocalData {
 };
 
 static vx_status VX_CALLBACK refreshResizeCrop(vx_node node, const vx_reference *parameters, vx_uint32 num, ResizeCropLocalData *data) {
-    std::cerr<<"\n check in refreshResizeCrop";
-
     vx_status status = VX_SUCCESS;
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->srcDescPtr->n, sizeof(vx_uint32), data->dstBatch_width, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->srcDescPtr->n, sizeof(vx_uint32), data->dstBatch_height, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));

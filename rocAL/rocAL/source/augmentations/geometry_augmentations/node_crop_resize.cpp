@@ -38,11 +38,9 @@ void CropResizeNode::create_node()
 {
     if(_node)
         return;
-    std::cerr<<"\n check in init node ";
     _crop_param->create_array(_graph);
     std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().max_shape()[0]);
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
-    std::cerr<<"\n\n _outputs[0]->info().max_shape()[0] "<<_outputs[0]->info().max_shape()[0];
     _dst_roi_width = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
     _dst_roi_height = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
     vx_status width_status, height_status;

@@ -423,6 +423,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalCropResize" << std::endl;
         // image1 = rocalCropResize(handle, input1, resize_w, resize_h, true);
+        image1 = rocalCropResize(handle, input1, 640, 480, true);
+
     }
     break;
     case 2:
