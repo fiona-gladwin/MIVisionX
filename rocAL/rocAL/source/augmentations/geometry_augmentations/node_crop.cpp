@@ -74,6 +74,7 @@ void CropNode::update_node()
     // Obtain the crop coordinates and update the roi
     auto x1 = _crop_param->get_x1_arr_val();
     auto y1 = _crop_param->get_y1_arr_val();
+    
     RocalROI *src_roi = (RocalROI *)_crop_coordinates;
     for(unsigned i = 0; i < _batch_size; i++) {
         src_roi[i].x1 = x1[i];
