@@ -144,6 +144,8 @@ list(APPEND SOURCES
         source/Glitch.cpp
         source/Blur.cpp
         source/Snow.cpp
+        source/ResizeCrop.cpp
+
         source/Fog.cpp
         source/Hue.cpp
         source/Saturation.cpp

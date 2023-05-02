@@ -157,6 +157,7 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(FishEye_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Rain_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(LensCorrection_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(ResizeCrop_Register));
 
     return status;
 }

@@ -341,4 +341,27 @@ extern "C" RocalTensor ROCAL_API_CALL rocalLensCorrection(RocalContext context, 
                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
+// extern "C" RocalTensor ROCAL_API_CALL rocalCropResizeFixed(RocalContext context, RocalTensor input,
+//                                                         bool is_output,
+//                                                         float area,
+//                                                         float aspect_ratio,
+//                                                         float x_center_drift,
+//                                                         float y_center_drift,
+//                                                         RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+//                                                         RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalCropResizeFixed(RocalContext context, RocalTensor input,
+                                                   unsigned dest_width, unsigned dest_height,
+                                                   bool is_output,
+                                                   float area, float aspect_ratio,
+                                                    float x_center_drift, float y_center_drift,
+                                                   RocalResizeScalingMode scaling_mode = ROCAL_SCALING_MODE_DEFAULT,
+                                                   std::vector<unsigned> max_size = {},
+                                                   unsigned resize_shorter = 0,
+                                                   unsigned resize_longer = 0,
+                                                   RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                   RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                   RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+
 #endif //MIVISIONX_ROCAL_API_AUGMENTATION_H

@@ -35,7 +35,7 @@ THE SOFTWARE.
 #include "node_lens_correction.h"
 #include "node_gamma.h"
 #include "node_flip.h"
-// #include "node_crop_resize.h"
+#include "node_crop_resize.h"
 #include "node_brightness.h"
 #include "node_contrast.h"
 #include "node_blur.h"
