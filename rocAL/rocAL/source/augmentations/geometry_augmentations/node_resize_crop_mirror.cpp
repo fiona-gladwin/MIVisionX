@@ -148,6 +148,30 @@ void ResizeCropMirrorNode::init(unsigned dest_width, unsigned dest_height, unsig
     std::cerr<<"crop_width and crop_height "<<dest_width<<"  "<<dest_height<<"  "<<crop_width<<"  "<<crop_height<<"\n";
 }
 
+void ResizeCropMirrorNode::init(unsigned dest_width, unsigned dest_height, FloatParam * crop_width, FloatParam * crop_height, IntParam *mirror, RocalResizeScalingMode scaling_mode,
+                      const std::vector<unsigned>& max_size, RocalResizeInterpolationType interpolation_type) {
+    _interpolation_type = (int)interpolation_type;
+    _scaling_mode = scaling_mode;
+    _out_width = dest_width;
+    _out_height = dest_height;
+    if(max_size.size() > 0) {
+        _max_width = max_size[0];
+        _max_height = max_size[1];
+    }
+    //cmn
+    // _crop_param->x1 = 0;
+    // _crop_param->y1 = 0;
+    // _crop_param->crop_h = crop_height;
+    // _crop_param->crop_w = crop_width;
+    // // _crop_param->set_fixed_crop(anchor_x, anchor_y);
+    // _mirror.set_param(core(mirror));
+    _crop_param->set_crop_height_factor(core(crop_height));
+    _crop_param->set_crop_width_factor(core(crop_width));
+    _crop_param->set_random();
+    _mirror.set_param(core(mirror));
+    std::cerr<<"crop_width and crop_height "<<dest_width<<"  "<<dest_height<<"  "<<crop_width<<"  "<<crop_height<<"\n";
+}
+
 void ResizeCropMirrorNode::adjust_out_roi_size() {
     bool has_max_size = (_max_width | _max_height) > 0;
 

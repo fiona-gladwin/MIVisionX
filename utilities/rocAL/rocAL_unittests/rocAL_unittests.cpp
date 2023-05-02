@@ -701,13 +701,17 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalCrop" << std::endl;
         // image1 = rocalCrop(handle, image0, true);
+        image1 = rocalCrop(handle, input1, true);
+
     }
     break;
     case 27:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalResizeCropMirror" << std::endl;
-        // image1 = rocalResizeCropMirror(handle, image0, resize_w, resize_h, true);
+        // image1 = rocalResizeCropMirror(handle, input1, resize_w, resize_h, true);
+        image1 = rocalResizeCropMirror(handle, input1, 400, 400,true);
+
     }
     break;
 
