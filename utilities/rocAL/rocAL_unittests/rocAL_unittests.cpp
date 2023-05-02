@@ -755,7 +755,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalBlurFixed" << std::endl;
         // image1 = rocalBlurFixed(handle, image0, 5, true);
-        image1 = rocalGammaFixed(handle, input1, true, 5, tensorLayout, tensorOutputType);
+        image1 = rocalBlurFixed(handle, input1, true, 5, tensorLayout, tensorOutputType);
 
     }
     break;
@@ -820,6 +820,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalColorTempFixed" << std::endl;
         // image1 = rocalColorTempFixed(handle, image0, 70, true);
+        image1 = rocalColorTemperatureFixed(handle, input1, true, 70 ,  tensorLayout, tensorOutputType);
     }
     break;
     case 44:
@@ -827,6 +828,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalFogFixed" << std::endl;
         // image1 = rocalFogFixed(handle, image0, 0.5, true);
+        image1 = rocalFogFixed(handle, input1, true, 0.5,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 45:
@@ -834,6 +837,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalLensCorrectionFixed" << std::endl;
         // image1 = rocalLensCorrectionFixed(handle, image0, 2.9, 1.2, true);
+        image1 = rocalLensCorrectionFixed(handle, input1, true, 2.9, 1.2, tensorLayout, tensorOutputType);
+
     }
     break;
     case 46:
@@ -857,6 +862,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalHueFixed" << std::endl;
         // image1 = rocalHueFixed(handle, image0, 150, true);
+        image1 = rocalHueFixed(handle, input1, true, 150,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 49:
@@ -864,6 +871,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalSaturationFixed" << std::endl;
         // image1 = rocalSaturationFixed(handle, image0, 0.3, true);
+        image1 = rocalSaturationFixed(handle, input1, true, 0.3,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 50:

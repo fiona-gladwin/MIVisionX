@@ -26,8 +26,8 @@ caffe2_classification_path=${ROCAL_DATA_PATH}/rocal_data/caffe2/classification/
 caffe2_detection_path=${ROCAL_DATA_PATH}/rocal_data/caffe2/detection/
 mxnet_path=${ROCAL_DATA_PATH}/rocal_data/mxnet/
 output_path=../OUTPUT_FOLDER_$(date +%Y-%m-%d_%H-%M-%S)/
-# golden_output_path=${ROCAL_DATA_PATH}/rocal_data/GoldenOutputs/
-golden_output_path=${ROCAL_DATA_PATH}/rocal_data/Golden_outputs_tensor/
+golden_output_path=${ROCAL_DATA_PATH}/rocal_data/GoldenOutputs/
+# golden_output_path=${ROCAL_DATA_PATH}/rocal_data/Golden_outputs_tensor/
 
 
 display=0
@@ -36,7 +36,7 @@ width=640
 height=480
 device_name="host"
 rgb_name=("gray" "rgb")
-rgb=1
+rgb=21
 dev_start=0
 dev_end=1
 rgb_start=0
@@ -83,31 +83,31 @@ do
     do 
         # FileSource Reader
         # ./rocAL_unittests 0 "$image_path" "${output_path}LensCorrection_${rgb_name[$rgb]}_${device_name}" $width $height 45 $device $rgb 0 $display
-        ./rocAL_unittests 0 "$image_path" "${output_path}Exposure_${rgb_name[$rgb]}_${device_name}" $width $height 46 $device $rgb 0 $display
-        ./rocAL_unittests 0 "$image_path" "${output_path}Flip_${rgb_name[$rgb]}_${device_name}" $width $height 47 $device $rgb 0 $display
+        # ./rocAL_unittests 0 "$image_path" "${output_path}Exposure_${rgb_name[$rgb]}_${device_name}" $width $height 46 $device $rgb 0 $display
+        # ./rocAL_unittests 0 "$image_path" "${output_path}Flip_${rgb_name[$rgb]}_${device_name}" $width $height 47 $device $rgb 0 $display
 
         # coco detection
-        ./rocAL_unittests 2 "$coco_detection_path" "${output_path}Gamma_${rgb_name[$rgb]}_${device_name}" $width $height 33 $device $rgb 0 $display
-        ./rocAL_unittests 2 "$coco_detection_path" "${output_path}Contrast_${rgb_name[$rgb]}_${device_name}" $width $height 34 $device $rgb 0 $display
+        # ./rocAL_unittests 2 "$coco_detection_path" "${output_path}Gamma_${rgb_name[$rgb]}_${device_name}" $width $height 33 $device $rgb 0 $display
+        # ./rocAL_unittests 2 "$coco_detection_path" "${output_path}Contrast_${rgb_name[$rgb]}_${device_name}" $width $height 34 $device $rgb 0 $display
         # ./rocAL_unittests 2 "$coco_detection_path" "${output_path}Vignette_${rgb_name[$rgb]}_${device_name}" $width $height 38 $device $rgb 0 $display
 
         # tf classification
-        ./rocAL_unittests 4 "$tf_classification_path" "${output_path}Blend_${rgb_name[$rgb]}_${device_name}" $width $height 36 $device $rgb 0 $display
-        ./rocAL_unittests 4 "$tf_classification_path" "${output_path}WarpAffine_${rgb_name[$rgb]}_${device_name}" $width $height 37 $device $rgb 0 $display
-        # ./rocAL_unittests 4 "$tf_classification_path" "${output_path}Blur_${rgb_name[$rgb]}_${device_name}" $width $height 35 $device $rgb 0 $display
+        # ./rocAL_unittests 4 "$tf_classification_path" "${output_path}Blend_${rgb_name[$rgb]}_${device_name}" $width $height 36 $device $rgb 0 $display
+        # ./rocAL_unittests 4 "$tf_classification_path" "${output_path}WarpAffine_${rgb_name[$rgb]}_${device_name}" $width $height 37 $device $rgb 0 $display
+        ./rocAL_unittests 4 "$tf_classification_path" "${output_path}Blur_${rgb_name[$rgb]}_${device_name}" $width $height 35 $device $rgb 0 $display
 
         # # tf detection
         # ./rocAL_unittests 5 "$tf_detection_path" "${output_path}SNPNoise_${rgb_name[$rgb]}_${device_name}" $width $height 40 $device $rgb 0 $display
         # ./rocAL_unittests 5 "$tf_detection_path" "${output_path}ColorTemp_${rgb_name[$rgb]}_${device_name}" $width $height 43 $device $rgb 0 $display
-        # ./rocAL_unittests 5 "$tf_detection_path" "${output_path}Fog_${rgb_name[$rgb]}_${device_name}" $width $height 44 $device $rgb 0 $display
+        ./rocAL_unittests 5 "$tf_detection_path" "${output_path}Fog_${rgb_name[$rgb]}_${device_name}" $width $height 44 $device $rgb 0 $display
 
         # # caffe classification
-        ./rocAL_unittests 6 "$caffe_classification_path" "${output_path}Rotate_${rgb_name[$rgb]}_${device_name}" $width $height 31 $device $rgb 0 $display
+        # ./rocAL_unittests 6 "$caffe_classification_path" "${output_path}Rotate_${rgb_name[$rgb]}_${device_name}" $width $height 31 $device $rgb 0 $display
         # ./rocAL_unittests 6 "$caffe_classification_path" "${output_path}Brightness_${rgb_name[$rgb]}_${device_name}" $width $height 32 $device $rgb 0 $display
-        # ./rocAL_unittests 6 "$caffe_classification_path" "${output_path}Hue_${rgb_name[$rgb]}_${device_name}" $width $height 48 $device $rgb 0 $display
+        ./rocAL_unittests 6 "$caffe_classification_path" "${output_path}Hue_${rgb_name[$rgb]}_${device_name}" $width $height 48 $device $rgb 0 $display
 
         # # caffe detection
-        # ./rocAL_unittests 7 "$caffe_detection_path" "${output_path}Saturation_${rgb_name[$rgb]}_${device_name}" $width $height 49 $device $rgb 0 $display
+        ./rocAL_unittests 7 "$caffe_detection_path" "${output_path}Saturation_${rgb_name[$rgb]}_${device_name}" $width $height 49 $device $rgb 0 $display
         # ./rocAL_unittests 7 "$caffe_detection_path" "${output_path}ColorTwist_${rgb_name[$rgb]}_${device_name}" $width $height 50 $device $rgb 0 $display
         # ./rocAL_unittests 7 "$caffe_detection_path" "${output_path}Rain_${rgb_name[$rgb]}_${device_name}" $width $height 42 $device $rgb 0 $display
 
