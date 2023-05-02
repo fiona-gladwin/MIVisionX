@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "randombboxcrop_meta_data_reader_factory.h"
 #include "exception.h"
 
-std::shared_ptr<RandomBBoxCrop_MetaDataReader> create_meta_data_reader(const RandomBBoxCrop_MetaDataConfig &config, std::shared_ptr<CropCordBatch> meta_data_batch)
+std::shared_ptr<RandomBBoxCrop_MetaDataReader> create_meta_data_reader(const RandomBBoxCrop_MetaDataConfig &config, std::shared_ptr<CropCordBatch>& meta_data_batch)
 {
     switch (config.reader_type())
     {
