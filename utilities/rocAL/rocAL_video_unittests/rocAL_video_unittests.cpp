@@ -141,10 +141,10 @@ int main(int argc, const char **argv)
         std::cout << "\nThe folder/file path does not exist\n";
         return -1;
     }
-    // if (enable_sequence_rearrange)
-    // {
-    //     is_output = false;
-    // }
+    if (enable_sequence_rearrange)
+    {
+        is_output = false;
+    }
     std::cerr << "Batch size : " << input_batch_size << std::endl;
     std::cerr << "Sequence length : " << sequence_length << std::endl;
     std::cerr << "Frame step : " << frame_step << std::endl;
@@ -195,17 +195,17 @@ int main(int argc, const char **argv)
             input1 = rocalVideoFileSource(handle, source_path, color_format, decoder_mode, shard_count, sequence_length, is_output, shuffle, false, frame_step, frame_stride, file_list_frame_num);
             break;
         }
-        // case 2:
-        // {
-        //     std::cout << "\n>>>> VIDEO READER RESIZE\n";
-        //     if (resize_width == 0 || resize_height == 0)
-        //     {
-        //         std::cerr << "\n[ERR]Resize width and height are passed as NULL values\n";
-        //         return -1;
-        //     }
-        //     input1 = rocalVideoFileResize(handle, source_path, color_format, decoder_mode, shard_count, sequence_length, resize_width, resize_height, shuffle, is_output, false, frame_step, frame_stride, file_list_frame_num);
-        //     break;
-        // }
+        case 2:
+        {
+            std::cout << "\n>>>> VIDEO READER RESIZE\n";
+            if (resize_width == 0 || resize_height == 0)
+            {
+                std::cerr << "\n[ERR]Resize width and height are passed as NULL values\n";
+                return -1;
+            }
+            input1 = rocalVideoFileResize(handle, source_path, color_format, decoder_mode, shard_count, sequence_length, resize_width, resize_height, shuffle, is_output, false, frame_step, frame_stride, file_list_frame_num);
+            break;
+        }
         case 3:
         {
             std::cout << "\n>>>> SEQUENCE READER\n";
@@ -218,10 +218,9 @@ int main(int argc, const char **argv)
     if (enable_sequence_rearrange)
     {
         std::cout << "\n>>>> ENABLE SEQUENCE REARRANGE\n";
-        unsigned int new_order[] = {0, 1}; // The integers in new order should range only from 0 to sequence_length - 1
-        unsigned new_sequence_length = sizeof(new_order) / sizeof(new_order[0]);
-        ouput_frames_per_sequence = new_sequence_length;
-        input1 = rocalSequenceRearrange(handle, input1, new_order, new_sequence_length, sequence_length, true);
+        std::vector<unsigned int> new_order = {1, 0}; // The integers in new order should range only from 0 to sequence_length - 1
+        ouput_frames_per_sequence = new_order.size();
+        input1 = rocalSequenceRearrange(handle, input1, new_order, true);
     }
     RocalIntParam color_temp_adj = rocalCreateIntParameter(0);
 

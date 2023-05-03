@@ -25,9 +25,7 @@ THE SOFTWARE.
 #include "rocal_api_types.h"
 
 RocalTensor  ROCAL_API_CALL
-rocalSequenceRearrange(
-            RocalContext p_context, RocalTensor input, unsigned int* new_order, 
-            unsigned int  new_sequence_length, unsigned int sequence_length, bool is_output );
+rocalSequenceRearrange(RocalContext p_context, RocalTensor input, std::vector<unsigned int>& new_order, bool is_output);
 
 /// Accepts U8 and RGB24 inputs
 /// \param context Rocal context

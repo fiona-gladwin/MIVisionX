@@ -155,7 +155,7 @@ extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Resize(vx_graph graph,
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ResizeCropMirror(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array dst_width, vx_array dst_height,vx_array mirror, vx_scalar interpolation_type, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType, vx_uint32 nbatchSize);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ResizeMirrorNormalize(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst,vx_array dst_width,vx_array dst_height, vx_scalar interpolation_type, vx_array mean, vx_array std_dev, vx_array flip, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType, vx_uint32 nbatchSize);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Rotate(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array angle, vx_scalar interpolation_type, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
-extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph,vx_tensor pSrc,vx_tensor pDst, vx_array newOrder,vx_uint32 newSequenceLength, vx_uint32 sequenceLength, vx_uint32 sequenceCount, vx_scalar layout);
+// extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph,vx_tensor pSrc,vx_tensor pDst, vx_array newOrder,vx_uint32 newSequenceLength, vx_uint32 sequenceLength, vx_uint32 sequenceCount, vx_scalar layout);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_WarpAffine(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array affine_array, vx_scalar interpolation_type, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Pixelate(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Vignette(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array sdev, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
@@ -164,6 +164,7 @@ extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ColorTemperature(vx_gr
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Glitch(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst,vx_array x_offset_r, vx_array y_offset_r, vx_array x_offset_g, vx_array y_offset_g, vx_array x_offset_b, vx_array y_offset_b, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Noise(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array noise_prob, vx_array salt_prob, vx_array noise_value, vx_array salt_value, vx_scalar seed, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ResizeCrop(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI,vx_tensor crop_tensor, vx_tensor pDst, vx_array dstBatch_width, vx_array dstBatch_height, vx_scalar input_layout, vx_scalar output_layout, vx_scalar roiType);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph,vx_tensor pSrc,vx_tensor pDst, vx_array newOrder, vx_scalar layout);
 
 
 
