@@ -38,7 +38,7 @@ THE SOFTWARE.
 #include "video_label_reader.h"
 #include "mxnet_meta_data_reader.h"
 
-std::shared_ptr<MetaDataReader> create_meta_data_reader(const MetaDataConfig& config, pMetaDataBatch meta_data_batch) {
+std::shared_ptr<MetaDataReader> create_meta_data_reader(const MetaDataConfig& config, pMetaDataBatch& meta_data_batch) {
     switch(config.reader_type()) {
         case MetaDataReaderType::FOLDER_BASED_LABEL_READER:
         {
