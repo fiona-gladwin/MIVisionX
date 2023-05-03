@@ -41,13 +41,13 @@ VideoLabelReader::VideoLabelReader()
     _sub_dir = nullptr;
 }
 
-void VideoLabelReader::init(const MetaDataConfig &cfg)
+void VideoLabelReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
     _sequence_length = cfg.sequence_length();
     _step = cfg.frame_step();
     _stride = cfg.frame_stride();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
 }
 
 bool VideoLabelReader::exists(const std::string &frame_name)

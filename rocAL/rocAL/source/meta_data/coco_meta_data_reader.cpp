@@ -29,13 +29,10 @@ THE SOFTWARE.
 
 using namespace std;
 
-void COCOMetaDataReader::init(const MetaDataConfig &cfg)
+void COCOMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    if (cfg.type() == MetaDataType::PolygonMask)
-        _output = new PolygonMaskBatch();
-    else
-        _output = new BoundingBoxBatch();
+    _output = meta_data_batch;
     _output->set_metadata_type(cfg.type());
 }
 

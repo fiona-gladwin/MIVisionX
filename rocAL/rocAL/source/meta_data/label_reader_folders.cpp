@@ -41,10 +41,10 @@ LabelReaderFolders::LabelReaderFolders()
     _sub_dir = nullptr;
 }
 
-void LabelReaderFolders::init(const MetaDataConfig& cfg)
+void LabelReaderFolders::init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
 }
 bool LabelReaderFolders::exists(const std::string& image_name)
 {

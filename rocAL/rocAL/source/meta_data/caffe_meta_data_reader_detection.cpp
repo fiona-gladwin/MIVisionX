@@ -34,10 +34,10 @@ THE SOFTWARE.
 
 using namespace std;
 
-void CaffeMetaDataReaderDetection::init(const MetaDataConfig &cfg)
+void CaffeMetaDataReaderDetection::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new BoundingBoxBatch();
+    _output = meta_data_batch;
 }
 
 bool CaffeMetaDataReaderDetection::exists(const std::string &_image_name)

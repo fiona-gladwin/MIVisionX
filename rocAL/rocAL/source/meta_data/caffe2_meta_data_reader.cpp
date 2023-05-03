@@ -33,10 +33,10 @@ THE SOFTWARE.
 
 using namespace std;
 
-void Caffe2MetaDataReader::init(const MetaDataConfig &cfg)
+void Caffe2MetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
     _last_rec = false;
 }
 

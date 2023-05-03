@@ -41,11 +41,11 @@ Cifar10MetaDataReader::Cifar10MetaDataReader()
     _sub_dir = nullptr;
 }
 
-void Cifar10MetaDataReader::init(const MetaDataConfig& cfg)
+void Cifar10MetaDataReader::init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
     _file_prefix = cfg.file_prefix();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
     _raw_file_size = 32*32*3 + 1;   // 1 extra byte is label
 }
 bool Cifar10MetaDataReader::exists(const std::string& image_name)

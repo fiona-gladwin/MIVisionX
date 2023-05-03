@@ -29,10 +29,10 @@ THE SOFTWARE.
 
 using namespace std;
 
-void COCOMetaDataReaderKeyPoints::init(const MetaDataConfig &cfg)
+void COCOMetaDataReaderKeyPoints::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new KeyPointBatch();
+    _output = meta_data_batch;
     _out_img_width = cfg.out_img_width();
     _out_img_height = cfg.out_img_height();
 }
@@ -89,7 +89,7 @@ void COCOMetaDataReaderKeyPoints::print_map_contents()
         joints_data = elem.second->get_joints_data();
         std::cout << "ImageID: " << joints_data.image_id << std::endl;
         std::cout << "AnnotationID: " << joints_data.annotation_id << std::endl;
-        std::cout << "ImagePath: "<< joints_data.image_path<<std::endl;   
+        std::cout << "ImagePath: "<< joints_data.image_path<<std::endl;
         std::cout << "center (x,y) : " << joints_data.center[0] << " " << joints_data.center[1] << std::endl;
         std::cout << "scale (w,h) : " << joints_data.scale[0] << " " << joints_data.scale[1] << std::endl;
         for (unsigned int i = 0; i < NUMBER_OF_JOINTS; i++)
@@ -136,7 +136,7 @@ void COCOMetaDataReaderKeyPoints::read_all(const std::string &path)
     float rotation = 0.0;
     float aspect_ratio = ((float)_out_img_width / _out_img_height);
     float inverse_aspect_ratio = 1 / aspect_ratio;
-    float inverse_pixel_std = 1 / ((float) PIXEL_STD); 
+    float inverse_pixel_std = 1 / ((float) PIXEL_STD);
 
     RAPIDJSON_ASSERT(parser.PeekType() == kObjectType);
     parser.EnterObject();
