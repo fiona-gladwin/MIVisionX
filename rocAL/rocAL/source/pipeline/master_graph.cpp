@@ -489,7 +489,7 @@ void MasterGraph::output_routine()
             if (_meta_data_reader)
                 _meta_data_reader->lookup(this_cycle_names);
 
-            full_batch_image_names += this_cycle_names;
+            full_batch_image_names = this_cycle_names;
 
             if (!_processing)
                 break;
@@ -520,10 +520,7 @@ void MasterGraph::output_routine()
                     }
                     _meta_data_graph->process(_augmented_meta_data);
                 }
-                if (full_batch_meta_data)
-                    *full_batch_meta_data += *_augmented_meta_data;
-                else
-                    full_batch_meta_data = _augmented_meta_data->clone();
+                full_batch_meta_data = _augmented_meta_data->clone();
             }
             _process_time.start();
             _graph->process();
