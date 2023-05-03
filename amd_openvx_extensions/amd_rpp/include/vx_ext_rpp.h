@@ -140,7 +140,7 @@ extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Resize(vx_graph graph,
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Crop(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ColorTwist(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array alpha, vx_array beta, vx_array hue, vx_array sat, vx_scalar layout, vx_scalar roiType, vx_uint32 nbatchSize);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ResizeMirrorNormalize(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst,vx_array dst_width,vx_array dst_height, vx_scalar interpolation_type, vx_array mean, vx_array std_dev, vx_array flip, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType, vx_uint32 nbatchSize);
-extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph,vx_tensor pSrc,vx_tensor pDst, vx_array newOrder,vx_uint32 newSequenceLength, vx_uint32 sequenceLength, vx_uint32 sequenceCount, vx_scalar layout);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph,vx_tensor pSrc,vx_tensor pDst, vx_array newOrder, vx_scalar layout);
 
 #ifdef __cplusplus
 }

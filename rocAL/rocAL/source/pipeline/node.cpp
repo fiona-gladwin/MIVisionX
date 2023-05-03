@@ -23,11 +23,12 @@ THE SOFTWARE.
 #include "node.h"
 Node::~Node()
 {
-    vxReleaseTensor(&_src_tensor_roi);
-    vxReleaseTensor(&_dst_tensor_roi);
-    if(!_node)
-        vxReleaseNode(&_node);
+    if(!_src_tensor_roi) vxReleaseTensor(&_src_tensor_roi);
+    if(!_dst_tensor_roi) vxReleaseTensor(&_dst_tensor_roi);
+    if(!_node) vxReleaseNode(&_node);
     _node = nullptr;
+    _src_tensor_roi = nullptr;
+    _dst_tensor_roi = nullptr;
 }
 
 void
@@ -43,6 +44,8 @@ Node::create(std::shared_ptr<Graph> graph)
         vx_size num_of_dims = 2;
         vx_size stride[num_of_dims];
         std::vector<size_t> roi_dims = {_batch_size, 4};
+        if(_inputs[0]->info().layout() == RocalTensorlayout::NFCHW || _inputs[0]->info().layout() == RocalTensorlayout::NFHWC)
+            roi_dims = {_inputs[0]->info().dims()[0] * _inputs[0]->info().dims()[1], 4}; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions        stride[0] = sizeof(vx_uint32);
         stride[0] = sizeof(vx_uint32);
         stride[1] = stride[0] * roi_dims[0];
         vx_enum mem_type = VX_MEMORY_TYPE_HOST;

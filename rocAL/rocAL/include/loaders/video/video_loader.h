@@ -53,8 +53,8 @@ public:
     void set_prefetch_queue_depth(size_t prefetch_queue_depth) override;
     crop_image_info get_crop_image_info() override { return _crop_img_info; }
     void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) override {};
-    // std::vector<size_t> get_sequence_start_frame_number();
-    // std::vector<std::vector<float>> get_sequence_frame_timestamps();
+    std::vector<size_t> get_sequence_start_frame_number();
+    std::vector<std::vector<float>> get_sequence_frame_timestamps();
     void shut_down() override;
 
 private:

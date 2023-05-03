@@ -31,13 +31,10 @@ class SequenceRearrangeNode : public Node
 public:
     SequenceRearrangeNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     SequenceRearrangeNode() = delete;
-    void init(unsigned int* new_order, unsigned int new_sequence_length, unsigned int sequence_length, unsigned int sequence_count);
+    void init(std::vector<unsigned int>& new_order);
 protected:
     void create_node() override;
     void update_node() override;
 private:
     std::vector<unsigned int> _new_order;
-    unsigned int  _new_sequence_length, _sequence_length, _sequence_count;
-    vx_array _sequence_array;
-    unsigned _layout = 2;
 };

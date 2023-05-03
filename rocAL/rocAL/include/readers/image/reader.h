@@ -48,13 +48,6 @@ enum class StorageType
     VIDEO_FILE_SYSTEM = 8,
 };
 
-#ifdef ROCAL_VIDEO
-struct SequenceInfo {
-    size_t start_frame_number;
-    std::string video_file_name;
-};
-#endif
-
 struct ReaderConfig
 {
     explicit ReaderConfig(StorageType type, std::string path = "", std::string json_path = "",

@@ -497,17 +497,17 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalC
 /// \param file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
 /// \return
 extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileSource(RocalContext context,
-                                                        const char* source_path,
-                                                        RocalImageColor color_format,
-                                                        RocalDecodeDevice rocal_decode_device,
-                                                        unsigned internal_shard_count,
-                                                        unsigned sequence_length,
-                                                        bool is_output = false,
-                                                        bool shuffle = false,
-                                                        bool loop = false,
-                                                        unsigned step = 0,
-                                                        unsigned stride = 0,
-                                                        bool file_list_frame_num = true);
+                                                             const char* source_path,
+                                                             RocalImageColor color_format,
+                                                             RocalDecodeDevice rocal_decode_device,
+                                                             unsigned internal_shard_count,
+                                                             unsigned sequence_length,
+                                                             bool is_output = false,
+                                                             bool shuffle = false,
+                                                             bool loop = false,
+                                                             unsigned step = 0,
+                                                             unsigned stride = 0,
+                                                             bool file_list_frame_num = true);
 
 /// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. It accepts external sharding information to load a singe shard only.
 /// \param context Rocal context
@@ -526,18 +526,18 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileSource(RocalContext contex
 /// \param file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
 /// \return
 extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalContext context,
-                                                                    const char* source_path,
-                                                                    RocalImageColor color_format,
-                                                                    RocalDecodeDevice rocal_decode_device,
-                                                                    unsigned shard_id,
-                                                                    unsigned shard_count,
-                                                                    unsigned sequence_length,
-                                                                    bool shuffle = false,
-                                                                    bool is_output = false,
-                                                                    bool loop = false,
-                                                                    unsigned step = 0,
-                                                                    unsigned stride = 0,
-                                                                    bool file_list_frame_num = true);
+                                                                        const char* source_path,
+                                                                        RocalImageColor color_format,
+                                                                        RocalDecodeDevice rocal_decode_device,
+                                                                        unsigned shard_id,
+                                                                        unsigned shard_count,
+                                                                        unsigned sequence_length,
+                                                                        bool shuffle = false,
+                                                                        bool is_output = false,
+                                                                        bool loop = false,
+                                                                        unsigned step = 0,
+                                                                        unsigned stride = 0,
+                                                                        bool file_list_frame_num = true);
 
 /// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. Resizes the decoded frames to the dest width and height.
 /// \param context Rocal context

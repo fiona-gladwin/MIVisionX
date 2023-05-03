@@ -71,15 +71,6 @@ namespace rocal
         return ptr;
     }
 
-    py::object wrapper(RocalContext context, py::array_t<unsigned char> array)
-    {
-        auto buf = array.request();
-        unsigned char *ptr = (unsigned char *)buf.ptr;
-        // call pure C++ function
-        int status = rocalCopyToOutput(context, ptr, buf.size);
-        return py::cast<py::none>(Py_None);
-    }
-
     py::object wrapper_image_name_length(RocalContext context, py::array_t<int> array)
     {
         auto buf = array.request();

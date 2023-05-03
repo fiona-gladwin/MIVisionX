@@ -81,6 +81,8 @@ void CropMirrorNormalizeNode::create_node() {
     vx_size num_of_dims = 2;
     vx_size stride[num_of_dims];
     std::vector<size_t> crop_tensor_dims = {_batch_size, 4};
+    if(_inputs[0]->info().layout() == RocalTensorlayout::NFCHW || _inputs[0]->info().layout() == RocalTensorlayout::NFHWC)
+        crop_tensor_dims = {_inputs[0]->info().dims()[0] * _inputs[0]->info().dims()[1], 4}; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
     stride[0] = sizeof(vx_uint32);
     stride[1] = stride[0] * crop_tensor_dims[0];
     vx_enum mem_type = VX_MEMORY_TYPE_HOST;
