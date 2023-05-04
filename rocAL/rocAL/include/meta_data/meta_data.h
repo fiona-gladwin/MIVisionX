@@ -105,8 +105,6 @@ public:
     virtual std::vector<int>& get_labels() = 0;
     virtual void set_labels(Labels label_ids) = 0;
     virtual BoundingBoxCords& get_bb_cords() = 0;
-    virtual BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() = 0;
-    virtual void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) = 0;
     virtual void set_bb_cords(BoundingBoxCords bb_cords) = 0;
     virtual std::vector<int>& get_polygon_count() = 0;
     virtual std::vector<std::vector<int>>& get_vertices_count() = 0;
@@ -135,8 +133,6 @@ public:
     std::vector<int>& get_labels() override { return _label_ids; }
     void set_labels(Labels label_ids) override { _label_ids = std::move(label_ids); }
     BoundingBoxCords& get_bb_cords() override { THROW("Not Implemented") };
-    BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() override { THROW("Not Implemented") };
-    void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) override { THROW("Not Implemented") };
     void set_bb_cords(BoundingBoxCords bb_cords) override { THROW("Not Implemented") };
     std::vector<int>& get_polygon_count() override { THROW("Not Implemented") };
     std::vector<std::vector<int>>& get_vertices_count() override { THROW("Not Implemented") };
@@ -161,20 +157,10 @@ public:
         _info.img_size = std::move(img_size);
         _info.img_id = img_id;
     }
-    BoundingBox(BoundingBoxCords_xcycwh bb_cords_xcycwh, Labels bb_label_ids, ImgSize img_size = ImgSize{0, 0}, uint img_id = 0)
-    {
-        _bb_cords_xcycwh =std::move(bb_cords_xcycwh);
-        _label_ids = std::move(bb_label_ids);
-        _info.img_size = std::move(img_size);
-        _info.img_id = img_id;
-    }
     BoundingBoxCords& get_bb_cords() override { return _bb_cords; }
-    BoundingBoxCords_xcycwh& get_bb_cords_xcycwh() override { return _bb_cords_xcycwh; }
-    void set_bb_cords_xcycwh(BoundingBoxCords_xcycwh bb_cords_xcycwh) override { _bb_cords_xcycwh = std::move(bb_cords_xcycwh); }
     void set_bb_cords(BoundingBoxCords bb_cords) override { _bb_cords = std::move(bb_cords); }
 protected:
     BoundingBoxCords _bb_cords = {}; // For bb use
-    BoundingBoxCords_xcycwh _bb_cords_xcycwh = {}; // For bb use
 };
 
 struct PolygonMask : public BoundingBox {
@@ -256,7 +242,6 @@ public:
     virtual int mask_size() = 0;
     virtual std::vector<Labels>& get_labels_batch() = 0;
     virtual std::vector<BoundingBoxCords>& get_bb_cords_batch() = 0;
-    virtual std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() = 0;
     virtual std::vector<MaskCords>& get_mask_cords_batch() = 0;
     virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch() = 0;
     virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() = 0;
@@ -329,7 +314,6 @@ public:
     std::vector<Labels>& get_labels_batch() override { return _label_ids; }
     int mask_size() override { THROW("Not Implemented") };
     std::vector<BoundingBoxCords>&  get_bb_cords_batch() override { THROW("Not Implemented") };
-    std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() override { THROW("Not Implemented") };
     std::vector<MaskCords>& get_mask_cords_batch() override { THROW("Not Implemented") };
     std::vector<std::vector<int>>& get_mask_polygons_count_batch() override { THROW("Not Implemented") };
     std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() override { THROW("Not Implemented") };
@@ -394,10 +378,8 @@ public:
         return _buffer_size;
     }
     std::vector<BoundingBoxCords>& get_bb_cords_batch() override { return _bb_cords; }
-    std::vector<BoundingBoxCords_xcycwh>& get_bb_cords_batch_xcycxwh() override { return _bb_cords_xcycwh; }
 protected:
     std::vector<BoundingBoxCords> _bb_cords = {};
-    std::vector<BoundingBoxCords_xcycwh> _bb_cords_xcycwh = {};
 };
 
 struct PolygonMaskBatch: public BoundingBoxBatch {
