@@ -1653,6 +1653,36 @@ rocalSnow(
 }
 
 RocalTensor ROCAL_API_CALL
+rocalSnowFixed(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output,
+        float shift,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<rocalTensor*>(p_input);
+    try {
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        context->master_graph->add_node<SnowNode>({input}, {output})->init(shift);
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
+RocalTensor ROCAL_API_CALL
 rocalFog(
         RocalContext p_context,
         RocalTensor p_input,
@@ -1893,6 +1923,39 @@ rocalRain(
     auto rain_height = static_cast<IntParam*>(p_rain_height);
     auto rain_transparency = static_cast<FloatParam*>(p_rain_transparency);
     auto rain_value = static_cast<FloatParam*>(p_rain_value);
+    try {
+        RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
+        RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
+        rocalTensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensorLayout);
+        output_info.set_data_type(op_tensorDataType);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        context->master_graph->add_node<RainNode>({input}, {output})->init(rain_value, rain_width, rain_height, rain_transparency);
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
+
+RocalTensor ROCAL_API_CALL
+rocalRainFixed(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output,
+        float rain_value,
+        int rain_width,
+        int rain_height,
+        float rain_transparency,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    rocalTensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<rocalTensor*>(p_input);
     try {
         RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
         RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;

@@ -182,6 +182,12 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSnow(RocalContext context, RocalTenso
                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
+extern "C" RocalTensor ROCAL_API_CALL rocalSnowFixed(RocalContext context, RocalTensor input,
+                                                      bool is_output,
+                                                      float p_shift = NULL,
+                                                      RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                      RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
 extern "C" RocalTensor ROCAL_API_CALL rocalFog(RocalContext context, RocalTensor input,
                                                       bool is_output,
                                                       RocalFloatParam p_fog_param = NULL,
@@ -399,6 +405,15 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRain(RocalContext context, RocalTenso
                                                 RocalIntParam rain_width = NULL,
                                                 RocalIntParam rain_height = NULL,
                                                 RocalFloatParam rain_transparency = NULL,
+                                                RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
+extern "C" RocalTensor ROCAL_API_CALL rocalRainFixed(RocalContext context, RocalTensor input,
+                                                bool is_output,
+                                                float rain_value = NULL,
+                                                int rain_width = NULL,
+                                                int rain_height = NULL,
+                                                float rain_transparency = NULL,
                                                 RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                 RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 

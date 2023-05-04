@@ -716,6 +716,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalSnowFixed" << std::endl;
         // image1 = rocalSnowFixed(handle, image0, 0.2, true);
+        image1 = rocalSnowFixed(handle, input1, true, 0.2,  tensorLayout, tensorOutputType);
+
     }
     break;
     case 42:
@@ -723,6 +725,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << ">>>>>>> Running "
                   << "rocalRainFixed" << std::endl;
         // image1 = rocalRainFixed(handle, image0, 0.5, 2, 16, 0.25, true);
+        image1 = rocalRainFixed(handle, input1, true, 0.5, 2, 16, 0.25, tensorLayout, tensorOutputType);
+
     }
     break;
     case 43:
