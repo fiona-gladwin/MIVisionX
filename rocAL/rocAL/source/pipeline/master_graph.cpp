@@ -618,7 +618,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _meta_data_buffer_size.emplace_back(_user_batch_size * default_labels_info.data_size());
 
     dims = { max_objects, BBOX_COUNT };
-    auto default_bbox_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP64); // Create default Bbox Info
+    auto default_bbox_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP32); // Create default Bbox Info
     default_bbox_info.set_metadata();
     _meta_data_buffer_size.emplace_back(_user_batch_size * default_bbox_info.data_size());
 
@@ -708,7 +708,7 @@ std::vector<rocalTensorList *> MasterGraph::create_tf_record_meta_data_reader(co
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_labels_info.data_size());
 
         dims = { MAX_OBJECTS, BBOX_COUNT };
-        auto default_bbox_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP64); // Create default Bbox Info
+        auto default_bbox_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP32); // Create default Bbox Info
         default_bbox_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_bbox_info.data_size());
 
@@ -882,7 +882,7 @@ std::vector<rocalTensorList *> MasterGraph::create_caffe2_lmdb_record_meta_data_
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_labels_info.data_size());
 
         dims = { MAX_OBJECTS, BBOX_COUNT };
-        auto default_bbox_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP64); // Create default Bbox Info
+        auto default_bbox_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP32); // Create default Bbox Info
         default_bbox_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_bbox_info.data_size());
 
@@ -936,7 +936,7 @@ std::vector<rocalTensorList *> MasterGraph::create_caffe_lmdb_record_meta_data_r
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_labels_info.data_size());
 
         dims = { MAX_OBJECTS, BBOX_COUNT };
-        auto default_bbox_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP64); // Create default Bbox Info
+        auto default_bbox_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP32); // Create default Bbox Info
         default_bbox_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_bbox_info.data_size());
 

@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include <vector>
 #include <memory>
 #include <cstring>
+#include <algorithm>
 #include "commons.h"
 
 
@@ -373,16 +374,13 @@ public:
         if(buffer.size() < 2)
             THROW("The buffers are insufficient") // TODO -change
         int *labels_buffer = (int *)buffer[0];
-        double *bbox_buffer = (double *)buffer[1];
+        float *bbox_buffer = (float *)buffer[1];
         for(unsigned i = 0; i < (unsigned int)_label_ids.size(); i++)
         {
             memcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
-            if(_bbox_output_type == BoundingBoxType::XYWH) {
-                convert_ltrb_to_xywh(_bb_cords[i]);
-                memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
-            } else {
-                memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
-            }
+            if(_bbox_output_type == BoundingBoxType::XYWH) convert_ltrb_to_xywh(_bb_cords[i]);
+            std::transform((double *)_bb_cords[i].data(), (double *)_bb_cords[i].data() + _label_ids[i].size() * 4,
+                            bbox_buffer, [](double d) -> float { return static_cast<float>(d); });
             labels_buffer += _label_ids[i].size();
             bbox_buffer += (_label_ids[i].size() * 4);
         }
@@ -393,7 +391,7 @@ public:
         for (auto label : _label_ids)
             size += label.size();
         _buffer_size.emplace_back(size * sizeof(int));
-        _buffer_size.emplace_back(size * 4 * sizeof(double));
+        _buffer_size.emplace_back(size * 4 * sizeof(float));
         return _buffer_size;
     }
     std::vector<BoundingBoxCords>& get_bb_cords_batch() override { return _bb_cords; }
@@ -447,17 +445,14 @@ public:
         if(buffer.size() < 2)
             THROW("The buffers are insufficient") // TODO -change
         int *labels_buffer = (int *)buffer[0];
-        double *bbox_buffer = (double *)buffer[1];
+        float *bbox_buffer = (float *)buffer[1];
         float *mask_buffer = (float *)buffer[2];
         for(unsigned i = 0; i < (unsigned int)_label_ids.size(); i++)
         {
             mempcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
-            if(_bbox_output_type == BoundingBoxType::XYWH) {
-                convert_ltrb_to_xywh(_bb_cords[i]);
-                memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
-            } else {
-                memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
-            }
+            if(_bbox_output_type == BoundingBoxType::XYWH) convert_ltrb_to_xywh(_bb_cords[i]);
+            std::transform((double *)_bb_cords[i].data(), (double *)_bb_cords[i].data() + _label_ids[i].size() * 4,
+                            bbox_buffer, [](double d) -> float { return static_cast<float>(d); });
             memcpy(mask_buffer, _mask_cords[i].data(), _mask_cords[i].size() * sizeof(float));
             labels_buffer += _label_ids[i].size();
             bbox_buffer += (_label_ids[i].size() * 4);
@@ -470,7 +465,7 @@ public:
         for (auto label : _label_ids)
             size += label.size();
         _buffer_size.emplace_back(size * sizeof(int));
-        _buffer_size.emplace_back(size * 4 * sizeof(double));
+        _buffer_size.emplace_back(size * 4 * sizeof(float));
         size = 0;
         for (auto mask : _mask_cords)
             size += mask.size();
