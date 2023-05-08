@@ -33,11 +33,11 @@ THE SOFTWARE.
 
 using namespace std;
 
-void TFMetaDataReader::init(const MetaDataConfig &cfg)
+void TFMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
     _feature_key_map = cfg.feature_key_map();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
     _last_rec = false;
 }
 
@@ -64,7 +64,7 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         WRN("No image names passed")
         return;
     }
-    if(_image_names.size() != (unsigned)_output->size())   
+    if(_image_names.size() != (unsigned)_output->size())
         _output->resize(_image_names.size());
 
     for(unsigned i = 0; i < _image_names.size(); i++)
@@ -187,7 +187,7 @@ void TFMetaDataReader::read_files(const std::string& _path)
         if(_entity->d_type != DT_REG)
             continue;
 
-        _file_names.push_back(_entity->d_name);  
+        _file_names.push_back(_entity->d_name);
     }
     if(_file_names.empty())
         WRN("TFMetadataReader: Could not find any file in " + _path)

@@ -38,8 +38,8 @@ typedef struct BoundingBoxCord_
 {
   double l; double t; double r; double b;
   BoundingBoxCord_() {}
-  BoundingBoxCord_(double l_, double t_, double r_, double b_): l(l_), t(t_), r(r_), b(b_) {}   // constructor
-  BoundingBoxCord_(const BoundingBoxCord_& cord) : l(cord.l), t(cord.t), r(cord.r), b(cord.b) {}  //copy constructor
+  BoundingBoxCord_(double l_, double t_, double r_, double b_): l(l_), t(t_), r(r_), b(b_) {}   // conclassor
+  BoundingBoxCord_(const BoundingBoxCord_& cord) : l(cord.l), t(cord.t), r(cord.r), b(cord.b) {}  //copy conclassor
 } BoundingBoxCord;
 
 typedef  struct { double xc; double yc; double w; double h; } BoundingBoxCord_xcycwh;
@@ -90,15 +90,17 @@ typedef struct
     RotationBatch rotation_batch;
 }JointsDataBatch;
 
-typedef struct MetaDataInfo {
+
+typedef class MetaDataInfo {
 public:
     uint img_id = -1;
     std::string img_name = "";
     ImgSize img_size = {};
 } MetaDataInfo;
 
-struct MetaData
+class MetaData
 {
+public:
     virtual std::vector<int>& get_labels() = 0;
     virtual void set_labels(Labels label_ids) = 0;
     virtual BoundingBoxCords& get_bb_cords() = 0;
@@ -124,8 +126,9 @@ protected:
     MetaDataInfo _info;
 };
 
-struct Label : public MetaData
+class Label : public MetaData
 {
+public:
     Label(int label) { _label_ids = {label}; }
     Label() { _label_ids = {-1}; }
     std::vector<int>& get_labels() { return _label_ids; }
@@ -146,8 +149,9 @@ protected:
     Labels _label_ids = {}; // For label use only
 };
 
-struct BoundingBox : public Label
+class BoundingBox : public Label
 {
+public:
     BoundingBox()= default;
     BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size = ImgSize{0, 0}, uint img_id = 0)
     {
@@ -173,6 +177,7 @@ protected:
 };
 
 struct PolygonMask : public BoundingBox {
+public:
     PolygonMask(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
     {
         _bb_cords = std::move(bb_cords);
@@ -194,8 +199,9 @@ protected:
     std::vector<std::vector<int>> _vertices_count = {};
 };
 
-struct KeyPoint : public BoundingBox
+class KeyPoint : public BoundingBox
 {
+public:
     KeyPoint()= default;
     KeyPoint(ImgSize img_size, JointsData *joints_data)
     {
@@ -208,7 +214,7 @@ protected:
     JointsData _joints_data = {};
 };
 
-struct MetaDataInfoBatch {
+class MetaDataInfoBatch {
 public:
     std::vector<uint> img_ids = {};
     std::vector<std::string> img_names = {};
@@ -230,8 +236,9 @@ public:
     }
 };
 
-struct MetaDataBatch
+class MetaDataBatch
 {
+public:
     virtual ~MetaDataBatch() = default;
     virtual void clear() = 0;
     virtual void resize(int batch_size) = 0;
@@ -264,8 +271,9 @@ protected:
     MetaDataType _type;
 };
 
-struct LabelBatch : public MetaDataBatch
+class LabelBatch : public MetaDataBatch
 {
+public:
     void clear() override
     {
         for (auto label : _label_ids) {
@@ -330,8 +338,9 @@ protected:
     std::vector<size_t> _buffer_size;
 };
 
-struct BoundingBoxBatch: public LabelBatch
+class BoundingBoxBatch: public LabelBatch
 {
+public:
     void clear() override
     {
         _bb_cords.clear();
@@ -391,6 +400,7 @@ protected:
 };
 
 struct PolygonMaskBatch: public BoundingBoxBatch {
+public:
     void clear() override
     {
         _bb_cords.clear();
@@ -464,8 +474,9 @@ protected:
     std::vector<std::vector<std::vector<int>>> _vertices_counts = {};
 };
 
-struct KeyPointBatch : public BoundingBoxBatch
+class KeyPointBatch : public BoundingBoxBatch
 {
+public:
     void clear() override
     {
         _info_batch.clear();

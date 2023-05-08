@@ -521,7 +521,7 @@ void MasterGraph::output_routine()
                     _meta_data_graph->process(_augmented_meta_data);
                 }
                 if (full_batch_meta_data)
-                    full_batch_meta_data->concatenate(_augmented_meta_data);
+                    *full_batch_meta_data += *_augmented_meta_data;
                 else
                     full_batch_meta_data = _augmented_meta_data->clone();
             }
@@ -587,12 +587,14 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
 {
     if(_meta_data_reader)
         THROW("A metadata reader has already been created")
+    if (_augmented_meta_data)
+        THROW("Metadata output already defined, there can only be a single output for metadata augmentation");
+
     MetaDataConfig config(metadata_type, reader_type, source_path, std::map<std::string, std::string>(), std::string());
     config.set_out_img_width(pose_output_width);
     config.set_out_img_height(pose_output_height);
     _meta_data_graph = create_meta_data_graph(config);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
+    _meta_data_reader = create_meta_data_reader(config,_augmented_meta_data);
     _meta_data_reader->read_all(source_path);
     std::vector<size_t> dims;
     size_t max_objects = static_cast<size_t>(is_box_encoder ? MAX_NUM_ANCHORS : MAX_OBJECTS);
@@ -629,13 +631,6 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         }
     }
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-    if(is_output)
-    {
-        if (_augmented_meta_data)
-            THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
-        else
-            _augmented_meta_data = _meta_data_reader->get_output();
-    }
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
     _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
     if(metadata_type == MetaDataType::PolygonMask)
@@ -648,10 +643,12 @@ std::vector<rocalTensorList *> MasterGraph::create_tf_record_meta_data_reader(co
 {
     if( _meta_data_reader)
         THROW("A metadata reader has already been created")
+    if (_augmented_meta_data)
+        THROW("Metadata can only have a single output")
+
     MetaDataConfig config(label_type, reader_type, source_path, feature_key_map);
     _meta_data_graph = create_meta_data_graph(config);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
+    _meta_data_reader = create_meta_data_reader(config,_augmented_meta_data);
     _meta_data_reader->read_all(source_path);
 
     if(reader_type == MetaDataReaderType::TF_META_DATA_READER)
@@ -693,10 +690,6 @@ std::vector<rocalTensorList *> MasterGraph::create_tf_record_meta_data_reader(co
     }
 
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-    if (_augmented_meta_data)
-        THROW("Metadata can only have a single output")
-    else
-        _augmented_meta_data = _meta_data_reader->get_output();
 
     return _metadata_output_tensor_list;
 }
@@ -705,9 +698,11 @@ std::vector<rocalTensorList *> MasterGraph::create_label_reader(const char *sour
 {
     if(_meta_data_reader)
         THROW("A metadata reader has already been created")
+    if (_augmented_meta_data)
+        THROW("Metadata can only have a single output")
+
     MetaDataConfig config(MetaDataType::Label, reader_type, source_path);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
+    _meta_data_reader = create_meta_data_reader(config,_augmented_meta_data);
     _meta_data_reader->read_all(source_path);
 
     std::vector<size_t> dims = {1};
@@ -721,10 +716,6 @@ std::vector<rocalTensorList *> MasterGraph::create_label_reader(const char *sour
         _labels_tensor_list.push_back(new rocalTensor(info));
     }
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-    if (_augmented_meta_data)
-        THROW("Metadata can only have a single output")
-    else
-        _augmented_meta_data = _meta_data_reader->get_output();
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
 
     return _metadata_output_tensor_list;
@@ -734,9 +725,12 @@ std::vector<rocalTensorList *> MasterGraph::create_video_label_reader(const char
 {
     if( _meta_data_reader)
         THROW("A metadata reader has already been created")
+    if (_augmented_meta_data)
+        THROW("Metadata can only have a single output")
+
     MetaDataConfig config(MetaDataType::Label, reader_type, source_path, std::map<std::string, std::string>(), std::string(), sequence_length, frame_step, frame_stride);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
+    _meta_data_reader = create_meta_data_reader(config,_augmented_meta_data);
+
     if(!file_list_frame_num)
     {
         _meta_data_reader->set_timestamp_mode();
@@ -754,12 +748,7 @@ std::vector<rocalTensorList *> MasterGraph::create_video_label_reader(const char
         _labels_tensor_list.push_back(tensor);
     }
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-
     _meta_data_reader->read_all(source_path);
-    if (_augmented_meta_data)
-        THROW("Metadata can only have a single output")
-    else
-        _augmented_meta_data = _meta_data_reader->get_output();
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
 
     return _metadata_output_tensor_list;
@@ -769,10 +758,12 @@ std::vector<rocalTensorList *> MasterGraph::create_mxnet_label_reader(const char
 {
     if( _meta_data_reader)
         THROW("A metadata reader has already been created")
+    if (_augmented_meta_data)
+        THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
+
     MetaDataConfig config(MetaDataType::Label, MetaDataReaderType::MXNET_META_DATA_READER, source_path);
     _meta_data_graph = create_meta_data_graph(config);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
+    _meta_data_reader = create_meta_data_reader(config,_augmented_meta_data);
     _meta_data_reader->read_all(source_path);
     std::vector<size_t> dims = {1};
     auto default_labels_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32); // Create default labels Info
@@ -787,13 +778,7 @@ std::vector<rocalTensorList *> MasterGraph::create_mxnet_label_reader(const char
     }
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-    if(is_output)
-    {
-        if (_augmented_meta_data)
-            THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
-        else
-            _augmented_meta_data = _meta_data_reader->get_output();
-    }
+
     return _metadata_output_tensor_list;
 }
 
@@ -801,14 +786,12 @@ void MasterGraph::create_randombboxcrop_reader(RandomBBoxCrop_MetaDataReaderType
 {
     if( _randombboxcrop_meta_data_reader)
         THROW("A metadata reader has already been created")
-    _is_random_bbox_crop = true;
-    RandomBBoxCrop_MetaDataConfig config(label_type, reader_type, all_boxes_overlap, no_crop, aspect_ratio, has_shape, crop_width, crop_height, num_attempts, scaling, total_num_attempts, seed);
-    _randombboxcrop_meta_data_reader = create_meta_data_reader(config);
-    _randombboxcrop_meta_data_reader->set_meta_data(_meta_data_reader);
     if (_random_bbox_crop_cords_data)
         THROW("Metadata can only have a single output")
-    else
-        _random_bbox_crop_cords_data = _randombboxcrop_meta_data_reader->get_output();
+    _is_random_bbox_crop = true;
+    RandomBBoxCrop_MetaDataConfig config(label_type, reader_type, all_boxes_overlap, no_crop, aspect_ratio, has_shape, crop_width, crop_height, num_attempts, scaling, total_num_attempts, seed);
+    _randombboxcrop_meta_data_reader = create_meta_data_reader(config, _random_bbox_crop_cords_data);
+    _randombboxcrop_meta_data_reader->set_meta_data(_meta_data_reader);
 }
 
 void MasterGraph::box_encoder(std::vector<float> &anchors, float criteria, const std::vector<float> &means, const std::vector<float> &stds, bool offset, float scale)
@@ -835,10 +818,12 @@ std::vector<rocalTensorList *> MasterGraph::create_caffe2_lmdb_record_meta_data_
 {
     if( _meta_data_reader)
         THROW("A metadata reader has already been created")
+    if (_augmented_meta_data)
+        THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
+
     MetaDataConfig config(label_type, reader_type, source_path);
     _meta_data_graph = create_meta_data_graph(config);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
+    _meta_data_reader = create_meta_data_reader(config,_augmented_meta_data);
     _meta_data_reader->read_all(source_path);
     if(reader_type == MetaDataReaderType::CAFFE2_META_DATA_READER)
     {
@@ -879,10 +864,7 @@ std::vector<rocalTensorList *> MasterGraph::create_caffe2_lmdb_record_meta_data_
     }
 
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-    if (_augmented_meta_data)
-        THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
-    else
-        _augmented_meta_data = _meta_data_reader->get_output();
+
     return _metadata_output_tensor_list;
 }
 
@@ -890,10 +872,12 @@ std::vector<rocalTensorList *> MasterGraph::create_caffe_lmdb_record_meta_data_r
 {
     if( _meta_data_reader)
         THROW("A metadata reader has already been created")
+    if (_augmented_meta_data)
+        THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
+
     MetaDataConfig config(label_type, reader_type, source_path);
     _meta_data_graph = create_meta_data_graph(config);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
+    _meta_data_reader = create_meta_data_reader(config,_augmented_meta_data);
     _meta_data_reader->read_all(source_path);
     if(reader_type == MetaDataReaderType::CAFFE_META_DATA_READER)
      {
@@ -934,10 +918,7 @@ std::vector<rocalTensorList *> MasterGraph::create_caffe_lmdb_record_meta_data_r
     }
 
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-    if (_augmented_meta_data)
-        THROW("Metadata output already defined, there can only be a single output for metadata augmentation")
-    else
-        _augmented_meta_data = _meta_data_reader->get_output();
+
     return _metadata_output_tensor_list;
 }
 
@@ -945,9 +926,11 @@ std::vector<rocalTensorList *> MasterGraph::create_cifar10_label_reader(const ch
 {
     if( _meta_data_reader)
         THROW("A metadata reader has already been created")
+    if (_augmented_meta_data)
+        THROW("Metadata can only have a single output")
+
     MetaDataConfig config(MetaDataType::Label, MetaDataReaderType::CIFAR10_META_DATA_READER, source_path, std::map<std::string, std::string>(), file_prefix);
-    _meta_data_reader = create_meta_data_reader(config);
-    _meta_data_reader->init(config);
+    _meta_data_reader = create_meta_data_reader(config,_augmented_meta_data);
     _meta_data_reader->read_all(source_path);
     std::vector<size_t> dims = {1};
     auto default_labels_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32); // Create default labels Info
@@ -961,12 +944,8 @@ std::vector<rocalTensorList *> MasterGraph::create_cifar10_label_reader(const ch
         _labels_tensor_list.push_back(tensor);
     }
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
-
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-    if (_augmented_meta_data)
-        THROW("Metadata can only have a single output")
-    else
-        _augmented_meta_data = _meta_data_reader->get_output();
+
     return _metadata_output_tensor_list;
 }
 

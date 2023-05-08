@@ -30,19 +30,19 @@ THE SOFTWARE.
 class COCOMetaDataReader: public MetaDataReader
 {
 public:
-    void init(const MetaDataConfig& cfg) override;
+    void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     void read_all(const std::string& path) override;
     void release(std::string image_name);
     void release() override;
     void print_map_contents();
     bool set_timestamp_mode() override { return false; }
-    MetaDataBatch * get_output() override { return _output; }
+
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content;}
     COCOMetaDataReader();
-    ~COCOMetaDataReader() override { delete _output; }
+    ~COCOMetaDataReader() override { }
 private:
-    BoundingBoxBatch* _output;
+    pMetaDataBatch _output;
     std::string _path;
     int meta_data_reader_type;
     void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, uint image_id = 0);

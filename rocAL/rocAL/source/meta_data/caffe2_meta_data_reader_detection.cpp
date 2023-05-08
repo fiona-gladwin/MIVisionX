@@ -33,10 +33,10 @@ THE SOFTWARE.
 
 using namespace std;
 
-void Caffe2MetaDataReaderDetection::init(const MetaDataConfig &cfg)
+void Caffe2MetaDataReaderDetection::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new BoundingBoxBatch();
+    _output = meta_data_batch;
 }
 
 bool Caffe2MetaDataReaderDetection::exists(const std::string &_image_name)
@@ -58,7 +58,7 @@ void Caffe2MetaDataReaderDetection::add(std::string image_name, BoundingBoxCords
 }
 
 void Caffe2MetaDataReaderDetection::lookup(const std::vector<std::string> &_image_names)
-{   
+{
     if (_image_names.empty())
     {
         WRN("No image names passed")
@@ -178,7 +178,7 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
                 int boundIter = 0;
                 for (int i = 0; i < boundBox_size / 4; i++)
                 {
-                    // Parsing the bounding box points using Iterator 
+                    // Parsing the bounding box points using Iterator
                     // && Normalizing the box Co-ordinates
                     box.l = boundingBox_proto.dims(boundIter) / img_size.w;
                     box.t = boundingBox_proto.dims(boundIter + 1) / img_size.h;
@@ -210,7 +210,7 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
         {
             THROW("Parsing Protos Failed");
         }
-        
+
     }
 
     // Closing all the LMDB environment and cursor handles

@@ -31,10 +31,10 @@ THE SOFTWARE.
 namespace filesys = boost::filesystem;
 using namespace std;
 
-void MXNetMetaDataReader::init(const MetaDataConfig &cfg)
+void MXNetMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
     _src_dir = nullptr;
     _entity = nullptr;
 }
