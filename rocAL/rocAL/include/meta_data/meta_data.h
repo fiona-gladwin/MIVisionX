@@ -65,6 +65,12 @@ enum class MetaDataType
     KeyPoints
 };
 
+enum class BoundingBoxType
+{
+    XYWH = 0,
+    LTRB
+};
+
 typedef struct
 {
     int image_id;
@@ -242,6 +248,7 @@ public:
     virtual int mask_size() = 0;
     virtual std::vector<Labels>& get_labels_batch() = 0;
     virtual std::vector<BoundingBoxCords>& get_bb_cords_batch() = 0;
+    virtual void set_xywh_bbox() = 0;
     virtual std::vector<MaskCords>& get_mask_cords_batch() = 0;
     virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch() = 0;
     virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() = 0;
@@ -314,6 +321,7 @@ public:
     std::vector<Labels>& get_labels_batch() override { return _label_ids; }
     int mask_size() override { THROW("Not Implemented") };
     std::vector<BoundingBoxCords>&  get_bb_cords_batch() override { THROW("Not Implemented") };
+    void set_xywh_bbox() override { THROW("Not Implemented") }
     std::vector<MaskCords>& get_mask_cords_batch() override { THROW("Not Implemented") };
     std::vector<std::vector<int>>& get_mask_polygons_count_batch() override { THROW("Not Implemented") };
     std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() override { THROW("Not Implemented") };
@@ -354,6 +362,14 @@ public:
     {
         return std::make_shared<BoundingBoxBatch>(*this);
     }
+    void convert_ltrb_to_xywh(BoundingBoxCords& ltrb_bbox_list) {
+        for(unsigned i = 0; i < ltrb_bbox_list.size(); i++) {
+            auto& bbox = ltrb_bbox_list[i];
+            // Change the values in place
+            bbox.r = bbox.r - bbox.l;
+            bbox.b = bbox.b - bbox.t;
+        }
+    }
     void copy_data(std::vector<void*> buffer) override
     {
         if(buffer.size() < 2)
@@ -363,7 +379,12 @@ public:
         for(unsigned i = 0; i < (unsigned int)_label_ids.size(); i++)
         {
             memcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
-            memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
+            if(_bbox_output_type == BoundingBoxType::XYWH) {
+                convert_ltrb_to_xywh(_bb_cords[i]);
+                memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
+            } else {
+                memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
+            }
             labels_buffer += _label_ids[i].size();
             bbox_buffer += (_label_ids[i].size() * 4);
         }
@@ -378,8 +399,10 @@ public:
         return _buffer_size;
     }
     std::vector<BoundingBoxCords>& get_bb_cords_batch() override { return _bb_cords; }
+    void set_xywh_bbox() override { _bbox_output_type = BoundingBoxType::XYWH; }
 protected:
     std::vector<BoundingBoxCords> _bb_cords = {};
+    BoundingBoxType _bbox_output_type = BoundingBoxType::LTRB;
 };
 
 struct PolygonMaskBatch: public BoundingBoxBatch {
@@ -431,7 +454,12 @@ public:
         for(unsigned i = 0; i < (unsigned int)_label_ids.size(); i++)
         {
             mempcpy(labels_buffer, _label_ids[i].data(), _label_ids[i].size() * sizeof(int));
-            memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
+            if(_bbox_output_type == BoundingBoxType::XYWH) {
+                convert_ltrb_to_xywh(_bb_cords[i]);
+                memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
+            } else {
+                memcpy(bbox_buffer, _bb_cords[i].data(), _label_ids[i].size() * sizeof(BoundingBoxCord));
+            }
             memcpy(mask_buffer, _mask_cords[i].data(), _mask_cords[i].size() * sizeof(float));
             labels_buffer += _label_ids[i].size();
             bbox_buffer += (_label_ids[i].size() * 4);
