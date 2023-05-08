@@ -24,6 +24,9 @@ THE SOFTWARE.
 #include <list>
 #include "meta_data_graph.h"
 #include "meta_node.h"
+
+typedef  struct { double xc; double yc; double w; double h; } BoundingBoxCord_xcycwh;
+
 class BoundingBoxGraph : public MetaDataGraph
 {
 public:
