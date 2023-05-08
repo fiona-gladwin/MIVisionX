@@ -580,7 +580,7 @@ void MasterGraph::stop_processing()
         _output_thread.join();
 }
 
-std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType metadata_type, bool is_box_encoder, float sigma, unsigned pose_output_width, unsigned pose_output_height)
+std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType metadata_type, bool ltrb_bbox, bool is_box_encoder, float sigma, unsigned pose_output_width, unsigned pose_output_height)
 {
     if(_meta_data_reader)
         THROW("A metadata reader has already been created")
@@ -593,6 +593,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _meta_data_graph = create_meta_data_graph(config);
     _meta_data_reader = create_meta_data_reader(config, _augmented_meta_data);
     _meta_data_reader->read_all(source_path);
+    if(!ltrb_bbox)  _augmented_meta_data->set_xywh_bbox();
     std::vector<size_t> dims;
     size_t max_objects = static_cast<size_t>(is_box_encoder ? MAX_NUM_ANCHORS : MAX_OBJECTS);
     dims = { max_objects };

@@ -77,13 +77,13 @@ ROCAL_API_CALL rocalCreateVideoLabelReader(RocalContext p_context, const char* s
 }
 
 RocalMetaData
-ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool mask, bool is_box_encoder) {
+ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool mask, bool ltrb, bool is_box_encoder) {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalCreateCOCOReader")
     auto context = static_cast<Context*>(p_context);
     if(mask)
-        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask);
-    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox);
+        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask, ltrb, is_box_encoder);
+    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox, ltrb, is_box_encoder);
 }
 
 RocalMetaData
