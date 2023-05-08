@@ -73,7 +73,7 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         auto it = _map_content.find(_image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ _image_name )
-        getMetaDataBatchValues<std::vector<Labels>>(*_output, &MetaDataBatch::get_labels_batch)[i] = getMetaDataValues<std::vector<int>>(*it->second, &MetaData::get_labels);
+        _output->get_labels_batch()[i] = it->second->get_labels();
     }
 
 }
@@ -82,7 +82,7 @@ void TFMetaDataReader::print_map_contents()
 {
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << getMetaDataValues<std::vector<int>>(*elem.second, &MetaData::get_labels)[0] << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_labels()[0] << std::endl;
     }
 }
 

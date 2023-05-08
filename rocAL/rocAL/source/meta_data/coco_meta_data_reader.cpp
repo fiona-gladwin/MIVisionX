@@ -61,15 +61,15 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         auto it = _map_content.find(image_name);
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name)
-        getMetaDataBatchValues<std::vector<BoundingBoxCords>>(*_output, &MetaDataBatch::get_bb_cords_batch)[i] = getMetaDataValues<BoundingBoxCords>(*it->second, &MetaData::get_bb_cords);
-        getMetaDataBatchValues<std::vector<Labels>>(*_output, &MetaDataBatch::get_labels_batch)[i] = getMetaDataValues<std::vector<int>>(*it->second, &MetaData::get_labels);
+        _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
+        _output->get_labels_batch()[i] = it->second->get_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
         {
-            auto mask_cords = getMetaDataValues<MaskCords>(*it->second, &MetaData::get_mask_cords);
-            getMetaDataBatchValues<std::vector<MaskCords>>(*_output, &MetaDataBatch::get_mask_cords_batch)[i] = mask_cords;
-            getMetaDataBatchValues<std::vector<std::vector<int>>>(*_output, &MetaDataBatch::get_mask_polygons_count_batch)[i] = getMetaDataValues<std::vector<int>>(*it->second, &MetaData::get_polygon_count);
-            getMetaDataBatchValues<std::vector<std::vector<std::vector<int>>>>(*_output, &MetaDataBatch::get_mask_vertices_count_batch)[i] = getMetaDataValues<std::vector<std::vector<int>>>(*it->second, &MetaData::get_vertices_count);
+            auto mask_cords = it->second->get_mask_cords();
+            _output->get_mask_cords_batch()[i] = mask_cords;
+            _output->get_mask_polygons_count_batch()[i] = it->second->get_polygon_count();
+            _output->get_mask_vertices_count_batch()[i] = it->second->get_vertices_count();
         }
     }
 }
@@ -79,12 +79,11 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
     if (exists(image_name))
     {
         auto it = _map_content.find(image_name);
-        getMetaDataValues<BoundingBoxCords>(*it->second, &MetaData::get_bb_cords).push_back(bb_coords[0]);
-        getMetaDataValues<std::vector<int>>(*it->second, &MetaData::get_labels).push_back(bb_labels[0]);
-        getMetaDataValues<MaskCords>(*it->second, &MetaData::get_mask_cords).insert(getMetaDataValues<MaskCords>(*it->second, &MetaData::get_mask_cords).end(),
-                                                                                   mask_cords.begin(), mask_cords.end());
-        getMetaDataValues<std::vector<int>>(*it->second, &MetaData::get_polygon_count).push_back(polygon_count[0]);
-        getMetaDataValues<std::vector<std::vector<int>>>(*it->second, &MetaData::get_vertices_count).push_back(vertices_count[0]);
+        it->second->get_bb_cords().push_back(bb_coords[0]);
+        it->second->get_labels().push_back(bb_labels[0]);
+        it->second->get_mask_cords().insert(it->second->get_mask_cords().end(), mask_cords.begin(), mask_cords.end());
+        it->second->get_polygon_count().push_back(polygon_count[0]);
+        it->second->get_vertices_count().push_back(vertices_count[0]);
         return;
     }
     pMetaDataPolygonMask info = std::make_shared<PolygonMask>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
@@ -96,8 +95,8 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
     if (exists(image_name))
     {
         auto it = _map_content.find(image_name);
-        getMetaDataValues<BoundingBoxCords>(*it->second, &MetaData::get_bb_cords).push_back(bb_coords[0]);
-        getMetaDataValues<std::vector<int>>(*it->second, &MetaData::get_labels).push_back(bb_labels[0]);
+        it->second->get_bb_cords().push_back(bb_coords[0]);
+        it->second->get_labels().push_back(bb_labels[0]);
         return;
     }
     pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size, image_id);
@@ -117,8 +116,8 @@ void COCOMetaDataReader::print_map_contents()
     for (auto &elem : _map_content)
     {
         std::cout << "\nName :\t " << elem.first;
-        bb_coords = getMetaDataValues<BoundingBoxCords>(*elem.second, &MetaData::get_bb_cords);
-        bb_labels = getMetaDataValues<std::vector<int>>(*elem.second, &MetaData::get_labels);
+        bb_coords = elem.second->get_bb_cords();
+        bb_labels = elem.second->get_labels();
         img_size = elem.second->get_img_size();
         std::cout << "<wxh, num of bboxes>: " << img_size.w << " X " << img_size.h << " , " << bb_coords.size() << std::endl;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
@@ -128,9 +127,9 @@ void COCOMetaDataReader::print_map_contents()
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
         {
             int count = 0;
-            mask_cords = getMetaDataValues<MaskCords>(*elem.second, &MetaData::get_mask_cords);
-            polygon_size = getMetaDataValues<std::vector<int>>(*elem.second, &MetaData::get_polygon_count);
-            vertices_count = getMetaDataValues<std::vector<std::vector<int>>>(*elem.second, &MetaData::get_vertices_count);
+            mask_cords = elem.second->get_mask_cords();
+            polygon_size = elem.second->get_polygon_count();
+            vertices_count = elem.second->get_vertices_count();
             std::cout << "\nNumber of objects : " << bb_coords.size() << std::endl;
             for (unsigned int i = 0; i < bb_coords.size(); i++)
             {
@@ -369,8 +368,8 @@ void COCOMetaDataReader::read_all(const std::string &path)
     }
     for (auto &elem : _map_content)
     {
-        bb_coords = getMetaDataValues<BoundingBoxCords>(*elem.second, &MetaData::get_bb_cords);
-        bb_labels = getMetaDataValues<std::vector<int>>(*elem.second, &MetaData::get_labels);
+        bb_coords = elem.second->get_bb_cords();
+        bb_labels = elem.second->get_labels();
         Labels continuous_label_id;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {

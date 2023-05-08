@@ -235,7 +235,7 @@ ROCAL_API_CALL rocalGetBoundingBoxCount(RocalContext p_context)
     auto meta_data = context->master_graph->meta_data();
     if(!meta_data.second)
         THROW("No label has been loaded for this output image")
-    size_t meta_data_batch_size = getMetaDataBatchValues<std::vector<Labels>>(*meta_data.second, &MetaDataBatch::get_labels_batch).size();
+    size_t meta_data_batch_size = meta_data.second->get_labels_batch().size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
     return context->master_graph->bounding_box_batch_count(meta_data.second);
@@ -261,14 +261,14 @@ ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext p_context, void* buf, int 
         WRN("No label has been loaded for this output image")
         return;
     }
-    size_t meta_data_batch_size = getMetaDataBatchValues<std::vector<Labels>>(*meta_data.second, &MetaDataBatch::get_labels_batch).size();
+    size_t meta_data_batch_size = meta_data.second->get_labels_batch().size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
 
     int labels_buf[meta_data_batch_size];
     int one_hot_encoded[meta_data_batch_size*numOfClasses];
     memset(one_hot_encoded, 0, sizeof(int) * meta_data_batch_size * numOfClasses);
-    memcpy(labels_buf, getMetaDataBatchValues<std::vector<Labels>>(*meta_data.second, &MetaDataBatch::get_labels_batch).data(),  sizeof(int)*meta_data_batch_size);
+    memcpy(labels_buf, meta_data.second->get_labels_batch().data(),  sizeof(int)*meta_data_batch_size);
 
     for(uint i = 0; i < meta_data_batch_size; i++)
     {
@@ -318,16 +318,16 @@ ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int* buf)
     unsigned size = 0, count = 0;
     auto context = static_cast<Context*>(p_context);
     auto meta_data = context->master_graph->meta_data();
-    size_t meta_data_batch_size = getMetaDataBatchValues<std::vector<MaskCords>>(*meta_data.second, &MetaDataBatch::get_mask_cords_batch).size();
+    size_t meta_data_batch_size = meta_data.second->get_mask_cords_batch().size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
     if(!meta_data.second)
         THROW("No mask has been loaded for this output image")
     for(unsigned i = 0; i < meta_data_batch_size; i++)
     {
-        unsigned object_count = getMetaDataBatchValues<std::vector<Labels>>(*meta_data.second, &MetaDataBatch::get_labels_batch)[i].size();
+        unsigned object_count = meta_data.second->get_labels_batch()[i].size();
         for(unsigned int j = 0; j < object_count; j++) {
-            unsigned polygon_count = getMetaDataBatchValues<std::vector<std::vector<int>>>(*meta_data.second, &MetaDataBatch::get_mask_polygons_count_batch)[i][j];
+            unsigned polygon_count = meta_data.second->get_mask_polygons_count_batch()[i][j];
             buf[count++] = polygon_count;
             size += polygon_count;
         }
@@ -342,7 +342,7 @@ ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int *bufcount)
         THROW("Invalid rocal context passed to rocalGetMaskCoordinates")
     auto context = static_cast<Context*>(p_context);
     auto meta_data = context->master_graph->meta_data();
-    size_t meta_data_batch_size = getMetaDataBatchValues<std::vector<MaskCords>>(*meta_data.second, &MetaDataBatch::get_mask_cords_batch).size();
+    size_t meta_data_batch_size = meta_data.second->get_mask_cords_batch().size();
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
     if(!meta_data.second)
@@ -350,13 +350,13 @@ ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int *bufcount)
     int size = 0;
     for(unsigned image_idx = 0; image_idx < meta_data_batch_size; image_idx++)
     {
-        unsigned object_count = getMetaDataBatchValues<std::vector<Labels>>(*meta_data.second, &MetaDataBatch::get_labels_batch)[image_idx].size();
+        unsigned object_count = meta_data.second->get_labels_batch()[image_idx].size();
         for(unsigned int i = 0; i < object_count; i++)
         {
-            unsigned polygon_count = getMetaDataBatchValues<std::vector<std::vector<int>>>(*meta_data.second, &MetaDataBatch::get_mask_polygons_count_batch)[image_idx][i];
+            unsigned polygon_count = meta_data.second->get_mask_polygons_count_batch()[image_idx][i];
             for(unsigned int j = 0; j < polygon_count; j++)
             {
-                unsigned polygon_size = getMetaDataBatchValues<std::vector<std::vector<std::vector<int>>>>(*meta_data.second, &MetaDataBatch::get_mask_vertices_count_batch)[image_idx][i][j];
+                unsigned polygon_size = meta_data.second->get_mask_vertices_count_batch()[image_idx][i][j];
                 bufcount[size++] = polygon_size;
             }
         }
@@ -484,7 +484,7 @@ ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **j
         THROW("Invalid rocal context passed to rocalGetBoundingBoxCords")
     auto context = static_cast<Context*>(p_context);
     auto meta_data = context->master_graph->meta_data();
-    size_t meta_data_batch_size = getMetaDataBatchValues<JointsDataBatch>(*meta_data.second, &MetaDataBatch::get_joints_data_batch).center_batch.size();
+    size_t meta_data_batch_size = meta_data.second->get_joints_data_batch().center_batch.size();
 
     if(context->user_batch_size() != meta_data_batch_size)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
@@ -494,6 +494,6 @@ ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **j
         return;
     }
 
-    *joints_data = (RocalJointsData *)(&(getMetaDataBatchValues<JointsDataBatch>(*meta_data.second, &MetaDataBatch::get_joints_data_batch)));
+    *joints_data = (RocalJointsData *)(&(meta_data.second->get_joints_data_batch()));
 }
 
