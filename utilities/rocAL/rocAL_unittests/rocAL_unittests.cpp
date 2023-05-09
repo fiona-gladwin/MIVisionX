@@ -456,7 +456,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 for(int i = 0; i < bbox_labels->size(); i++)
                 {
                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-                    double *bbox_buffer = (double *)(bbox_coords->at(i)->buffer());
+                    float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
                     std::cout << "\n>>>>> BBOX LABELS : ";
                     for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
                         std::cout << labels_buffer[j] << " ";
