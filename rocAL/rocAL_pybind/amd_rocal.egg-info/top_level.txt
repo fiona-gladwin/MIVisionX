@@ -1,0 +1,2 @@
+amd
+rocal_pybind

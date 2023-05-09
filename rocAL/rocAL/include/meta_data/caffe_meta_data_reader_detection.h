@@ -45,7 +45,6 @@ public :
     void print_map_contents();
     std::map<std::string, std::shared_ptr<MetaData>> &get_map_content() override{ return _map_content;}
     CaffeMetaDataReaderDetection();
-    ~CaffeMetaDataReaderDetection() override {}
 private:
     void read_files(const std::string& _path);
     bool exists(const std::string &image_name) override;

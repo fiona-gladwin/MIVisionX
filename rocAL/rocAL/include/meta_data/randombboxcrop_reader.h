@@ -84,7 +84,6 @@ public:
     void set_meta_data(std::shared_ptr<MetaDataReader> meta_data_reader) override;
     pCropCord get_crop_cord(const std::string &image_names) override;
     RandomBBoxCropReader();
-    ~RandomBBoxCropReader() override {}
 
 private:
     std::shared_ptr<MetaDataReader> _meta_data_reader = nullptr;

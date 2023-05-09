@@ -41,7 +41,6 @@ public:
     void print_map_contents();
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override{ return _map_content;}
     VideoLabelReader();
-    ~VideoLabelReader() override { }
 private:
     void read_files(const std::string &_path);
     void read_text_file(const std::string &_path);

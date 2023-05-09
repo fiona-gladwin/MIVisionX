@@ -46,7 +46,6 @@ public :
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content;}
 
     MXNetMetaDataReader();
-    ~MXNetMetaDataReader() override { }
 private:
     void read_images();
     bool exists(const std::string &image_name) override;

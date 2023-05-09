@@ -40,7 +40,6 @@ public:
 
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content; }
     COCOMetaDataReaderKeyPoints();
-    ~COCOMetaDataReaderKeyPoints() override { }
 private:
     pMetaDataBatch _output;
     std::string _path;

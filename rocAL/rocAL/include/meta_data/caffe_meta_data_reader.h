@@ -42,7 +42,6 @@ public :
     void print_map_contents();
     std::map<std::string, std::shared_ptr<MetaData>> &get_map_content() override { return _map_content;}
     CaffeMetaDataReader();
-    ~CaffeMetaDataReader() override {}
 private:
     void read_files(const std::string& _path);
     void read_lmdb_record(std::string _path, uint file_size);
