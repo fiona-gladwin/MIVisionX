@@ -43,7 +43,6 @@ public :
     bool set_timestamp_mode() override { return false; }
     std::map<std::string, std::shared_ptr<MetaData>> &get_map_content() override { return (_map_content);}
     Caffe2MetaDataReader();
-    ~Caffe2MetaDataReader() override { }
 private:
     void read_files(const std::string& _path);
     bool exists(const std::string &image_name) override;

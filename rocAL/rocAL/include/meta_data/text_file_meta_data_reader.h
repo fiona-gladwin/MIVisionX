@@ -37,7 +37,6 @@ public:
 
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override{ return _map_content;}
     TextFileMetaDataReader();
-    ~TextFileMetaDataReader() override { }
 private:
     pMetaDataBatch _output;
     void read_files(const std::string& _path);
