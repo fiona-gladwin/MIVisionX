@@ -968,19 +968,11 @@ rocalJpegCOCOFileSource(
         auto [color_format, num_of_planes] = convert_color_format(rocal_color_format);
         INFO("Internal buffer size width = "+ TOSTR(width)+ " height = "+ TOSTR(height) + " depth = "+ TOSTR(num_of_planes))
 
-        RocalTensorlayout tensor_format = RocalTensorlayout::NHWC;
+        RocalTensorlayout tensor_format = (rocal_color_format == ROCAL_COLOR_U8) ? RocalTensorlayout::NCHW : RocalTensorlayout::NHWC;
         RocalTensorDataType tensor_data_type = RocalTensorDataType::UINT8;
         RocalROIType roi_type = RocalROIType::XYWH;
         unsigned num_of_dims = 4;
-        std::vector<size_t> dims;
-        if(rocal_color_format == ROCAL_COLOR_U8) {
-            std::cerr<<"\n Setting RocalTensorlayout::NCHW";
-            tensor_format = RocalTensorlayout::NCHW;
-            dims = {context->user_batch_size(),num_of_planes, height, width};
-        }
-        else {
-            dims = {context->user_batch_size(), height, width, num_of_planes};
-        }
+        std::vector<size_t> dims = (rocal_color_format == ROCAL_COLOR_U8) ? std::vector<size_t>{context->user_batch_size(), num_of_planes, height, width} : std::vector<size_t>{context->user_batch_size(), height, width, num_of_planes};
         auto info  = rocalTensorInfo(std::vector<size_t>(std::move(dims)),
                                 context->master_graph->mem_type(),
                                 tensor_data_type);
