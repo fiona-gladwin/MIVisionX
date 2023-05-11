@@ -973,11 +973,14 @@ rocalJpegCOCOFileSource(
         RocalROIType roi_type = RocalROIType::XYWH;
         unsigned num_of_dims = 4;
         std::vector<size_t> dims;
-        dims.resize(num_of_dims);
-        dims[0] = context->user_batch_size();
-        dims[1] = height;
-        dims[2] = width;
-        dims[3] = num_of_planes;
+        if(rocal_color_format == ROCAL_COLOR_U8) {
+            std::cerr<<"\n Setting RocalTensorlayout::NCHW";
+            tensor_format = RocalTensorlayout::NCHW;
+            dims = {context->user_batch_size(),num_of_planes, height, width};
+        }
+        else {
+            dims = {context->user_batch_size(), height, width, num_of_planes};
+        }
         auto info  = rocalTensorInfo(std::vector<size_t>(std::move(dims)),
                                 context->master_graph->mem_type(),
                                 tensor_data_type);
@@ -1072,11 +1075,14 @@ rocalJpegCOCOFileSourceSingleShard(
         RocalROIType roi_type = RocalROIType::XYWH;
         unsigned num_of_dims = 4;
         std::vector<size_t> dims;
-        dims.resize(num_of_dims);
-        dims.at(0) = context->user_batch_size();
-        dims.at(1) = height;
-        dims.at(2) = width;
-        dims.at(3) = num_of_planes;
+        if(rocal_color_format == ROCAL_COLOR_U8) {
+            std::cerr<<"\n Setting RocalTensorlayout::NCHW";
+            tensor_format = RocalTensorlayout::NCHW;
+            dims = {context->user_batch_size(),num_of_planes, height, width};
+        }
+        else {
+            dims = {context->user_batch_size(), height, width, num_of_planes};
+        }
         auto info  = rocalTensorInfo(std::vector<size_t>(std::move(dims)),
                                 context->master_graph->mem_type(),
                                 tensor_data_type);

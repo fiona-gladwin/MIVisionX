@@ -233,8 +233,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
 #endif
 
     RocalTensor input1;
-    RocalTensorLayout tensorLayout = RocalTensorLayout::ROCAL_NHWC;
-    // if()
+    RocalTensorLayout tensorLayout = (rgb != 0) ? RocalTensorLayout::ROCAL_NHWC
+                                             : RocalTensorLayout::ROCAL_NCHW;
     RocalTensorOutputType tensorOutputType = RocalTensorOutputType::ROCAL_UINT8;
 
     // The jpeg file loader can automatically select the best size to decode all images to that size
@@ -1022,16 +1022,6 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 else if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HOST)
                     out_buffer = (unsigned char *)(output_tensor_list->at(idx)->buffer());
             }
-
-            if(output_tensor_list->at(idx)->info().layout() == RocalTensorlayout::NCHW)
-            {
-                // cv::Mat mat_input_nchw = cv::Mat(cv_color_format, h, w);
-                // mat_input_nchw = (unsigned char *)out_buffer;
-                // cv::transposeND(mat_input_nchw, {0, 3, 1, 2}, mat_input); // Can be enabled only with OpenCV 4.6.0
-                convert_nchw_to_nhwc(out_buffer, mat_input.data, output_tensor_list->at(idx)->info().dims().at(0), output_tensor_list->at(idx)->info().dims().at(2),
-                                     output_tensor_list->at(idx)->info().dims().at(3), output_tensor_list->at(idx)->info().dims().at(1));            
-            }
-            else
                 mat_input.data = (unsigned char *)out_buffer;
 
             mat_input.copyTo(mat_output(cv::Rect(0, 0, w, h)));
