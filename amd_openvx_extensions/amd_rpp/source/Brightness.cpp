@@ -127,21 +127,7 @@ static vx_status VX_CALLBACK processBrightness(vx_node node, const vx_reference 
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshBrightness(node, parameters, num, data);
-        std::cerr<<"\n start data->srcDescPtr->layout "<<data->srcDescPtr->layout<<"  "<<data->dstDescPtr->layout;
-        std::cerr<<"\n start data->srcDescPtr->>strides "<<data->srcDescPtr->strides.nStride<<"  "<<  data->srcDescPtr->strides.cStride<<"  "<<data->srcDescPtr->strides.hStride<<"  "<<  data->srcDescPtr->strides.wStride;
-        std::cerr<<"\n start data->dstDescPtr->>strides "<<data->dstDescPtr->strides.nStride<<"  "<<  data->dstDescPtr->strides.cStride<<"  "<<data->dstDescPtr->strides.hStride<<"  "<<  data->dstDescPtr->strides.wStride;
-        // if(data->srcDescPtr->c == 1)
-        // {
-        //     data->srcDescPtr->layout = NCHW;
-        //     // data->srcDescPtr->strides.cStride=data->srcDescPtr->strides.nStride;
-        //     // data->dstDescPtr->strides.cStride=data->dstDescPtr->strides.nStride;
-        // }
-         std::cerr<<"\n end data->srcDescPtr->layout "<<data->srcDescPtr->layout<<"  "<<data->dstDescPtr->layout;
-        std::cerr<<"\n end data->srcDescPtr->>strides "<<data->srcDescPtr->strides.nStride<<"  "<<  data->srcDescPtr->strides.cStride<<"  "<<data->srcDescPtr->strides.hStride<<"  "<<  data->srcDescPtr->strides.wStride;
-        std::cerr<<"\n end data->dstDescPtr->>strides "<<data->dstDescPtr->strides.nStride<<"  "<<  data->dstDescPtr->strides.cStride<<"  "<<data->dstDescPtr->strides.hStride<<"  "<<  data->dstDescPtr->strides.wStride;
-        std::cerr<<"\n before appt call";
         rpp_status = rppt_brightness_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->alpha, data->beta, data->roiPtr, data->roiType, data->handle->rppHandle);
-        std::cerr<<"\n After rppt call ";
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -165,10 +151,6 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_DATA_TYPE, &data->inputTensorType, sizeof(data->inputTensorType)));
     data->srcDescPtr->dataType = getRpptDataType(data->inputTensorType);
     data->srcDescPtr->offsetInBytes = 0;
-    std::cerr<<"\n data->inputLayout "<<data->inputLayout;
-    // data->inputLayout=1;
-    std::cerr<<"\n data->outputLayout "<<data->outputLayout;
-    std::cerr<<"\n data->inputTensorDims  "<<data->inputTensorDims[0]<<"  "<<data->inputTensorDims[1]<<"  "<<data->inputTensorDims[2]<<"  "<<data->inputTensorDims[3];
     fillDescriptionPtrfromDims(data->srcDescPtr, data->inputLayout, data->inputTensorDims);
 
     // Querying for output tensor
@@ -178,8 +160,6 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_DATA_TYPE, &data->outputTensorType, sizeof(data->outputTensorType)));
     data->dstDescPtr->dataType = getRpptDataType(data->outputTensorType);
     data->dstDescPtr->offsetInBytes = 0;
-    std::cerr<<"\n data->ouputTensorDims  "<<data->ouputTensorDims[0]<<"  "<<data->ouputTensorDims[1]<<"  "<<data->ouputTensorDims[2]<<"  "<<data->ouputTensorDims[3];
-
     fillDescriptionPtrfromDims(data->dstDescPtr, data->outputLayout, data->ouputTensorDims);
 
     data->alpha = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
