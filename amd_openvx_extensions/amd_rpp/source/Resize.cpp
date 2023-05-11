@@ -151,6 +151,27 @@ static vx_status VX_CALLBACK processResize(vx_node node, const vx_reference *par
     if (data->device_type == AGO_TARGET_AFFINITY_CPU)
     {
         refreshResize(node, parameters, num, data);
+        std::cerr<<"\n start data->src_desc_ptr->layout "<<data->src_desc_ptr->layout<<"  "<<data->dst_desc_ptr->layout;
+        std::cerr<<"\n start data->src_desc_ptr->>strides "<<data->src_desc_ptr->strides.nStride<<"  "<<  data->src_desc_ptr->strides.cStride<<"  "<<data->src_desc_ptr->strides.hStride<<"  "<<  data->src_desc_ptr->strides.wStride;
+        std::cerr<<"\n start data->dst_desc_ptr->>strides "<<data->dst_desc_ptr->strides.nStride<<"  "<<  data->dst_desc_ptr->strides.cStride<<"  "<<data->dst_desc_ptr->strides.hStride<<"  "<<  data->dst_desc_ptr->strides.wStride;
+        // <<data->dst_desc_ptr->strides.cStride;
+
+        if(data->src_desc_ptr->c ==1)
+        {
+            // std::cerr<<"\n data->src_desc_ptr->layout "<<data->src_desc_ptr->layout<<"  "<<data->dst_desc_ptr->layout;
+            // std::cerr<<"\n data->src_desc_ptr->>strides.cStride "<<data->src_desc_ptr->strides.cStride<<"  "<<data->dst_desc_ptr->strides.cStride;
+
+            data->src_desc_ptr->layout=RpptLayout(0);
+            data->dst_desc_ptr->layout=RpptLayout(0);
+            data->src_desc_ptr->strides.cStride=data->src_desc_ptr->strides.nStride;
+            data->dst_desc_ptr->strides.cStride=data->dst_desc_ptr->strides.nStride;
+            // std::cerr<<"\n after data->src_desc_ptr->layout "<<data->src_desc_ptr->layout<<"  "<<data->dst_desc_ptr->layout;
+            // std::cerr<<"\n after data->src_desc_ptr->>strides.cStride "<<data->src_desc_ptr->strides.cStride<<"  "<<data->dst_desc_ptr->strides.cStride;
+
+        }
+        std::cerr<<"\n end data->src_desc_ptr->layout "<<data->src_desc_ptr->layout<<"  "<<data->dst_desc_ptr->layout;
+        std::cerr<<"\n end data->src_desc_ptr->>strides "<<data->src_desc_ptr->strides.nStride<<"  "<<  data->src_desc_ptr->strides.cStride<<"  "<<data->src_desc_ptr->strides.hStride<<"  "<<  data->src_desc_ptr->strides.wStride;
+        std::cerr<<"\n end data->dst_desc_ptr->>strides "<<data->dst_desc_ptr->strides.nStride<<"  "<<  data->dst_desc_ptr->strides.cStride<<"  "<<data->dst_desc_ptr->strides.hStride<<"  "<<  data->dst_desc_ptr->strides.wStride;
         rpp_status = rppt_resize_host(data->pSrc, data->src_desc_ptr, data->pDst, data->dst_desc_ptr, data->dstImgSize, (RpptInterpolationType)data->interpolation_type, data->roi_ptr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }

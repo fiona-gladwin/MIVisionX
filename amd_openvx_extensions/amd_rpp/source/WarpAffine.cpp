@@ -147,7 +147,7 @@ static vx_status VX_CALLBACK processWarpAffine(vx_node node, const vx_reference 
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshWarpAffine(node, parameters, num, data);
-        // rpp_status = rppt_warp_affine_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->affine,  RpptInterpolationType::BILINEAR, data->roiPtr, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_warp_affine_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->affine,  RpptInterpolationType::BILINEAR, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;

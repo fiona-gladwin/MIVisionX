@@ -130,12 +130,12 @@ static vx_status VX_CALLBACK processPixelate(vx_node node, const vx_reference *p
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshPixelate(node, parameters, num, data);
-        rpp_status = rppt_pixelate_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr, data->roiPtr, data->roiType, data->handle->rppHandle);
+        // rpp_status = rppt_pixelate_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr, data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshPixelate(node, parameters, num, data);
-        rpp_status = rppt_pixelate_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr,  data->roiPtr, data->roiType, data->handle->rppHandle);
+        // rpp_status = rppt_pixelate_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr,  data->roiPtr, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;

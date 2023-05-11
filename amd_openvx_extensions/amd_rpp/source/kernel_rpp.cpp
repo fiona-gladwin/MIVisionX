@@ -2556,6 +2556,63 @@ vx_status releaseGraphHandle(vx_node node, RPPCommonHandle *handle, Rpp32u devic
 void fillDescriptionPtrfromDims(RpptDescPtr &descPtr, Rpp32s layout, size_t *tensorDims) {
     switch(layout) {
         case 0: { // For NHWC
+            
+            descPtr->n = tensorDims[0];
+            descPtr->h = tensorDims[1];
+            descPtr->w = tensorDims[2];
+            descPtr->c = tensorDims[3];
+            descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
+            descPtr->strides.hStride = descPtr->c * descPtr->w;
+            descPtr->strides.wStride = descPtr->c;
+            descPtr->strides.cStride = 1;
+            descPtr->layout = RpptLayout::NHWC;
+            break; 
+        }
+        case 1: { // For NCHW
+            descPtr->n = tensorDims[0];
+            descPtr->h = tensorDims[2];
+            descPtr->w = tensorDims[3];
+            descPtr->c = tensorDims[1];
+            descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
+            descPtr->strides.cStride = descPtr->w * descPtr->h;
+            descPtr->strides.hStride = descPtr->w;
+            descPtr->strides.wStride = 1;
+            descPtr->layout = RpptLayout::NCHW;
+            break;
+        }
+        case 2: { // For NFHWC
+            descPtr->n = tensorDims[0] * tensorDims[1];
+            descPtr->h = tensorDims[2];
+            descPtr->w = tensorDims[3];
+            descPtr->c = tensorDims[4];
+            descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
+            descPtr->strides.hStride = descPtr->c * descPtr->w;
+            descPtr->strides.wStride = descPtr->c;
+            descPtr->strides.cStride = 1;
+            descPtr->layout = RpptLayout::NHWC;
+            break;
+        }
+        case 3: { // For NFCHW
+            // source_description_ptr
+            descPtr->n = tensorDims[0] * tensorDims[1];
+            descPtr->h = tensorDims[3];
+            descPtr->w = tensorDims[4];
+            descPtr->c = tensorDims[2];
+            descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
+            descPtr->strides.cStride = descPtr->w * descPtr->h;
+            descPtr->strides.hStride = descPtr->w;
+            descPtr->strides.wStride = 1;
+            descPtr->layout = RpptLayout::NCHW;
+            break;
+        }
+    }
+    
+}
+
+void fillDescriptionPtrfromDims1(RpptDescPtr &descPtr, Rpp32s layout, size_t *tensorDims) {
+    switch(layout) {
+        case 0: { // For NHWC
+            
             descPtr->n = tensorDims[0];
             descPtr->h = tensorDims[1];
             descPtr->w = tensorDims[2];
