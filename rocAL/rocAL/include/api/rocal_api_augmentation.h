@@ -31,13 +31,11 @@ THE SOFTWARE.
 /// \param context
 /// \param input
 /// \param new_order
-/// \param new_sequence_length
-/// \param sequence_length
 /// \param is_output
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalSequenceRearrange(RocalContext context, RocalImage input,
-                                                unsigned int* new_order, unsigned int  new_sequence_length,
-                                                unsigned int sequence_length, bool is_output );
+extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceRearrange(RocalContext p_context, RocalTensor input,
+                                                              std::vector<unsigned int>& new_order,
+                                                              bool is_output);
 
 /// Accepts U8 and RGB24 input.
 /// \param context

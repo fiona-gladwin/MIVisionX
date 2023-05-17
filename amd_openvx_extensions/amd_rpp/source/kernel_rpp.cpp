@@ -1852,28 +1852,22 @@ VX_API_CALL vx_node VX_API_CALL vxExtrppNode_NopbatchPD(vx_graph graph, vx_image
     return node;
 }
 
-VX_API_CALL vx_node VX_API_CALL  vxExtrppNode_SequenceRearrange(vx_graph graph,vx_image pSrc,vx_image pDst, vx_array newOrder, vx_uint32 newSequenceLength, vx_uint32 sequenceLength, vx_uint32 sequenceCount)
-{
-	vx_node node = NULL;
-	vx_context context = vxGetContext((vx_reference)graph);
-	if(vxGetStatus((vx_reference)context) == VX_SUCCESS) {
-		vx_uint32 dev_type = getGraphAffinity(graph);
-		vx_scalar DEV_TYPE = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &dev_type);
-		vx_scalar NEWSEQUENCELENGTH = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &newSequenceLength);
-		vx_scalar SEQUENCELENGTH = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &sequenceLength);
-		vx_scalar SEQUENCECOUNT = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &sequenceCount);
-		vx_reference params[] = {
-			(vx_reference) pSrc,
-			(vx_reference) pDst,
-			(vx_reference) newOrder,
-			(vx_reference) NEWSEQUENCELENGTH,
-			(vx_reference) SEQUENCELENGTH,
-			(vx_reference) SEQUENCECOUNT,
-			(vx_reference) DEV_TYPE
-		};
-		 node = createNode(graph, VX_KERNEL_RPP_SEQUENCEREARRANGE, params, 7);
-	}
-	return node;
+VX_API_CALL vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_array newOrder, vx_scalar layout) {
+    vx_node node = NULL;
+    vx_context context = vxGetContext((vx_reference)graph);
+    if(vxGetStatus((vx_reference)context) == VX_SUCCESS) {
+        vx_uint32 dev_type = getGraphAffinity(graph);
+        vx_scalar dev_type_scalar = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &dev_type);
+        vx_reference params[] = {
+            (vx_reference) pSrc,
+            (vx_reference) pDst,
+            (vx_reference) newOrder,
+            (vx_reference) layout,
+            (vx_reference) dev_type_scalar
+        };
+        node = createNode(graph, VX_KERNEL_RPP_SEQUENCEREARRANGE, params, 5);
+    }
+    return node;
 }
 
 VX_API_ENTRY vx_node VX_API_CALL vxExtrppNode_Brightness(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array alpha, vx_array beta, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType)
@@ -2006,14 +2000,16 @@ vx_node createNode(vx_graph graph, vx_enum kernelEnum, vx_reference params[], vx
     return node;
 }
 
-vx_status createGraphHandle(vx_node node, RPPCommonHandle **pHandle, Rpp32u batchSize, Rpp32u deviceType) {
-    RPPCommonHandle *handle = NULL;
+vx_status createRPPHandle(vx_node node, vxRppHandle **pHandle, Rpp32u batchSize, Rpp32u deviceType) {
+    vxRppHandle *handle = NULL;
     STATUS_ERROR_CHECK(vxGetModuleHandle(node, OPENVX_KHR_RPP, (void **)&handle));
+    vx_uint32 cpu_num_threads;
+    STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_CPU_NUM_THREADS, &cpu_num_threads, sizeof(cpu_num_threads)));
 
     if (handle) {
         handle->count++;
     } else {
-        handle = new RPPCommonHandle;
+        handle = new vxRppHandle;
         memset(handle, 0, sizeof(*handle));
         handle->count = 1;
         
@@ -2026,7 +2022,7 @@ vx_status createGraphHandle(vx_node node, RPPCommonHandle **pHandle, Rpp32u batc
             rppCreateWithStreamAndBatchSize(&handle->rppHandle, handle->hipstream, batchSize);
 #endif
         } else if (deviceType == AGO_TARGET_AFFINITY_CPU) {
-            rppCreateWithBatchSize(&handle->rppHandle, batchSize);
+            rppCreateWithBatchSize(&handle->rppHandle, batchSize, cpu_num_threads);
         }
         
         STATUS_ERROR_CHECK(vxSetModuleHandle(node, OPENVX_KHR_RPP, handle));
@@ -2035,7 +2031,7 @@ vx_status createGraphHandle(vx_node node, RPPCommonHandle **pHandle, Rpp32u batc
     return VX_SUCCESS;
 }
 
-vx_status releaseGraphHandle(vx_node node, RPPCommonHandle *handle, Rpp32u deviceType) {
+vx_status releaseRPPHandle(vx_node node, vxRppHandle *handle, Rpp32u deviceType) {
     handle->count--;
     if (handle->count == 0) {
         if(deviceType == AGO_TARGET_AFFINITY_GPU) {

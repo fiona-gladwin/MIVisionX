@@ -111,10 +111,11 @@ MasterGraph::~MasterGraph()
     release();
 }
 
-MasterGraph::MasterGraph(size_t batch_size, RocalAffinity affinity, int gpu_id, size_t prefetch_queue_depth, RocalTensorDataType output_tensor_data_type):
+MasterGraph::MasterGraph(size_t batch_size, RocalAffinity affinity, size_t cpu_thread_count, int gpu_id, size_t prefetch_queue_depth, RocalTensorDataType output_tensor_data_type):
         _ring_buffer(prefetch_queue_depth),
         _graph(nullptr),
         _affinity(affinity),
+        _cpu_num_threads(cpu_thread_count),
         _gpu_id(gpu_id),
         _convert_time("Conversion Time", DBG_TIMING),
         _process_time("Process Time", DBG_TIMING),
@@ -252,11 +253,30 @@ MasterGraph::decrease_image_count()
         _remaining_count -= (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size);
 }
 
+size_t
+MasterGraph::calculate_cpu_num_threads(size_t shard_count)
+{
+    if (_cpu_num_threads <= 0) {
+        const unsigned minimum_cpu_thread_count = 2;
+        const unsigned default_smt_count = 2;
+        unsigned thread_count = std::thread::hardware_concurrency();
+        if(thread_count < minimum_cpu_thread_count)
+        {
+            thread_count = minimum_cpu_thread_count;
+            WRN("hardware_concurrency() call failed, assuming rocAL can run " + TOSTR(thread_count) + " threads")
+        }
+        size_t core_count = thread_count / default_smt_count;
+        _cpu_num_threads = core_count / shard_count;
+    }
+    // Use _cpu_num_threads if user has already passed non-negative num_threads
+    return _cpu_num_threads;
+}
+
 void
 MasterGraph::create_single_graph()
 {
     // Actual graph creating and calls into adding nodes to graph is deferred and is happening here to enable potential future optimizations
-    _graph = std::make_shared<Graph>(_context, _affinity, 0, _gpu_id);
+    _graph = std::make_shared<Graph>(_context, _affinity, 0, _cpu_num_threads, _gpu_id);
     for(auto& node: _nodes)
     {
         // Any tensor not yet created can be created as virtual tensor
@@ -541,6 +561,10 @@ void MasterGraph::output_routine()
                     _meta_data_graph->update_box_encoder_meta_data(&_anchors, full_batch_meta_data, _criteria, _offset, _scale, _means, _stds);
             }
             _bencode_time.end();
+#ifdef ROCAL_VIDEO
+            _sequence_start_framenum_vec.insert(_sequence_start_framenum_vec.begin(), _loader_module->get_sequence_start_frame_number());
+            _sequence_frame_timestamps_vec.insert(_sequence_frame_timestamps_vec.begin(), _loader_module->get_sequence_frame_timestamps());
+#endif
             _ring_buffer.set_meta_data(full_batch_image_names, full_batch_meta_data);
             _ring_buffer.push(); // Image data and metadata is now stored in output the ring_buffer, increases it's level by 1
         }

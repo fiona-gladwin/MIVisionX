@@ -26,13 +26,13 @@ THE SOFTWARE.
 #include "commons.h"
 
 #ifdef ROCAL_VIDEO
-std::shared_ptr<VideoDecoder> create_video_decoder(VideoDecoderConfig config)
+std::shared_ptr<VideoDecoder> create_video_decoder(DecoderConfig config)
 {
     switch (config.type())
     {
-        case VideoDecoderType::FFMPEG_SOFTWARE_DECODE:
+        case DecoderType::FFMPEG_SOFTWARE_DECODE:
             return std::make_shared<FFmpegVideoDecoder>();
-        case VideoDecoderType::FFMPEG_HARDWARE_DECODE:
+        case DecoderType::FFMPEG_HARDWARE_DECODE:
             return std::make_shared<HardWareVideoDecoder>();
         default:
             THROW("Unsupported decoder type " + TOSTR(config.type()));

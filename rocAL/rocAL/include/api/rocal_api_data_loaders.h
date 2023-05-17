@@ -85,17 +85,17 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegFileSourceSingleShard(RocalCont
 /// \param loop Determines if the user wants to indefinitely loops through images or not.
 /// \param step: Frame interval between each sequence.
 /// \param stride: Frame interval between frames in a sequence.
-/// \return Reference to the output image.
-extern "C"  RocalImage  ROCAL_API_CALL rocalSequenceReader(RocalContext context,
-                                                        const char* source_path,
-                                                        RocalImageColor rocal_color_format,
-                                                        unsigned internal_shard_count,
-                                                        unsigned sequence_length,
-                                                        bool is_output,
-                                                        bool shuffle = false,
-                                                        bool loop = false,
-                                                        unsigned step = 0,
-                                                        unsigned stride = 0);
+/// \return Reference to the output tensor.
+extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReader(RocalContext context,
+                                                            const char* source_path,
+                                                            RocalImageColor rocal_color_format,
+                                                            unsigned internal_shard_count,
+                                                            unsigned sequence_length,
+                                                            bool is_output,
+                                                            bool shuffle = false,
+                                                            bool loop = false,
+                                                            unsigned step = 0,
+                                                            unsigned stride = 0);
 
 /// Creates JPEG image reader and decoder. Reads [Frames] sequences from a directory representing a collection of streams. It accepts external sharding information to load a singe shard only.
 /// \param context Rocal context
@@ -109,18 +109,18 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalSequenceReader(RocalContext context,
 /// \param loop Determines if the user wants to indefinitely loops through images or not.
 /// \param step: Frame interval between each sequence.
 /// \param stride: Frame interval between frames in a sequence.
-/// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalContext context,
-                                                                   const char* source_path,
-                                                                   RocalImageColor rocal_color_format,
-                                                                   unsigned shard_id,
-                                                                   unsigned shard_count,
-                                                                   unsigned sequence_length,
-                                                                   bool is_output,
-                                                                   bool shuffle = false,
-                                                                   bool loop = false,
-                                                                   unsigned step = 0,
-                                                                   unsigned stride = 0);
+/// \return Reference to the output tensor
+extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalContext context,
+                                                                       const char* source_path,
+                                                                       RocalImageColor rocal_color_format,
+                                                                       unsigned shard_id,
+                                                                       unsigned shard_count,
+                                                                       unsigned sequence_length,
+                                                                       bool is_output,
+                                                                       bool shuffle = false,
+                                                                       bool loop = false,
+                                                                       unsigned step = 0,
+                                                                       unsigned stride = 0);
 
 /// Creates JPEG image reader and decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants.
 /// If images are not Jpeg compressed they will be ignored.
@@ -550,18 +550,18 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalCo
 /// \param stride: Frame interval between frames in a sequence.
 /// \param file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalVideoFileSource(RocalContext context,
-                                                        const char* source_path,
-                                                        RocalImageColor color_format,
-                                                        RocalDecodeDevice rocal_decode_device,
-                                                        unsigned internal_shard_count,
-                                                        unsigned sequence_length,
-                                                        bool is_output = false,
-                                                        bool shuffle = false,
-                                                        bool loop = false,
-                                                        unsigned step = 0,
-                                                        unsigned stride = 0,
-                                                        bool file_list_frame_num = true);
+extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileSource(RocalContext context,
+                                                             const char* source_path,
+                                                             RocalImageColor color_format,
+                                                             RocalDecodeDevice rocal_decode_device,
+                                                             unsigned internal_shard_count,
+                                                             unsigned sequence_length,
+                                                             bool is_output = false,
+                                                             bool shuffle = false,
+                                                             bool loop = false,
+                                                             unsigned step = 0,
+                                                             unsigned stride = 0,
+                                                             bool file_list_frame_num = true);
 
 /// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. It accepts external sharding information to load a singe shard only.
 /// \param context Rocal context
@@ -579,19 +579,19 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalVideoFileSource(RocalContext context
 /// \param stride: Frame interval between frames in a sequence.
 /// \param file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalContext context,
-                                                                    const char* source_path,
-                                                                    RocalImageColor color_format,
-                                                                    RocalDecodeDevice rocal_decode_device,
-                                                                    unsigned shard_id,
-                                                                    unsigned shard_count,
-                                                                    unsigned sequence_length,
-                                                                    bool shuffle = false,
-                                                                    bool is_output = false,
-                                                                    bool loop = false,
-                                                                    unsigned step = 0,
-                                                                    unsigned stride = 0,
-                                                                    bool file_list_frame_num = true);
+extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalContext context,
+                                                                        const char* source_path,
+                                                                        RocalImageColor color_format,
+                                                                        RocalDecodeDevice rocal_decode_device,
+                                                                        unsigned shard_id,
+                                                                        unsigned shard_count,
+                                                                        unsigned sequence_length,
+                                                                        bool shuffle = false,
+                                                                        bool is_output = false,
+                                                                        bool loop = false,
+                                                                        unsigned step = 0,
+                                                                        unsigned stride = 0,
+                                                                        bool file_list_frame_num = true);
 
 /// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. Resizes the decoded frames to the dest width and height.
 /// \param context Rocal context
@@ -610,25 +610,25 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalCont
 /// \param stride: Frame interval between frames in a sequence.
 /// \param file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalVideoFileResize(RocalContext context,
-                                                        const char* source_path,
-                                                        RocalImageColor color_format,
-                                                        RocalDecodeDevice rocal_decode_device,
-                                                        unsigned internal_shard_count,
-                                                        unsigned sequence_length,
-                                                        unsigned dest_width,
-                                                        unsigned dest_height,
-                                                        bool shuffle = false,
-                                                        bool is_output = false,
-                                                        bool loop = false,
-                                                        unsigned step = 0,
-                                                        unsigned stride = 0,
-                                                        bool file_list_frame_num = true,
-                                                        RocalResizeScalingMode scaling_mode = ROCAL_SCALING_MODE_DEFAULT,
-                                                        std::vector<unsigned> max_size = {},
-                                                        unsigned resize_shorter = 0,
-                                                        unsigned resize_longer = 0,
-                                                        RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
+extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileResize(RocalContext context,
+                                                             const char* source_path,
+                                                             RocalImageColor color_format,
+                                                             RocalDecodeDevice rocal_decode_device,
+                                                             unsigned internal_shard_count,
+                                                             unsigned sequence_length,
+                                                             unsigned dest_width,
+                                                             unsigned dest_height,
+                                                             bool shuffle = false,
+                                                             bool is_output = false,
+                                                             bool loop = false,
+                                                             unsigned step = 0,
+                                                             unsigned stride = 0,
+                                                             bool file_list_frame_num = true,
+                                                             RocalResizeScalingMode scaling_mode = ROCAL_SCALING_MODE_DEFAULT,
+                                                             std::vector<unsigned> max_size = {},
+                                                             unsigned resize_shorter = 0,
+                                                             unsigned resize_longer = 0,
+                                                             RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
 
 /// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. Resizes the decoded frames to the dest width and height. It accepts external sharding information to load a singe shard only.
 /// \param context Rocal context
@@ -648,26 +648,26 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalVideoFileResize(RocalContext context
 /// \param stride: Frame interval between frames in a sequence.
 /// \param file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalVideoFileResizeSingleShard(RocalContext context,
-                                                        const char* source_path,
-                                                        RocalImageColor color_format,
-                                                        RocalDecodeDevice rocal_decode_device,
-                                                        unsigned shard_id,
-                                                        unsigned shard_count,
-                                                        unsigned sequence_length,
-                                                        unsigned dest_width,
-                                                        unsigned dest_height,
-                                                        bool shuffle = false,
-                                                        bool is_output = false,
-                                                        bool loop = false,
-                                                        unsigned step = 0,
-                                                        unsigned stride = 0,
-                                                        bool file_list_frame_num = true,
-                                                        RocalResizeScalingMode scaling_mode = ROCAL_SCALING_MODE_DEFAULT,
-                                                        std::vector<unsigned> max_size = {},
-                                                        unsigned resize_shorter = 0,
-                                                        unsigned resize_longer = 0,
-                                                        RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
+extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileResizeSingleShard(RocalContext context,
+                                                                         const char* source_path,
+                                                                         RocalImageColor color_format,
+                                                                         RocalDecodeDevice rocal_decode_device,
+                                                                         unsigned shard_id,
+                                                                         unsigned shard_count,
+                                                                         unsigned sequence_length,
+                                                                         unsigned dest_width,
+                                                                         unsigned dest_height,
+                                                                         bool shuffle = false,
+                                                                         bool is_output = false,
+                                                                         bool loop = false,
+                                                                         unsigned step = 0,
+                                                                         unsigned stride = 0,
+                                                                         bool file_list_frame_num = true,
+                                                                         RocalResizeScalingMode scaling_mode = ROCAL_SCALING_MODE_DEFAULT,
+                                                                         std::vector<unsigned> max_size = {},
+                                                                         unsigned resize_shorter = 0,
+                                                                         unsigned resize_longer = 0,
+                                                                         RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
 
 /// Creates CIFAR10 raw data reader and loader. It allocates the resources and objects required to read raw data stored on the file systems.
 /// \param context Rocal context
