@@ -40,8 +40,8 @@ typedef struct BoundingBoxCord_
 {
   double l; double t; double r; double b;
   BoundingBoxCord_() {}
-  BoundingBoxCord_(double l_, double t_, double r_, double b_): l(l_), t(t_), r(r_), b(b_) {}   // conclassor
-  BoundingBoxCord_(const BoundingBoxCord_& cord) : l(cord.l), t(cord.t), r(cord.r), b(cord.b) {}  //copy conclassor
+  BoundingBoxCord_(double l_, double t_, double r_, double b_): l(l_), t(t_), r(r_), b(b_) {}   // constructor
+  BoundingBoxCord_(const BoundingBoxCord_& cord) : l(cord.l), t(cord.t), r(cord.r), b(cord.b) {}  //copy constructor
 } BoundingBoxCord;
 
 typedef  std::vector<BoundingBoxCord> BoundingBoxCords;

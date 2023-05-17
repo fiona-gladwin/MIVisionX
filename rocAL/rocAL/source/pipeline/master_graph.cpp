@@ -458,9 +458,7 @@ void MasterGraph::output_routine()
     try {
         while (_processing)
         {
-            ImageNameBatch full_batch_image_names = {};
             pMetaDataBatch full_batch_meta_data = nullptr;
-            pMetaDataBatch augmented_batch_meta_data = nullptr;
             if (_loader_module->remaining_count() < (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size))
             {
                 // If the internal process routine ,output_routine(), has finished processing all the images, and last
@@ -482,18 +480,16 @@ void MasterGraph::output_routine()
                 THROW("Loader module failed to load next batch of images, status " + TOSTR(load_ret))
             if (!_processing)
                 break;
-            auto this_cycle_names =  _loader_module->get_id();
+            auto full_batch_image_names =  _loader_module->get_id();
             auto decode_image_info = _loader_module->get_decode_image_info();
             auto crop_image_info = _loader_module->get_crop_image_info();
 
-            if(this_cycle_names.size() != _user_batch_size)
-                WRN("Internal problem: names count "+ TOSTR(this_cycle_names.size()))
+            if(full_batch_image_names.size() != _user_batch_size)
+                WRN("Internal problem: names count "+ TOSTR(full_batch_image_names.size()))
 
             // meta_data lookup is done before _meta_data_graph->process() is called to have the new meta_data ready for processing
             if (_meta_data_reader)
-                _meta_data_reader->lookup(this_cycle_names);
-
-            full_batch_image_names = this_cycle_names;
+                _meta_data_reader->lookup(full_batch_image_names);
 
             if (!_processing)
                 break;
@@ -547,7 +543,6 @@ void MasterGraph::output_routine()
                     // get bbox encoder read buffers
                     auto bbox_encode_write_buffers = _ring_buffer.get_box_encode_write_buffers();
                     if (_box_encoder_gpu) _box_encoder_gpu->Run(full_batch_meta_data, (float *)bbox_encode_write_buffers.first, (int *)bbox_encode_write_buffers.second);
-                    //_meta_data_graph->update_box_encoder_meta_data_gpu(_anchors_gpu_buf, num_anchors, full_batch_meta_data, _criteria, _offset, _scale, _means, _stds);
                 } else
 #endif
                     _meta_data_graph->update_box_encoder_meta_data(&_anchors, full_batch_meta_data, _criteria, _offset, _scale, _means, _stds);
