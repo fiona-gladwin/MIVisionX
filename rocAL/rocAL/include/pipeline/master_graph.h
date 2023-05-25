@@ -103,7 +103,7 @@ public:
     bool is_sequence_reader_output() {return _is_sequence_reader_output; }
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
-    void feed_external_input(std::vector<std::string> input_images, std::vector<int> labels, unsigned char *input_buffer,
+    void feed_external_input(std::vector<std::string> input_images, std::vector<int> labels, std::vector<unsigned char *>input_buffer,
                              std::vector<unsigned> roi_width, std::vector<unsigned> roi_height, unsigned int max_width,
                              unsigned int max_height, FileMode mode, RocalTensorLayout layout, bool eos);
     std::vector<rocalTensorList *> get_bbox_encoded_buffers(size_t num_encoded_boxes);

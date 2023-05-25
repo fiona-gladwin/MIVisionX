@@ -122,7 +122,7 @@ rocalExternalSourceFeedInput(
         RocalContext p_context,
         std::vector<std::string> input_images,
         std::vector<int> labels,
-        unsigned char *input_buffer,
+        std::vector<unsigned char *> input_buffer,
         std::vector<unsigned> roi_width,
         std::vector<unsigned> roi_height,
         unsigned int max_width,

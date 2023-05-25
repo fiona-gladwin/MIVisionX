@@ -557,7 +557,8 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegExternalFileSource(RocalContext
                                                                     bool loop = false,
                                                                     RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
                                                                     unsigned max_width = 0, unsigned max_height = 0,
-                                                                    RocalDecoderType rocal_decoder_type=RocalDecoderType::ROCAL_DECODER_TJPEG);
+                                                                    RocalDecoderType rocal_decoder_type=RocalDecoderType::ROCAL_DECODER_TJPEG, 
+                                                                    RocalExtSourceMode external_source_mode = RocalExtSourceMode::ROCAL_EXTSOURCE_FNAME);
 
 
 ///

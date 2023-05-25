@@ -88,6 +88,7 @@ struct ReaderConfig
     void set_sequence_length(unsigned sequence_length) { _sequence_length = sequence_length; }
     void set_frame_step(unsigned step) { _sequence_frame_step = step; }
     void set_frame_stride(unsigned stride) { _sequence_frame_stride = stride; }
+    void set_mode(FileMode mode) { _mode = mode; }
     size_t get_sequence_length() { return _sequence_length; }
     size_t get_frame_step() { return _sequence_frame_step; }
     size_t get_frame_stride() { return _sequence_frame_stride; }
@@ -183,7 +184,7 @@ public:
     virtual void feed_file_names(const std::vector<std::string>& file_names, size_t num_images, bool eos=false) = 0;
 
     //! return feed_data: use this for feeding raw data into the reader (mode specified compressed jpegs or raw) 
-    virtual void feed_data(const std::vector<char *>& images, const std::vector<size_t>& image_size, int mode, bool eos = false, int width=0, int height=0, int channels=0) = 0;
+    virtual void feed_data(const std::vector<unsigned char *>& images, const std::vector<size_t>& image_size, int mode, bool eos = false, int width=0, int height=0, int channels=0) = 0;
 
     virtual ~Reader() = default;
 };
