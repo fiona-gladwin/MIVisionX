@@ -32,7 +32,7 @@ class ResizeMetaNode:public MetaNode
 {
     public:
         ResizeMetaNode() {};
-        void update_parameters(pMetaDataBatch input_meta_data)override;
+        void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)override;
         std::shared_ptr<ResizeNode> _node = nullptr;
     private:
         void initialize();

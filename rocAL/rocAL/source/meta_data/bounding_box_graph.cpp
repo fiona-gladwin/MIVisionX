@@ -21,11 +21,11 @@ THE SOFTWARE.
 */
 #include "bounding_box_graph.h"
 
-void BoundingBoxGraph::process(pMetaDataBatch meta_data)
+void BoundingBoxGraph::process(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     for (auto &meta_node : _meta_nodes)
     {
-        meta_node->update_parameters(meta_data);
+        meta_node->update_parameters(input_meta_data, output_meta_data);
     }
 }
 

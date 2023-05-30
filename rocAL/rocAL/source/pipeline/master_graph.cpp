@@ -363,6 +363,7 @@ void MasterGraph::release()
         _meta_data_reader->release();
 
     _augmented_meta_data = nullptr;
+    _output_meta_data = nullptr;
     _meta_data_graph = nullptr;
     _meta_data_reader = nullptr;
 }
@@ -518,9 +519,10 @@ void MasterGraph::output_routine()
                     {
                         _meta_data_graph->update_random_bbox_meta_data(_augmented_meta_data, decode_image_info, crop_image_info);
                     }
-                    _meta_data_graph->process(_augmented_meta_data);
+                    _output_meta_data = _augmented_meta_data->clone();
+                    _meta_data_graph->process(_augmented_meta_data, _output_meta_data);
                 }
-                full_batch_meta_data = _augmented_meta_data->clone();
+                full_batch_meta_data = _output_meta_data;
             }
 
             // get roi width and height of output image / For maskrcnn only

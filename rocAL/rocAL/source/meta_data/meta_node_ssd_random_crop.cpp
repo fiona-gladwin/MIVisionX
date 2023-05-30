@@ -28,7 +28,7 @@ void SSDRandomCropMetaNode::initialize()
     _x1_val.resize(_batch_size);
     _y1_val.resize(_batch_size);
 }
-void SSDRandomCropMetaNode::update_parameters(pMetaDataBatch input_meta_data)
+void SSDRandomCropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     initialize();
     if(_batch_size != input_meta_data->size())
@@ -83,7 +83,7 @@ void SSDRandomCropMetaNode::update_parameters(pMetaDataBatch input_meta_data)
                 bb_labels.push_back(labels_buf[j]);
             }
         }
-        input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_labels_batch()[i] = bb_labels;
+        output_meta_data->get_bb_cords_batch()[i] = bb_coords;
+        output_meta_data->get_labels_batch()[i] = bb_labels;
     }
 }
