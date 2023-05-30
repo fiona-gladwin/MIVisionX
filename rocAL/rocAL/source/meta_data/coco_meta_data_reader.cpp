@@ -374,8 +374,8 @@ void COCOMetaDataReader::read_all(const std::string &path)
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
             auto _it_label = _label_info.find(bb_labels[i]);
-            //int cnt_idx = _it_label->second;
-            int cnt_idx = _it_label->first;
+            int cnt_idx = _it_label->second; // To be changed for Retinanet
+            // int cnt_idx = _it_label->first;
             continuous_label_id.push_back(cnt_idx);
         }
         elem.second->set_labels(continuous_label_id);
