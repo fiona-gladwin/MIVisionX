@@ -29,7 +29,7 @@ THE SOFTWARE.
 class ResizeMirrorNormalizeNode : public Node
 {
 public:
-    ResizeMirrorNormalizeNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
+    ResizeMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ResizeMirrorNormalizeNode() = delete;
     void init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode,
               std::vector<unsigned> max_size, RocalResizeInterpolationType interpolation_type,std::vector<float>& mean,  std::vector<float>& std_dev, IntParam *mirror);

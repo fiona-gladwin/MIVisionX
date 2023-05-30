@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include <graph.h>
 #include "node_resize.h"
 #include "exception.h"
-ResizeNode::ResizeNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
+ResizeNode::ResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
 }

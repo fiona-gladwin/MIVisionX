@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "node_video_loader.h"
 #ifdef ROCAL_VIDEO
 
-VideoLoaderNode::VideoLoaderNode(rocalTensor *output, void *device_resources):
+VideoLoaderNode::VideoLoaderNode(Tensor *output, void *device_resources):
 	Node({}, {output})
 {
     _loader_module = std::make_shared<VideoLoaderSharded>(device_resources);

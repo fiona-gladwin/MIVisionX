@@ -108,7 +108,7 @@ CIFAR10DataLoader::load_next()
 }
 
 void
-CIFAR10DataLoader::set_output (rocalTensor* output_image)
+CIFAR10DataLoader::set_output (Tensor* output_image)
 {
     _output_image = output_image;
     _output_mem_size = _output_image->info().data_size();

@@ -26,7 +26,7 @@ THE SOFTWARE.
 
 class ResizeNode : public Node {
 public:
-    ResizeNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
+    ResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ResizeNode() = delete;
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }

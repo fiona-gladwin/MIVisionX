@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "node_image_loader_single_shard.h"
 #include "exception.h"
 
-ImageLoaderSingleShardNode::ImageLoaderSingleShardNode(rocalTensor *output, void *device_resources):
+ImageLoaderSingleShardNode::ImageLoaderSingleShardNode(Tensor *output, void *device_resources):
         Node({}, {output})
 {
     _loader_module = std::make_shared<ImageLoader>(device_resources);

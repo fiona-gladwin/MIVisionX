@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "exception.h"
 #ifdef ROCAL_VIDEO
 
-VideoLoaderSingleShardNode::VideoLoaderSingleShardNode(rocalTensor *output, void *device_resources):
+VideoLoaderSingleShardNode::VideoLoaderSingleShardNode(Tensor *output, void *device_resources):
 	Node({}, {output})
 {
     _loader_module = std::make_shared<VideoLoader>(device_resources);

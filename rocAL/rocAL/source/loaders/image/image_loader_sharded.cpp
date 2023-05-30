@@ -138,7 +138,7 @@ void ImageLoaderSharded::shut_down()
         _loaders[i]->shut_down();
 }
 
-void ImageLoaderSharded::set_output (rocalTensor* output_tensor)
+void ImageLoaderSharded::set_output (Tensor* output_tensor)
 {
     _output_tensor = output_tensor;
 }

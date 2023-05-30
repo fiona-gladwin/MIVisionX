@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "parameter_crop.h"
 #include "exception.h"
 
-CropNode::CropNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
+CropNode::CropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
     _crop_param = std::make_shared<RocalCropParam>(_batch_size);

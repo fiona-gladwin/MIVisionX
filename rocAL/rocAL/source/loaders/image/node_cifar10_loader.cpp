@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-Cifar10LoaderNode::Cifar10LoaderNode(rocalTensor *output, void *device_resources):
+Cifar10LoaderNode::Cifar10LoaderNode(Tensor *output, void *device_resources):
         Node({}, {output})
 {
     _loader_module = std::make_shared<CIFAR10DataLoader>(device_resources);

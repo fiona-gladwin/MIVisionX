@@ -62,7 +62,7 @@ private:
 class SSDRandomCropNode : public Node
 {
 public:
-    SSDRandomCropNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
+    SSDRandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SSDRandomCropNode() = delete;
     void init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts);
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }

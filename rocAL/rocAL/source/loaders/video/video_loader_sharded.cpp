@@ -130,7 +130,7 @@ void VideoLoaderSharded::shut_down()
 
 }
 
-void VideoLoaderSharded::set_output(rocalTensor *output_tensor)
+void VideoLoaderSharded::set_output(Tensor *output_tensor)
 {
     _output_tensor = output_tensor;
 }

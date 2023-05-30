@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-FusedJpegCropSingleShardNode::FusedJpegCropSingleShardNode(rocalTensor *output, void *device_resources):
+FusedJpegCropSingleShardNode::FusedJpegCropSingleShardNode(Tensor *output, void *device_resources):
         Node({}, {output})
 {
     _loader_module = std::make_shared<ImageLoader>(device_resources);

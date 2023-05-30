@@ -58,7 +58,7 @@ public:
     ~MasterGraph();
     Status reset();
     size_t remaining_count();
-    rocalTensorList *get_output_tensors();
+    TensorList *get_output_tensors();
     void sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum); // Returns the starting frame number of the sequences
     void sequence_frame_timestamps(std::vector<std::vector<float>> &sequence_frame_timestamp); // Returns the timestamps of the frames in the sequences
     Status build();
@@ -67,31 +67,31 @@ public:
     RocalMemType mem_type();
     void release();
     template <typename T>
-    std::shared_ptr<T> add_node(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
+    std::shared_ptr<T> add_node(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     template <typename T, typename M> std::shared_ptr<T> meta_add_node(std::shared_ptr<M> node);
-    rocalTensor *create_tensor(const rocalTensorInfo &info, bool is_output);
-    rocalTensor *create_loader_output_tensor(const rocalTensorInfo &info);
-    std::vector<rocalTensorList *> create_label_reader(const char *source_path, MetaDataReaderType reader_type);
-    std::vector<rocalTensorList *> create_video_label_reader(const char *source_path, MetaDataReaderType reader_type, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
-    std::vector<rocalTensorList *> create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder = false, bool is_box_iou_matcher = false); // Need to add keypoints support
-    std::vector<rocalTensorList *> create_tf_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type, const std::map<std::string, std::string> feature_key_map);
-    std::vector<rocalTensorList *> create_caffe_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
-    std::vector<rocalTensorList *> create_caffe2_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
-    std::vector<rocalTensorList *> create_cifar10_label_reader(const char *source_path, const char *file_prefix);
-    std::vector<rocalTensorList *> create_mxnet_label_reader(const char *source_path, bool is_output);
+    Tensor *create_tensor(const TensorInfo &info, bool is_output);
+    Tensor *create_loader_output_tensor(const TensorInfo &info);
+    std::vector<TensorList *> create_label_reader(const char *source_path, MetaDataReaderType reader_type);
+    std::vector<TensorList *> create_video_label_reader(const char *source_path, MetaDataReaderType reader_type, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
+    std::vector<TensorList *> create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder = false, bool is_box_iou_matcher = false); // Need to add keypoints support
+    std::vector<TensorList *> create_tf_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type, const std::map<std::string, std::string> feature_key_map);
+    std::vector<TensorList *> create_caffe_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
+    std::vector<TensorList *> create_caffe2_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
+    std::vector<TensorList *> create_cifar10_label_reader(const char *source_path, const char *file_prefix);
+    std::vector<TensorList *> create_mxnet_label_reader(const char *source_path, bool is_output);
 
     void box_encoder(std::vector<float> &anchors, float criteria, const std::vector<float> &means, const std::vector<float> &stds, bool offset, float scale);
     void box_iou_matcher(std::vector<float> &anchors, float criteria, float high_threshold, float low_threshold, bool allow_low_quality_matches);
     void create_randombboxcrop_reader(RandomBBoxCrop_MetaDataReaderType reader_type, RandomBBoxCrop_MetaDataType label_type, bool all_boxes_overlap, bool no_crop, FloatParam* aspect_ratio, bool has_shape, int crop_width, int crop_height, int num_attempts, FloatParam* scaling, int total_num_attempts, int64_t seed=0);
     const std::pair<ImageNameBatch,pMetaDataBatch>& meta_data();
-    rocalTensorList * labels_meta_data();
-    rocalTensorList * bbox_labels_meta_data();
-    rocalTensorList * bbox_meta_data();
-    rocalTensorList * matches_meta_data();
+    TensorList * labels_meta_data();
+    TensorList * bbox_labels_meta_data();
+    TensorList * bbox_meta_data();
+    TensorList * matches_meta_data();
     ImgSizes& get_image_sizes();
 
     void set_loop(bool val) { _loop = val; }
-    void set_output(rocalTensor* output_tensor);
+    void set_output(Tensor* output_tensor);
     size_t calculate_cpu_num_threads(size_t shard_count);
     bool empty() { return (remaining_count() < (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size)); }
     size_t sequence_batch_size() { return _sequence_batch_size; }
@@ -101,7 +101,7 @@ public:
     bool is_sequence_reader_output() {return _is_sequence_reader_output; }
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
-    std::vector<rocalTensorList *> get_bbox_encoded_buffers(size_t num_encoded_boxes);
+    std::vector<TensorList *> get_bbox_encoded_buffers(size_t num_encoded_boxes);
     size_t bounding_box_batch_count(int* buf, pMetaDataBatch meta_data_batch);
 #if ENABLE_OPENCL
     cl_command_queue get_ocl_cmd_q() { return _device.resources()->cmd_queue; }
@@ -121,19 +121,19 @@ private:
     MetaDataBatch* _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
     CropCordBatch* _random_bbox_crop_cords_data = nullptr;
     std::thread _output_thread;
-    rocalTensorList _internal_tensor_list;  //!< Keeps a list of ovx tensors that are used to store the augmented outputs (there is an augmentation output batch per element in the list)
-    rocalTensorList _output_tensor_list;    //!< Keeps a list of ovx tensors(augmented outputs) that are to be passed to the user (there is an augmentation output batch per element in the list)
-    std::list<rocalTensor*> _internal_tensors;  //!< Keeps all the ovx tensors (virtual/non-virtual) either intermediate tensors, or input tensors that feed the graph
+    TensorList _internal_tensor_list;  //!< Keeps a list of ovx tensors that are used to store the augmented outputs (there is an augmentation output batch per element in the list)
+    TensorList _output_tensor_list;    //!< Keeps a list of ovx tensors(augmented outputs) that are to be passed to the user (there is an augmentation output batch per element in the list)
+    std::list<Tensor*> _internal_tensors;  //!< Keeps all the ovx tensors (virtual/non-virtual) either intermediate tensors, or input tensors that feed the graph
     std::list<std::shared_ptr<Node>> _nodes;//!< List of all the nodes
     std::list<std::shared_ptr<Node>> _root_nodes;//!< List of all root nodes (image/video loaders)
     std::list<std::shared_ptr<Node>> _meta_data_nodes;//!< List of nodes where meta data has to be updated after augmentation
-    std::map<rocalTensor*, std::shared_ptr<Node>> _tensor_map;//!< key: tensor, value : Parent node
+    std::map<Tensor*, std::shared_ptr<Node>> _tensor_map;//!< key: tensor, value : Parent node
 
     // Output tensorList for metadata
-    std::vector<rocalTensorList *> _metadata_output_tensor_list;
-    rocalTensorList _labels_tensor_list;
-    rocalTensorList _bbox_tensor_list;
-    rocalTensorList _matches_tensor_list;
+    std::vector<TensorList *> _metadata_output_tensor_list;
+    TensorList _labels_tensor_list;
+    TensorList _bbox_tensor_list;
+    TensorList _matches_tensor_list;
     std::vector<std::vector<unsigned>> _labels_tensor_dims;
     std::vector<std::vector<unsigned>> _bbox_tensor_dims;
     std::vector<std::vector<unsigned>> _matches_tensor_dims;
@@ -188,7 +188,7 @@ private:
 };
 
 template <typename T>
-std::shared_ptr<T> MasterGraph::add_node(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs)
+std::shared_ptr<T> MasterGraph::add_node(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs)
 {
     auto node = std::make_shared<T>(inputs, outputs);
     _nodes.push_back(node);
@@ -222,7 +222,7 @@ std::shared_ptr<T> MasterGraph::meta_add_node(std::shared_ptr<M> node)
 /*
  * Explicit specialization for ImageLoaderNode
  */
-template<> inline std::shared_ptr<ImageLoaderNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<ImageLoaderNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")
@@ -240,7 +240,7 @@ template<> inline std::shared_ptr<ImageLoaderNode> MasterGraph::add_node(const s
     return node;
 }
 
-template<> inline std::shared_ptr<ImageLoaderSingleShardNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<ImageLoaderSingleShardNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")
@@ -258,7 +258,7 @@ template<> inline std::shared_ptr<ImageLoaderSingleShardNode> MasterGraph::add_n
     return node;
 }
 
-template<> inline std::shared_ptr<FusedJpegCropNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<FusedJpegCropNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")
@@ -277,7 +277,7 @@ template<> inline std::shared_ptr<FusedJpegCropNode> MasterGraph::add_node(const
     return node;
 }
 
-template<> inline std::shared_ptr<FusedJpegCropSingleShardNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<FusedJpegCropSingleShardNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")
@@ -299,7 +299,7 @@ template<> inline std::shared_ptr<FusedJpegCropSingleShardNode> MasterGraph::add
 /*
  * Explicit specialization for Cifar10LoaderNode
  */
-template<> inline std::shared_ptr<Cifar10LoaderNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<Cifar10LoaderNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")
@@ -320,7 +320,7 @@ template<> inline std::shared_ptr<Cifar10LoaderNode> MasterGraph::add_node(const
 /*
  * Explicit specialization for VideoLoaderNode
  */
-template<> inline std::shared_ptr<VideoLoaderNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<VideoLoaderNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")
@@ -338,7 +338,7 @@ template<> inline std::shared_ptr<VideoLoaderNode> MasterGraph::add_node(const s
     return node;
 }
 
-template<> inline std::shared_ptr<VideoLoaderSingleShardNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<VideoLoaderSingleShardNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")
