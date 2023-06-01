@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include <pybind11/eval.h>
 #include "rocal_api_types.h"
 #include "rocal_api.h"
-#include "tensor.h"
+#include "rocal_api_tensor.h"
 #include "rocal_api_parameters.h"
 #include "rocal_api_data_loaders.h"
 #include "rocal_api_augmentation.h"
@@ -119,7 +119,7 @@ namespace rocal
                 "batch_height",
                 [](rocalTensor &output_tensor)
                 {
-                    return output_tensor.info().max_shape().at(1);
+                    return output_tensor.shape().at(1);
                 },
                 R"code(
                 Returns a tensor buffer's height.
@@ -129,7 +129,7 @@ namespace rocal
                 "batch_width",
                 [](rocalTensor &output_tensor)
                 {
-                    return output_tensor.info().max_shape().at(0);
+                    return output_tensor.shape().at(0);
                 },
                 R"code(
                 Returns a tensor buffer's width.
@@ -139,69 +139,70 @@ namespace rocal
                 "batch_size",
                 [](rocalTensor &output_tensor)
                 {
-                    return output_tensor.info().dims().at(0);
+                    return output_tensor.dims().at(0);
                 },
                 R"code(
                 Returns a tensor batch size.
                 )code"
-            )
-            .def(
-                "color_format",
-                [](rocalTensor &output_tensor)
-                {
-                    if ((output_tensor.info().color_format() == RocalColorFormat::RGB24) || (output_tensor.info().color_format() == RocalColorFormat::BGR24))
-                        return 3;
-                    else
-                        return 1;
-                },
-                R"code(
-                Returns a tensor batch size.
-                )code"
-            )
-            .def(
-            "copy_data", [](rocalTensor &output_tensor, py::object p)
-            {
-            auto ptr = ctypes_void_ptr(p);
-            output_tensor.copy_data(ptr);
-            }
-            )
-            .def(
-                "at",
-                [](rocalTensor &output_tensor, uint idx)
-                {
-                    uint h = output_tensor.info().max_shape().at(1);
-                    uint w = output_tensor.info().max_shape().at(0);
+            );
+            // .def(
+            //     "color_format",
+            //     [](rocalTensor &output_tensor)
+            //     {
+            //         if ((output_tensor.color_format() == RocalImageColor::ROCAL_RGB24) || 
+            //             output_tensor.color_format() == RocalColorFormat::ROCAL_BGR24))
+            //             return 3;
+            //         else
+            //             return 1;
+            //     },
+            //     R"code(
+            //     Returns a tensor batch size.
+            //     )code"
+            // )
+            // .def(
+            // "copy_data", [](rocalTensor &output_tensor, py::object p)
+            // {
+            // auto ptr = ctypes_void_ptr(p);
+            // output_tensor.copy_data(ptr);
+            // }
+            // )
+            // .def(
+            //     "at",
+            //     [](rocalTensor &output_tensor, uint idx)
+            //     {
+            //         uint h = output_tensor.shape().at(1);
+            //         uint w = output_tensor.shape().at(0);
 
-                    if (output_tensor.info().layout() == RocalTensorlayout::NHWC)
-                    {
-                        unsigned c = output_tensor.info().dims().at(3);
-                        return py::array(py::buffer_info(
-                            ((unsigned char *)(output_tensor.buffer())) + idx * c * h * w,
-                            sizeof(unsigned char),
-                            py::format_descriptor<unsigned char>::format(),
-                            output_tensor.info().num_of_dims() - 1,
-                            {h, w, c},
-                            {sizeof(unsigned char) * w * c, sizeof(unsigned char) * c, sizeof(unsigned char)}));
-                    }
+            //         if (output_tensor.layout() == RocalTensorlayout::ROCAL_NHWC)
+            //         {
+            //             unsigned c = output_tensor.info().dims().at(3);
+            //             return py::array(py::buffer_info(
+            //                 ((unsigned char *)(output_tensor.buffer())) + idx * c * h * w,
+            //                 sizeof(unsigned char),
+            //                 py::format_descriptor<unsigned char>::format(),
+            //                 output_tensor.info().num_of_dims() - 1,
+            //                 {h, w, c},
+            //                 {sizeof(unsigned char) * w * c, sizeof(unsigned char) * c, sizeof(unsigned char)}));
+            //         }
 
-                    else if (output_tensor.info().layout() == RocalTensorlayout::NCHW)
-                    {
-                        unsigned n = output_tensor.info().dims().at(0);
-                        unsigned c = output_tensor.info().dims().at(1);
-                        return py::array(py::buffer_info(
-                            ((unsigned char *)(output_tensor.buffer())) + idx * c * h * w,
-                            sizeof(unsigned char),
-                            py::format_descriptor<unsigned char>::format(),
-                            output_tensor.info().num_of_dims(),
-                            {c, h, w},
-                            {sizeof(unsigned char) * c * h * w, sizeof(unsigned char) * h * w, sizeof(unsigned char) * w, sizeof(unsigned char)}));
-                    }
-                },
-                "idx"_a,
-                R"code(
-                Returns a rocAL tensor at given position `i` in the rocalTensorlist.
-                )code",
-                py::keep_alive<0, 1>());
+            //         else if (output_tensor.info().layout() == RocalTensorlayout::NCHW)
+            //         {
+            //             unsigned n = output_tensor.info().dims().at(0);
+            //             unsigned c = output_tensor.info().dims().at(1);
+            //             return py::array(py::buffer_info(
+            //                 ((unsigned char *)(output_tensor.buffer())) + idx * c * h * w,
+            //                 sizeof(unsigned char),
+            //                 py::format_descriptor<unsigned char>::format(),
+            //                 output_tensor.info().num_of_dims(),
+            //                 {c, h, w},
+            //                 {sizeof(unsigned char) * c * h * w, sizeof(unsigned char) * h * w, sizeof(unsigned char) * w, sizeof(unsigned char)}));
+            //         }
+            //     },
+            //     "idx"_a,
+            //     R"code(
+            //     Returns a rocAL tensor at given position `i` in the rocalTensorlist.
+            //     )code",
+            //     py::keep_alive<0, 1>());
         py::class_<rocalTensorList>(m, "rocalTensorList")
             .def(
                 "__getitem__",
@@ -211,46 +212,46 @@ namespace rocal
                 },
                 R"code(
                 Returns a tensor at given position in the list.
-                )code")
+                )code");
 
-            .def("at",
-                [](rocalTensorList &output_tensor_list, uint idx)
-                {
-                    uint h = output_tensor_list.at(idx)->info().max_shape().at(1);
-                    uint w = output_tensor_list.at(idx)->info().max_shape().at(0);
+            // .def("at",
+            //     [](rocalTensorList &output_tensor_list, uint idx)
+            //     {
+            //         uint h = output_tensor_list.at(idx)->info().max_shape().at(1);
+            //         uint w = output_tensor_list.at(idx)->info().max_shape().at(0);
 
-                    if (output_tensor_list.at(idx)->info().layout() == RocalTensorlayout::NHWC)
-                    {
-                        unsigned n = output_tensor_list.at(idx)->info().dims().at(0);
-                        unsigned c = output_tensor_list.at(idx)->info().dims().at(3);
-                        return py::array(py::buffer_info(
-                            (unsigned char *)(output_tensor_list.at(idx)->buffer()),
-                            sizeof(unsigned char),
-                            py::format_descriptor<unsigned char>::format(),
-                            output_tensor_list.at(idx)->info().num_of_dims(),
-                            {n, h, w, c},
-                            {sizeof(unsigned char) * w * h * c, sizeof(unsigned char) * w * c, sizeof(unsigned char) * c, sizeof(unsigned char)}));
-                    }
+            //         if (output_tensor_list.at(idx)->info().layout() == RocalTensorlayout::NHWC)
+            //         {
+            //             unsigned n = output_tensor_list.at(idx)->info().dims().at(0);
+            //             unsigned c = output_tensor_list.at(idx)->info().dims().at(3);
+            //             return py::array(py::buffer_info(
+            //                 (unsigned char *)(output_tensor_list.at(idx)->buffer()),
+            //                 sizeof(unsigned char),
+            //                 py::format_descriptor<unsigned char>::format(),
+            //                 output_tensor_list.at(idx)->info().num_of_dims(),
+            //                 {n, h, w, c},
+            //                 {sizeof(unsigned char) * w * h * c, sizeof(unsigned char) * w * c, sizeof(unsigned char) * c, sizeof(unsigned char)}));
+            //         }
 
-                    else if (output_tensor_list.at(idx)->info().layout() == RocalTensorlayout::NCHW)
-                    {
-                        unsigned n = output_tensor_list.at(idx)->info().dims().at(0);
-                        unsigned c = output_tensor_list.at(idx)->info().dims().at(1);
-                        return py::array(py::buffer_info(
-                            (unsigned char *)(output_tensor_list.at(idx)->buffer()),
-                            sizeof(unsigned char),
-                            py::format_descriptor<unsigned char>::format(),
-                            output_tensor_list.at(idx)->info().num_of_dims(),
-                            {n, c, h, w},
-                            {sizeof(unsigned char) * c * h * w, sizeof(unsigned char) * h * w, sizeof(unsigned char) * w, sizeof(unsigned char)}));
-                    }
-                },
-                "idx"_a,
-                R"code(
-                Returns a rocAL tensor at given position `i` in the rocalTensorlist.
-                )code",
-                py::keep_alive<0, 1>());
-        py::class_<rocalTensorInfo>(m, "rocalTensorInfo");
+            //         else if (output_tensor_list.at(idx)->info().layout() == RocalTensorlayout::NCHW)
+            //         {
+            //             unsigned n = output_tensor_list.at(idx)->info().dims().at(0);
+            //             unsigned c = output_tensor_list.at(idx)->info().dims().at(1);
+            //             return py::array(py::buffer_info(
+            //                 (unsigned char *)(output_tensor_list.at(idx)->buffer()),
+            //                 sizeof(unsigned char),
+            //                 py::format_descriptor<unsigned char>::format(),
+            //                 output_tensor_list.at(idx)->info().num_of_dims(),
+            //                 {n, c, h, w},
+            //                 {sizeof(unsigned char) * c * h * w, sizeof(unsigned char) * h * w, sizeof(unsigned char) * w, sizeof(unsigned char)}));
+            //         }
+            //     },
+            //     "idx"_a,
+            //     R"code(
+            //     Returns a rocAL tensor at given position `i` in the rocalTensorlist.
+            //     )code",
+                // py::keep_alive<0, 1>());
+        // py::class_<rocalTensorInfo>(m, "rocalTensorInfo");
 
         py::module types_m = m.def_submodule("types");
         types_m.doc() = "Datatypes and options used by ROCAL";
@@ -395,7 +396,7 @@ namespace rocal
                             sizeof(int),
                             py::format_descriptor<int>::format(),
                             1,
-                            {labels->at(i)->info().dims().at(0)},
+                            {labels->at(i)->dims().at(0)},
                             {sizeof(int) }));
                 labels_list.append(labels_array);
             }
@@ -415,7 +416,7 @@ namespace rocal
                             sizeof(double),
                             py::format_descriptor<double>::format(),
                             1,
-                            { boxes->at(i)->info().dims().at(0) * 4},
+                            { boxes->at(i)->dims().at(0) * 4},
                             {sizeof(double) }));
                 boxes_list.append(boxes_array);
             }

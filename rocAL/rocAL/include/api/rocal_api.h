@@ -25,6 +25,7 @@ THE SOFTWARE.
 #define ROCAL_H
 
 #include "rocal_api_types.h"
+#include "rocal_api_tensor.h"
 #include "rocal_api_parameters.h"
 #include "rocal_api_data_loaders.h"
 #include "rocal_api_augmentation.h"

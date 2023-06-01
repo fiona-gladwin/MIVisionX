@@ -116,9 +116,7 @@ if(ROCAL_PYTHON)
         set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${TurboJpeg_LIBRARIES})
         # rocAL
         set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} rocal)
-        include_directories(../rocAL/include/api/
-                            ../rocAL/include/pipeline/
-                            ../../amd_openvx/openvx/include/)
+        include_directories(../rocAL/include/api/)
 
         file(GLOB_RECURSE pyfiles amd/*.py)
         file(GLOB_RECURSE sources *.cpp)

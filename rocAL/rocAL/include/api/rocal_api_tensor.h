@@ -20,39 +20,38 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "commons.h"
-#include "context.h"
-#include "rocal_api.h"
-#if ENABLE_OPENCL
-#include "CL/cl.h"
-#endif
+#ifndef MIVISIONX_ROCAL_API_TENSOR_H
+#define MIVISIONX_ROCAL_API_TENSOR_H
+#include "rocal_api_types.h"
 
-RocalTensorList ROCAL_API_CALL
-rocalGetOutputTensors(
-                    RocalContext p_context)
-{
-    auto context = static_cast<Context*>(p_context);
-    try
-    {
-        return context->master_graph->get_output_tensors();
-    }
-    catch(const std::exception& e)
-    {
-        context->capture_error(e.what());
-        ERR(e.what())
-        return nullptr;
-    }
-    return nullptr;
-}
+class rocalTensor {
+public:
+    virtual ~rocalTensor() = default;
+    virtual void* buffer() = 0;
+    // unsigned copy_to_external(); // Multiple API with different use cases
+    virtual unsigned num_of_dims() = 0;
+    virtual unsigned batch_size() = 0;
+    virtual std::vector<size_t> dims() = 0;
+    virtual RocalTensorLayout layout() = 0;
+    virtual RocalTensorOutputType data_type() = 0;
+    virtual RocalROICordsType roi_type() = 0;
+    virtual RocalROICords *get_roi() = 0;
+    virtual std::vector<size_t> shape() = 0;
+};
 
-void
-ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalTensor> &output_images)
-{
-    if (!p_context)
-        THROW("Invalid rocal context passed to rocalSetOutputs")
-    auto context = static_cast<Context *>(p_context);
-    for (auto& it : output_images) {
-        auto img = static_cast<Tensor *>(it);
-        context->master_graph->set_output(img);
-    }
-}
+class rocalTensorList {
+public:
+    virtual uint64_t size() = 0;
+    virtual rocalTensor* at(size_t index) = 0;
+    virtual void release() = 0;
+    // at API
+    // isDenseTensor
+    // Add a copy API!
+};
+
+typedef rocalTensor * RocalTensor;
+typedef rocalTensorList * RocalTensorList;
+typedef std::vector<rocalTensorList *> RocalMetaData;
+
+#endif //MIVISIONX_ROCAL_API_TENSOR_H
+

@@ -32,12 +32,12 @@ THE SOFTWARE.
 RocalTensor  ROCAL_API_CALL
 rocalSequenceRearrange(
             RocalContext p_context,
-            RocalTensor input,
+            RocalTensor p_input,
             std::vector<unsigned int>& new_order,
             bool is_output)
 {
     Tensor* output = nullptr;
-
+    auto input = static_cast<Tensor*>(p_input);
     if ((p_context == nullptr) || (input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
