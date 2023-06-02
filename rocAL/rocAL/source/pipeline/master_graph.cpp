@@ -459,7 +459,6 @@ void MasterGraph::output_routine()
     try {
         while (_processing)
         {
-            pMetaDataBatch full_batch_meta_data = nullptr;
             if (_loader_module->remaining_count() < (_is_sequence_reader_output ? _sequence_batch_size : _user_batch_size))
             {
                 // If the internal process routine ,output_routine(), has finished processing all the images, and last
@@ -521,7 +520,6 @@ void MasterGraph::output_routine()
                     }
                     _meta_data_graph->process(_augmented_meta_data, _output_meta_data);
                 }
-                full_batch_meta_data = _output_meta_data;
             }
 
             // get roi width and height of output image / For maskrcnn only
@@ -543,18 +541,18 @@ void MasterGraph::output_routine()
                 if(_mem_type == RocalMemType::HIP) {
                     // get bbox encoder read buffers
                     auto bbox_encode_write_buffers = _ring_buffer.get_box_encode_write_buffers();
-                    if (_box_encoder_gpu) _box_encoder_gpu->Run(full_batch_meta_data, (float *)bbox_encode_write_buffers.first, (int *)bbox_encode_write_buffers.second);
+                    if (_box_encoder_gpu) _box_encoder_gpu->Run(_output_meta_data, (float *)bbox_encode_write_buffers.first, (int *)bbox_encode_write_buffers.second);
                 } else
 #endif
-                    _meta_data_graph->update_box_encoder_meta_data(&_anchors, full_batch_meta_data, _criteria, _offset, _scale, _means, _stds);
+                    _meta_data_graph->update_box_encoder_meta_data(&_anchors, _output_meta_data, _criteria, _offset, _scale, _means, _stds);
             }
             if(_is_box_iou_matcher) {
                 //TODO - to add call for hip kernel.
                 auto matches_write_buffer = _ring_buffer.get_meta_write_buffers()[2];
-                _meta_data_graph->update_box_iou_matcher(&_anchors_double, (int *)matches_write_buffer, full_batch_meta_data, _criteria, _high_threshold, _low_threshold, _allow_low_quality_matches);
+                _meta_data_graph->update_box_iou_matcher(&_anchors_double, (int *)matches_write_buffer, _output_meta_data, _criteria, _high_threshold, _low_threshold, _allow_low_quality_matches);
             }
             _bencode_time.end();
-            _ring_buffer.set_meta_data(full_batch_image_names, full_batch_meta_data);
+            _ring_buffer.set_meta_data(full_batch_image_names, _output_meta_data);
             _ring_buffer.push(); // Image data and metadata is now stored in output the ring_buffer, increases it's level by 1
         }
     }
