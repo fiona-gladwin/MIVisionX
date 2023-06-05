@@ -116,7 +116,6 @@ private:
     bool no_more_processed_data();
     RingBuffer _ring_buffer;//!< The queue that keeps the tensors that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
     pMetaDataBatch _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
-    pMetaDataBatch _output_meta_data = nullptr;
     std::shared_ptr<CropCordBatch> _random_bbox_crop_cords_data = nullptr;
     std::thread _output_thread;
     rocalTensorList _internal_tensor_list;  //!< Keeps a list of ovx tensors that are used to store the augmented outputs (there is an augmentation output batch per element in the list)
@@ -176,6 +175,7 @@ private:
     float _high_threshold = 0.5;
     float _low_threshold = 0.4;
     bool _allow_low_quality_matches = true;
+    bool _metadata_output_process = false;
 #if ENABLE_HIP
     BoxEncoderGpu *_box_encoder_gpu = nullptr;
 #endif
@@ -211,6 +211,7 @@ std::shared_ptr<T> MasterGraph::meta_add_node(std::shared_ptr<M> node)
     _meta_data_graph->_meta_nodes.push_back(meta_node);
     meta_node->_node = node;
     meta_node->_batch_size = _user_batch_size;
+    _metadata_output_process = true;
     return meta_node;
 }
 
