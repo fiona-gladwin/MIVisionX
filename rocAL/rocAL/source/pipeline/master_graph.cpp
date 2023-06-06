@@ -538,14 +538,14 @@ void MasterGraph::output_routine()
             _bencode_time.start();
             if(_is_box_encoder )
             {
+                auto bbox_encode_write_buffers = _ring_buffer.get_box_encode_write_buffers();
 #if ENABLE_HIP
                 if(_mem_type == RocalMemType::HIP) {
                     // get bbox encoder read buffers
-                    auto bbox_encode_write_buffers = _ring_buffer.get_box_encode_write_buffers();
                     if (_box_encoder_gpu) _box_encoder_gpu->Run(full_batch_meta_data, (float *)bbox_encode_write_buffers.first, (int *)bbox_encode_write_buffers.second);
                 } else
 #endif
-                    _meta_data_graph->update_box_encoder_meta_data(&_anchors, full_batch_meta_data, _criteria, _offset, _scale, _means, _stds);
+                    _meta_data_graph->update_box_encoder_meta_data(&_anchors, full_batch_meta_data, _criteria, _offset, _scale, _means, _stds, (float *)bbox_encode_write_buffers.first, (int *)bbox_encode_write_buffers.second);
             }
             if(_is_box_iou_matcher) {
                 //TODO - to add call for hip kernel.

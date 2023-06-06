@@ -25,14 +25,17 @@ THE SOFTWARE.
 #include "meta_data_graph.h"
 #include "meta_node.h"
 
-typedef  struct { double xc; double yc; double w; double h; } BoundingBoxCord_xcycwh;
+typedef  struct { float xc; float yc; float w; float h; } BoundingBoxCord_xcycwh;
+typedef struct { float l; float t; float r; float b; } BoundingBoxCord_ltrb;
+typedef union BoundingBoxCordInfo { BoundingBoxCord_xcycwh bb_xcycwh; BoundingBoxCord_ltrb bb_ltrb; };
+
 
 class BoundingBoxGraph : public MetaDataGraph
 {
 public:
     void process(pMetaDataBatch meta_data) override;
     void update_random_bbox_meta_data(pMetaDataBatch meta_data, decoded_image_info decoded_image_info,crop_image_info crop_image_info) override;
-    void update_box_encoder_meta_data(std::vector<float> *anchors, pMetaDataBatch full_batch_meta_data ,float criteria, bool offset , float scale, std::vector<float>& means, std::vector<float>& stds) override;
+    void update_box_encoder_meta_data(std::vector<float> *anchors, pMetaDataBatch full_batch_meta_data ,float criteria, bool offset , float scale, std::vector<float>& means, std::vector<float>& stds, float *encoded_boxes_data, int *encoded_labels_data) override;
     void update_box_iou_matcher(std::vector<double> *anchors, int * matches_idx_buffer, pMetaDataBatch full_batch_meta_data, float criteria, float high_threshold, float low_threshold, bool allow_low_quality_matches) override;
 };
 

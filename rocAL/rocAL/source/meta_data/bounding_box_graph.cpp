@@ -138,7 +138,7 @@ inline int find_best_box_for_anchor(unsigned anchor_idx, const std::vector<float
     return best_idx;
 }
 
-void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors, pMetaDataBatch full_batch_meta_data, float criteria, bool offset, float scale, std::vector<float>& means, std::vector<float>& stds)
+void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors, pMetaDataBatch full_batch_meta_data, float criteria, bool offset, float scale, std::vector<float>& means, std::vector<float>& stds, float *encoded_boxes_data, int *encoded_labels_data)
 {
     #pragma omp parallel for
     for (int i = 0; i < full_batch_meta_data->size(); i++)
