@@ -226,7 +226,7 @@ public:
 #elif ENABLE_HIP
     unsigned copy_data(hipStream_t stream, void* host_memory, bool sync);
 #endif
-    unsigned copy_data(void* user_buffer);
+    unsigned copy_data(void* user_buffer) override;
     //! Default destructor
     /*! Releases the OpenVX Tensor object */
     ~Tensor();
@@ -248,6 +248,7 @@ public:
     std::vector<size_t> dims() override { return _info.dims(); }
     RocalTensorLayout layout() override { return (RocalTensorLayout)_info.layout(); }
     RocalTensorOutputType data_type() override { return (RocalTensorOutputType)_info.data_type(); }
+    size_t data_size() override { return _info.data_size(); }
     RocalROICordsType roi_type() override { return (RocalROICordsType)_info.roi_type(); }
     RocalROICords *get_roi() override { return (RocalROICords *)_info.get_roi(); }
     std::vector<size_t> shape() override { return _info.max_shape(); }
@@ -275,7 +276,7 @@ public:
         for (auto& tensor : _tensor_list) delete tensor;
     }
     Tensor* operator[](size_t index) { return _tensor_list[index]; }
-    Tensor* at(size_t index) { return _tensor_list[index]; }
+    Tensor* at(size_t index) override { return _tensor_list[index]; }
     void operator=(TensorList& other) {
         for (unsigned idx = 0; idx < other.size(); idx++) {
             auto* new_tensor = new Tensor(other[idx]->info());

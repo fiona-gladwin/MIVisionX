@@ -28,12 +28,13 @@ class rocalTensor {
 public:
     virtual ~rocalTensor() = default;
     virtual void* buffer() = 0;
-    // unsigned copy_to_external(); // Multiple API with different use cases
+    virtual unsigned copy_data(void* user_buffer) = 0;
     virtual unsigned num_of_dims() = 0;
     virtual unsigned batch_size() = 0;
     virtual std::vector<size_t> dims() = 0;
     virtual RocalTensorLayout layout() = 0;
     virtual RocalTensorOutputType data_type() = 0;
+    virtual size_t data_size() = 0;
     virtual RocalROICordsType roi_type() = 0;
     virtual RocalROICords *get_roi() = 0;
     virtual std::vector<size_t> shape() = 0;

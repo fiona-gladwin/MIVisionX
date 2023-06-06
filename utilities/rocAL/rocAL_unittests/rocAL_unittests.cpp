@@ -440,10 +440,10 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
                     float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
                     std::cerr << "\n>>>>> BBOX LABELS : ";
-                    for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
+                    for(int j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
                         std::cerr << labels_buffer[j] << " ";
-                    std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->info().dims().at(0) << " : \n";
-                    for(int j = 0, j4 = 0; j < bbox_coords->at(i)->info().dims().at(0); j++, j4 = j * 4)
+                    std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->dims().at(0) << " : \n";
+                    for(int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
                         std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
 
                 }
@@ -468,10 +468,10 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                     float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
                     float *mask_buffer = (float *)(mask_data->at(i)->buffer());
                     std::cerr << "\n>>>>> BBOX LABELS : ";
-                    for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
+                    for(int j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
                         std::cerr << labels_buffer[j] << " ";
-                    std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->info().dims().at(0) << " : \n";
-                    for(int j = 0, j4 = 0; j < bbox_coords->at(i)->info().dims().at(0); j++, j4 = j * 4)
+                    std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->dims().at(0) << " : \n";
+                    for(int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
                         std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
                     std::cerr << "\n>>>>>>> MASK COORDS : ";
                     int poly_cnt = 0;
@@ -532,59 +532,40 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         cv::Mat mat_output;
         for(int idx = 0; idx < output_tensor_list->size(); idx++)
         {
-            int h = output_tensor_list->at(idx)->info().max_shape().at(1) * output_tensor_list->at(idx)->info().dims().at(0);
-            int w = output_tensor_list->at(idx)->info().max_shape().at(0);
+            int h = output_tensor_list->at(idx)->shape().at(1) * output_tensor_list->at(idx)->dims().at(0);
+            int w = output_tensor_list->at(idx)->shape().at(0);
             mat_input = cv::Mat(h, w, cv_color_format);
             mat_output = cv::Mat(h, w, cv_color_format);
             unsigned char *out_buffer;
-            if(output_tensor_list->at(idx)->info().data_type() == RocalTensorDataType::FP32)
+            if(output_tensor_list->at(idx)->data_type() == RocalTensorOutputType::ROCAL_FP32)
             {
-                float * out_f_buffer;
-                if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HIP)
-                {
-                    out_f_buffer = (float *)malloc(output_tensor_list->at(idx)->info().data_size());
-                    output_tensor_list->at(idx)->copy_data(out_f_buffer);
-                }
-                else if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HOST)
-                    out_f_buffer = (float *)output_tensor_list->at(idx)->buffer();
-
-                out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->info().data_size() / 4);
-                convert_float_to_uchar_buffer(out_f_buffer, out_buffer, output_tensor_list->at(idx)->info().data_size() / 4);
-                // if(out_f_buffer != nullptr) free(out_f_buffer);
+                float * out_f_buffer = (float *)malloc(output_tensor_list->at(idx)->data_size());
+                out_f_buffer = (float *)malloc(output_tensor_list->at(idx)->data_size());
+                out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size() / 4);
+                convert_float_to_uchar_buffer(out_f_buffer, out_buffer, output_tensor_list->at(idx)->data_size() / 4);
+                if(out_f_buffer != nullptr) free(out_f_buffer);
             }
-            if(output_tensor_list->at(idx)->info().data_type() == RocalTensorDataType::FP16)
+            if(output_tensor_list->at(idx)->data_type() == RocalTensorOutputType::ROCAL_FP16)
             {
-                half * out_f16_buffer;
-                if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HIP)
-                {
-                    out_f16_buffer = (half *)malloc(output_tensor_list->at(idx)->info().data_size());
-                    output_tensor_list->at(idx)->copy_data(out_f16_buffer);
-                }
-                else if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HOST)
-                    out_f16_buffer = (half *)output_tensor_list->at(idx)->buffer();
-
-                out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->info().data_size() / 2);
-                convert_float_to_uchar_buffer(out_f16_buffer, out_buffer, output_tensor_list->at(idx)->info().data_size() / 2);
-                // if(out_f16_buffer != nullptr) free(out_f16_buffer);
+                half * out_f16_buffer = (half *)malloc(output_tensor_list->at(idx)->data_size());
+                output_tensor_list->at(idx)->copy_data(out_f16_buffer);
+                out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size() / 2);
+                convert_float_to_uchar_buffer(out_f16_buffer, out_buffer, output_tensor_list->at(idx)->data_size() / 2);
+                if(out_f16_buffer != nullptr) free(out_f16_buffer);
             }
             else
             {
-                if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HIP)
-                {
-                    out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->info().data_size());
-                    output_tensor_list->at(idx)->copy_data(out_buffer);
-                }
-                else if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HOST)
-                    out_buffer = (unsigned char *)(output_tensor_list->at(idx)->buffer());
+                out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size());
+                output_tensor_list->at(idx)->copy_data(out_buffer);
             }
 
-            if(output_tensor_list->at(idx)->info().layout() == RocalTensorlayout::NCHW)
+            if(output_tensor_list->at(idx)->layout() == RocalTensorLayout::ROCAL_NCHW)
             {
                 // cv::Mat mat_input_nchw = cv::Mat(cv_color_format, h, w);
                 // mat_input_nchw = (unsigned char *)out_buffer;
                 // cv::transposeND(mat_input_nchw, {0, 3, 1, 2}, mat_input); // Can be enabled only with OpenCV 4.6.0
-                convert_nchw_to_nhwc(out_buffer, mat_input.data, output_tensor_list->at(idx)->info().dims().at(0), output_tensor_list->at(idx)->info().dims().at(2),
-                                     output_tensor_list->at(idx)->info().dims().at(3), output_tensor_list->at(idx)->info().dims().at(1));            
+                convert_nchw_to_nhwc(out_buffer, mat_input.data, output_tensor_list->at(idx)->dims().at(0), output_tensor_list->at(idx)->dims().at(2),
+                                     output_tensor_list->at(idx)->dims().at(3), output_tensor_list->at(idx)->dims().at(1));            
             }
             else
                 mat_input.data = (unsigned char *)out_buffer;
@@ -604,7 +585,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             {
                 cv::imwrite(out_filename, mat_output, compression_params);
             }
-            // if(out_buffer != nullptr) free(out_buffer);
+            if(out_buffer != nullptr) free(out_buffer);
         }
         mat_input.release();
         mat_output.release();
