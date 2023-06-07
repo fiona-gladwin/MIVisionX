@@ -23,7 +23,6 @@ THE SOFTWARE.
 #pragma once
 
 #include "meta_node_crop_mirror_normalize.h"
-#include "meta_node_resize.h"
 #include "meta_node_crop_resize.h"
 #include "meta_node_crop.h"
 #include "meta_node_resize_crop_mirror.h"

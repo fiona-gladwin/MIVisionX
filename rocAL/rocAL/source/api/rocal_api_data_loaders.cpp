@@ -38,7 +38,6 @@ THE SOFTWARE.
 #include "node_fused_jpeg_crop.h"
 #include "node_fused_jpeg_crop_single_shard.h"
 #include "node_resize.h"
-#include "meta_node_resize.h"
 
 namespace filesys = boost::filesystem;
 
@@ -2285,8 +2284,6 @@ rocalVideoFileResize(
 
             std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({output}, {resize_output});
             resize_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type);
-            if (context->master_graph->meta_data_graph())
-                context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
 
             if(is_output) {
                 auto actual_output = context->master_graph->create_tensor(output_info, is_output);
@@ -2459,8 +2456,6 @@ rocalVideoFileResizeSingleShard(
 
             std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({output}, {resize_output});
             resize_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type);
-            if (context->master_graph->meta_data_graph())
-                context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
 
             if(is_output) {
                 auto actual_output = context->master_graph->create_tensor(output_info, is_output);
