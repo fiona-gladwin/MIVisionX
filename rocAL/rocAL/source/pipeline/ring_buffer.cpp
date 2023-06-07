@@ -209,11 +209,11 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &
 
 void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size)
 {
+    _box_encoder = true;
 #if ENABLE_HIP
     DeviceResourcesHip *dev_hip = static_cast<DeviceResourcesHip *>(_dev);
     if(_mem_type == RocalMemType::HIP)
     {
-        _box_encoder_gpu = true;
         if(dev_hip->hip_stream == nullptr || dev_hip->device_id == -1 )
             THROW("initBoxEncoderMetaData::Error Hip Device is not initialzed");
         hipError_t err;
@@ -237,7 +237,6 @@ void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bb
     DeviceResources *dev_ocl = static_cast<DeviceResources *>(_dev);
     if(mem_type== RocalMemType::OCL)
     {
-        _box_encoder_gpu = true;
         if(dev_ocl->cmd_queue == nullptr || dev_ocl->device_id == nullptr || dev_ocl->context == nullptr)
             THROW("Error ocl structure needed since memory type is OCL");
 
@@ -434,7 +433,7 @@ void RingBuffer::set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data)
     else
     {
         _last_image_meta_data = std::move(std::make_pair(std::move(names), meta_data));
-        if(!_box_encoder_gpu) 
+        if(!_box_encoder) 
         {
             auto actual_buffer_size = meta_data->get_buffer_size();
             for(unsigned i = 0; i < actual_buffer_size.size(); i++)
