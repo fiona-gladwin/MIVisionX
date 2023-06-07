@@ -175,7 +175,7 @@ private:
     float _high_threshold = 0.5;
     float _low_threshold = 0.4;
     bool _allow_low_quality_matches = true;
-    bool _metadata_output_process = false;
+    bool _augmentation_metanode = false; // enabled when geometric Augmentations with metanodes are present in the pipeline
 #if ENABLE_HIP
     BoxEncoderGpu *_box_encoder_gpu = nullptr;
 #endif
@@ -211,7 +211,7 @@ std::shared_ptr<T> MasterGraph::meta_add_node(std::shared_ptr<M> node)
     _meta_data_graph->_meta_nodes.push_back(meta_node);
     meta_node->_node = node;
     meta_node->_batch_size = _user_batch_size;
-    _metadata_output_process = true;
+    _augmentation_metanode = true;
     return meta_node;
 }
 

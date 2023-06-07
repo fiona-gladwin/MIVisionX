@@ -510,12 +510,12 @@ void MasterGraph::output_routine()
 
             update_node_parameters();
             pMetaDataBatch output_meta_data = nullptr;
-            output_meta_data = _augmented_meta_data->clone(!_metadata_output_process); // Copy the data if metadata is not proessed by the nodes. Else create an empty instance
             if(_augmented_meta_data)
             {
+                output_meta_data = _augmented_meta_data->clone(!_augmentation_metanode); // copy the data if metadata is not proessed by the nodes, else create an empty instance
                 if (_meta_data_graph)
                 {
-                    if(_metadata_output_process) output_meta_data->resize(_user_batch_size);
+                    if(_augmentation_metanode) output_meta_data->resize(_user_batch_size);
                     if(_is_random_bbox_crop)
                     {
                         _meta_data_graph->update_random_bbox_meta_data(_augmented_meta_data, output_meta_data, decode_image_info, crop_image_info);
