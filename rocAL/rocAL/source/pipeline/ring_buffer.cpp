@@ -214,7 +214,6 @@ void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bb
     DeviceResourcesHip *dev_hip = static_cast<DeviceResourcesHip *>(_dev);
     if(_mem_type == RocalMemType::HIP)
     {
-        _box_encoder = true;
         if(dev_hip->hip_stream == nullptr || dev_hip->device_id == -1 )
             THROW("initBoxEncoderMetaData::Error Hip Device is not initialzed");
         hipError_t err;
@@ -238,7 +237,6 @@ void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bb
     DeviceResources *dev_ocl = static_cast<DeviceResources *>(_dev);
     if(mem_type== RocalMemType::OCL)
     {
-        _box_encoder = true;
         if(dev_ocl->cmd_queue == nullptr || dev_ocl->device_id == nullptr || dev_ocl->context == nullptr)
             THROW("Error ocl structure needed since memory type is OCL");
 

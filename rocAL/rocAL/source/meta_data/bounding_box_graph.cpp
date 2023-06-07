@@ -138,20 +138,14 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
     {
         BoundingBoxCordf *bbox_anchors = reinterpret_cast<BoundingBoxCordf *>(anchors->data());
         auto bb_count = full_batch_meta_data->get_labels_batch()[i].size();
-        std::vector<BoundingBoxCord> bb_coords;
-        Labels bb_labels;
-        bb_labels.resize(bb_count);
-        bb_coords.resize(bb_count);
-        memcpy(bb_labels.data(), full_batch_meta_data->get_labels_batch()[i].data(), sizeof(int) * bb_count);
-        memcpy((void *)bb_coords.data(), full_batch_meta_data->get_bb_cords_batch()[i].data(), full_batch_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
-        std::vector<BoundingBoxCordf> encoded_bb;
-        Labels encoded_labels;
+        int* bb_labels = full_batch_meta_data->get_labels_batch()[i].data();
+        BoundingBoxCord *bb_coords = reinterpret_cast<BoundingBoxCord *>(full_batch_meta_data->get_bb_cords_batch()[i].data());
         unsigned anchors_size = anchors->size() / 4; // divide the anchors_size by 4 to get the total number of anchors
+        int* encoded_labels = encoded_labels_data + (i * anchors_size);
+        BoundingBoxCordf* encoded_bb = reinterpret_cast<BoundingBoxCordf *>(encoded_boxes_data + (i * anchors_size * 4));
         //Calculate Ious
         //ious size - bboxes count x anchors count
         std::vector<float> ious(bb_count * anchors_size);
-        encoded_bb.resize(anchors_size);
-        encoded_labels.resize(anchors_size);
         for (uint bb_idx = 0; bb_idx < bb_count; bb_idx++)
         {
             auto iou_rows = ious.data() + (bb_idx * (anchors_size));
@@ -187,7 +181,7 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
                     box_bestidx.xcycwh.w = (std::log(box_bestidx.xcycwh.w / anchor_xcyxwh.xcycwh.w) - means[2]) * inv_stds[2];
                     box_bestidx.xcycwh.h = (std::log(box_bestidx.xcycwh.h / anchor_xcyxwh.xcycwh.h) - means[3]) * inv_stds[3];
                     encoded_bb[anchor_idx] = box_bestidx;
-                    encoded_labels[anchor_idx] = bb_labels.at(best_idx);
+                    encoded_labels[anchor_idx] = bb_labels[best_idx];
                 }
                 else
                 {
@@ -196,7 +190,7 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
                     box_bestidx.xcycwh.w = bb_coords[best_idx].r - bb_coords[best_idx].l;      //w
                     box_bestidx.xcycwh.h = bb_coords[best_idx].b - bb_coords[best_idx].t;      //h
                     encoded_bb[anchor_idx] = box_bestidx;
-                    encoded_labels[anchor_idx] = bb_labels.at(best_idx);
+                    encoded_labels[anchor_idx] = bb_labels[best_idx];
                 }
             }
             else // Not a match
@@ -217,11 +211,6 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
                 }
             }
         }
-
-        memcpy(encoded_boxes_data + (i * anchors_size * 4) , encoded_bb.data(), sizeof(float) * 4 * anchors_size);
-        memcpy(encoded_labels_data + (i * anchors_size) , encoded_labels.data(), sizeof(int) * anchors_size);
-        bb_coords.clear();
-        bb_labels.clear();
     }
 }
 
