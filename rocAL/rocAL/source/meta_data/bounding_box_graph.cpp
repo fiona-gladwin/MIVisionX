@@ -33,12 +33,12 @@ void BoundingBoxGraph::process(pMetaDataBatch meta_data)
 
 inline double ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const double &box1_area, const BoundingBoxCordInfo &box2)
 {
-    double xA = std::max(box1.l, (double)box2.bb_ltrb.l);
-    double yA = std::max(box1.t, (double)box2.bb_ltrb.t);
-    double xB = std::min(box1.r, (double)box2.bb_ltrb.r);
-    double yB = std::min(box1.b, (double)box2.bb_ltrb.b);
+    double xA = std::max(box1.l, (double)box2.ltrb.l);
+    double yA = std::max(box1.t, (double)box2.ltrb.t);
+    double xB = std::min(box1.r, (double)box2.ltrb.r);
+    double yB = std::min(box1.b, (double)box2.ltrb.b);
     double intersection_area = std::max((double)0.0, xB - xA) * std::max((double)0.0, yB - yA);
-    double box2_area = (box2.bb_ltrb.b - box2.bb_ltrb.t) * (box2.bb_ltrb.r - box2.bb_ltrb.l);
+    double box2_area = (box2.ltrb.b - box2.ltrb.t) * (box2.ltrb.r - box2.ltrb.l);
     return (double) (intersection_area / (box1_area + box2_area - intersection_area));
 }
 
@@ -171,30 +171,30 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
                 //Convert the "ltrb" format to "xcycwh"
                 if (offset)
                 {
-                    box_bestidx.bb_xcycwh.xc = (bb_coords[best_idx].l + bb_coords[best_idx].r) * half_scale; //xc
-                    box_bestidx.bb_xcycwh.yc = (bb_coords[best_idx].t + bb_coords[best_idx].b) * half_scale; //yc
-                    box_bestidx.bb_xcycwh.w = (bb_coords[best_idx].r - bb_coords[best_idx].l) * scale;      //w
-                    box_bestidx.bb_xcycwh.h = (bb_coords[best_idx].b - bb_coords[best_idx].t) * scale;      //h
+                    box_bestidx.xcycwh.xc = (bb_coords[best_idx].l + bb_coords[best_idx].r) * half_scale; //xc
+                    box_bestidx.xcycwh.yc = (bb_coords[best_idx].t + bb_coords[best_idx].b) * half_scale; //yc
+                    box_bestidx.xcycwh.w = (bb_coords[best_idx].r - bb_coords[best_idx].l) * scale;      //w
+                    box_bestidx.xcycwh.h = (bb_coords[best_idx].b - bb_coords[best_idx].t) * scale;      //h
                     //Convert the "ltrb" format to "xcycwh"
-                    anchor_xcyxwh.bb_xcycwh.xc = (p_anchor->bb_ltrb.l + p_anchor->bb_ltrb.r) * half_scale; //xc
-                    anchor_xcyxwh.bb_xcycwh.yc = (p_anchor->bb_ltrb.t + p_anchor->bb_ltrb.b) * half_scale; //yc
-                    anchor_xcyxwh.bb_xcycwh.w = ( p_anchor->bb_ltrb.r - p_anchor->bb_ltrb.l ) * scale;      //w
-                    anchor_xcyxwh.bb_xcycwh.h = ( p_anchor->bb_ltrb.b - p_anchor->bb_ltrb.t ) * scale;      //h
+                    anchor_xcyxwh.xcycwh.xc = (p_anchor->ltrb.l + p_anchor->ltrb.r) * half_scale; //xc
+                    anchor_xcyxwh.xcycwh.yc = (p_anchor->ltrb.t + p_anchor->ltrb.b) * half_scale; //yc
+                    anchor_xcyxwh.xcycwh.w = ( p_anchor->ltrb.r - p_anchor->ltrb.l ) * scale;      //w
+                    anchor_xcyxwh.xcycwh.h = ( p_anchor->ltrb.b - p_anchor->ltrb.t ) * scale;      //h
                     // Reference for offset calculation between the Ground Truth bounding boxes & anchor boxes in <xc,yc,w,h> format
                     // https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Object-Detection#predictions-vis-%C3%A0-vis-priors
-                    box_bestidx.bb_xcycwh.xc = ((box_bestidx.bb_xcycwh.xc - anchor_xcyxwh.bb_xcycwh.xc) / anchor_xcyxwh.bb_xcycwh.w - means[0]) * inv_stds[0] ;
-                    box_bestidx.bb_xcycwh.yc = ((box_bestidx.bb_xcycwh.yc - anchor_xcyxwh.bb_xcycwh.yc) / anchor_xcyxwh.bb_xcycwh.h - means[1]) * inv_stds[1];
-                    box_bestidx.bb_xcycwh.w = (std::log(box_bestidx.bb_xcycwh.w / anchor_xcyxwh.bb_xcycwh.w) - means[2]) * inv_stds[2];
-                    box_bestidx.bb_xcycwh.h = (std::log(box_bestidx.bb_xcycwh.h / anchor_xcyxwh.bb_xcycwh.h) - means[3]) * inv_stds[3];
+                    box_bestidx.xcycwh.xc = ((box_bestidx.xcycwh.xc - anchor_xcyxwh.xcycwh.xc) / anchor_xcyxwh.xcycwh.w - means[0]) * inv_stds[0] ;
+                    box_bestidx.xcycwh.yc = ((box_bestidx.xcycwh.yc - anchor_xcyxwh.xcycwh.yc) / anchor_xcyxwh.xcycwh.h - means[1]) * inv_stds[1];
+                    box_bestidx.xcycwh.w = (std::log(box_bestidx.xcycwh.w / anchor_xcyxwh.xcycwh.w) - means[2]) * inv_stds[2];
+                    box_bestidx.xcycwh.h = (std::log(box_bestidx.xcycwh.h / anchor_xcyxwh.xcycwh.h) - means[3]) * inv_stds[3];
                     encoded_bb[anchor_idx] = box_bestidx;
                     encoded_labels[anchor_idx] = bb_labels.at(best_idx);
                 }
                 else
                 {
-                    box_bestidx.bb_xcycwh.xc = 0.5 * (bb_coords[best_idx].l + bb_coords[best_idx].r); //xc
-                    box_bestidx.bb_xcycwh.yc = 0.5 * (bb_coords[best_idx].t + bb_coords[best_idx].b); //yc
-                    box_bestidx.bb_xcycwh.w = bb_coords[best_idx].r - bb_coords[best_idx].l;      //w
-                    box_bestidx.bb_xcycwh.h = bb_coords[best_idx].b - bb_coords[best_idx].t;      //h
+                    box_bestidx.xcycwh.xc = 0.5 * (bb_coords[best_idx].l + bb_coords[best_idx].r); //xc
+                    box_bestidx.xcycwh.yc = 0.5 * (bb_coords[best_idx].t + bb_coords[best_idx].b); //yc
+                    box_bestidx.xcycwh.w = bb_coords[best_idx].r - bb_coords[best_idx].l;      //w
+                    box_bestidx.xcycwh.h = bb_coords[best_idx].b - bb_coords[best_idx].t;      //h
                     encoded_bb[anchor_idx] = box_bestidx;
                     encoded_labels[anchor_idx] = bb_labels.at(best_idx);
                 }
@@ -203,16 +203,16 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
             {
                 if (offset)
                 {
-                    encoded_bb[anchor_idx].bb_xcycwh = {0, 0, 0, 0};
+                    encoded_bb[anchor_idx].xcycwh = {0, 0, 0, 0};
                     encoded_labels[anchor_idx] = 0;
                 }
                 else
                 {
                     //Convert the "ltrb" format to "xcycwh"
-                    encoded_bb[anchor_idx].bb_xcycwh.xc = 0.5 * (p_anchor->bb_ltrb.l + p_anchor->bb_ltrb.r); //xc
-                    encoded_bb[anchor_idx].bb_xcycwh.yc = 0.5 * (p_anchor->bb_ltrb.t + p_anchor->bb_ltrb.b); //yc
-                    encoded_bb[anchor_idx].bb_xcycwh.w = (-p_anchor->bb_ltrb.l + p_anchor->bb_ltrb.r);      //w
-                    encoded_bb[anchor_idx].bb_xcycwh.h = (-p_anchor->bb_ltrb.t + p_anchor->bb_ltrb.b);      //h
+                    encoded_bb[anchor_idx].xcycwh.xc = 0.5 * (p_anchor->ltrb.l + p_anchor->ltrb.r); //xc
+                    encoded_bb[anchor_idx].xcycwh.yc = 0.5 * (p_anchor->ltrb.t + p_anchor->ltrb.b); //yc
+                    encoded_bb[anchor_idx].xcycwh.w = (-p_anchor->ltrb.l + p_anchor->ltrb.r);      //w
+                    encoded_bb[anchor_idx].xcycwh.h = (-p_anchor->ltrb.t + p_anchor->ltrb.b);      //h
                     encoded_labels[anchor_idx] = 0;
                 }
             }

@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 typedef  struct { float xc; float yc; float w; float h; } BoundingBoxCord_xcycwh;
 typedef struct { float l; float t; float r; float b; } BoundingBoxCord_ltrb;
-typedef union BoundingBoxCordInfo { BoundingBoxCord_xcycwh bb_xcycwh; BoundingBoxCord_ltrb bb_ltrb; };
+typedef union { BoundingBoxCord_xcycwh xcycwh; BoundingBoxCord_ltrb ltrb; } BoundingBoxCordInfo;
 
 
 class BoundingBoxGraph : public MetaDataGraph
