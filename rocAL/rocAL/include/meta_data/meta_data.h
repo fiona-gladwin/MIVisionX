@@ -242,7 +242,7 @@ public:
         *this += *other;
         return this;
     }
-    virtual std::shared_ptr<MetaDataBatch> clone() = 0;
+    virtual std::shared_ptr<MetaDataBatch> clone(bool copy_contents = true) = 0;
     virtual int mask_size() = 0;
     virtual std::vector<Labels>& get_labels_batch() = 0;
     virtual std::vector<BoundingBoxCords>& get_bb_cords_batch() = 0;
@@ -289,9 +289,12 @@ public:
     {
         return _label_ids.size();
     }
-    std::shared_ptr<MetaDataBatch> clone() override
+    std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        return std::make_shared<LabelBatch>(*this);
+        if(copy_contents)
+            return std::make_shared<LabelBatch>(*this);
+        else
+            return std::make_shared<LabelBatch>();
     }
     explicit LabelBatch(std::vector<Labels>& labels)
     {
@@ -356,9 +359,12 @@ public:
     {
         return _bb_cords.size();
     }
-    std::shared_ptr<MetaDataBatch> clone() override
+    std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        return std::make_shared<BoundingBoxBatch>(*this);
+        if(copy_contents)
+            return std::make_shared<BoundingBoxBatch>(*this);
+        else
+            return std::make_shared<BoundingBoxBatch>();
     }
     void convert_ltrb_to_xywh(BoundingBoxCords& ltrb_bbox_list) {
         for(unsigned i = 0; i < ltrb_bbox_list.size(); i++) {
@@ -431,13 +437,16 @@ public:
         _polygon_counts.resize(batch_size);
         _vertices_counts.resize(batch_size);
     }
-    std::vector<MaskCords>& get_mask_cords_batch() { return _mask_cords; }
-    std::vector<std::vector<int>>& get_mask_polygons_count_batch() { return _polygon_counts; }
-    std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() { return _vertices_counts; }
-    int mask_size() { return _mask_cords.size(); }
-    std::shared_ptr<MetaDataBatch> clone() override
+    std::vector<MaskCords>& get_mask_cords_batch() override { return _mask_cords; }
+    std::vector<std::vector<int>>& get_mask_polygons_count_batch() override { return _polygon_counts; }
+    std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() override { return _vertices_counts; }
+    int mask_size() override { return _mask_cords.size(); }
+    std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        return std::make_shared<PolygonMaskBatch>(*this);
+        if(copy_contents)
+            return std::make_shared<PolygonMaskBatch>(*this);
+        else
+            return std::make_shared<PolygonMaskBatch>();
     }
     void copy_data(std::vector<void*> buffer) override
     {
@@ -518,9 +527,12 @@ public:
     {
         return _joints_data.image_id_batch.size();
     }
-    std::shared_ptr<MetaDataBatch> clone() override
+    std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        return std::make_shared<KeyPointBatch>(*this);
+        if(copy_contents)
+            return std::make_shared<KeyPointBatch>(*this);
+        else
+            return std::make_shared<KeyPointBatch>();
     }
     JointsDataBatch & get_joints_data_batch() { return _joints_data; }
     void copy_data(std::vector<void*> buffer) override {}
