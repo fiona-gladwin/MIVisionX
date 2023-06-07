@@ -31,15 +31,15 @@ void BoundingBoxGraph::process(pMetaDataBatch meta_data)
 
 //update_meta_data is not required since the bbox are normalized in the very beggining -> removed the call in master graph also except for MaskRCNN
 
-inline double ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const double &box1_area, const BoundingBoxCordInfo &box2)
+inline float ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const double &box1_area, const BoundingBoxCordf &box2)
 {
-    double xA = std::max(box1.l, (double)box2.ltrb.l);
-    double yA = std::max(box1.t, (double)box2.ltrb.t);
-    double xB = std::min(box1.r, (double)box2.ltrb.r);
-    double yB = std::min(box1.b, (double)box2.ltrb.b);
-    double intersection_area = std::max((double)0.0, xB - xA) * std::max((double)0.0, yB - yA);
-    double box2_area = (box2.ltrb.b - box2.ltrb.t) * (box2.ltrb.r - box2.ltrb.l);
-    return (double) (intersection_area / (box1_area + box2_area - intersection_area));
+    float xA = std::max((float)box1.l, box2.ltrb.l);
+    float yA = std::max((float)box1.t, box2.ltrb.t);
+    float xB = std::min((float)box1.r, box2.ltrb.r);
+    float yB = std::min((float)box1.b, box2.ltrb.b);
+    float intersection_area = std::max((float)0.0, xB - xA) * std::max((float)0.0, yB - yA);
+    float box2_area = (box2.ltrb.b - box2.ltrb.t) * (box2.ltrb.r - box2.ltrb.l);
+    return (float) (intersection_area / (box1_area + box2_area - intersection_area));
 }
 
 void BoundingBoxGraph::update_random_bbox_meta_data(pMetaDataBatch input_meta_data, decoded_image_info decode_image_info, crop_image_info crop_image_info)
@@ -95,7 +95,7 @@ void BoundingBoxGraph::update_random_bbox_meta_data(pMetaDataBatch input_meta_da
     }
 }
 
-inline void calculate_ious_for_box(float *ious, BoundingBoxCord &box, BoundingBoxCordInfo *anchors, unsigned int num_anchors)
+inline void calculate_ious_for_box(float *ious, BoundingBoxCord &box, BoundingBoxCordf *anchors, unsigned int num_anchors)
 {
     float box_area = (box.b - box.t) * (box.r - box.l);
     ious[0] = ssd_BBoxIntersectionOverUnion(box, box_area, anchors[0]);
@@ -136,7 +136,7 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
     #pragma omp parallel for
     for (int i = 0; i < full_batch_meta_data->size(); i++)
     {
-        BoundingBoxCordInfo *bbox_anchors = reinterpret_cast<BoundingBoxCordInfo *>(anchors->data());
+        BoundingBoxCordf *bbox_anchors = reinterpret_cast<BoundingBoxCordf *>(anchors->data());
         auto bb_count = full_batch_meta_data->get_labels_batch()[i].size();
         std::vector<BoundingBoxCord> bb_coords;
         Labels bb_labels;
@@ -144,7 +144,7 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
         bb_coords.resize(bb_count);
         memcpy(bb_labels.data(), full_batch_meta_data->get_labels_batch()[i].data(), sizeof(int) * bb_count);
         memcpy((void *)bb_coords.data(), full_batch_meta_data->get_bb_cords_batch()[i].data(), full_batch_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
-        std::vector<BoundingBoxCordInfo> encoded_bb;
+        std::vector<BoundingBoxCordf> encoded_bb;
         Labels encoded_labels;
         unsigned anchors_size = anchors->size() / 4; // divide the anchors_size by 4 to get the total number of anchors
         //Calculate Ious
@@ -162,8 +162,8 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
         // Depending on the matches ->place the best bbox instead of the corresponding anchor_idx in anchor
         for (unsigned anchor_idx = 0; anchor_idx < anchors_size; anchor_idx++)
         {
-            BoundingBoxCordInfo box_bestidx, anchor_xcyxwh;
-            BoundingBoxCordInfo *p_anchor = &bbox_anchors[anchor_idx];
+            BoundingBoxCordf box_bestidx, anchor_xcyxwh;
+            BoundingBoxCordf *p_anchor = &bbox_anchors[anchor_idx];
             const auto best_idx = find_best_box_for_anchor(anchor_idx, ious, bb_count, anchors_size);
             // Filter matches by criteria
             if (ious[(best_idx * anchors_size) + anchor_idx] > criteria) //Its a match
