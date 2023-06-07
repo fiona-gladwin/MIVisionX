@@ -168,7 +168,7 @@ private:
     float _scale; // Rescales the box and anchor values before the offset is calculated (for example, to return to the absolute values).
     bool _offset; // Returns normalized offsets ((encoded_bboxes*scale - anchors*scale) - mean) / stds in EncodedBBoxes that use std and the mean and scale arguments if offset="True"
     std::vector<float> _means, _stds; //_means:  [x y w h] mean values for normalization _stds: [x y w h] standard deviations for offset normalization.
-    bool _metadata_output_process = false;
+    bool _augmentation_metanode = false;
 #if ENABLE_HIP
     BoxEncoderGpu *_box_encoder_gpu = nullptr;
 #endif
@@ -204,7 +204,7 @@ std::shared_ptr<T> MasterGraph::meta_add_node(std::shared_ptr<M> node)
     _meta_data_graph->_meta_nodes.push_back(meta_node);
     meta_node->_node = node;
     meta_node->_batch_size = _user_batch_size;
-    _metadata_output_process = true;
+    _augmentation_metanode = true;
     return meta_node;
 }
 
