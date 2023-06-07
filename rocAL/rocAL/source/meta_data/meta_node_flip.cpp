@@ -27,7 +27,7 @@ void FlipMetaNode::initialize()
     _src_width_val.resize(_batch_size);
     _flip_axis_val.resize(_batch_size);
 }
-void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data)
+void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     initialize();
     if(_batch_size != input_meta_data->size())
@@ -67,7 +67,7 @@ void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data)
             
             bb_coords.push_back(coords_buf[j]);
         }
-        input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_labels_batch()[i] = labels_buf;
+        output_meta_data->get_bb_cords_batch()[i] = bb_coords;
+        output_meta_data->get_labels_batch()[i] = bb_labels;
     }
 }

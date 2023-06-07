@@ -28,7 +28,7 @@ void CropMetaNode::initialize()
     _x1_val.resize(_batch_size);
     _y1_val.resize(_batch_size);
 }
-void CropMetaNode::update_parameters(pMetaDataBatch input_meta_data)
+void CropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     initialize();
     if(_batch_size != input_meta_data->size())
@@ -88,7 +88,7 @@ void CropMetaNode::update_parameters(pMetaDataBatch input_meta_data)
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }
-        input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_labels_batch()[i] = bb_labels;
+        output_meta_data->get_bb_cords_batch()[i] = bb_coords;
+        output_meta_data->get_labels_batch()[i] = bb_labels;
     }
 }

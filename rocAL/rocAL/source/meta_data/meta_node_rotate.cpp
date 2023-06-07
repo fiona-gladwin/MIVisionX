@@ -27,7 +27,7 @@ void RotateMetaNode::initialize()
     _src_width_val.resize(_batch_size);
     _angle_val.resize(_batch_size);
 }
-void RotateMetaNode::update_parameters(MetaDataBatch* input_meta_data)
+void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     initialize();
     if(_batch_size != input_meta_data->size())
@@ -104,7 +104,7 @@ void RotateMetaNode::update_parameters(MetaDataBatch* input_meta_data)
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }
-        input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_bb_labels_batch()[i] = bb_labels;
+        output_meta_data->get_bb_cords_batch()[i] = bb_coords;
+        output_meta_data->get_bb_labels_batch()[i] = bb_labels;
     }
 }
