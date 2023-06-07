@@ -42,12 +42,8 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
     for (int i = 0; i < _batch_size; i++)
     {
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
-        BoundingBoxCords coords_buf;
-        Labels labels_buf;
-        coords_buf.resize(bb_count);
-        labels_buf.resize(bb_count);
-        memcpy(labels_buf.data(), input_meta_data->get_labels_batch()[i].data(), sizeof(int) * bb_count);
-        memcpy((void *)coords_buf.data(), input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
+        BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
+        Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords bb_coords;
         Labels bb_labels;
         for (uint j = 0; j < bb_count; j++)
