@@ -45,11 +45,9 @@ void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaData
     BoundingBoxCord temp_box = {0, 0, 1, 1};
     for(int i = 0; i < _batch_size; i++)
     {
-        auto bb_count = input_meta_data->get_bb_labels_batch()[i].size();
-        int labels_buf[bb_count];
-        float coords_buf[bb_count*4];
-        memcpy(labels_buf, input_meta_data->get_bb_labels_batch()[i].data(),  sizeof(int)*bb_count);
-        memcpy(coords_buf, input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
+        auto bb_count = input_meta_data->get_labels_batch()[i].size();
+        BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
+        Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords bb_coords;
         BoundingBoxLabels bb_labels;
         BoundingBoxCord dest_image;
