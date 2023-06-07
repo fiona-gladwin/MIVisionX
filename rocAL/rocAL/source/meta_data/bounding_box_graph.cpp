@@ -21,11 +21,11 @@ THE SOFTWARE.
 */
 #include "bounding_box_graph.h"
 
-void BoundingBoxGraph::process(pMetaDataBatch meta_data)
+void BoundingBoxGraph::process(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     for (auto &meta_node : _meta_nodes)
     {
-        meta_node->update_parameters(meta_data);
+        meta_node->update_parameters(input_meta_data, output_meta_data);
     }
 }
 
@@ -42,7 +42,7 @@ inline double ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const d
     return (double) (intersection_area / (box1_area + box2_area - intersection_area));
 }
 
-void BoundingBoxGraph::update_random_bbox_meta_data(pMetaDataBatch input_meta_data, decoded_image_info decode_image_info, crop_image_info crop_image_info)
+void BoundingBoxGraph::update_random_bbox_meta_data(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data, decoded_image_info decode_image_info, crop_image_info crop_image_info)
 {
     std::vector<uint32_t> original_height = decode_image_info._original_height;
     std::vector<uint32_t> original_width = decode_image_info._original_width;
@@ -90,8 +90,8 @@ void BoundingBoxGraph::update_random_bbox_meta_data(pMetaDataBatch input_meta_da
         {
             THROW("Bounding box co-ordinates not found in the image ");
         }
-        input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_labels_batch()[i] = bb_labels;
+        output_meta_data->get_bb_cords_batch()[i] = bb_coords;
+        output_meta_data->get_labels_batch()[i] = bb_labels;
     }
 }
 
