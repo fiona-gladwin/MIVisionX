@@ -226,7 +226,7 @@ public:
 #elif ENABLE_HIP
     unsigned copy_data(hipStream_t stream, void* host_memory, bool sync);
 #endif
-    unsigned copy_data(void* user_buffer) override;
+    unsigned copy_data(void* user_buffer, RocalOutputMemType external_mem_type) override;
     //! Default destructor
     /*! Releases the OpenVX Tensor object */
     ~Tensor();

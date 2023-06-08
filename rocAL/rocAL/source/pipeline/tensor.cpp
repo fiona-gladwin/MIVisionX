@@ -305,26 +305,41 @@ unsigned Tensor::copy_data(hipStream_t stream, void *host_memory, bool sync) {
 }
 #endif
 
-unsigned Tensor::copy_data(void *user_buffer) {
+unsigned Tensor::copy_data(void *user_buffer, RocalOutputMemType external_mem_type) {
     if (_mem_handle == nullptr) return 0;
 
+    if(external_mem_type == RocalOutputMemType::ROCAL_MEMCPY_GPU) {
 #if ENABLE_HIP
-    if (_info._mem_type == RocalMemType::HIP) {
-        // copy from device to device
-        hipError_t status;
-        if ((status = hipMemcpyDtoD((void *)user_buffer, _mem_handle, _info.data_size())))
-            THROW("copy_data::hipMemcpyDtoH failed: " + TOSTR(status))
-    } else if (_info._mem_type == RocalMemType::HOST) {
-        // copy from host to device
-        hipError_t status;
-        if ((status = hipMemcpyHtoD((void *)user_buffer, _mem_handle, _info.data_size())))
-            THROW("copy_data::hipMemcpyHtoD failed: " + TOSTR(status))
-    }
+        if (_info._mem_type == RocalMemType::HIP) {
+            // copy from device to device
+            hipError_t status;
+            if ((status = hipMemcpyDtoD((void *)user_buffer, _mem_handle, _info.data_size())))
+                THROW("copy_data::hipMemcpyDtoH failed: " + TOSTR(status))
+        } else if (_info._mem_type == RocalMemType::HOST) {
+            // copy from host to device
+            hipError_t status;
+            if ((status = hipMemcpyHtoD((void *)user_buffer, _mem_handle, _info.data_size())))
+                THROW("copy_data::hipMemcpyHtoD failed: " + TOSTR(status))
+        }
 #else
-    if (_info._mem_type == RocalMemType::HOST)
-        memcpy(user_buffer, _mem_handle, _info.data_size());
+        THROW("copy_data failed as HIP is not supported")
 #endif
-
+    } else if(external_mem_type == RocalOutputMemType::ROCAL_MEMCPY_HOST) {
+        if(_info._mem_type == RocalMemType::HIP) {
+#if ENABLE_HIP
+            // copy from device to host
+            hipError_t status;
+            if ((status = hipMemcpyDtoH((void *)user_buffer, _mem_handle, _info.data_size())))
+                THROW("copy_data::hipMemcpyDtoH failed: " + TOSTR(status))
+#else
+            THROW("copy_data failed as HIP is not supported")
+#endif
+        } else if (_info._mem_type == RocalMemType::HOST) {
+            memcpy(user_buffer, _mem_handle, _info.data_size());
+        }
+    } else {
+        THROW("copy_data requested mem type not supported")
+    }
     return 0;
 }
 

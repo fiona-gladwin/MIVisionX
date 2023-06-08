@@ -28,7 +28,7 @@ class rocalTensor {
 public:
     virtual ~rocalTensor() = default;
     virtual void* buffer() = 0;
-    virtual unsigned copy_data(void* user_buffer) = 0;
+    virtual unsigned copy_data(void* user_buffer, RocalOutputMemType external_mem_type = ROCAL_MEMCPY_HOST) = 0;
     virtual unsigned num_of_dims() = 0;
     virtual unsigned batch_size() = 0;
     virtual std::vector<size_t> dims() = 0;
