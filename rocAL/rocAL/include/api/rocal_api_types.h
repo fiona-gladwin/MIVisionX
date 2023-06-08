@@ -167,18 +167,21 @@ enum RocalResizeInterpolationType {
     ROCAL_TRIANGULAR_INTERPOLATION = 5
 };
 
+enum RocalTensorBackend {
+    ROCAL_CPU = 0,
+    ROCAL_GPU = 1
+};
+
 /*! \brief Tensor ROI type
  *
  * currently supports following formats
  */
-enum class RocalROICordsType
-{
+enum class RocalROICordsType {
     ROCAL_XYWH = 0,
     ROCAL_LTRB = 1
 };
 
-typedef struct
-{
+typedef struct {
     unsigned x1, y1, x2, y2;
 } RocalROICords;
 #endif //MIVISIONX_ROCAL_API_TYPES_H

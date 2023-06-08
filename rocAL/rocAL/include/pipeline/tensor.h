@@ -253,6 +253,9 @@ public:
     RocalROICords *get_roi() override { return (RocalROICords *)_info.get_roi(); }
     std::vector<size_t> shape() override { return _info.max_shape(); }
     RocalImageColor color_format() const { return (RocalImageColor)_info.color_format(); }
+    RocalTensorBackend backend() override { 
+        return (_info.mem_type() == RocalMemType::HOST ? ROCAL_CPU : ROCAL_GPU);
+    }
     
 private:
     vx_tensor _vx_handle = nullptr;  //!< The OpenVX tensor
