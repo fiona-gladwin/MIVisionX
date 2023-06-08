@@ -31,12 +31,12 @@ void BoundingBoxGraph::process(pMetaDataBatch input_meta_data, pMetaDataBatch ou
 
 //update_meta_data is not required since the bbox are normalized in the very beggining -> removed the call in master graph also except for MaskRCNN
 
-inline float ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const double &box1_area, const BoundingBoxCordf &box2)
+inline float ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const float &box1_area, const BoundingBoxCordf &box2)
 {
-    float xA = std::max((float)box1.l, box2.ltrb.l);
-    float yA = std::max((float)box1.t, box2.ltrb.t);
-    float xB = std::min((float)box1.r, box2.ltrb.r);
-    float yB = std::min((float)box1.b, box2.ltrb.b);
+    float xA = std::max(static_cast<float>(box1.l), box2.ltrb.l);
+    float yA = std::max(static_cast<float>(box1.t), box2.ltrb.t);
+    float xB = std::min(static_cast<float>(box1.r), box2.ltrb.r);
+    float yB = std::min(static_cast<float>(box1.b), box2.ltrb.b);
     float intersection_area = std::max((float)0.0, xB - xA) * std::max((float)0.0, yB - yA);
     float box2_area = (box2.ltrb.b - box2.ltrb.t) * (box2.ltrb.r - box2.ltrb.l);
     return (float) (intersection_area / (box1_area + box2_area - intersection_area));
