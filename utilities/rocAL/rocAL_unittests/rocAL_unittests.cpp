@@ -438,7 +438,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 for(int i = 0; i < bbox_labels->size(); i++)
                 {
                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-                    float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
+                    double *bbox_buffer = (double *)(bbox_coords->at(i)->buffer());
                     std::cerr << "\n>>>>> BBOX LABELS : ";
                     for(int j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
                         std::cerr << labels_buffer[j] << " ";
@@ -539,24 +539,43 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             unsigned char *out_buffer;
             if(output_tensor_list->at(idx)->data_type() == RocalTensorOutputType::ROCAL_FP32)
             {
-                float * out_f_buffer = (float *)malloc(output_tensor_list->at(idx)->data_size());
-                out_f_buffer = (float *)malloc(output_tensor_list->at(idx)->data_size());
+                float * out_f_buffer;
+                if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_GPU)
+                {
+                    out_f_buffer = (float *)malloc(output_tensor_list->at(idx)->data_size());
+                    output_tensor_list->at(idx)->copy_data(out_f_buffer);
+                }
+                else if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_CPU)
+                    out_f_buffer = (float *)output_tensor_list->at(idx)->buffer();
+
                 out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size() / 4);
                 convert_float_to_uchar_buffer(out_f_buffer, out_buffer, output_tensor_list->at(idx)->data_size() / 4);
-                if(out_f_buffer != nullptr) free(out_f_buffer);
+                // if(out_f_buffer != nullptr) free(out_f_buffer);
             }
             if(output_tensor_list->at(idx)->data_type() == RocalTensorOutputType::ROCAL_FP16)
             {
-                half * out_f16_buffer = (half *)malloc(output_tensor_list->at(idx)->data_size());
-                output_tensor_list->at(idx)->copy_data(out_f16_buffer);
+                half * out_f16_buffer;
+                if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_GPU)
+                {
+                    out_f16_buffer = (half *)malloc(output_tensor_list->at(idx)->data_size());
+                    output_tensor_list->at(idx)->copy_data(out_f16_buffer);
+                }
+                else if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_CPU)
+                    out_f16_buffer = (half *)output_tensor_list->at(idx)->buffer();
+
                 out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size() / 2);
                 convert_float_to_uchar_buffer(out_f16_buffer, out_buffer, output_tensor_list->at(idx)->data_size() / 2);
-                if(out_f16_buffer != nullptr) free(out_f16_buffer);
+                // if(out_f16_buffer != nullptr) free(out_f16_buffer);
             }
             else
             {
-                out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size());
-                output_tensor_list->at(idx)->copy_data(out_buffer);
+                if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_GPU)
+                {
+                    out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size());
+                    output_tensor_list->at(idx)->copy_data(out_buffer);
+                }
+                else if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_CPU)
+                    out_buffer = (unsigned char *)(output_tensor_list->at(idx)->buffer());
             }
 
             if(output_tensor_list->at(idx)->layout() == RocalTensorLayout::ROCAL_NCHW)
@@ -585,7 +604,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             {
                 cv::imwrite(out_filename, mat_output, compression_params);
             }
-            if(out_buffer != nullptr) free(out_buffer);
+            // if(out_buffer != nullptr) free(out_buffer);
         }
         mat_input.release();
         mat_output.release();
