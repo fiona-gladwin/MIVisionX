@@ -81,6 +81,6 @@ void SSDRandomCropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pM
             }
         }
         output_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        output_meta_data->get_bb_labels_batch()[i] = bb_labels;
+        output_meta_data->get_labels_batch()[i] = bb_labels;
     }
 }

@@ -51,11 +51,9 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
 
     for(int i = 0; i < _batch_size; i++)
     {
-        auto bb_count = input_meta_data->get_bb_labels_batch()[i].size();
-        int labels_buf[bb_count];
-        float coords_buf[bb_count*4];
-        memcpy(labels_buf, input_meta_data->get_bb_labels_batch()[i].data(),  sizeof(int)*bb_count);
-        memcpy(coords_buf, input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
+        auto bb_count = input_meta_data->get_labels_batch()[i].size();
+        Labels labels_buf = input_meta_data->get_labels_batch()[i];
+        BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
         BoundingBoxCords bb_coords;
         BoundingBoxLabels bb_labels;
         BoundingBoxCord crop_box;
@@ -66,14 +64,9 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
         crop_box.t = _y1_val[i];
         crop_box.r = _x1_val[i]+_crop_w;
         crop_box.b = _y1_val[i]+_crop_h;
-        for(uint j = 0, m = 0; j < bb_count; j++)
+        for(uint j = 0; j < bb_count; j++)
         {
-            BoundingBoxCord box;
-            box.l = coords_buf[m++];
-            box.t = coords_buf[m++];
-            box.r = coords_buf[m++];
-            box.b = coords_buf[m++];
-            
+            BoundingBoxCord box = coords_buf[j];
             if (BBoxIntersectionOverUnion(box, crop_box) >= _iou_threshold)
             {
                 float xA = std::max(crop_box.l, box.l);
@@ -95,6 +88,6 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
             bb_labels.push_back(0);
         }
         output_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        output_meta_data->get_bb_labels_batch()[i] = bb_labels;
+        output_meta_data->get_labels_batch()[i] = bb_labels;
     }
 }
