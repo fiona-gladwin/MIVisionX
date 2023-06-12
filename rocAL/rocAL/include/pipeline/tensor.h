@@ -275,7 +275,7 @@ public:
         _tensor_data_size.emplace_back(tensor->info().data_size());
     }
     std::vector<uint64_t> &data_size() { return _tensor_data_size; }
-    void release() override {
+    void release() {
         for (auto& tensor : _tensor_list) delete tensor;
     }
     Tensor* operator[](size_t index) { return _tensor_list[index]; }

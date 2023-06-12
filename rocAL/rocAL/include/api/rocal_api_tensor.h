@@ -45,10 +45,7 @@ class rocalTensorList {
 public:
     virtual uint64_t size() = 0;
     virtual rocalTensor* at(size_t index) = 0;
-    virtual void release() = 0;
-    // at API
     // isDenseTensor
-    // Add a copy API!
 };
 
 typedef rocalTensor * RocalTensor;

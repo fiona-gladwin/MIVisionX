@@ -373,7 +373,7 @@ void MasterGraph::release()
     _internal_tensor_list.release(); // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
     _output_tensor_list.release();   // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
     for(auto tensor_list: _metadata_output_tensor_list)
-        tensor_list->release(); // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
+        dynamic_cast<TensorList *>(tensor_list)->release(); // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
 
     if(_graph != nullptr)
         _graph->release();
