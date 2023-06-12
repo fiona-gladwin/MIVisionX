@@ -530,7 +530,7 @@ void MasterGraph::output_routine()
             pMetaDataBatch output_meta_data = nullptr;
             if(_augmented_meta_data)
             {
-                output_meta_data = _augmented_meta_data->clone(!_augmentation_metanode); // copy the data if metadata is not proessed by the nodes, else create an empty instance
+                output_meta_data = _augmented_meta_data->clone(!_augmentation_metanode); // copy the data if metadata is not processed by the nodes, else create an empty instance
                 if (_meta_data_graph)
                 {
                     if(_augmentation_metanode) output_meta_data->resize(_user_batch_size);
