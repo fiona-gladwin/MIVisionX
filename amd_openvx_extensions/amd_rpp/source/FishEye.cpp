@@ -141,13 +141,19 @@ static vx_status VX_CALLBACK processFishEye(vx_node node, const vx_reference *pa
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshFishEye(node, parameters, num, data);
-        rpp_status = rppi_fisheye_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->nbatchSize, data->handle->rppHandle);
-
+        if(data->dstDescPtr->c==1 ) 
+            rpp_status = rppi_fisheye_u8_pln1_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->nbatchSize, data->handle->rppHandle);
+        else 
+            rpp_status = rppi_fisheye_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshFishEye(node, parameters, num, data);
-        rpp_status = rppi_fisheye_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->nbatchSize, data->handle->rppHandle);
+        std::cerr<<"\n data->dstDescPtr.c "<<data->dstDescPtr->c;
+        if(data->dstDescPtr->c==1 )
+            rpp_status = rppi_fisheye_u8_pln1_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->nbatchSize, data->handle->rppHandle);
+        else 
+            rpp_status = rppi_fisheye_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;

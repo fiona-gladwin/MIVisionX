@@ -167,12 +167,18 @@ static vx_status VX_CALLBACK processResizeCrop(vx_node node, const vx_reference 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         refreshResizeCrop(node, parameters, num, data);
-        rpp_status = rppi_resize_crop_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->handle->rppHandle);
+        if(data->dstDescPtr->c==1 ) 
+            rpp_status = rppi_resize_crop_u8_pln1_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->handle->rppHandle);
+        else 
+            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshResizeCrop(node, parameters, num, data);
-        rpp_status = rppi_resize_crop_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->handle->rppHandle);
+        if(data->dstDescPtr->c==1 ) 
+            rpp_status = rppi_resize_crop_u8_pln1_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->handle->rppHandle);
+        else 
+            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->x1, data->x2, data->y1, data->y2, output_format_toggle, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;

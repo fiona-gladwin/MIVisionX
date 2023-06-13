@@ -153,15 +153,18 @@ static vx_status VX_CALLBACK processFog(vx_node node, const vx_reference *parame
 #if ENABLE_HIP
         refreshFog(node, parameters, num, data);
         // rpp_status = rppt_gamma_correction_gpu((void *)data->pSrc, data->srcDescPtr, (void *)data->pDst, data->dstDescPtr,  data->fogValue, data->roiPtr, data->roiType, data->handle->rppHandle);
-        rpp_status = rppi_fog_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->fogValue, data->nbatchSize, data->handle->rppHandle);
-
+        if(data->dstDescPtr->c==1 ) 
+            rpp_status = rppi_fog_u8_pln1_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->fogValue, data->nbatchSize, data->handle->rppHandle);
+        else 
+            rpp_status = rppi_fog_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->fogValue, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshFog(node, parameters, num, data);
-        // rpp_status = rppt_gamma_correction_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->fogValue, data->roiPtr, data->roiType, data->handle->rppHandle);
-        std::cerr<<"data->srcDimensions "<<data->srcDimensions[0].width<<" "<<data->srcDimensions[0].height;
-        rpp_status = rppi_fog_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->fogValue, data->nbatchSize, data->handle->rppHandle);
+        if(data->dstDescPtr->c==1 ) 
+            rpp_status = rppi_fog_u8_pln1_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->fogValue, data->nbatchSize, data->handle->rppHandle);
+        else 
+            rpp_status = rppi_fog_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->fogValue, data->nbatchSize, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -199,12 +202,15 @@ static vx_status VX_CALLBACK initializeFog(vx_node node, const vx_reference *par
     data->fogValue = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     data->srcDimensions = (RppiSize *)malloc(sizeof(RppiSize) * data->srcDescPtr->n);
 
-    if(1)
-    {
-        data->nbatchSize = data->inputTensorDims[0];
-        data->maxSrcDimensions.height = data->inputTensorDims[1];
-        data->maxSrcDimensions.width = data->inputTensorDims[2];
-    }
+    // if(1)
+    // {
+    //     data->nbatchSize = data->inputTensorDims[0];
+    //     data->maxSrcDimensions.height = data->inputTensorDims[1];
+    //     data->maxSrcDimensions.width = data->inputTensorDims[2];
+    // }
+    data->nbatchSize = data->srcDescPtr->n;
+    data->maxSrcDimensions.height = data->srcDescPtr->h;
+    data->maxSrcDimensions.width = data->srcDescPtr->w;
     refreshFog(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));

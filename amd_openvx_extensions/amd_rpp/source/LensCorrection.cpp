@@ -71,21 +71,20 @@ static vx_status VX_CALLBACK refreshLensCorrection(vx_node node, const vx_refere
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
     }
+    std::cerr<<"\n checking before ";
     data->roiPtr = (RpptROI *)data->roiTensorPtr;
     if((data->inputLayout == 2 || data->inputLayout == 3)) { // For NFCHW and NFHWC formats
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for(int n = data->srcDescPtr->n - 1; n >= 0; n--) {
+        for(int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for(int f = 0; f < num_of_frames; f++) {
                 data->strength[index + f] = data->strength[n];
                 data->zoom[index + f] = data->zoom[n];
-                data->roiPtr[index + f].xywhROI.xy.x = data->roiPtr[n].xywhROI.xy.x;
-                data->roiPtr[index + f].xywhROI.xy.y = data->roiPtr[n].xywhROI.xy.y;
-                data->roiPtr[index + f].xywhROI.roiWidth = data->roiPtr[n].xywhROI.roiWidth;
-                data->roiPtr[index + f].xywhROI.roiHeight = data->roiPtr[n].xywhROI.roiHeight;
+                data->roiPtr[index + f].xywhROI = data->roiPtr[n].xywhROI;
             }
         }
     }
+    std::cerr<<"\n checking after ";
 
     return status;
 }
@@ -154,15 +153,21 @@ static vx_status VX_CALLBACK processLensCorrection(vx_node node, const vx_refere
 #if ENABLE_HIP
         refreshLensCorrection(node, parameters, num, data);
         // rpp_status = rppi_lens_correction_u8_pkd3_batchPD_gpu((void *)data->pSrc,data->srcDimensions, data->maxSrcDimensions (void *)data->pDst,  data->strength, data->zoom, data->nbatchSize, data->handle->rppHandle);
+        if(data->dstDescPtr->c==1 ) 
+        rpp_status = rppi_lens_correction_u8_pln1_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->strength, data->zoom, data->nbatchSize, data->handle->rppHandle);
+        else 
         rpp_status = rppi_lens_correction_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->strength, data->zoom, data->nbatchSize, data->handle->rppHandle);
-
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         refreshLensCorrection(node, parameters, num, data);
-        // rpp_status = rppt_gamma_correction_host(data->pSrc, data->srcDescPtr, data->pDst, data->dstDescPtr, data->strength, data->zoom, data->roiPtr, data->roiType, data->handle->rppHandle);
         std::cerr<<"data->srcDimensions "<<data->srcDimensions[0].width<<" "<<data->srcDimensions[0].height;
-        rpp_status = rppi_lens_correction_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->strength, data->zoom, data->nbatchSize, data->handle->rppHandle);
+        std::cerr<<"\n dstDescPtr "<<data->dstDescPtr->c;
+        if(data->dstDescPtr->c==1 ) 
+            rpp_status = rppi_lens_correction_u8_pln1_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->strength, data->zoom, data->nbatchSize, data->handle->rppHandle);
+        else 
+            rpp_status = rppi_lens_correction_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->strength, data->zoom, data->nbatchSize, data->handle->rppHandle);
+
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -201,12 +206,15 @@ static vx_status VX_CALLBACK initializeLensCorrection(vx_node node, const vx_ref
     data->zoom = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     data->srcDimensions = (RppiSize *)malloc(sizeof(RppiSize) * data->srcDescPtr->n);
 
-    if(1)
-    {
-        data->nbatchSize = data->inputTensorDims[0];
-        data->maxSrcDimensions.height = data->inputTensorDims[1];
-        data->maxSrcDimensions.width = data->inputTensorDims[2];
-    }
+    // if(1)
+    // {
+    //     data->nbatchSize = data->inputTensorDims[0];
+    //     data->maxSrcDimensions.height = data->inputTensorDims[1];
+    //     data->maxSrcDimensions.width = data->inputTensorDims[2];
+    // }
+    data->nbatchSize = data->srcDescPtr->n;
+    data->maxSrcDimensions.height = data->srcDescPtr->h;
+    data->maxSrcDimensions.width = data->srcDescPtr->w;
     refreshLensCorrection(node, parameters, num, data);
     STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
