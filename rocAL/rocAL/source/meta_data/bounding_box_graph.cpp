@@ -197,7 +197,7 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
             {
                 if (offset)
                 {
-                    encoded_bb[anchor_idx].xcycwh = {0, 0, 0, 0};
+                    encoded_bb[anchor_idx] = {0, 0, 0, 0};
                     encoded_labels[anchor_idx] = 0;
                 }
                 else
