@@ -47,7 +47,7 @@ public:
     ///\param sub_buffer_count
     void init(RocalMemType mem_type, void *dev, std::vector<size_t> &sub_buffer_size);
     void initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size);
-    void init_metadata(RocalMemType mem_type, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count);
+    void init_metadata(RocalMemType mem_type, std::vector<size_t> &sub_buffer_size);
     void release_gpu_res();
     std::vector<void*> get_read_buffers();
     void* get_host_master_read_buffer();
@@ -55,7 +55,6 @@ public:
     std::pair<void*, void*> get_box_encode_write_buffers();
     std::pair<void*, void*> get_box_encode_read_buffers();
     MetaDataNamePair& get_meta_data();
-    MetaDataDimensionsBatch& get_meta_data_info();
     std::vector<void*> get_meta_read_buffers();
     std::vector<void*> get_meta_write_buffers();
     void set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data);
@@ -97,5 +96,5 @@ private:
     size_t _level;
     std::mutex  _names_buff_lock;
     const size_t MEM_ALIGNMENT = 256;
-    bool _box_encoder_gpu = false;
+    bool _box_encoder = false;
 };

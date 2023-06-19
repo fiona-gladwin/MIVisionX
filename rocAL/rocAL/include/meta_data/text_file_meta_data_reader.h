@@ -28,18 +28,17 @@ THE SOFTWARE.
 class TextFileMetaDataReader: public MetaDataReader
 {
 public:
-    void init(const MetaDataConfig& cfg) override;
+    void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     void read_all(const std::string& path) override;
     void release(std::string image_name);
     void release() override;
     bool set_timestamp_mode() override { return false; }
-    MetaDataBatch * get_output() override { return _output; }
+
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override{ return _map_content;}
     TextFileMetaDataReader();
-    ~TextFileMetaDataReader() override { delete _output; }
 private:
-    LabelBatch* _output;
+    pMetaDataBatch _output;
     void read_files(const std::string& _path);
     bool exists(const std::string &image_name) override;
     void add(std::string image_name, int label);

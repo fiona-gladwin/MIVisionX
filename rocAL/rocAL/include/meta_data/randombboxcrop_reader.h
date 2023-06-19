@@ -72,19 +72,18 @@ private:
 class RandomBBoxCropReader: public RandomBBoxCrop_MetaDataReader
 {
 public:
-    void init(const RandomBBoxCrop_MetaDataConfig& cfg) override;
+    void init(const RandomBBoxCrop_MetaDataConfig& cfg, std::shared_ptr<CropCordBatch>  meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     std::vector<std::vector <float>>  get_batch_crop_coords(const std::vector<std::string>& image_names) override ;
     void read_all() override;
     void release() override;
     void print_map_contents();
     void update_meta_data();
-    CropCordBatch * get_output() override { return _output; }
+    std::shared_ptr<CropCordBatch> get_output() override { return _output; }
     bool is_entire_iou(){return _entire_iou;}
     void set_meta_data(std::shared_ptr<MetaDataReader> meta_data_reader) override;
     pCropCord get_crop_cord(const std::string &image_names) override;
     RandomBBoxCropReader();
-    ~RandomBBoxCropReader() override {}
 
 private:
     std::shared_ptr<MetaDataReader> _meta_data_reader = nullptr;
@@ -105,7 +104,7 @@ private:
     std::map<std::string, std::shared_ptr<CropCord>> _map_content;
     std::map<std::string, std::shared_ptr<CropCord>>::iterator _itr;
     std::shared_ptr<Graph> _graph = nullptr;
-    CropCordBatch* _output;
+    std::shared_ptr<CropCordBatch> _output;
     SeededRNG<std::mt19937, 4> _rngs;     // setting the state_size to 4 for 4 random parameters.
     size_t _sample_cnt;
 };

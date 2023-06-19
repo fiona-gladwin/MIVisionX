@@ -28,7 +28,7 @@ void ResizeMirrorNormalizeMetaNode::initialize()
     _src_height_val.resize(_batch_size);
     _src_width_val.resize(_batch_size);
 }
-void ResizeMirrorNormalizeMetaNode::update_parameters(MetaDataBatch *input_meta_data)
+void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     initialize();
     if (_batch_size != input_meta_data->size())
@@ -41,15 +41,11 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(MetaDataBatch *input_meta_
 
     for (int i = 0; i < _batch_size; i++)
     {
-        auto bb_count = input_meta_data->get_bb_labels_batch()[i].size();
-        BoundingBoxCords coords_buf;
-        BoundingBoxLabels labels_buf;
-        coords_buf.resize(bb_count);
-        labels_buf.resize(bb_count);
-        memcpy(labels_buf.data(), input_meta_data->get_bb_labels_batch()[i].data(), sizeof(int) * bb_count);
-        memcpy((void *)coords_buf.data(), input_meta_data->get_bb_cords_batch()[i].data(), input_meta_data->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
+        auto bb_count = input_meta_data->get_labels_batch()[i].size();
+        BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
+        Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords bb_coords;
-        BoundingBoxLabels bb_labels;
+        Labels bb_labels;
         for (uint j = 0; j < bb_count; j++)
         {
             /*if(_mirror_val[i] == 1)
@@ -69,9 +65,7 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(MetaDataBatch *input_meta_
             bb_coords.push_back(coords_buf[j]);
             bb_labels.push_back(labels_buf[j]);
         }
-        input_meta_data->get_bb_cords_batch()[i] = bb_coords;
-        input_meta_data->get_bb_labels_batch()[i] = bb_labels;
-        input_meta_data->get_metadata_dimensions_batch().bb_labels_dims()[i][0] = bb_labels.size();
-        input_meta_data->get_metadata_dimensions_batch().bb_cords_dims()[i][0] = bb_coords.size();
+        output_meta_data->get_bb_cords_batch()[i] = bb_coords;
+        output_meta_data->get_labels_batch()[i] = bb_labels;
     }
 }

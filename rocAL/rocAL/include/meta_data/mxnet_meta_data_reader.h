@@ -36,7 +36,7 @@ THE SOFTWARE.
 class MXNetMetaDataReader: public MetaDataReader
 {
 public :
-    void init(const MetaDataConfig& cfg) override;
+    void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     void read_all(const std::string& path) override;
     void release(std::string image_name);
@@ -44,9 +44,8 @@ public :
     void print_map_contents();
     bool set_timestamp_mode() override { return false; }
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content;}
-    MetaDataBatch * get_output() override { return _output; }
+
     MXNetMetaDataReader();
-    ~MXNetMetaDataReader() override { delete _output; }
 private:
     void read_images();
     bool exists(const std::string &image_name) override;
@@ -61,6 +60,6 @@ private:
     std::string _path;
     DIR *_src_dir;
     struct dirent *_entity;
-    LabelBatch* _output;
+    pMetaDataBatch _output;
     std::vector<std::string> _image_name;
 };

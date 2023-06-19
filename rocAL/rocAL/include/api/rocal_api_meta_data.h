@@ -61,7 +61,7 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
 /// \param rocal_context
 /// \param source_path path to the coco json file
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
-extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool is_box_encoder = false, bool is_box_iou_matcher = false);
+extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool mask = false, bool ltrb = true, bool is_box_encoder = false, bool is_box_iou_matcher = false);
 
 ///
 /// \param rocal_context
@@ -135,6 +135,18 @@ extern "C" RocalTensorList ROCAL_API_CALL rocalGetImageLabels(RocalContext rocal
 /// \param numOfClasses the number of classes for a image dataset
 /// \param buf user's buffer that will be filled with labels. Its needs to be at least of size batch_size.
 extern "C" void ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext rocal_context,int *buf, int numOfClasses);
+
+///
+/// \param rocal_context
+/// \param buf the imageIdx in the output batch
+/// \return The size of the buffer needs to be provided by user to get mask box info associated with image_idx in the output batch.
+extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int* buf);
+
+///
+/// \param rocal_context
+/// \param bufcount The user's buffer that will be filled with polygon size for the mask info
+/// \return The tensorlist with the mask coordinates
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int* bufcount);
 
 ///
 /// \param rocal_context

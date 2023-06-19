@@ -33,10 +33,10 @@ THE SOFTWARE.
 
 using namespace std;
 
-void Caffe2MetaDataReader::init(const MetaDataConfig &cfg)
+void Caffe2MetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
     _last_rec = false;
 }
 
@@ -72,8 +72,7 @@ void Caffe2MetaDataReader::lookup(const std::vector<std::string> &_image_names)
         auto it = _map_content.find(_image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ _image_name )
-        _output->get_label_batch()[i] = it->second->get_label();
-        _output->increment_object_count(it->second->get_object_count());
+        _output->get_labels_batch()[i] = it->second->get_labels();
     }
 
 }
@@ -82,7 +81,7 @@ void Caffe2MetaDataReader::print_map_contents()
 {
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label() << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_labels()[0] << std::endl;
     }
 }
 

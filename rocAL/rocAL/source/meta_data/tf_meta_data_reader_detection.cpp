@@ -33,11 +33,11 @@ THE SOFTWARE.
 
 using namespace std;
 
-void TFMetaDataReaderDetection::init(const MetaDataConfig &cfg)
+void TFMetaDataReaderDetection::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
     _feature_key_map = cfg.feature_key_map();
-    _output = new BoundingBoxBatch();
+    _output = meta_data_batch;
     _last_rec = false;
 }
 
@@ -47,13 +47,13 @@ bool TFMetaDataReaderDetection::exists(const std::string& _image_name)
 }
 
 
-void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size)
+void TFMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size)
 {
     if(exists(image_name))
     {
         auto it = _map_content.find(image_name);
         it->second->get_bb_cords().push_back(bb_coords[0]);
-        it->second->get_bb_labels().push_back(bb_labels[0]);
+        it->second->get_labels().push_back(bb_labels[0]);
         return;
     }
     pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size);
@@ -67,43 +67,31 @@ void TFMetaDataReaderDetection::lookup(const std::vector<std::string> &image_nam
         WRN("No image names passed")
         return;
     }
-    if(image_names.size() != (unsigned)_output->size())   
+    if(image_names.size() != (unsigned)_output->size())
         _output->resize(image_names.size());
-    _output->reset_objects_count();
     for(unsigned i = 0; i < image_names.size(); i++)
     {
         auto image_name = image_names[i];
         auto it = _map_content.find(image_name);
- 
+
         if(_map_content.end() == it)
-        {
-            _output->get_bb_cords_batch()[i] = {{0, 0, 0, 0}};
-            _output->get_bb_labels_batch()[i] = {{0}};
-            _output->get_img_sizes_batch()[i] = {0, 0};
-        }
-        else
-        {
-            _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-            _output->get_bb_labels_batch()[i] = it->second->get_bb_labels();
-            _output->get_img_sizes_batch()[i] = it->second->get_img_size();
-            // TODO - Check condition
-            _output->increment_object_count(it->second->get_object_count());
-            _output->get_metadata_dimensions_batch().bb_labels_dims()[i] = it->second->get_bb_label_dims();
-            _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
-        }
+            THROW("ERROR: Given name not present in the map"+ image_name )
+        _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
+        _output->get_labels_batch()[i] = it->second->get_labels();
+        _output->get_img_sizes_batch()[i] = it->second->get_img_size();
     }
 }
 
 void TFMetaDataReaderDetection::print_map_contents()
 {
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
 
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
         std::cerr << "Name :\t " << elem.first;
         bb_coords = elem.second->get_bb_cords() ;
-        bb_labels = elem.second->get_bb_labels();
+        bb_labels = elem.second->get_labels();
         std::cerr << "\nsize of the element  : "<< bb_coords.size() << std::endl;
         for(unsigned int i = 0; i < bb_coords.size(); i++){
             std::cerr << " l : " << bb_coords[i].l << " t: :" << bb_coords[i].t << " r : " << bb_coords[i].r << " b: :" << bb_coords[i].b << std::endl;
@@ -113,7 +101,7 @@ void TFMetaDataReaderDetection::print_map_contents()
 }
 
 void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint file_size, std::vector<std::string> &_image_name,
-    std::string user_label_key, std::string user_text_key, 
+    std::string user_label_key, std::string user_text_key,
     std::string user_xmin_key, std::string user_ymin_key, std::string user_xmax_key, std::string user_ymax_key,
     std::string user_filename_key)
 {
@@ -124,8 +112,8 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
     size_t uint64_size, uint32_size;
     uint64_t data_length;
     uint32_t length_crc, data_crc;
-    uint64_size = sizeof(uint64_t); 
-    uint32_size = sizeof(uint32_t); 
+    uint64_size = sizeof(uint64_t);
+    uint32_size = sizeof(uint32_t);
     char * header_length = new char [uint64_size];
     char * header_crc = new char [uint32_size];
     char * footer_crc = new char [uint32_size];
@@ -151,15 +139,15 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
 
     auto feature = features.feature();
     tensorflow::Feature single_feature,sf_xmin,sf_ymin,sf_xmax,sf_ymax,sf_fname,sf_label,sf_height,sf_width;
-    
+
     single_feature = feature.at(user_filename_key);
     std::string fname = single_feature.bytes_list().value()[0];
     float  size_b_xmin;
     single_feature = feature.at(user_xmin_key);
     size_b_xmin = single_feature.float_list().value().size();
-    
+
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
     BoundingBoxCord box;
 
     sf_label = feature.at(user_label_key);
@@ -170,7 +158,7 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
 
     sf_height = feature.at("image/height");
     sf_width = feature.at("image/width");
-    
+
     int image_height, image_width;
     image_height = sf_height.int64_list().value()[0];
     image_width = sf_width.int64_list().value()[0];
@@ -187,7 +175,7 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
       bbox_xmin = sf_xmin.float_list().value()[i];
       bbox_ymin = sf_ymin.float_list().value()[i];
       bbox_xmax = sf_xmax.float_list().value()[i];
-      bbox_ymax = sf_ymax.float_list().value()[i]; 
+      bbox_ymax = sf_ymax.float_list().value()[i];
       box.l = bbox_xmin ;
       box.r = bbox_xmax ;
       box.t = bbox_ymin ;
@@ -270,7 +258,7 @@ void TFMetaDataReaderDetection::read_files(const std::string& _path)
         if(_entity->d_type != DT_REG)
             continue;
 
-        _file_names.push_back(_entity->d_name);  
+        _file_names.push_back(_entity->d_name);
     }
     if(_file_names.empty())
         WRN("LabelReader: Could not find any file in " + _path)

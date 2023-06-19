@@ -124,8 +124,6 @@ __global__ void __attribute__((visibility("default")))
 BoxEncode(const BoxEncoderSampleDesc *samples, const int anchor_cnt, const float4 *anchors,
           const float criteria, int *box_idx_buffer, float *box_iou_buffer, bool offset,
           const float *means, const float *inv_stds, float scale, const float4 *anchors_as_cwh) {
-    // printf("\n In Box Encoder kernel");
-    // printf("\n invs_stds1:%f",inv_stds[0]);
 
     const int sample_idx = blockIdx.x;
     const auto &sample = samples[sample_idx];
@@ -175,8 +173,6 @@ BoxEncode(const BoxEncoderSampleDesc *samples, const int anchor_cnt, const float
       inv_stds,
       scale,
       anchors_as_cwh);
-      // printf("\n Exiting Box Encoder kernel");
-
 }
 
 void BoxEncoderGpu::prepare_anchors(const std::vector<float> &anchors) {
@@ -239,7 +235,7 @@ void BoxEncoderGpu::Run(pMetaDataBatch full_batch_meta_data, float *encoded_boxe
     int total_num_boxes = 0;
     for (int i = 0; i < _cur_batch_size; i++) {
         auto sample = &_samples_host_buf[i];
-        sample->in_box_count = full_batch_meta_data->get_bb_labels_batch()[i].size();
+        sample->in_box_count = full_batch_meta_data->get_labels_batch()[i].size();
         total_num_boxes += sample->in_box_count;
     }
     if (total_num_boxes > MAX_NUM_BOXES_TOTAL)
@@ -247,9 +243,8 @@ void BoxEncoderGpu::Run(pMetaDataBatch full_batch_meta_data, float *encoded_boxe
     float *boxes_in_temp = _boxes_in_dev; int *labels_in_temp = _labels_in_dev;
     for (int sample_idx = 0; sample_idx < _cur_batch_size; sample_idx++) {
         auto sample = &_samples_host_buf[sample_idx];
-        //sample->in_box_count = full_batch_meta_data->get_bb_labels_batch()[sample_idx].size();
         HIP_ERROR_CHECK_STATUS( hipMemcpyHtoDAsync((void *)boxes_in_temp, full_batch_meta_data->get_bb_cords_batch()[sample_idx].data(), sample->in_box_count*sizeof(float)*4, _stream));
-        HIP_ERROR_CHECK_STATUS( hipMemcpyHtoDAsync((void *)labels_in_temp, full_batch_meta_data->get_bb_labels_batch()[sample_idx].data(), sample->in_box_count*sizeof(int), _stream));
+        HIP_ERROR_CHECK_STATUS( hipMemcpyHtoDAsync((void *)labels_in_temp, full_batch_meta_data->get_labels_batch()[sample_idx].data(), sample->in_box_count*sizeof(int), _stream));
         sample->boxes_in = reinterpret_cast<const float4 *>(boxes_in_temp);
         sample->labels_in = reinterpret_cast<const int *>(labels_in_temp);
         sample->boxes_out = reinterpret_cast<float4 *>(encoded_boxes_data + sample_idx*_anchor_count*4);
@@ -261,7 +256,6 @@ void BoxEncoderGpu::Run(pMetaDataBatch full_batch_meta_data, float *encoded_boxe
     const auto means_data = reinterpret_cast<const float *>(_means.data());
     const auto stds_data = reinterpret_cast<const float *>(_stds.data());
 
-    // std::cerr<<"stds_data1:"<<stds_data[0]<<"stds_data1:"<<stds_data[1]<<"stds_data2:"<<stds_data[2]<<"stds_data3:"<<stds_data[3];
 
     ResetLabels(encoded_labels_data);     // sets all labels to zero for the output: true if criteria is not matched.
     if (!_offset)

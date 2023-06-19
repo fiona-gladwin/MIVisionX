@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include <algorithm>
 #include <fstream>
 
-void RandomBBoxCropReader::init(const RandomBBoxCrop_MetaDataConfig &cfg)
+void RandomBBoxCropReader::init(const RandomBBoxCrop_MetaDataConfig &cfg, std::shared_ptr<CropCordBatch>  meta_data_batch)
 {
     _all_boxes_overlap = cfg.all_boxes_overlap();
     _no_crop = cfg.no_crop();
@@ -40,7 +40,7 @@ void RandomBBoxCropReader::init(const RandomBBoxCrop_MetaDataConfig &cfg)
     {
         _total_num_of_attempts = cfg.total_num_attempts();
     }
-    _output = new CropCordBatch();
+    _output = meta_data_batch;
     _user_batch_size = 128;   // todo:: get it from master graph
     _seed = cfg.seed();
 }

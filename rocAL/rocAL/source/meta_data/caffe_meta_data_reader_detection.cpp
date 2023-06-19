@@ -34,10 +34,10 @@ THE SOFTWARE.
 
 using namespace std;
 
-void CaffeMetaDataReaderDetection::init(const MetaDataConfig &cfg)
+void CaffeMetaDataReaderDetection::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new BoundingBoxBatch();
+    _output = meta_data_batch;
 }
 
 bool CaffeMetaDataReaderDetection::exists(const std::string &_image_name)
@@ -45,13 +45,13 @@ bool CaffeMetaDataReaderDetection::exists(const std::string &_image_name)
     return _map_content.find(_image_name) != _map_content.end();
 }
 
-void CaffeMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size)
+void CaffeMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size)
 {
     if (exists(image_name))
     {
         auto it = _map_content.find(image_name);
         it->second->get_bb_cords().push_back(bb_coords[0]);
-        it->second->get_bb_labels().push_back(bb_labels[0]);
+        it->second->get_labels().push_back(bb_labels[0]);
         return;
     }
     pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size);
@@ -75,26 +75,22 @@ void CaffeMetaDataReaderDetection::lookup(const std::vector<std::string> &_image
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name)
         _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-        _output->get_bb_labels_batch()[i] = it->second->get_bb_labels();
+        _output->get_labels_batch()[i] = it->second->get_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
-        // TODO - Check condition
-        _output->increment_object_count(it->second->get_object_count());
-        _output->get_metadata_dimensions_batch().bb_labels_dims()[i] = it->second->get_bb_label_dims();
-        _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
     }
 }
 
 void CaffeMetaDataReaderDetection::print_map_contents()
 {
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
 
     std::cerr << "\nMap contents: \n";
     for (auto &elem : _map_content)
     {
         std::cerr << "Name :\t " << elem.first;
         bb_coords = elem.second->get_bb_cords();
-        bb_labels = elem.second->get_bb_labels();
+        bb_labels = elem.second->get_labels();
         std::cerr << "\nsize of the element  : " << bb_coords.size() << std::endl;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
@@ -151,7 +147,7 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
         int boundBox_size = annotGrp_protos.annotation_size();
 
         BoundingBoxCords bb_coords;
-        BoundingBoxLabels bb_labels;
+        Labels bb_labels;
         BoundingBoxCord box;
         ImgSize img_size;
 

@@ -34,7 +34,7 @@ THE SOFTWARE.
 class Caffe2MetaDataReaderDetection: public MetaDataReader
 {
 public :
-    void init(const MetaDataConfig& cfg) override;
+    void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     void read_all(const std::string& path) override;
     void release(std::string image_name);
@@ -42,19 +42,17 @@ public :
     void print_map_contents();
     std::map<std::string, std::shared_ptr<MetaData>> &get_map_content() override{ return _map_content;}
     bool set_timestamp_mode() override { return false; }
-    MetaDataBatch * get_output() override { return _output; }
     Caffe2MetaDataReaderDetection();
-    ~Caffe2MetaDataReaderDetection() override { delete _output; }
 private:
     void read_files(const std::string& _path);
     bool exists(const std::string &image_name) override;
-    void add(std::string image_name, BoundingBoxCords bbox, BoundingBoxLabels b_labels, ImgSize image_size);
+    void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size);
     bool _last_rec;
     void read_lmdb_record(std::string file_name, uint file_size);
     std::map<std::string, std::shared_ptr<MetaData>> _map_content;
     std::map<std::string, std::shared_ptr<MetaData>>::iterator _itr;
     std::string _path;
-    BoundingBoxBatch* _output;
+    pMetaDataBatch _output;
     DIR *_src_dir;
     struct dirent *_entity;
     std::vector<std::string> _file_names;
