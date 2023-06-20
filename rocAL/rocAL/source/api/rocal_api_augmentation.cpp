@@ -482,6 +482,9 @@ rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned c
     auto context = static_cast<Context*>(p_context);
     auto input = static_cast<rocalTensor*>(p_input);
     auto mirror = static_cast<IntParam *>(p_mirror);
+    std::vector<float> mean_actual (mean.size(), 0);
+    std::vector<float> std_actual (std_dev.size(), 1); // Mean of vectors
+
     try {
         if( crop_width == 0 || crop_height == 0)
             THROW("Null values passed as input")
@@ -510,7 +513,7 @@ rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned c
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
         std::shared_ptr<CropMirrorNormalizeNode> cmn_node = context->master_graph->add_node<CropMirrorNormalizeNode>({input}, {output});
-        cmn_node->init(crop_height, crop_width, start_x, start_y, mean, std_dev , mirror);
+        cmn_node->init(crop_height, crop_width, start_x, start_y, mean_actual, std_actual , mirror);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<CropMirrorNormalizeMetaNode,CropMirrorNormalizeNode>(cmn_node);
     } catch(const std::exception& e) {
