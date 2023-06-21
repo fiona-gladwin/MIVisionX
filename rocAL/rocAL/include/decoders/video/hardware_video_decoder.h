@@ -23,8 +23,18 @@ THE SOFTWARE.
 #pragma once
 
 #include "video_decoder.h"
-
+#if ENABLE_HIP
+#include "hip/hip_runtime.h"
+#include "device_manager_hip.h"
+#include <rocal_hip_kernels.h>
+#endif
 #ifdef ROCAL_VIDEO
+#include <libavutil/hwcontext_vaapi.h>
+#include <va/va.h>
+#include <va/va_drmcommon.h>
+#include <unistd.h>
+#define ALIGN16(x) ((((size_t)(x)) + 15) & ~15)
+
 class HardWareVideoDecoder : public VideoDecoder
 {
 public:
@@ -47,5 +57,9 @@ private:
     AVHWDeviceType *hwDeviceType;
     AVBufferRef *hw_device_ctx = NULL;
     int hw_decoder_init(AVCodecContext *ctx, const enum AVHWDeviceType type, AVBufferRef *hw_device_ctx);
+    AVHWDeviceContext *_hwctx;
+    AVVAAPIDeviceContext *_vactx;
+    VADisplay _va_display = 0;
+    VADRMPRIMESurfaceDescriptor _vaDrmPrimeSurfaceDesc = {};
 };
 #endif
