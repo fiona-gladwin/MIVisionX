@@ -61,5 +61,6 @@ private:
     AVVAAPIDeviceContext *_vactx;
     VADisplay _va_display = 0;
     VADRMPRIMESurfaceDescriptor _vaDrmPrimeSurfaceDesc = {};
+    AVFrame *_dec_frame, *_sw_frame;
 };
 #endif

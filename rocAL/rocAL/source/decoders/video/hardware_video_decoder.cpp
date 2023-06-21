@@ -288,7 +288,6 @@ int HardWareVideoDecoder::hw_decoder_init(AVCodecContext *ctx, const enum AVHWDe
 // Seeks to the frame_number in the video file and decodes each frame in the sequence.
 VideoDecoder::Status HardWareVideoDecoder::Decode(unsigned char *out_buffer, unsigned seek_frame_number, size_t sequence_length, size_t stride, int out_width, int out_height, int out_stride, AVPixelFormat out_pix_format)
 {
-    std::cerr << "Decode \n";
     VideoDecoder::Status status = Status::OK;
 
     // Initialize the SwsContext
@@ -306,12 +305,12 @@ VideoDecoder::Status HardWareVideoDecoder::Decode(unsigned char *out_buffer, uns
         }
     }
 #endif
-    int select_frame_pts = seek_frame(_video_stream->avg_frame_rate, _video_stream->time_base, seek_frame_number);
-    if (select_frame_pts < 0)
-    {
-        ERR("HardWareVideoDecoder::Decode Error in seeking frame. Unable to seek the given frame in a video");
-        return Status::FAILED;
-    }
+    // int select_frame_pts = seek_frame(_video_stream->avg_frame_rate, _video_stream->time_base, seek_frame_number);
+    // if (select_frame_pts < 0)
+    // {
+    //     ERR("HardWareVideoDecoder::Decode Error in seeking frame. Unable to seek the given frame in a video");
+    //     return Status::FAILED;
+    // }
     unsigned frame_count = 0;
     bool end_of_stream = false;
     bool sequence_filled = false;
@@ -348,22 +347,8 @@ VideoDecoder::Status HardWareVideoDecoder::Decode(unsigned char *out_buffer, uns
         alignedScalingHeight = ALIGN16(out_height);
         scaledYUVstride = alignedScalingWidth;
         scaledLumaSize = scaledYUVstride * alignedScalingHeight;
-        std::cerr << "Scaling is done\n";
     }
     std::string yuvformat= "";  // Not required
-
-    AVFrame *dec_frame = av_frame_alloc();
-    AVFrame *sw_frame = av_frame_alloc();
-    if (!dec_frame)
-    {
-        ERR("HardWareVideoDecoder::Decode Could not allocate dec_frame");
-        return Status::NO_MEMORY;
-    }
-    if (!sw_frame)
-    {
-        ERR("HardWareVideoDecoder::Decode Could not allocate sw_frame");
-        return Status::NO_MEMORY;
-    }
     do
     {
         int ret;
@@ -396,12 +381,12 @@ VideoDecoder::Status HardWareVideoDecoder::Decode(unsigned char *out_buffer, uns
         // get all the available frames from the decoder
         while (ret >= 0)
         {
-            ret = avcodec_receive_frame(_video_dec_ctx, dec_frame);
+            ret = avcodec_receive_frame(_video_dec_ctx, _dec_frame);
             if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) break;
-            if ((dec_frame->pts < select_frame_pts) || (ret < 0)) continue;
+            if ((ret < 0)) continue;
             if (frame_count % stride == 0)
             {    
-                va_surface = (uintptr_t)dec_frame->data[3];
+                va_surface = (uintptr_t)_dec_frame->data[3];
                 vastatus = vaSyncSurface(_va_display, va_surface);
                 if (vastatus != VA_STATUS_SUCCESS) {
                     std::cerr << "ERROR: vaSyncSurface failed! " << AVERROR(vastatus) << std::endl;
@@ -481,7 +466,7 @@ VideoDecoder::Status HardWareVideoDecoder::Decode(unsigned char *out_buffer, uns
                     }
                 }
                 size_t rgbFrameSize = isScaling ? alignedScalingHeight * ALIGN16(scaledYUVstride * 3) : _vaDrmPrimeSurfaceDesc.height * ALIGN16(_vaDrmPrimeSurfaceDesc.layers[0].pitch[0] * 3);
-                std::cerr << "rgbFrameSize : " << rgbFrameSize << " H : " << _vaDrmPrimeSurfaceDesc.height << " w : " << _vaDrmPrimeSurfaceDesc.width << "\n";
+                // std::cerr << "rgbFrameSize : " << rgbFrameSize << " H : " << _vaDrmPrimeSurfaceDesc.height << " w : " << _vaDrmPrimeSurfaceDesc.width << "\n";
                 hipStatus = hipMemcpyDtoH((void *)out_buffer, pRGBdevMem, rgbFrameSize);
                 if (hipStatus != hipSuccess) {
                     std::cout << "ERROR: hipMemcpyDtoH failed! (" << hipStatus << ")" << std::endl;
@@ -499,7 +484,7 @@ VideoDecoder::Status HardWareVideoDecoder::Decode(unsigned char *out_buffer, uns
                 }
 #else
                 //retrieve data from GPU to CPU
-                if ((av_hwframe_transfer_data(sw_frame, dec_frame, 0)) < 0) {
+                if ((av_hwframe_transfer_data(_sw_frame, _dec_frame, 0)) < 0) {
                     ERR("HardWareVideoDecoder::Decode avcodec_receive_frame() failed");
                     return Status::FAILED;
                 }
@@ -507,18 +492,18 @@ VideoDecoder::Status HardWareVideoDecoder::Decode(unsigned char *out_buffer, uns
                 dst_data[0] = out_buffer;
                 dst_linesize[0] = out_stride;
                 if (swsctx)
-                    sws_scale(swsctx, sw_frame->data, sw_frame->linesize, 0, sw_frame->height, dst_data, dst_linesize);
+                    sws_scale(swsctx, _sw_frame->data, _sw_frame->linesize, 0, _sw_frame->height, dst_data, dst_linesize);
                 else
                 {
                     // copy from frame to out_buffer
-                    memcpy(out_buffer, sw_frame->data[0], sw_frame->linesize[0] * out_height);
+                    memcpy(out_buffer, _sw_frame->data[0], _sw_frame->linesize[0] * out_height);
                 }
 #endif
                 out_buffer = out_buffer + image_size;
             }
             ++frame_count;
-            // av_frame_unref(sw_frame);
-            // av_frame_unref(dec_frame);
+            // av_frame_unref(_sw_frame);
+            // av_frame_unref(_dec_frame);
             if (frame_count == sequence_length * stride)
             {
                 sequence_filled = true;
@@ -528,9 +513,7 @@ VideoDecoder::Status HardWareVideoDecoder::Decode(unsigned char *out_buffer, uns
         av_packet_unref(&pkt);
         if (sequence_filled)  break;
     } while (!end_of_stream);
-    avcodec_flush_buffers(_video_dec_ctx);
-    av_frame_free(&dec_frame);
-    av_frame_free(&sw_frame);
+    // avcodec_flush_buffers(_video_dec_ctx);
 #if !ENABLE_HIP
     sws_freeContext(swsctx);
 #endif
@@ -651,10 +634,25 @@ VideoDecoder::Status HardWareVideoDecoder::Initialize(const char *src_filename)
     }
     _codec_width = _video_stream->codecpar->width;
     _codec_height = _video_stream->codecpar->height;
+    
+    _dec_frame = av_frame_alloc();
+    if (!_dec_frame)
+    {
+        ERR("HardWareVideoDecoder::Decode Could not allocate _dec_frame");
+        return Status::NO_MEMORY;
+    }
+#if !ENABLE_HIP
+    _sw_frame = av_frame_alloc();
+    if (!_sw_frame)
+    {
+        ERR("HardWareVideoDecoder::Decode Could not allocate _sw_frame");
+        return Status::NO_MEMORY;
+    }
+#endif
 
 #if ENABLE_HIP
     if(globalHipStream == nullptr) {
-        std::cerr << " Creating the HIP stream"; 
+        // std::cerr << " Creating the HIP stream"; 
         hipError_t hipStatus = hipStreamCreate(&globalHipStream);
         if (hipStatus != hipSuccess) {
             std::cout << "ERROR: hipStreamCreate failed! (" << hipStatus << ")" << std::endl;
@@ -670,6 +668,8 @@ void HardWareVideoDecoder::release()
         avcodec_free_context(&_video_dec_ctx);
     if (_fmt_ctx)
         avformat_close_input(&_fmt_ctx);
+    if(_dec_frame) av_frame_free(&_dec_frame);
+    // if(_sw_frame) av_frame_free(&_sw_frame);
 }
 
 HardWareVideoDecoder::~HardWareVideoDecoder()
