@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 struct CopyLocalData
 {
-    RPPCommonHandle handle;
+    vxRppHandle handle;
     Rpp32u device_type;
     RppPtr_t pSrc;
     RppPtr_t pDst;
