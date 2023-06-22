@@ -55,7 +55,7 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
         Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
         BoundingBoxCords bb_coords;
-        BoundingBoxLabels bb_labels;
+        Labels bb_labels;
         BoundingBoxCord crop_box;
         _crop_w = _x2_val[i] - _x1_val[i];
         _crop_h = _y2_val[i] - _y1_val[i];

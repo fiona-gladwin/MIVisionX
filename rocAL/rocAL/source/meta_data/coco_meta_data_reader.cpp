@@ -334,7 +334,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     bb_labels.push_back(label);
                     polygon_count.push_back(polygon_size);
                     vertices_count.push_back(vertices_array);
-                    add(itr->second, bb_coords, bb_labels, image_size, mask, polygon_count, vertices_count);
+                    add(file_name, bb_coords, bb_labels, image_size, mask, polygon_count, vertices_count);
                     mask.clear();
                     polygon_size = 0;
                     polygon_count.clear();
