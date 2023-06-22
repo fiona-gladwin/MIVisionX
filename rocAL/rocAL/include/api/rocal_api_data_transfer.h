@@ -48,5 +48,9 @@ extern "C"  RocalStatus   ROCAL_API_CALL rocalToTensor(RocalContext rocal_contex
 /// \param output_images The buffer that will be filled with output images with set_output = True
 extern "C" void ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalTensor> &output_images);
 
+///
+/// \param rocal_context
+/// \param output_tensor_list Returns a list of the tensor (decoder/augmentation outputs) with set_output = True
+extern "C"  RocalTensorList ROCAL_API_CALL rocalGetOutputTensors(RocalContext p_context);
 
 #endif //MIVISIONX_ROCAL_API_DATA_TRANSFER_H

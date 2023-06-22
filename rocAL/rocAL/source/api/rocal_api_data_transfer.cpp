@@ -126,4 +126,15 @@ ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outpu
     }
 }
 
-
+RocalTensorList ROCAL_API_CALL
+rocalGetOutputTensors(RocalContext p_context) {
+    auto context = static_cast<Context*>(p_context);
+    try {
+        return context->master_graph->get_output_tensors();
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+        return nullptr;
+    }
+    return nullptr;
+}
