@@ -246,7 +246,7 @@ rocalJpegFileSource(
         info.set_tensor_layout(RocalTensorlayout::NHWC);
         info.set_max_shape();
         output = context->master_graph->create_loader_output_tensor(info);
-        auto cpu_num_threads = context->master_graph->calculate_cpu_num_threads(shard_count);
+        auto cpu_num_threads = context->master_graph->calculate_cpu_num_threads(1);
 
         context->master_graph->add_node<ImageLoaderNode>({}, {output})->init(internal_shard_count, cpu_num_threads,
                                                                           source_path, "",
@@ -371,7 +371,7 @@ rocalSequenceReaderSingleShard(
         bool loop,
         unsigned step,
         unsigned stride) {
-    rocALTensor* output = nullptr;
+    Tensor* output = nullptr;
     if (p_context == nullptr) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
@@ -442,7 +442,7 @@ rocalSequenceReaderSingleShard(
     }
     return output;
 }
-
+/*
 RocalImage  ROCAL_API_CALL
 rocalJpegCaffe2LMDBRecordSource(
         RocalContext p_context,
@@ -1972,7 +1972,7 @@ rocalFusedJpegCropSingleShard(
         std::cerr << e.what() << '\n';
     }
     return output;
-}
+}*/
 
 RocalTensor  ROCAL_API_CALL
 rocalVideoFileSource(
@@ -2476,7 +2476,7 @@ rocalVideoFileResizeSingleShard(
     }
     return resize_output;
 }
-
+/*
 // loader for CFAR10 raw data: Can be used for other raw data loaders as well
 RocalImage  ROCAL_API_CALL
 rocalRawCIFAR10Source(
@@ -2536,7 +2536,7 @@ rocalRawCIFAR10Source(
     }
     return output;
 }
-
+*/
 
 RocalStatus ROCAL_API_CALL
 rocalResetLoaders(RocalContext p_context)

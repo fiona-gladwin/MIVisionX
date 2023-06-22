@@ -60,7 +60,7 @@ rocalSequenceRearrange(RocalContext p_context,
     }
     return output;
 }
-
+/*
 RocalImage  ROCAL_API_CALL
 rocalRotate(
         RocalContext p_context,
@@ -606,7 +606,7 @@ rocalResizeMirrorNormalize(
     }
     return output;
 }
-
+*/
 RocalTensor ROCAL_API_CALL
 rocalBrightness(
         RocalContext p_context,
@@ -640,7 +640,7 @@ rocalBrightness(
     }
     return output;
 }
-
+/*
 RocalImage ROCAL_API_CALL
 rocalBrightnessFixed(
         RocalContext p_context,
@@ -1668,7 +1668,7 @@ rocalColorTwistFixed(
     }
     return output;
 }
-
+*/
 RocalTensor ROCAL_API_CALL 
 rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned crop_height,
                          unsigned crop_width,float start_x, float start_y, std::vector<float> &mean,
@@ -1720,7 +1720,7 @@ rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned c
     return output;
 }
 
-
+/*
 RocalImage ROCAL_API_CALL
 rocalCrop(
         RocalContext p_context,
@@ -2067,3 +2067,4 @@ rocalNop(
     }
     return output;
 }
+*/
