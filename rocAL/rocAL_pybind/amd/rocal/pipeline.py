@@ -353,6 +353,9 @@ class Pipeline(object):
 
     def rocalGetOutputTensors(self):
         return b.rocalGetOutputTensors(self._handle)
+    
+    def rocalRelease(self):
+        return b.rocalRelease(self._handle)
 
     def run(self):
         """
