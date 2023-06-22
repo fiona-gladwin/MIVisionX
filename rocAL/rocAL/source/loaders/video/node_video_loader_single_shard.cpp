@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "exception.h"
 #ifdef ROCAL_VIDEO
 
-VideoLoaderSingleShardNode::VideoLoaderSingleShardNode(Image *output, void *device_resources):
+VideoLoaderSingleShardNode::VideoLoaderSingleShardNode(Tensor *output, void *device_resources):
 	Node({}, {output})
 {
     _loader_module = std::make_shared<VideoLoader>(device_resources);
@@ -40,9 +40,9 @@ void VideoLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, c
         THROW("Shard count should be greater than or equal to one")
     if (shard_id >= shard_count)
         THROW("Shard is should be smaller than shard count")
-    _loader_module->set_output_image(_outputs[0]);
+    _loader_module->set_output(_outputs[0]);
     // Set reader and decoder config accordingly for the ImageLoaderNode
-    auto reader_cfg = ReaderConfig(storage_type, source_path, shuffle, loop);
+    auto reader_cfg = ReaderConfig(storage_type, source_path, "", std::map<std::string, std::string>(), shuffle, loop);
     reader_cfg.set_shard_count(shard_count);
     reader_cfg.set_shard_id(shard_id);
     reader_cfg.set_batch_count(load_batch_count);
