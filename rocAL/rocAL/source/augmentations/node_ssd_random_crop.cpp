@@ -26,8 +26,8 @@ THE SOFTWARE.
 #include "exception.h"
 
 SSDRandomCropNode::SSDRandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
-                                                                                                          _dest_width(_outputs[0]->info().width()),
-                                                                                                          _dest_height(_outputs[0]->info().height_batch())
+                                                                                                          _dest_width(_outputs[0]->info().max_shape()[0]),
+                                                                                                          _dest_height(_outputs[0]->info().max_shape()[1])
 {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
     _is_ssd     = true;
@@ -49,8 +49,8 @@ void SSDRandomCropNode::create_node()
         THROW("Uninitialized destination dimension")
 
     _crop_param->create_array(_graph);
-    _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
-                                _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
+    // _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
+                                // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
 
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
@@ -82,7 +82,7 @@ inline double ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const B
 
 void SSDRandomCropNode::update_node()
 {
-    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi_width_vec(), _inputs[0]->info().get_roi_height_vec());
+    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
     // std::cerr<<"\n batch_size:: "<<_batch_size<<"\n meta array size:: "<<_meta_data_info->size();
     std::random_device rd;
@@ -94,8 +94,8 @@ void SSDRandomCropNode::update_node()
     std::pair<float, float> iou;
     float min_iou, max_iou;
     float w_factor = 0.0f, h_factor = 0.0f;
-    in_width = _crop_param->in_width;
-    in_height = _crop_param->in_height;
+    // in_width = _crop_param->in_width; TODO - Commenting for now to be replaced with ROI
+    // in_height = _crop_param->in_height;
     bool invalid_bboxes = true;
     _entire_iou = true;
     BoundingBoxCord crop_box, jth_box;
@@ -204,7 +204,7 @@ void SSDRandomCropNode::update_node()
     vxCopyArrayRange((vx_array)_crop_param->croph_arr, 0, _batch_size, sizeof(uint), _crop_height_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_crop_param->x1_arr, 0, _batch_size, sizeof(uint), _x1_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_crop_param->y1_arr, 0, _batch_size, sizeof(uint), _y1_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    _outputs[0]->update_image_roi(_crop_width_val, _crop_height_val);
+    _outputs[0]->update_tensor_roi(_crop_width_val, _crop_height_val);
 }
 
 void SSDRandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts)

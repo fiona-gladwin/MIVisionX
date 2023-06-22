@@ -40,7 +40,7 @@ void RocalContrastNode::create_node()
     _min.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
     _max.create_array(_graph ,VX_TYPE_UINT32 , _batch_size);
 
-    _node = vxExtrppNode_ContrastbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _min.default_array(), _max.default_array(), _batch_size);
+    // _node = vxExtrppNode_ContrastbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _min.default_array(), _max.default_array(), _batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)

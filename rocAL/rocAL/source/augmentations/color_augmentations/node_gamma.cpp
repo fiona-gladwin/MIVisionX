@@ -42,7 +42,7 @@ void GammaNode::create_node()
         THROW("Uninitialized input/output arguments")
 
     _shift.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _node = vxExtrppNode_GammaCorrectionbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _shift.default_array(), _batch_size);
+    // _node = vxExtrppNode_GammaCorrectionbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _shift.default_array(), _batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)

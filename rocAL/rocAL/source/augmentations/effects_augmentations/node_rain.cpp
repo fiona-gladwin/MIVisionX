@@ -44,8 +44,8 @@ void RainNode::create_node()
     _rain_transparency.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
     _rain_width.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
     _rain_height.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
-    _node = vxExtrppNode_RainbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _rain_value.default_array(), _rain_width.default_array(),
-                                                    _rain_height.default_array(), _rain_transparency.default_array(), _batch_size);
+    // _node = vxExtrppNode_RainbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _rain_value.default_array(), _rain_width.default_array(),
+                                                    // _rain_height.default_array(), _rain_transparency.default_array(), _batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)

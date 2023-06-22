@@ -28,8 +28,8 @@ THE SOFTWARE.
 
 CropNode::CropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _dest_width(_outputs[0]->info().width()),
-        _dest_height(_outputs[0]->info().height_batch())
+        _dest_width(_outputs[0]->info().max_shape()[0]),
+        _dest_height(_outputs[0]->info().max_shape()[1])
 {
     _crop_param = std::make_shared<RocalCropParam>(_batch_size);
 }
@@ -44,8 +44,8 @@ void CropNode::create_node()
 
     _crop_param->create_array(_graph);
 
-    _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
-                                _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
+    // _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
+                                // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
@@ -54,11 +54,11 @@ void CropNode::create_node()
 
 void CropNode::update_node()
 {
-    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi_width_vec(), _inputs[0]->info().get_roi_height_vec());
+    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
-    _outputs[0]->update_image_roi(crop_w_dims, crop_h_dims);
+    _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
 }
 
 void CropNode::init(unsigned int crop_h, unsigned int crop_w, float x_drift_, float y_drift_)
