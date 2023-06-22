@@ -29,7 +29,7 @@ THE SOFTWARE.
 class RocalContrastNode : public Node
 {
 public:
-    RocalContrastNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    RocalContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     RocalContrastNode() = delete;
     void init(int min, int max);
     void init(IntParam *min, IntParam * max);

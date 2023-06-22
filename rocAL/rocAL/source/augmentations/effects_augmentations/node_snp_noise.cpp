@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-SnPNoiseNode::SnPNoiseNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+SnPNoiseNode::SnPNoiseNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _sdev(SDEV_RANGE[0], SDEV_RANGE[1])
 {

@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-SnowNode::SnowNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+SnowNode::SnowNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _shift(SNOW_VALUE_RANGE[0], SNOW_VALUE_RANGE[1])
 {

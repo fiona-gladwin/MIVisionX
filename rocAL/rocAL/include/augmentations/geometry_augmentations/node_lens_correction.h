@@ -30,7 +30,7 @@ THE SOFTWARE.
 class LensCorrectionNode : public Node
 {
 public:
-    LensCorrectionNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    LensCorrectionNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     LensCorrectionNode() = delete;
     void init(float strength, float zoom);
     void init(FloatParam *strength, FloatParam *zoom);

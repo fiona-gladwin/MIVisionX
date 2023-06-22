@@ -28,7 +28,7 @@ THE SOFTWARE.
 class BlendNode : public Node
 {
 public:
-    explicit BlendNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    explicit BlendNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     BlendNode() = delete;
 
     void init(float ratio);

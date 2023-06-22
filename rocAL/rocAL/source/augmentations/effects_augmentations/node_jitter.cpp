@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-JitterNode::JitterNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+JitterNode::JitterNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _kernel_size(KERNEL_SIZE[0], KERNEL_SIZE[1])
 {

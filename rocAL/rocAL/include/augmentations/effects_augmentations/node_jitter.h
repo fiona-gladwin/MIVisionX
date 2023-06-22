@@ -29,7 +29,7 @@ THE SOFTWARE.
 class JitterNode : public Node
 {
 public:
-    JitterNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    JitterNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     JitterNode() = delete;
     void init(int kernel_size);
     void init(IntParam *kernel_size);

@@ -29,7 +29,7 @@ THE SOFTWARE.
 class BlurNode : public Node
 {
 public:
-    BlurNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    BlurNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     BlurNode() = delete;
     void init(int sdev);
     void init(IntParam *sdev);

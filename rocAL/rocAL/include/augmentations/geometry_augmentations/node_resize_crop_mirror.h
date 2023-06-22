@@ -31,12 +31,12 @@ class CropParam;
 class ResizeCropMirrorNode : public Node
 {
 public:
-    ResizeCropMirrorNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    ResizeCropMirrorNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ResizeCropMirrorNode() = delete;
     void init(unsigned int crop_h, unsigned int crop_w, IntParam *mirror);
     void init( FloatParam *crop_h_factor, FloatParam *crop_w_factor, IntParam *mirror);
-    unsigned int get_dst_width() { return _outputs[0]->info().width(); }
-    unsigned int get_dst_height() { return _outputs[0]->info().height_single(); }
+    unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
+    unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     std::shared_ptr<RocalCropParam> get_crop_param() { return _crop_param; }
     vx_array get_mirror() { return _mirror.default_array(); }
 protected:

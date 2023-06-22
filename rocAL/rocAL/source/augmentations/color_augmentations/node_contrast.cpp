@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "node_contrast.h"
 #include "exception.h"
 
-RocalContrastNode::RocalContrastNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+RocalContrastNode::RocalContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _min(CONTRAST_MIN_RANGE[0], CONTRAST_MIN_RANGE[1]),
         _max(CONTRAST_MAX_RANGE[0], CONTRAST_MAX_RANGE[1])

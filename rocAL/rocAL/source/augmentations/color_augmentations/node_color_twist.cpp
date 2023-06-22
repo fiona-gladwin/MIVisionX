@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-ColorTwistBatchNode::ColorTwistBatchNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+ColorTwistBatchNode::ColorTwistBatchNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
         _beta (BETA_RANGE[0], BETA_RANGE[1]),

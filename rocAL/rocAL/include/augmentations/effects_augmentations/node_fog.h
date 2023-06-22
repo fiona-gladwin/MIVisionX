@@ -27,7 +27,7 @@ THE SOFTWARE.
 class FogNode : public Node
 {
 public:
-    FogNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    FogNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     FogNode() = delete;
     void init(float fog_param);
     void init(FloatParam *fog_param);

@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-GammaNode::GammaNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+GammaNode::GammaNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _shift(SHIFT_RANGE[0], SHIFT_RANGE[1])
 {

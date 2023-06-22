@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-HueNode::HueNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+HueNode::HueNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _hue(HUE_RANGE[0], HUE_RANGE[1])
 {

@@ -28,7 +28,7 @@ THE SOFTWARE.
 class ResizeMirrorNormalizeNode : public Node
 {
 public:
-    ResizeMirrorNormalizeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    ResizeMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ResizeMirrorNormalizeNode() = delete;
     void init(std::vector<float>& mean,  std::vector<float>& std_dev, IntParam *mirror);
     vx_array get_dst_width() { return _dst_roi_width; }

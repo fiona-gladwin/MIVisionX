@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "node_copy.h"
 #include "exception.h"
 
-CopyNode::CopyNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+CopyNode::CopyNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
 }

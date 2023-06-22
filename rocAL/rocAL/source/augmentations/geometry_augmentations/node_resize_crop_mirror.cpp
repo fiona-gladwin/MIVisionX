@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "node_resize_crop_mirror.h"
 #include "exception.h"
 
-ResizeCropMirrorNode::ResizeCropMirrorNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+ResizeCropMirrorNode::ResizeCropMirrorNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
          Node(inputs, outputs),
         _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1])
 {

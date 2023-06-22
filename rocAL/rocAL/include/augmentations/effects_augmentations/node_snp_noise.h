@@ -30,7 +30,7 @@ THE SOFTWARE.
 class SnPNoiseNode : public Node
 {
 public:
-    SnPNoiseNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    SnPNoiseNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SnPNoiseNode() = delete;
     void init(float sdev);
     void init(FloatParam *sdev);

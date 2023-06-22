@@ -27,7 +27,7 @@ THE SOFTWARE.
 class CopyNode : public Node
 {
 public:
-    CopyNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    CopyNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     CopyNode() = delete;
 
 protected:

@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "node_color_temperature.h"
 #include "exception.h"
 
-ColorTemperatureNode::ColorTemperatureNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+ColorTemperatureNode::ColorTemperatureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _adj_value_param(ADJUSTMENT_RANGE[0], ADJUSTMENT_RANGE[1])
 {

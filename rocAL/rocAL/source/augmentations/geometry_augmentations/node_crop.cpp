@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "parameter_crop.h"
 #include "exception.h"
 
-CropNode::CropNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+CropNode::CropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _dest_width(_outputs[0]->info().width()),
         _dest_height(_outputs[0]->info().height_batch())

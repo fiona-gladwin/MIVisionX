@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "node_exposure.h"
 #include "exception.h"
 
-ExposureNode::ExposureNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+ExposureNode::ExposureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _shift(SHIFT_RANGE[0], SHIFT_RANGE[1])
 {

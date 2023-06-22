@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "node_crop_resize.h"
 #include "exception.h"
 
-CropResizeNode::CropResizeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+CropResizeNode::CropResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _dest_width(_outputs[0]->info().width()),
         _dest_height(_outputs[0]->info().height_batch())

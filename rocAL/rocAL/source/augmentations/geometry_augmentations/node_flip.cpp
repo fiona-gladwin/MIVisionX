@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "node_flip.h"
 #include "exception.h"
 
-FlipNode::FlipNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+FlipNode::FlipNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _flip_axis(FLIP_SIZE[0], FLIP_SIZE[1])
 {

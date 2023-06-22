@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-SatNode::SatNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+SatNode::SatNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _sat(SAT_RANGE[0], SAT_RANGE[1])
 {

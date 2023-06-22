@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include <graph.h>
 #include "exception.h"
 
-PixelateNode::PixelateNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+PixelateNode::PixelateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
 }

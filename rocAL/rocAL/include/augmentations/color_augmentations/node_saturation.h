@@ -29,7 +29,7 @@ THE SOFTWARE.
 class SatNode : public Node
 {
 public:
-    SatNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    SatNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SatNode() = delete;
     void init(float sat);
     void init(FloatParam *sat);

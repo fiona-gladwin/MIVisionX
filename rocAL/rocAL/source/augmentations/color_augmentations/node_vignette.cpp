@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "node_vignette.h"
 #include "exception.h"
 
-VignetteNode::VignetteNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+VignetteNode::VignetteNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _sdev(SDEV_RANGE[0], SDEV_RANGE[1])
 {

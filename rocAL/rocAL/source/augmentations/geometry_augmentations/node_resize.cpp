@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-ResizeNode::ResizeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+ResizeNode::ResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
 }

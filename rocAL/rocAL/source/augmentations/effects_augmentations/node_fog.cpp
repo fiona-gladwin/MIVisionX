@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "node_fog.h"
 #include "exception.h"
 
-FogNode::FogNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+FogNode::FogNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _fog_param(FOG_VALUE_RANGE[0], FOG_VALUE_RANGE[1])
 {

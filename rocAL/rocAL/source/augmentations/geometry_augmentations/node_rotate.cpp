@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-RotateNode::RotateNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+RotateNode::RotateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _angle(ROTATE_ANGLE_RANGE[0], ROTATE_ANGLE_RANGE[1])
 {

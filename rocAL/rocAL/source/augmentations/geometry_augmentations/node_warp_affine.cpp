@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-WarpAffineNode::WarpAffineNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+WarpAffineNode::WarpAffineNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _x0(COEFFICIENT_RANGE_1[0], COEFFICIENT_RANGE_1[1]),
         _x1(COEFFICIENT_RANGE_0[0], COEFFICIENT_RANGE_0[1]),

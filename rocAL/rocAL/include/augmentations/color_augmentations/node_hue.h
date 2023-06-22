@@ -29,7 +29,7 @@ THE SOFTWARE.
 class HueNode : public Node
 {
 public:
-    HueNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    HueNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     HueNode() = delete;
     void init(float hue);
     void init(FloatParam *hue);

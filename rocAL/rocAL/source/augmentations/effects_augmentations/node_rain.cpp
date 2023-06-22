@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "node_rain.h"
 #include "exception.h"
 
-RainNode::RainNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+RainNode::RainNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _rain_value(RAIN_VALUE_RANGE[0], RAIN_VALUE_RANGE[1]),
         _rain_width(RAIN_WIDTH_RANGE[0],RAIN_WIDTH_RANGE[1]),

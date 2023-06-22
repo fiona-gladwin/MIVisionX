@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "node_fisheye.h"
 #include "exception.h"
 
-FisheyeNode::FisheyeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+FisheyeNode::FisheyeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
 }
