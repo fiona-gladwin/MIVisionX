@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include <utility>
 #include <vector>
 #include <memory>
+#include <cstring>
 #include <algorithm>
 #include "commons.h"
 
@@ -134,7 +135,7 @@ class Label : public MetaData
 public:
     Label(int label) { _label_ids = {label}; }
     Label() { _label_ids = {-1}; }
-    std::vector<int>& get_labels() { return _label_ids; }
+    std::vector<int>& get_labels() override { return _label_ids; }
     void set_labels(Labels label_ids) override { _label_ids = std::move(label_ids); }
     BoundingBoxCords& get_bb_cords() override { THROW("Not Implemented") }
     void set_bb_cords(BoundingBoxCords bb_cords) override { THROW("Not Implemented") }
@@ -178,12 +179,12 @@ public:
         _polygon_count = std::move(polygon_count);
         _vertices_count = std::move(vertices_count);
     }
-    std::vector<int>& get_polygon_count() { return _polygon_count; }
-    std::vector<std::vector<int>>& get_vertices_count() { return _vertices_count; }
-    MaskCords& get_mask_cords() { return _mask_cords;}
-    void set_mask_cords(MaskCords mask_cords) { _mask_cords = std::move(mask_cords); }
-    void set_polygon_counts(std::vector<int> polygon_count) { _polygon_count = std::move(polygon_count); }
-    void set_vertices_counts(std::vector<std::vector<int>> vertices_count) { _vertices_count = std::move(vertices_count); }
+    std::vector<int>& get_polygon_count() override { return _polygon_count; }
+    std::vector<std::vector<int>>& get_vertices_count() override { return _vertices_count; }
+    MaskCords& get_mask_cords() override { return _mask_cords;}
+    void set_mask_cords(MaskCords mask_cords) override { _mask_cords = std::move(mask_cords); }
+    void set_polygon_counts(std::vector<int> polygon_count) override { _polygon_count = std::move(polygon_count); }
+    void set_vertices_counts(std::vector<std::vector<int>> vertices_count) override { _vertices_count = std::move(vertices_count); }
 protected:
     MaskCords _mask_cords = {};
     std::vector<int> _polygon_count = {};
@@ -199,8 +200,8 @@ public:
         _info.img_size = std::move(img_size);
         _joints_data = std::move(*joints_data);
     }
-    void set_joints_data(JointsData *joints_data) { _joints_data = std::move(*joints_data); }
-    JointsData& get_joints_data(){ return _joints_data; }
+    void set_joints_data(JointsData *joints_data) override { _joints_data = std::move(*joints_data); }
+    JointsData& get_joints_data() override { return _joints_data; }
 protected:
     JointsData _joints_data = {};
 };
@@ -534,7 +535,7 @@ public:
         else
             return std::make_shared<KeyPointBatch>();
     }
-    JointsDataBatch & get_joints_data_batch() { return _joints_data; }
+    JointsDataBatch & get_joints_data_batch() override { return _joints_data; }
     void copy_data(std::vector<void*> buffer) override {}
     std::vector<size_t>& get_buffer_size() override { return _buffer_size; }
 protected:
