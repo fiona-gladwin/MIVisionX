@@ -45,8 +45,8 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
     _dstImgHeight = _meta_crop_param->croph_arr;
     _x1 = _meta_crop_param->x1_arr;
     _y1 = _meta_crop_param->y1_arr;
-    _src_width = _node->get_src_width();
-    _src_height = _node->get_src_height();
+    // _src_width = _node->get_src_width(); // TODO - Commenting for now to be replaced with ROI
+    // _src_height = _node->get_src_height();
     vxCopyArrayRange((vx_array)_src_width, 0, _batch_size, sizeof(uint),_src_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_src_height, 0, _batch_size, sizeof(uint),_src_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_dstImgWidth, 0, _batch_size, sizeof(uint),_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
