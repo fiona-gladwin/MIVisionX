@@ -30,7 +30,7 @@ ImageLoader::ImageLoader(void *dev_resources):
       _circ_buff(dev_resources),
       _swap_handle_time("Swap_handle_time", DBG_TIMING)
 {
-    _output_image = nullptr;
+    _output_tensor = nullptr;
     _mem_type = RocalMemType::HOST;
     _internal_thread_running = false;
     _output_mem_size = 0;
@@ -108,10 +108,10 @@ ImageLoader::load_next()
     return update_output_image();
 }
 
-void ImageLoader::set_output_image(Image *output_image)
+void ImageLoader::set_output (Tensor* output_tensor)
 {
-    _output_image = output_image;
-    _output_mem_size = _output_image->info().data_size();
+    _output_tensor = output_tensor;
+    _output_mem_size = ((_output_tensor->info().data_size()/ 8) * 8 + 8); // TODO - CHECK why this is a multiple of 8 here
 }
 
 void ImageLoader::set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader)
@@ -137,7 +137,7 @@ void ImageLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg,
         WRN("initialize() function is already called and loader module is initialized")
 
     if (_output_mem_size == 0)
-        THROW("output image size is 0, set_output_image() should be called before initialize for loader modules")
+        THROW("output image size is 0, set_output() should be called before initialize for loader modules")
 
     _mem_type = mem_type;
     _batch_size = batch_size;
@@ -159,6 +159,8 @@ void ImageLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg,
         de_init();
         throw;
     }
+    _max_decoded_width = _output_tensor->info().max_shape().at(0);
+    _max_decoded_height = _output_tensor->info().max_shape().at(1);
     _decoded_img_info._image_names.resize(_batch_size);
     _decoded_img_info._roi_height.resize(_batch_size);
     _decoded_img_info._roi_width.resize(_batch_size);
@@ -198,13 +200,13 @@ ImageLoader::load_routine()
         {
             load_status = _image_loader->load(data,
                                               _decoded_img_info._image_names,
-                                              _output_image->info().width(),
-                                              _output_image->info().height_single(),
+                                              _max_decoded_width,
+                                              _max_decoded_height,
                                               _decoded_img_info._roi_width,
                                               _decoded_img_info._roi_height,
                                               _decoded_img_info._original_width,
                                               _decoded_img_info._original_height,
-                                              _output_image->info().color_format(), _decoder_keep_original);
+                                              _output_tensor->info().color_format(), _decoder_keep_original);
 
 
             if (load_status == LoaderModuleStatus::OK)
@@ -216,7 +218,7 @@ ImageLoader::load_routine()
                 }
                 _circ_buff.set_image_info(_decoded_img_info);
                 _circ_buff.push();
-                _image_counter += _output_image->info().batch_size();
+                _image_counter += _output_tensor->info().batch_size();
             }
         }
         if (load_status != LoaderModuleStatus::OK)
@@ -267,7 +269,7 @@ ImageLoader::update_output_image()
     {
         auto data_buffer = _circ_buff.get_read_buffer_dev();
         _swap_handle_time.start();
-        if (_output_image->swap_handle(data_buffer) != 0)
+        if (_output_tensor->swap_handle(data_buffer) != 0)
             return LoaderModuleStatus ::DEVICE_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
@@ -275,7 +277,7 @@ ImageLoader::update_output_image()
     {
         auto data_buffer = _circ_buff.get_read_buffer_host();
         _swap_handle_time.start();
-        if (_output_image->swap_handle(data_buffer) != 0)
+        if (_output_tensor->swap_handle(data_buffer) != 0)
             return LoaderModuleStatus::HOST_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
@@ -287,8 +289,8 @@ ImageLoader::update_output_image()
       _output_cropped_img_info = _circ_buff.get_cropped_image_info();
     }
     _output_names = _output_decoded_img_info._image_names;
-    _output_image->update_image_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
-    _output_image->update_image_original_dims(_output_decoded_img_info._original_width, _output_decoded_img_info._original_height);
+    _output_tensor->update_tensor_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
+    _output_tensor->update_tensor_orig_roi(_output_decoded_img_info._original_width, _output_decoded_img_info._original_height);
     _circ_buff.pop();
     if (!_loop)
         _remaining_image_count -= _batch_size;

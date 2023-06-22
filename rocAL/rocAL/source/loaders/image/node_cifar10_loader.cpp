@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-Cifar10LoaderNode::Cifar10LoaderNode(Image *output, void *device_resources):
+Cifar10LoaderNode::Cifar10LoaderNode(Tensor *output, void *device_resources):
         Node({}, {output})
 {
     _loader_module = std::make_shared<CIFAR10DataLoader>(device_resources);
@@ -35,7 +35,7 @@ void Cifar10LoaderNode::init(const std::string &source_path, const std::string &
 {
     if(!_loader_module)
         THROW("ERROR: loader module is not set for Cifar10LoaderNode, cannot initialize")
-    _loader_module->set_output_image(_outputs[0]);
+    _loader_module->set_output(_outputs[0]);
     // Set reader and decoder config accordingly for the Cifar10LoaderNode
     auto reader_cfg = ReaderConfig(storage_type, source_path, json_path, std::map<std::string, std::string>(), loop);
     reader_cfg.set_batch_count(load_batch_count);

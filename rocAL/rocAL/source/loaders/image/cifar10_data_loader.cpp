@@ -30,7 +30,7 @@ CIFAR10DataLoader::CIFAR10DataLoader(void *dev_resources):
         _file_load_time("file load time", DBG_TIMING),
         _swap_handle_time("Swap_handle_time", DBG_TIMING)
 {
-    _output_image = nullptr;
+    _output_tensor = nullptr;
     _mem_type = RocalMemType::HOST;
     _output_mem_size = 0;
     _batch_size = 1;
@@ -108,10 +108,10 @@ CIFAR10DataLoader::load_next()
 }
 
 void
-CIFAR10DataLoader::set_output_image (Image* output_image)
+CIFAR10DataLoader::set_output (Tensor* output_tensor)
 {
-    _output_image = output_image;
-    _output_mem_size = _output_image->info().data_size();
+    _output_tensor = output_tensor;
+    _output_mem_size = _output_tensor->info().data_size();
 }
 
 void
@@ -201,15 +201,15 @@ CIFAR10DataLoader::load_routine()
                 }
                 _actual_read_size[file_counter] = _reader->read_data(read_ptr, readSize);
                 _raw_img_info._image_names[file_counter] = _reader->id();
-                _raw_img_info._roi_width[file_counter] = _output_image->info().width();
-                _raw_img_info._roi_height[file_counter] = _output_image->info().height_single();
+                _raw_img_info._roi_width[file_counter] = _output_tensor->info().max_shape()[0];
+                _raw_img_info._roi_height[file_counter] = _output_tensor->info().max_shape()[1];
                 _reader->close();
                 file_counter++;
             }
             _file_load_time.end();// Debug timing
             _circ_buff.set_image_info(_raw_img_info);
             _circ_buff.push();
-            _image_counter += _output_image->info().batch_size();
+            _image_counter += _output_tensor->info().batch_size();
             load_status = LoaderModuleStatus::OK;
         }
         if(load_status != LoaderModuleStatus::OK)
@@ -261,7 +261,7 @@ CIFAR10DataLoader::update_output_image()
     {
         auto data_buffer =  _circ_buff.get_read_buffer_dev();
         _swap_handle_time.start();
-        if(_output_image->swap_handle(data_buffer)!= 0)
+        if(_output_tensor->swap_handle(data_buffer)!= 0)
             return LoaderModuleStatus ::DEVICE_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
@@ -269,7 +269,7 @@ CIFAR10DataLoader::update_output_image()
     {
         auto data_buffer = _circ_buff.get_read_buffer_host();
         _swap_handle_time.start();
-        if(_output_image->swap_handle(data_buffer) != 0)
+        if(_output_tensor->swap_handle(data_buffer) != 0)
             return LoaderModuleStatus::HOST_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
@@ -278,7 +278,7 @@ CIFAR10DataLoader::update_output_image()
 
     _output_decoded_img_info = _circ_buff.get_image_info();
     _output_names = _output_decoded_img_info._image_names;
-    _output_image->update_image_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
+    _output_tensor->update_tensor_roi(_output_decoded_img_info._roi_width, _output_decoded_img_info._roi_height);
 
     _circ_buff.pop();
     if(!_loop)
