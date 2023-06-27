@@ -58,6 +58,11 @@ public:
     ~MasterGraph();
     Status reset();
     size_t remaining_count();
+    MasterGraph::Status to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier0, float multiplier1, float multiplier2,
+                    float offset0, float offset1, float offset2, bool reverse_channels, RocalTensorDataType output_data_type, RocalOutputMemType output_mem_type);
+    Status copy_output(unsigned char* out_ptr, size_t out_size_in_bytes);
+    Status copy_out_tensor_planar(void *out_ptr, RocalTensorlayout format, float multiplier0, float multiplier1, float multiplier2,
+                    float offset0, float offset1, float offset2, bool reverse_channels, RocalTensorDataType output_data_type);
     TensorList *get_output_tensors();
     void sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum); // Returns the starting frame number of the sequences
     void sequence_frame_timestamps(std::vector<std::vector<float>> &sequence_frame_timestamp); // Returns the timestamps of the frames in the sequences
@@ -128,7 +133,8 @@ private:
     std::list<std::shared_ptr<Node>> _root_nodes;//!< List of all root nodes (image/video loaders)
     std::list<std::shared_ptr<Node>> _meta_data_nodes;//!< List of nodes where meta data has to be updated after augmentation
     std::map<Tensor*, std::shared_ptr<Node>> _tensor_map;//!< key: tensor, value : Parent node
-
+    void * _output_tensor = nullptr;//!< In the GPU processing case , is used to convert the U8 samples to float32 before they are being transfered back to host
+    
     // Output tensorList for metadata
     std::vector<rocalTensorList *> _metadata_output_tensor_list;
     TensorList _labels_tensor_list;
