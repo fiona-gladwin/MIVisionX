@@ -31,6 +31,7 @@ THE SOFTWARE.
 
 #include "internal_rpp.h"
 #define RPP_MAX_TENSOR_DIMS 5
+#define RPP_MAX_TENSOR_AUDIO_DIMS 3
 
 extern "C" SHARED_PUBLIC vx_status VX_API_CALL vxPublishKernels(vx_context context);
 vx_status ADD_KERNEL(std::function<vx_status(vx_context)>);
@@ -130,6 +131,20 @@ vx_status Crop_Register(vx_context);
 vx_status ColorTwist_Register(vx_context);
 vx_status ResizeMirrorNormalize_Register(vx_context);
 vx_status SequenceRearrange_Register(vx_context);
+vx_status Downmix_Register(vx_context);
+vx_status ToDecibels_Register(vx_context);
+vx_status PreemphasisFilter_Register(vx_context);
+vx_status Spectrogram_Register(vx_context);
+vx_status NonSilentRegion_Register(vx_context);
+vx_status MelFilterBank_Register(vx_context);
+vx_status Slice_Register(vx_context);
+vx_status Normalize_Register(vx_context);
+vx_status TensorMulScalar_Register(vx_context);
+vx_status TensorAddTensor_Register(vx_context);
+vx_status Resample_Register(vx_context);
+vx_status Pad_Register(vx_context);
+
+
 
 // kernel names
 #define VX_KERNEL_RPP_NOPBATCHPD_NAME                   "org.rpp.NopbatchPD"
@@ -225,5 +240,17 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_CROP_NAME                                              "org.rpp.Crop"
 #define VX_KERNEL_RPP_COLORTWIST_NAME                                        "org.rpp.ColorTwist"
 #define VX_KERNEL_RPP_RESIZEMIRROR_NAME                                      "org.rpp.ResizeMirrorNormalize"
-#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                                 "org.rpp.SequenceRearrange"
+#define VX_KERNEL_RPP_DOWNMIX_NAME                                           "org.rpp.Downmix"
+#define VX_KERNEL_RPP_TODECIBELS_NAME                                        "org.rpp.ToDecibels"
+#define VX_KERNEL_RPP_PREEMPHASISFILTER_NAME                                 "org.rpp.PreemphasisFilter"
+#define VX_KERNEL_RPP_SPECTROGRAM_NAME                                       "org.rpp.Spectrogram"
+#define VX_KERNEL_RPP_NONSILENTREGION_NAME                                   "org.rpp.NonSilentRegion"
+#define VX_KERNEL_RPP_MELFILTERBANK_NAME                                     "org.rpp.MelFilterBank"
+#define VX_KERNEL_RPP_SLICE_NAME                                             "org.rpp.Slice"
+#define VX_KERNEL_RPP_NORMALIZE_NAME                                         "org.rpp.Normalize"
+#define VX_KERNEL_RPP_TENSORMULSCALAR_NAME                                   "org.rpp.TensorMulScalar"
+#define VX_KERNEL_RPP_TENSORADDTENSOR_NAME                                   "org.rpp.TensorAddTensor"
+#define VX_KERNEL_RPP_RESAMPLE_NAME                                          "org.rpp.Resample"
+#define VX_KERNEL_RPP_PAD_NAME                                               "org.rpp.Pad"
+
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_

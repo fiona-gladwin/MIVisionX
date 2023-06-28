@@ -29,8 +29,13 @@ def file(*inputs, file_root, bytes_per_sample_hint=0, file_list='', initial_fill
     Pipeline._current_pipeline._reader = "labelReader"
     #Output
     labels = []
-    kwargs_pybind = {"source_path": file_root}
-    label_reader_meta_data = b.labelReader(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
+    if file_list=='':
+        kwargs_pybind = {"source_path": file_root}
+        label_reader_meta_data = b.labelReader(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
+    else:
+        kwargs_pybind = {"source_path": file_root, "file_list":file_list }
+        label_reader_meta_data = b.labelReaderFileList(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
+
     return (label_reader_meta_data, labels)
 
 def coco(*inputs,file_root='', annotations_file='', bytes_per_sample_hint=0, dump_meta_files=False, dump_meta_files_path='', file_list='', initial_fill=1024,  lazy_init=False, ltrb=False, masks=False, meta_files_path='', num_shards=1, pad_last_batch=False, prefetch_queue_depth=1,

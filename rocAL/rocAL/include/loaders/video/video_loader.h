@@ -43,6 +43,7 @@ public:
     void initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool keep_orig_size = false) override;
     void set_output (rocalTensor* output_image) override;
     size_t remaining_count() override; // returns number of remaining items to be loaded
+    size_t last_batch_padded_size() override;
     void reset() override;             // Resets the loader to load from the beginning
     Timing timing() override;
     void start_loading() override;
@@ -87,5 +88,7 @@ private:
     std::vector<std::vector<std::vector<float>>> _sequence_frame_timestamps_vec;
     crop_image_info _crop_img_info;
     size_t _max_decoded_width, _max_decoded_height;
+    RocalBatchPolicy _last_batch_policy;
+    bool last_batch_padded;
 };
 #endif

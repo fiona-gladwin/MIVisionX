@@ -72,7 +72,7 @@ public:
             std::vector<uint32_t> &actual_height,
             RocalColorFormat output_color_format,
             bool decoder_keep_original=false);
-
+    size_t last_batch_padded_size();
     //! returns timing info or other status information
     Timing timing();
 

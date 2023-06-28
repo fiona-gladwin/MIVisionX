@@ -38,6 +38,7 @@ public:
     void shut_down() override;
     void set_output (rocalTensor* output_image) override;
     size_t remaining_count() override;
+    size_t last_batch_padded_size() override;
     void reset() override;
     void start_loading() override;
     std::vector<std::string> get_id() override;

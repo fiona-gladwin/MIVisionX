@@ -85,6 +85,15 @@ rocalCreateFloatUniformRand(
     return ParameterFactory::instance()->create_uniform_float_rand_param(start, end);
 }
 
+RocalFloatParam  ROCAL_API_CALL
+rocalCreateFloatUniformDistributionRand(
+    float mean,
+    float std_dev)
+{
+    return ParameterFactory::instance()->create_uniform_float_rand_param(mean, std_dev);
+}
+
+
 RocalStatus  ROCAL_API_CALL
 rocalUpdateFloatUniformRand(
         float start,

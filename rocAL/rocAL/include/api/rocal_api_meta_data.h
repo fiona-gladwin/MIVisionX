@@ -32,6 +32,14 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateLabelReader(RocalContext roca
 ///
 /// \param rocal_context
 /// \param source_path path to the folder that contains the dataset or metadata file
+/// \param file_list path to the metadata file containing labels
+/// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
+extern "C" RocalMetaData ROCAL_API_CALL rocalCreateFileListLabelReader(RocalContext rocal_context, const char* source_path, const char* file_list);
+
+
+///
+/// \param rocal_context
+/// \param source_path path to the folder that contains the dataset or metadata file
 /// \param sequence_length The number of frames in a sequence.
 /// \param frame_step Frame interval between each sequence.
 /// \param frame_stride Frame interval between frames in a sequence.

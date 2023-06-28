@@ -120,6 +120,13 @@ void VideoReadAndDecode::reset()
 }
 
 size_t
+VideoReadAndDecode::last_batch_padded_size()
+{
+    // return _video_reader->last_batch_padded_size();
+    return 0; // For now - Later to add 
+}
+
+size_t
 VideoReadAndDecode::count()
 {
     return _video_reader->count_items();

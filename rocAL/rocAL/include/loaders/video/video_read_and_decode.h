@@ -80,7 +80,7 @@ public:
         std::vector<std::vector<size_t>> &sequence_start_framenum_vec,
         std::vector<std::vector<std::vector<float>>> &sequence_frame_timestamps_vec,
         RocalColorFormat output_color_format);
-
+        size_t last_batch_padded_size();
     //! returns timing info or other status information
     Timing timing();
 private:

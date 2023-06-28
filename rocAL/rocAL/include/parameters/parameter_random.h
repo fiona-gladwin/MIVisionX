@@ -199,3 +199,55 @@ private:
     std::mt19937 _generator;
     std::mutex _lock;
 };
+
+template <typename T>
+class UniformDistributionRand: public Parameter<T>
+{
+public:
+
+    UniformDistributionRand(T mean, T std_dev, unsigned seed = 0):_generator(seed)
+    {
+        update(mean, std_dev);
+        renew();
+    }
+
+    explicit UniformDistributionRand(T mean, unsigned seed = 0):
+            UniformDistributionRand(mean, mean, seed) {}
+
+    T default_value() const override
+    {
+        return _updated_val;
+    }
+
+    T get() override
+    {
+        return _updated_val;
+    };
+
+    void renew() override
+    {
+        std::unique_lock<std::mutex> lock(_lock);
+        _updated_val = _distN(_generator);
+
+    }
+
+    bool single_value() const override // There won't be a single value in uniform distribution
+    {
+        return false;
+    }
+
+    int update(T mean, T std_dev) {
+        std::unique_lock<std::mutex> lock(_lock);
+        std::normal_distribution<float> distN(mean, std_dev);
+        _distN = distN;
+        return 0;
+    }
+
+private:
+    T _mean;
+    T _std_dev;
+    T _updated_val;
+    std::normal_distribution<float> _distN;
+    std::mt19937 _generator;
+    std::mutex _lock;
+};

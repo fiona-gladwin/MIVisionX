@@ -28,6 +28,8 @@ RingBuffer::RingBuffer(unsigned buffer_depth):
         _dev_sub_buffer(buffer_depth),
         _host_sub_buffers(buffer_depth),
         _dev_bbox_buffer(buffer_depth),
+        _dev_roi_buffers(buffer_depth),
+        _host_roi_buffers(buffer_depth),
         _dev_labels_buffer(buffer_depth),
         _rb_block_if_empty_time("Ring Buffer Block IF Empty Time"),
         _rb_block_if_full_time("Ring Buffer Block IF Full Time")
@@ -59,19 +61,23 @@ void RingBuffer:: block_if_full()
 }
 std::vector<void*> RingBuffer::get_read_buffers()
 {
-    _rb_block_if_empty_time.start();
     block_if_empty();
-    _rb_block_if_empty_time.end();
     if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
         return _dev_sub_buffer[_read_ptr];
     return _host_sub_buffers[_read_ptr];
 }
 
+std::vector<unsigned*> RingBuffer::get_read_roi_buffers()
+{
+    block_if_empty();
+    if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
+        return _dev_roi_buffers[_read_ptr];
+    return _host_roi_buffers[_read_ptr];
+}
+
 std::pair<void*, void*> RingBuffer::get_box_encode_read_buffers()
 {
-    _rb_block_if_empty_time.start();
     block_if_empty();
-    _rb_block_if_empty_time.end();
     if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
         return std::make_pair(_dev_bbox_buffer[_read_ptr], _dev_labels_buffer[_read_ptr]);
     return std::make_pair(_host_meta_data_buffers[_read_ptr][1], _host_meta_data_buffers[_read_ptr][0]);
@@ -79,20 +85,25 @@ std::pair<void*, void*> RingBuffer::get_box_encode_read_buffers()
 
 std::vector<void*> RingBuffer::get_write_buffers()
 {
-    _rb_block_if_full_time.start();
     block_if_full();
-    _rb_block_if_full_time.end();
     if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
         return _dev_sub_buffer[_write_ptr];
 
     return _host_sub_buffers[_write_ptr];
 }
 
+std::vector<unsigned*> RingBuffer::get_write_roi_buffers()
+{
+    block_if_full();
+    if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
+        return _dev_roi_buffers[_write_ptr];
+
+    return _host_roi_buffers[_write_ptr];
+}
+
 std::pair<void*, void*> RingBuffer::get_box_encode_write_buffers()
 {
-    _rb_block_if_full_time.start();
     block_if_full();
-    _rb_block_if_full_time.end();
     if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
         return std::make_pair(_dev_bbox_buffer[_write_ptr], _dev_labels_buffer[_write_ptr]);
     return std::make_pair(_host_meta_data_buffers[_write_ptr][1], _host_meta_data_buffers[_write_ptr][0]);
@@ -100,9 +111,7 @@ std::pair<void*, void*> RingBuffer::get_box_encode_write_buffers()
 
 std::vector<void*> RingBuffer::get_meta_read_buffers()
 {
-    _rb_block_if_empty_time.start();
     block_if_empty();
-    _rb_block_if_empty_time.end();
     return _host_meta_data_buffers[_read_ptr];
 }
 
@@ -136,12 +145,12 @@ void RingBuffer::unblock_writer()
     _wait_for_unload.notify_all();
 }
 
-void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &sub_buffer_size)
+void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> sub_buffer_size, size_t roi_buffer_size)
 {
     _mem_type = mem_type;
     _dev = devres;
     _sub_buffer_size = sub_buffer_size;
-    auto sub_buffer_count = sub_buffer_size.size();
+    _sub_buffer_count = sub_buffer_size.size();
     if(BUFF_DEPTH < 2)
         THROW ("Error internal buffer size for the ring buffer should be greater than one")
 
@@ -159,8 +168,8 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &
         {
             cl_mem_flags flags = CL_MEM_READ_ONLY;
 
-            _dev_sub_buffer[buffIdx].resize(sub_buffer_count);
-            for(unsigned sub_idx = 0; sub_idx < sub_buffer_count; sub_idx++)
+            _dev_sub_buffer[buffIdx].resize(_sub_buffer_count);
+            for(unsigned sub_idx = 0; sub_idx < _sub_buffer_count; sub_idx++)
             {
                 _dev_sub_buffer[buffIdx][sub_idx] =  clCreateBuffer(dev_ocl->context, flags, _sub_buffer_size[sub_idx], NULL, &err);
 
@@ -189,8 +198,9 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &
 
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
-            _dev_sub_buffer[buffIdx].resize(sub_buffer_count);
-            for(unsigned sub_idx = 0; sub_idx < sub_buffer_count; sub_idx++)
+            _dev_sub_buffer[buffIdx].resize(_sub_buffer_count);
+            _dev_roi_buffers[buffIdx].resize(_sub_buffer_count);
+            for(unsigned sub_idx = 0; sub_idx < _sub_buffer_count; sub_idx++)
             {
 
                 hipError_t err =  hipMalloc(&_dev_sub_buffer[buffIdx][sub_idx], _sub_buffer_size[sub_idx]);
@@ -201,6 +211,9 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &
                     THROW("hipMalloc of size " + TOSTR(_sub_buffer_size[sub_idx]) + " index " + TOSTR(sub_idx) +
                           " failed " + TOSTR(err));
                 }
+                err = hipHostMalloc((void **)&_dev_roi_buffers[buffIdx][sub_idx], roi_buffer_size, hipHostMallocDefault);
+                if(err != hipSuccess || !_dev_roi_buffers[buffIdx][sub_idx])
+                    THROW("hipHostMalloc of size " + TOSTR(roi_buffer_size) + " failed " + TOSTR(err))
             }
         }
     }
@@ -210,13 +223,16 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
             // a minimum of extra MEM_ALIGNMENT is allocated
-            _host_sub_buffers[buffIdx].resize(sub_buffer_count);
-            for(size_t sub_buff_idx = 0; sub_buff_idx < sub_buffer_count; sub_buff_idx++)
+            _host_sub_buffers[buffIdx].resize(_sub_buffer_count);
+            _host_roi_buffers[buffIdx].resize(_sub_buffer_count);
+            for(size_t sub_buff_idx = 0; sub_buff_idx < _sub_buffer_count; sub_buff_idx++) {
                 _host_sub_buffers[buffIdx][sub_buff_idx] = aligned_alloc(MEM_ALIGNMENT, MEM_ALIGNMENT * (_sub_buffer_size[sub_buff_idx] / MEM_ALIGNMENT + 1));
+                _host_roi_buffers[buffIdx][sub_buff_idx] = (unsigned *)malloc(roi_buffer_size);
+            }
         }
 #if ENABLE_OPENCL || ENABLE_HIP
     }
-#endif    
+#endif
 }
 
 void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size)
@@ -350,6 +366,11 @@ void RingBuffer::release_gpu_res()
                         //printf("Error Freeing device buffer <%d, %d, %p>\n", buffIdx, sub_buf_idx, _dev_sub_buffer[buffIdx][sub_buf_idx]);
                         ERR("Could not release hip memory in the ring buffer")
                     }
+                if (_dev_roi_buffers[buffIdx][sub_buf_idx])
+                    if ( hipHostFree((void *)_dev_roi_buffers[buffIdx][sub_buf_idx]) != hipSuccess ) {
+                        //printf("Error Freeing device buffer <%d, %d, %p>\n", buffIdx, sub_buf_idx, _dev_sub_buffer[buffIdx][sub_buf_idx]);
+                        ERR("Could not release hip memory in the ring buffer")
+                    }
             }
             if(_host_meta_data_buffers.size() != 0) {
                 for (unsigned sub_buf_idx = 0; sub_buf_idx < _host_meta_data_buffers[buffIdx].size(); sub_buf_idx++) {
@@ -360,6 +381,7 @@ void RingBuffer::release_gpu_res()
         }
         _dev_sub_buffer.clear();
         _host_meta_data_buffers.clear();
+        _dev_roi_buffers.clear();
     }
 #elif ENABLE_OPENCL
     if (_mem_type == RocalMemType::OCL) {
@@ -390,15 +412,18 @@ RingBuffer::~RingBuffer()
                 if (_host_sub_buffers[buffIdx][sub_buf_idx])
                     free(_host_sub_buffers[buffIdx][sub_buf_idx]);
             }
-            if(_host_meta_data_buffers.size() != 0) {
-                for (unsigned sub_buf_idx = 0; sub_buf_idx < _host_meta_data_buffers[buffIdx].size(); sub_buf_idx++) {
-                    if (_host_meta_data_buffers[buffIdx][sub_buf_idx])
-                        free(_host_meta_data_buffers[buffIdx][sub_buf_idx]);
-                }   
+        if(_host_meta_data_buffers.size() != 0) {
+            for (unsigned sub_buf_idx = 0; sub_buf_idx < _host_meta_data_buffers[buffIdx].size(); sub_buf_idx++) {
+                if (_host_meta_data_buffers[buffIdx][sub_buf_idx])
+                    free(_host_meta_data_buffers[buffIdx][sub_buf_idx]);
+                if (_host_roi_buffers[buffIdx][sub_buf_idx])
+                    free(_host_roi_buffers[buffIdx][sub_buf_idx]);
             }
+        }
         }
         _host_sub_buffers.clear();
         _host_meta_data_buffers.clear();
+        _host_roi_buffers.clear();
     }
 }
 
@@ -468,9 +493,7 @@ void RingBuffer::rellocate_meta_data_buffer(void * buffer, size_t buffer_size, u
 
 MetaDataNamePair& RingBuffer::get_meta_data()
 {
-    _rb_block_if_empty_time.start();
     block_if_empty();
-    _rb_block_if_empty_time.end();
     std::unique_lock<std::mutex> lock(_names_buff_lock);
     if(_level != _meta_ring_buffer.size())
         THROW("ring buffer internals error, image and metadata sizes not the same "+TOSTR(_level) + " != "+TOSTR(_meta_ring_buffer.size()))
@@ -479,9 +502,7 @@ MetaDataNamePair& RingBuffer::get_meta_data()
 
 MetaDataDimensionsBatch& RingBuffer::get_meta_data_info()
 {
-    _rb_block_if_empty_time.start();
     block_if_empty();
-    _rb_block_if_empty_time.end();
     std::unique_lock<std::mutex> lock(_names_buff_lock);
     if(_level != _meta_ring_buffer.size())
         THROW("ring buffer internals error, image and metadata sizes not the same "+TOSTR(_level) + " != "+TOSTR(_meta_ring_buffer.size()))

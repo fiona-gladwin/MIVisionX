@@ -59,6 +59,10 @@ public:
 
     //! Returns the id of the latest file opened
     std::string id() override { return _last_id;};
+    
+    size_t last_batch_padded_size() override { return 0;};
+
+    std::string file_path() override {return _last_file_name; };
 
     unsigned count_items() override;
 

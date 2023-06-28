@@ -110,6 +110,16 @@ enum class RocalROIType
     LTRB
 };
 
+/*! \brief Last Batch Policies
+ *
+ * currently supports following formats
+ */
+enum RocalBatchPolicy {
+    BATCH_FILL = 0,
+    DROP,
+    PARTIAL
+};
+
 typedef struct
 {
     unsigned x1, y1, x2, y2;
@@ -136,4 +146,7 @@ struct Timing
     long long unsigned wait_if_full_time= 0;
     long long unsigned circular_buffer_wait_if_empty_time = 0;
     long long unsigned circular_buffer_wait_if_full_time = 0;
+    long long unsigned audio_read_time = 0;
+    long long unsigned audio_decode_time = 0;
+    long long unsigned audio_process_time = 0;
 };

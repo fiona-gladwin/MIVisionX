@@ -141,6 +141,21 @@ extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Crop(vx_graph graph, v
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ColorTwist(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst, vx_array alpha, vx_array beta, vx_array hue, vx_array sat, vx_scalar layout, vx_scalar roiType, vx_uint32 nbatchSize);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ResizeMirrorNormalize(vx_graph graph, vx_tensor pSrc, vx_tensor srcROI, vx_tensor pDst,vx_array dst_width,vx_array dst_height, vx_scalar interpolation_type, vx_array mean, vx_array std_dev, vx_array flip, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType, vx_uint32 nbatchSize);
 extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph,vx_tensor pSrc,vx_tensor pDst, vx_array newOrder, vx_scalar layout);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Downmix(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_array srcSamples, vx_array srcChannels);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Normalize(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor srcDims, vx_tensor dstDims, vx_scalar axisMask, vx_scalar mean, vx_scalar stdDev, vx_scalar scale, vx_scalar shift, vx_scalar epsilon, vx_scalar ddof, vx_uint32 numOfDims, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ToDecibels(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor srcROI, vx_tensor dstROI, vx_scalar cutOffDB, vx_scalar multiplier, vx_scalar referenceMagnitude, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_PreemphasisFilter(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor srcSamplesSize, vx_tensor dstSamplesSize, vx_array preemphCoeff, vx_scalar borderType, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Spectrogram(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor srcSamplesLength, vx_tensor dstSamplesLength, vx_array windowFn, vx_scalar centerWindow, vx_scalar reflectPadding, vx_scalar specLayout,
+                                                                      vx_scalar power, vx_scalar nfftSize, vx_scalar windowLength, vx_scalar windowStep, vx_scalar isWindowEmpty, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_NonSilentRegion(vx_graph graph, vx_tensor pSrc, vx_tensor pDst1, vx_tensor pDst2, vx_tensor srcSamplesSize, vx_scalar cutOffDB, vx_scalar referencePower, vx_scalar windowLength, vx_scalar resetInterval, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_MelFilterBank(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor srcDims, vx_tensor dstDims, vx_scalar freqHigh, vx_scalar freqLow, vx_scalar melFormula, vx_scalar nfilter, vx_scalar normalize, vx_scalar sampleRate, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Slice(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor srcDims, vx_tensor dstDims, vx_tensor anchor, vx_tensor shape, vx_array fillValue,
+                                                                  vx_scalar axes, vx_scalar normalizedAnchor, vx_scalar normalizedShape, vx_scalar policy, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_TensorMulScalar(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_scalar scalar_value, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_TensorAddTensor(vx_graph graph, vx_tensor pSrc1, vx_tensor pSrc2, vx_tensor pDst, vx_tensor srcRoi, vx_tensor dstRoi, vx_uint32 nbatchSize);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Resample(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor srcDims, vx_tensor dstDims, vx_tensor outRateTensor,  vx_array inRateTensor, vx_array srcSamples, vx_array srcChannels, vx_scalar quality,  vx_uint32 nbatchSize, vx_scalar maxDstWidth);
+extern "C" SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Pad(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor srcDims, vx_tensor dstDims, vx_tensor anchor, vx_tensor shape, vx_array fillValue,
+                                                                  vx_scalar axes, vx_scalar normalizedAnchor, vx_scalar normalizedShape, vx_scalar policy, vx_uint32 nbatchSize);
 
 #ifdef __cplusplus
 }

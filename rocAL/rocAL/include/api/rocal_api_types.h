@@ -144,6 +144,7 @@ enum RocalDecoderType
     ROCAL_DECODER_HW_JPEG = 2,
     ROCAL_DECODER_VIDEO_FFMPEG_SW = 3,
     ROCAL_DECODER_VIDEO_FFMPEG_HW = 4,
+    ROCAL_DECODER_AUDIO_SNDFILE = 5
 };
 
 enum RocalOutputMemType
@@ -172,6 +173,38 @@ enum RocalResizeInterpolationType {
     ROCAL_LANCZOS_INTERPOLATION = 3,
     ROCAL_GAUSSIAN_INTERPOLATION = 4,
     ROCAL_TRIANGULAR_INTERPOLATION = 5
+};
+
+enum RocalAudioBorderType
+{
+    ZERO = 0,
+    CLAMP,
+    REFLECT
+};
+
+enum RocalSpectrogramLayout
+{
+    FT = 0,
+    TF
+};
+
+enum RocalMelScaleFormula
+{
+    SLANEY = 0,
+    HTK,
+};
+
+enum RocalOutOfBoundsPolicy
+{
+    PAD = 0,
+    TRIMTOSHAPE,
+    ERROR
+};
+
+enum RocalLastBatchPolicy {
+    ROCAL_LAST_BATCH_FILL = 0,
+    ROCAL_LAST_BATCH_DROP = 1,
+    ROCAL_LAST_BATCH_PARTIAL
 };
 
 #endif //MIVISIONX_ROCAL_API_TYPES_H

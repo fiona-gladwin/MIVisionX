@@ -107,6 +107,7 @@ ImageLoaderSharded::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cf
     }
     _initialized = true;
 }
+
 void ImageLoaderSharded::start_loading()
 {
     for(unsigned i = 0; i < _loaders.size(); i++)
@@ -163,6 +164,14 @@ void ImageLoaderSharded::reset()
 void ImageLoaderSharded::increment_loader_idx()
 {
     _loader_idx = (_loader_idx + 1)%_shard_count;
+}
+
+size_t ImageLoaderSharded::last_batch_padded_size()
+{
+    size_t sum = 0;
+    for(auto& loader: _loaders)
+        sum += loader->last_batch_padded_size();
+    return sum;
 }
 
 Timing ImageLoaderSharded::timing()

@@ -59,6 +59,7 @@ public:
 
     //! Returns the id of the latest file opened
     std::string id() override { return _last_id;};
+    std::string file_path() override {return _last_file_name; };
 
     unsigned count_items() override;
 
@@ -68,6 +69,7 @@ public:
 
     Caffe2LMDBRecordReader();
 
+    size_t last_batch_padded_size() override { return 0;}
 private:
     //! opens the folder containnig the images
     Reader::Status Caffe2_LMDB_reader();

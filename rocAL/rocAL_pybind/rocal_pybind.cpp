@@ -120,13 +120,13 @@ namespace rocal
         m.doc() = "Python bindings for the C++ portions of ROCAL";
         // rocal_api.h
         m.def("rocalCreate", &rocalCreate, "Creates context with the arguments sent and returns it",
-              py::return_value_policy::reference,
-              py::arg("batch_size"),
-              py::arg("affinity"),
-              py::arg("gpu_id") = 0,
-              py::arg("cpu_thread_count") = 1,
-              py::arg("prefetch_queue_depth") = 3,
-              py::arg("output_data_type") = 0);
+              py::return_value_policy::reference);
+            //   py::arg("batch_size"),
+            //   py::arg("affinity"),
+            //   py::arg("gpu_id") = 0,
+            //   py::arg("cpu_thread_count") = 1,
+            //   py::arg("prefetch_queue_depth") = 3,
+            //   py::arg("output_data_type") = 0);
         m.def("rocalVerify", &rocalVerify);
         m.def("rocalRun", &rocalRun);
         m.def("rocalRelease", &rocalRelease);
@@ -141,6 +141,72 @@ namespace rocal
             .def_readwrite("circular_buffer_wait_if_empty_time", &TimingInfo::circular_buffer_wait_if_empty_time)
             .def_readwrite("circular_buffer_wait_if_full_time", &TimingInfo::circular_buffer_wait_if_full_time);
         py::class_<rocalTensor>(m, "rocalTensor")
+                .def(
+                "__add__",
+                [](rocalTensor *output_tensor, rocalTensor *output_tensor1)
+                {
+                    py::object fn_module = py::module::import("amd.rocal.fn");
+                    auto fn_function_call = fn_module.attr("tensor_add_tensor_float")(output_tensor, output_tensor1).cast<RocalTensor>();
+                    return fn_function_call;
+                },
+                R"code(
+                Adds a node for arithmetic operation
+                )code", py::return_value_policy::reference
+            )
+                .def(
+                "__mul__",
+                [](rocalTensor *output_tensor, float scalar)
+                {
+                    py::object fn_module = py::module::import("amd.rocal.fn");
+                    auto fn_function_call = fn_module.attr("tensor_mul_scalar_float")(output_tensor, "scalar"_a=scalar).cast<RocalTensor>();
+                    return fn_function_call;
+                },
+                R"code(
+                Returns a tensor ROI
+                Adds a node for arithmetic operation
+                )code", py::return_value_policy::reference
+            )
+                .def(
+                "get_roi_at",
+                [](rocalTensor &output_tensor, uint idx)
+                {
+                    return std::make_pair(output_tensor.info().get_roi()[idx].x1, output_tensor.info().get_roi()[idx].y1);
+                },
+                R"code(
+                Returns a tensor ROI
+                ex : width, height in case of an image data
+                ex : samples , channels in case of an audio data
+                )code"
+            )
+                .def(
+                "get_rois",
+                [](rocalTensor &output_tensor)
+                {
+                    return py::array(py::buffer_info(
+                            (int *)(output_tensor.info().get_roi()),
+                            sizeof(int),
+                            py::format_descriptor< int>::format(),
+                            1,
+                            {output_tensor.info().dims().at(0) * 4},
+                            {sizeof(int) }));
+                },
+                R"code(
+                Returns a tensor ROI
+                ex : width, height in case of an image data
+                ex : samples , channels in case of an audio data
+                )code"
+            )
+                .def(
+                "num_of_dims",
+                [](rocalTensor &output_tensor)
+                {
+                    return output_tensor.info().num_of_dims();
+                },
+                R"code(
+                Returns a tensor data's total number of dimensions.
+                ex: 3 in case of audio, 4 in case of an image, 5 in case of video 
+                )code"
+            )
                 .def(
                 "batch_height",
                 [](rocalTensor &output_tensor)
@@ -190,6 +256,21 @@ namespace rocal
             auto ptr = ctypes_void_ptr(p);
             output_tensor.copy_data(ptr);
             }
+            )
+            .def(
+            "copy_data", [](rocalTensor &output_tensor, py::object p, uint last_batch_size)
+            {
+            auto ptr = ctypes_void_ptr(p);
+            output_tensor.copy_data(ptr, last_batch_size);
+            }
+            )
+            .def(
+            "copy_data", [](rocalTensor &output_tensor, py::object p, uint max_x1, uint max_y1)
+            {
+            auto ptr = ctypes_void_ptr(p);
+            output_tensor.copy_data(ptr, max_x1, max_y1);
+            }
+            ,py::return_value_policy::reference
             )
             .def(
                 "at",
@@ -343,15 +424,40 @@ namespace rocal
             .value("GAUSSIAN_INTERPOLATION",ROCAL_GAUSSIAN_INTERPOLATION)
             .value("TRIANGULAR_INTERPOLATION",ROCAL_TRIANGULAR_INTERPOLATION)
             .export_values();
+         py::enum_<RocalAudioBorderType>(types_m,"RocalAudioBorderType", "Rocal Audio Border Type")
+            .value("ZERO",ZERO)
+            .value("CLAMP",CLAMP)
+            .value("REFLECT",REFLECT)
+            .export_values();
+        py::enum_<RocalSpectrogramLayout>(types_m,"RocalSpectrogramLayout", "Rocal Audio Border Type")
+            .value("FT",FT)
+            .value("TF",TF)
+            .export_values();
+        py::enum_<RocalMelScaleFormula>(types_m,"RocalMelScaleFormula", "Rocal Audio Border Type")
+            .value("SLANEY",SLANEY)
+            .value("HTK",HTK)
+            .export_values();
+        py::enum_<RocalOutOfBoundsPolicy>(types_m,"RocalOutOfBoundsPolicy", "Rocal Audio Border Type")
+            .value("PAD",PAD)
+            .value("TRIMTOSHAPE",TRIMTOSHAPE)
+            .value("ERROR",ERROR)
+            .export_values();
+        py::enum_<RocalLastBatchPolicy>(types_m,"RocalLastBatchPolicy", "Rocal Last Batch Policy")
+            .value("LAST_BATCH_FILL",ROCAL_LAST_BATCH_FILL)
+            .value("LAST_BATCH_DROP",ROCAL_LAST_BATCH_DROP)
+            .value("LAST_BATCH_PARTIAL",ROCAL_LAST_BATCH_PARTIAL)
+            .export_values();
         // rocal_api_info.h
-        m.def("getRemainingImages", &rocalGetRemainingImages);
-        m.def("isEmpty", &rocalIsEmpty);
-        m.def("getStatus", rocalGetStatus);
-        m.def("rocalGetErrorMessage", &rocalGetErrorMessage);
-        m.def("rocalGetTimingInfo", &rocalGetTimingInfo);
-        m.def("getTimingInfo", &rocalGetTimingInfo);
-        m.def("setOutputImages", &rocalSetOutputs);
+        m.def("getRemainingImages", &rocalGetRemainingImages, py::return_value_policy::reference);
+        m.def("getLastBatchPaddedSize", &rocalGetLastBatchPaddedSize, py::return_value_policy::reference);
+        m.def("isEmpty", &rocalIsEmpty, py::return_value_policy::reference);
+        m.def("getStatus", rocalGetStatus, py::return_value_policy::reference);
+        m.def("rocalGetErrorMessage", &rocalGetErrorMessage, py::return_value_policy::reference);
+        m.def("rocalGetTimingInfo", &rocalGetTimingInfo, py::return_value_policy::reference);
+        m.def("setOutputImages", &rocalSetOutputs, py::return_value_policy::reference);
+        m.def("getTimingInfo", &rocalGetTimingInfo, py::return_value_policy::reference);
         m.def("labelReader", &rocalCreateLabelReader, py::return_value_policy::reference);
+        m.def("labelReaderFileList", &rocalCreateFileListLabelReader, py::return_value_policy::reference);
         m.def("COCOReader", &rocalCreateCOCOReader, py::return_value_policy::reference);
         // rocal_api_meta_data.h
         m.def("RandomBBoxCrop", &rocalRandomBBoxCrop);
@@ -378,7 +484,8 @@ namespace rocal
         m.def("CreateFloatUniformRand", &rocalCreateFloatUniformRand);
         m.def("CreateIntRand", [](std::vector<int> values, std::vector<double> frequencies)
               { return rocalCreateIntRand(values.data(), frequencies.data(), values.size()); });
-        m.def("CreateFloatRand", &rocalCreateFloatRand);
+        m.def("CreateFloatRand", [](std::vector<float> values, std::vector<double> frequencies)
+              { return rocalCreateFloatRand(values.data(), frequencies.data(), values.size()); });
         m.def("CreateIntParameter", &rocalCreateIntParameter);
         m.def("CreateFloatParameter", &rocalCreateFloatParameter);
         m.def("UpdateIntParameter", &rocalUpdateIntParameter);
@@ -498,10 +605,42 @@ namespace rocal
             py::return_value_policy::reference);
         m.def("COCO_ImageDecoderSliceShard",&rocalJpegCOCOFileSourcePartialSingleShard,"Reads file from the source given and decodes it according to the policy",
             py::return_value_policy::reference);
+        m.def("Audio_DecoderSliceShard",&rocalAudioFileSourceSingleShard,"Reads file from the source given and decodes it according to the policy",
+            py::return_value_policy::reference);
+        m.def("Audio_decoder",&rocalAudioFileSource,"Reads file from the source given and decodes it according to the policy",
+            py::return_value_policy::reference);
+        // rocal_api_augmentation.h
+        // Audio Augmentations
+        m.def("NormalDistribution", &rocalNormalDistribution, "Generates random numbers following a normal distribution",
+            py::return_value_policy::reference);
+        m.def("UniformDistribution", &rocalUniformDistribution, "Generates random numbers following a normal distribution",
+            py::return_value_policy::reference);
+        m.def("ToDecibels", &rocalToDecibels, "Converts to Decibals",
+            py::return_value_policy::reference);
+        m.def("PreEmphasisFilter", &rocalPreEmphasisFilter, "Applies preemphasis filter to the input data", 
+            py::return_value_policy::reference);
+        m.def("Spectrogram", &rocalSpectrogram, " Produces a spectrogram from a 1D signal (for example, audio)",
+            py::return_value_policy::reference);
+        m.def("MelFilterBank", &rocalMelFilterBank, "Converts a spectrogram to a mel spectrogram by applying a bank of triangular filters",
+            py::return_value_policy::reference);
+        m.def("audioSlice", &rocalSlice,"The slice can be specified by proving the start and end coordinates, or start coordinates and shape of the slice. Both coordinates and shapes can be provided in absolute or relative terms",
+            py::return_value_policy::reference);
+        m.def("audioNormalize", &rocalNormalize,"Normalizes the input by removing the mean and dividing by the standard deviation",
+            py::return_value_policy::reference);
+        m.def("NonSilentRegion", &rocalNonSilentRegion,"  Performs leading and trailing silence detection in an audio buffer",
+            py::return_value_policy::reference);
+        m.def("Pad", &rocalPad," Pads all samples with the fill_value in the specified axes to match the biggest extent in the batch for those axes or to match the minimum shape specified",
+            py::return_value_policy::reference);
+        m.def("TensorMulScalar", &rocalTensorMulScalar, "Multiplies a given Tensor Value with Scalar - Arithmetic Operation",
+            py::return_value_policy::reference);
+        m.def("TensorAddTensor", &rocalTensorAddTensor, "Multiplies a given Tensor Value with Scalar - Arithmetic Operation",
+            py::return_value_policy::reference);
+        m.def("Resample", &rocalResample, "Resamples the audio",
+            py::return_value_policy::reference);
+        // Image Augmentations
         m.def("Resize",&rocalResize, "Resizes the image ",py::return_value_policy::reference);
         m.def("ColorTwist",&rocalColorTwist, py::return_value_policy::reference);
         m.def("rocalResetLoaders", &rocalResetLoaders);
-        // rocal_api_augmentation.h
         m.def("Brightness", &rocalBrightness,
               py::return_value_policy::reference);
         m.def("CropMirrorNormalize",&rocalCropMirrorNormalize, py::return_value_policy::reference);

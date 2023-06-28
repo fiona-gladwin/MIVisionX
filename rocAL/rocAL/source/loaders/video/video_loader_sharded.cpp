@@ -53,6 +53,14 @@ VideoLoaderSharded::~VideoLoaderSharded()
     _loaders.clear();
 }
 
+size_t VideoLoaderSharded::last_batch_padded_size()
+{
+    size_t sum = 0;
+    for(auto& loader: _loaders)
+        sum += loader->last_batch_padded_size();
+    return sum;
+}
+
 void VideoLoaderSharded::fast_forward_through_empty_loaders()
 {
     int loaders_count = _loaders.size();

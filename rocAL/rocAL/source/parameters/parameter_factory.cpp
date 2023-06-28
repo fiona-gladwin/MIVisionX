@@ -114,6 +114,20 @@ ParameterFactory::get_seed()
     return _seed;
 }
 
+int64_t
+ParameterFactory::get_seed_from_seedsequence()
+{
+    increment_seed_sequence_idx();
+    return _seed_vector[_seed_sequence_idx];
+
+}
+
+void
+ParameterFactory::increment_seed_sequence_idx()
+{
+    _seed_sequence_idx++;
+}
+
 void
 ParameterFactory::generate_seed()
 {
@@ -125,6 +139,10 @@ void
 ParameterFactory::set_seed(unsigned seed)
 {
     _seed = seed;
+
+    _seed_vector.resize(MAX_SEEDS);
+    std::seed_seq ss{seed};
+    ss.generate(_seed_vector.begin(), _seed_vector.end());
 }
 
 IntParam* ParameterFactory::create_uniform_int_rand_param(int start, int end)
@@ -137,7 +155,15 @@ IntParam* ParameterFactory::create_uniform_int_rand_param(int start, int end)
 
 FloatParam* ParameterFactory::create_uniform_float_rand_param(float start, float end)
 {
-    auto gen = new UniformRand<float>(start, end, _seed);
+    auto gen = new UniformDistributionRand<float>(start, end, _seed);
+    auto ret = new FloatParam(gen, RocalParameterType::RANDOM_UNIFORM);
+    _parameters.insert(gen);
+    return ret;
+}
+
+FloatParam* ParameterFactory::create_uniform_distribution_float_rand_param(float mean, float std_dev)
+{
+    auto gen = new UniformRand<float>(mean, std_dev, _seed);
     auto ret = new FloatParam(gen, RocalParameterType::RANDOM_UNIFORM);
     _parameters.insert(gen);
     return ret;

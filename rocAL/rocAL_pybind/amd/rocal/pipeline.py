@@ -21,7 +21,7 @@
 import rocal_pybind as b
 import amd.rocal.types as types
 import numpy as np
-import cupy as cp
+# import cupy as cp
 import ctypes
 import functools
 import inspect
@@ -98,14 +98,18 @@ class Pipeline(object):
     def __init__(self, batch_size=-1, num_threads=0, device_id=-1, seed=1,
                  exec_pipelined=True, prefetch_queue_depth=2,
                  exec_async=True, bytes_per_sample=0,
-                 rocal_cpu=False, max_streams=-1, default_cuda_stream_priority=0, tensor_layout = types.NCHW, reverse_channels = False, mean = None, std = None, tensor_dtype=types.FLOAT, output_memory_type = types.CPU_MEMORY):
+                 rocal_cpu=False, max_streams=-1, default_cuda_stream_priority=0,
+                 tensor_layout = types.NCHW, reverse_channels = False, multiplier = [1.0,1.0,1.0], 
+                 offset = [0.0, 0.0, 0.0], tensor_dtype=types.FLOAT, last_batch_policy=types.LAST_BATCH_FILL, last_batch_padded=False,
+                mean = None, std = None, output_memory_type = types.CPU_MEMORY):
+
+        print("in Pipeline.py last_batch_policy", last_batch_policy)
         if(rocal_cpu):
             self._handle = b.rocalCreate(
-                batch_size, types.CPU, device_id, num_threads,prefetch_queue_depth,types.FLOAT)
+                batch_size, types.CPU, device_id, num_threads, prefetch_queue_depth, types.FLOAT, last_batch_policy, last_batch_padded)
         else:
             self._handle = b.rocalCreate(
-                batch_size, types.GPU, device_id, num_threads,prefetch_queue_depth,types.FLOAT)
-
+                batch_size, types.GPU, device_id, num_threads, prefetch_queue_depth, types.FLOAT, last_batch_policy, last_batch_padded)
         if(b.getStatus(self._handle) == types.OK):
             print("Pipeline has been created succesfully")
         else:
@@ -120,6 +124,7 @@ class Pipeline(object):
         self._device_id = device_id
         self._output_memory_type = output_memory_type
         self._seed = seed
+        b.setSeed(seed)
         self._exec_pipelined = exec_pipelined
         self._prefetch_queue_depth = prefetch_queue_depth
         self._exec_async = exec_async
@@ -132,6 +137,9 @@ class Pipeline(object):
         self._multiplier = list(map(lambda x: 1/x , std)) if std else [1.0,1.0,1.0]
         self._offset = list(map(lambda x, y: -(x/y), mean, std)) if mean and std else [0.0, 0.0, 0.0]
         self._reverse_channels = reverse_channels
+        self._offset = offset
+        self._last_batch_policy = last_batch_policy
+        self.last_batch_padded = last_batch_padded
         self._img_h = None
         self._img_w = None
         self._shuffle = None
@@ -224,10 +232,10 @@ class Pipeline(object):
             else: #torch tensor
                 return b.getOneHotEncodedLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._numOfClasses, 0)
         if device=="gpu":
-            if (isinstance(array,cp.ndarray)):
-                b.getOneHotEncodedLabels(self._handle, array.data.ptr, self._numOfClasses, 1)
-            else: #torch tensor
-                return b.getOneHotEncodedLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._numOfClasses, 1)
+            # if (isinstance(array,cp.ndarray)):
+            #     b.getOneHotEncodedLabels(self._handle, array.data.ptr, self._numOfClasses, 1)
+            # else: #torch tensor
+            return b.getOneHotEncodedLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._numOfClasses, 1)
 
     def set_outputs(self, *output_list):
         self._output_list_length = len(output_list)
@@ -323,6 +331,9 @@ class Pipeline(object):
 
     def getRemainingImages(self):
         return b.getRemainingImages(self._handle)
+    
+    def getLastBatchPaddedSize(self):
+        return b.getLastBatchPaddedSize(self._handle)
 
     def rocalResetLoaders(self):
         return b.rocalResetLoaders(self._handle)

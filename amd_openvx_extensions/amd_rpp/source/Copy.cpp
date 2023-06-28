@@ -92,7 +92,17 @@ static vx_status VX_CALLBACK processCopy(vx_node node, const vx_reference *param
     else if (data->device_type == AGO_TARGET_AFFINITY_CPU)
     {
         refreshCopy(node, parameters, num, data);
+
+        float* srcPtr = (float*) data->pSrc;
+        for (uint i=0; i<10; i++)
+            std::cerr << "\n Copy src :: " << srcPtr[i];
+
         memcpy(data->pDst, data->pSrc, data->tensor_size);
+
+        float* dstPtr = (float*) data->pDst;
+        for (uint i=0; i<10; i++)
+            std::cerr <<  "\n Copy dst :: " << dstPtr[i];
+
     }
     return status;
 }
@@ -115,8 +125,12 @@ static vx_status VX_CALLBACK initializeCopy(vx_node node, const vx_reference *pa
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_DATA_TYPE, &data->out_tensor_type, sizeof(data->out_tensor_type)));
     
     data->tensor_size = 1;
+    std::cerr << "\n COPY : num_of_dims :: " << num_of_dims;
+
     for(int i = 0; i < num_of_dims; i++)
         data->tensor_size *= tensor_dims[i];
+
+    std::cerr << "\n COPY : data->tensor_size :: " << data->tensor_size;
 
     if (data->in_tensor_type == vx_type_e::VX_TYPE_FLOAT32 && data->out_tensor_type == vx_type_e::VX_TYPE_FLOAT32)
         data->tensor_size *= sizeof(float);

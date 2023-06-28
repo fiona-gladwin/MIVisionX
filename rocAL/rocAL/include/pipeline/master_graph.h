@@ -32,6 +32,8 @@ THE SOFTWARE.
 #include "node.h"
 #include "node_image_loader.h"
 #include "node_image_loader_single_shard.h"
+#include "node_audio_loader.h"
+#include "node_audio_loader_single_shard.h"
 #include "node_fused_jpeg_crop.h"
 #include "node_fused_jpeg_crop_single_shard.h"
 #include "node_video_loader.h"
@@ -55,12 +57,12 @@ class MasterGraph
 {
 public:
     enum class Status { OK = 0,  NOT_RUNNING = 1, NO_MORE_DATA = 2, NOT_IMPLEMENTED = 3, INVALID_ARGUMENTS };
-    MasterGraph(size_t batch_size, RocalAffinity affinity, size_t cpu_thread_count, int gpu_id, size_t prefetch_queue_depth, RocalTensorDataType output_tensor_data_type);
+    MasterGraph(size_t batch_size, RocalAffinity affinity, int gpu_id, size_t prefetch_queue_depth, RocalTensorDataType output_tensor_data_type, RocalBatchPolicy last_batch_policy, bool last_batch_padded);
     ~MasterGraph();
     Status reset();
     size_t remaining_count();
-    rocalTensorList *get_output_tensors();
     std::vector<size_t> tensor_output_byte_size();
+    rocalTensorList *get_output_tensors();
     MasterGraph::Status to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier0, float multiplier1, float multiplier2,
                     float offset0, float offset1, float offset2, bool reverse_channels, RocalTensorDataType output_data_type, RocalOutputMemType output_mem_type);
     void sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum); // Returns the starting frame number of the sequences
@@ -69,13 +71,19 @@ public:
     Status run();
     Timing timing();
     RocalMemType mem_type();
+    RocalBatchPolicy last_batch_policy();
+    bool last_batch_padded();
+    uint last_batch_size();
     void release();
     template <typename T>
     std::shared_ptr<T> add_node(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     template <typename T, typename M> std::shared_ptr<T> meta_add_node(std::shared_ptr<M> node);
     rocalTensor *create_tensor(const rocalTensorInfo &info, bool is_output);
     rocalTensor *create_loader_output_tensor(const rocalTensorInfo &info);
+    vx_context get_vx_context() { return _context; }
+    rocalTensor *create_output_tensor(const rocalTensorInfo &info);
     std::vector<rocalTensorList *> create_label_reader(const char *source_path, MetaDataReaderType reader_type);
+    std::vector<rocalTensorList *> create_file_list_label_reader(const char *source_path, const char *file_list_path, MetaDataReaderType reader_type);
     std::vector<rocalTensorList *> create_video_label_reader(const char *source_path, MetaDataReaderType reader_type, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
     std::vector<rocalTensorList *> create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder = false, bool is_box_iou_matcher = false); // Need to add keypoints support
     std::vector<rocalTensorList *> create_tf_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type, const std::map<std::string, std::string> feature_key_map);
@@ -163,8 +171,11 @@ private:
     bool _processing;//!< Indicates if internal processing thread should keep processing or not
     // const static unsigned SAMPLE_SIZE = sizeof(unsigned char);
     int _remaining_count;//!< Keeps the count of remaining images yet to be processed for the user,
+    size_t _final_batch_padded_size;
     bool _loop;//!< Indicates if user wants to indefinitely loops through images or not
     size_t _prefetch_queue_depth;
+    RocalBatchPolicy _last_batch_policy;
+    bool _last_batch_padded;
     bool _output_routine_finished_processing = false;
     const RocalTensorDataType _out_data_type;
     bool _is_random_bbox_crop = false;
@@ -256,6 +267,7 @@ template<> inline std::shared_ptr<ImageLoaderSingleShardNode> MasterGraph::add_n
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _root_nodes.push_back(node);
+    std::cerr<<"Head Node added!";
     for(auto& output: outputs)
         _tensor_map.insert(std::make_pair(output, node));
 
@@ -317,6 +329,36 @@ template<> inline std::shared_ptr<Cifar10LoaderNode> MasterGraph::add_node(const
     _root_nodes.push_back(node);
     for(auto& output: outputs)
         _tensor_map.insert(std::make_pair(output, node));
+
+    return node;
+}
+
+/*
+ * Explicit specialization for AudioLoaderNode
+ */
+template<> inline std::shared_ptr<AudioLoaderNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+{
+    if(_loader_module)
+        THROW("A loader already exists, cannot have more than one loader")
+    auto node = std::make_shared<AudioLoaderNode>(outputs[0], _device.resources());
+    _loader_module = node->get_loader_module();
+    _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
+    _root_nodes.push_back(node);
+    for(auto& output: outputs)
+        _tensor_map.insert(make_pair(output, node));
+
+    return node;
+}
+template<> inline std::shared_ptr<AudioLoaderSingleShardNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+{
+    if(_loader_module)
+        THROW("A loader already exists, cannot have more than one loader")
+    auto node = std::make_shared<AudioLoaderSingleShardNode>(outputs[0], _device.resources());
+    _loader_module = node->get_loader_module();
+    _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
+    _root_nodes.push_back(node);
+    for(auto& output: outputs)
+        _tensor_map.insert(make_pair(output, node));
 
     return node;
 }

@@ -137,6 +137,18 @@ list(APPEND SOURCES
         source/ColorTwist.cpp
         source/ResizeMirrorNormalize.cpp
         source/SequenceRearrange.cpp
+        source/Downmix.cpp
+        source/ToDecibles.cpp
+        source/PreemphasisFilter.cpp
+        source/Spectrogram.cpp
+        source/NonSilentRegion.cpp
+        source/MelFilterBank.cpp 
+        source/Slice.cpp 
+        source/Normalize.cpp 
+        source/TensorMulScalar.cpp 
+        source/TensorAddTensor.cpp 
+        source/Resample.cpp 
+        source/Pad.cpp
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp
     )

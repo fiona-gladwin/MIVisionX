@@ -54,8 +54,11 @@ public:
 
     //! Returns the name of the latest file opened
     std::string id() override { return _last_id;};
+    std::string file_path() override {return _last_id; };
 
     unsigned count_items() override;
+
+    size_t last_batch_padded_size() override { return 0;}
 
     ~SequenceFileSourceReader() override;
 

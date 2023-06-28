@@ -52,6 +52,7 @@ public:
 
     //! Returns the name of the latest data_id opened
     std::string id() override { return _last_id;};
+    std::string file_path() override {return _last_file_name; };
 
     unsigned count_items() override;
 
@@ -62,6 +63,8 @@ public:
     CIFAR10DataReader();
 
     unsigned get_file_index() { return _last_file_idx;}
+
+    size_t last_batch_padded_size() override { return 0;}
 
 private:
     //! opens the folder containing the images

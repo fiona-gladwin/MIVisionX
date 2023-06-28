@@ -32,7 +32,7 @@ ImageLoaderSingleShardNode::ImageLoaderSingleShardNode(rocalTensor *output, void
 void
 ImageLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, unsigned cpu_num_threads, const std::string &source_path, const std::string &json_path, StorageType storage_type, DecoderType decoder_type,
                                  bool shuffle, bool loop, size_t load_batch_count, RocalMemType mem_type, std::shared_ptr<MetaDataReader> meta_data_reader,
-                                 bool decoder_keep_original, const std::map<std::string, std::string> feature_key_map, unsigned sequence_length, unsigned step, unsigned stride)
+                                 bool decoder_keep_original, RocalBatchPolicy last_batch_policy, bool last_batch_padded, const std::map<std::string, std::string> feature_key_map, unsigned sequence_length, unsigned step, unsigned stride)
 {
     if(!_loader_module)
         THROW("ERROR: loader module is not set for ImageLoaderNode, cannot initialize")
@@ -48,6 +48,7 @@ ImageLoaderSingleShardNode::init(unsigned shard_id, unsigned shard_count, unsign
     reader_cfg.set_cpu_num_threads(cpu_num_threads);
     reader_cfg.set_batch_count(load_batch_count);
     reader_cfg.set_meta_data_reader(meta_data_reader);
+    reader_cfg.set_last_batch_policy(last_batch_policy, last_batch_padded);
     //  sequence_length, step and stride parameters used only for SequenceReader
     reader_cfg.set_sequence_length(sequence_length);
     reader_cfg.set_frame_step(step);

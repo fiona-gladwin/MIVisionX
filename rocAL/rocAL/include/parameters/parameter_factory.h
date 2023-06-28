@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "parameter_random.h"
 #include "parameter_simple.h"
 
+const int MAX_SEEDS = 1024;
 
 enum class RocalParameterType
 {
@@ -78,6 +79,8 @@ public:
     void set_seed(unsigned seed);
     unsigned get_seed();
     void generate_seed();
+    int64_t get_seed_from_seedsequence();
+    void increment_seed_sequence_idx();
 
     template<typename T>
     Parameter<T>* create_uniform_rand_param(T start, T end){
@@ -100,6 +103,7 @@ public:
     }
     IntParam* create_uniform_int_rand_param(int start, int end);
     FloatParam* create_uniform_float_rand_param(float start, float end);
+    FloatParam* create_uniform_distribution_float_rand_param(float mean, float std_dev);
     IntParam* create_custom_int_rand_param(const int *value, const double *frequencies, size_t size);
     FloatParam* create_custom_float_rand_param(const float *value, const double *frequencies, size_t size);
     IntParam* create_single_value_int_param(int value);
@@ -110,6 +114,8 @@ private:
     static ParameterFactory* _instance;
     static std::mutex _mutex;
     ParameterFactory();
+    std::vector<int64_t> _seed_vector;
+    int _seed_sequence_idx = 0;
 };
 
 

@@ -54,6 +54,9 @@ public:
 
     //! Returns the name of the latest file opened
     std::string id() override { return _last_id;};
+    // std::string file_path() override {return _last_file_name; };
+    std::string file_path() override {return _last_file_path; };
+
 
     unsigned count_items() override;
 
@@ -62,9 +65,11 @@ public:
     int close() override;
 
     FileSourceReader();
+    size_t last_batch_padded_size() override;
 
 private:
     //! opens the folder containnig the images
+    std::shared_ptr<MetaDataReader> _meta_data_reader = nullptr;
     Reader::Status open_folder();
     Reader::Status subfolder_reading();
     std::string _folder_path;
@@ -76,7 +81,7 @@ private:
     FILE* _current_fPtr;
     unsigned _current_file_size;
     std::string _last_id;
-    std::string _last_file_name;
+    std::string _last_file_name, _last_file_path;
     size_t _shard_id = 0;
     size_t _shard_count = 1;// equivalent of batch size
     //!< _batch_count Defines the quantum count of the images to be read. It's usually equal to the user's batch size.
@@ -90,6 +95,8 @@ private:
     int _read_counter = 0;
     //!< _file_count_all_shards total_number of files in to figure out the max_batch_size (usually needed for distributed training).
     size_t  _file_count_all_shards;
+    std::pair<RocalBatchPolicy, bool>  _last_batch_info;
+    size_t _last_batch_padded_size = 0;
     void incremenet_read_ptr();
     int release();
     size_t get_file_shard_id();

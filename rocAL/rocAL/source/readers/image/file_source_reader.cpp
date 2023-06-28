@@ -51,6 +51,12 @@ unsigned FileSourceReader::count_items()
     return ((ret < 0) ? 0 : ret);
 }
 
+size_t
+FileSourceReader::last_batch_padded_size()
+{
+    // std::cerr << "\n The last batch padded size is :: " << _last_batch_padded_size;
+    return _last_batch_padded_size;
+}
 Reader::Status FileSourceReader::initialize(ReaderConfig desc)
 {
     auto ret = Reader::Status::OK;
@@ -61,6 +67,8 @@ Reader::Status FileSourceReader::initialize(ReaderConfig desc)
     _batch_count = desc.get_batch_size();
     _shuffle = desc.shuffle();
     _loop = desc.loop();
+    _meta_data_reader = desc.meta_data_reader();
+    _last_batch_info = desc.get_last_batch_policy();
     ret = subfolder_reading();
     // the following code is required to make every shard the same size:: required for multi-gpu training
     if (_shard_count > 1 && _batch_count > 1) {
@@ -87,7 +95,7 @@ size_t FileSourceReader::open()
 {
     auto file_path = _file_names[_curr_file_idx];// Get next file name
     incremenet_read_ptr();
-    _last_id= file_path;
+    _last_file_path = _last_id = file_path;
     auto last_slash_idx = _last_id.find_last_of("\\/");
     if (std::string::npos != last_slash_idx)
     {
@@ -223,7 +231,6 @@ Reader::Status FileSourceReader::open_folder()
     if ((_src_dir = opendir (_folder_path.c_str())) == nullptr)
         THROW("FileReader ShardID ["+ TOSTR(_shard_id)+ "] ERROR: Failed opening the directory at " + _folder_path);
 
-
     while((_entity = readdir (_src_dir)) != nullptr)
     {
         if(_entity->d_type != DT_REG)
@@ -256,6 +263,5 @@ size_t FileSourceReader::get_file_shard_id()
 {
     if(_batch_count == 0 || _shard_count == 0)
         THROW("Shard (Batch) size cannot be set to 0")
-    //return (_file_id / (_batch_count)) % _shard_count;
     return _file_id  % _shard_count;
 }

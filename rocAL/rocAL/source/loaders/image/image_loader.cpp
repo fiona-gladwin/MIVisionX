@@ -207,6 +207,9 @@ ImageLoader::load_routine()
                                             _decoded_img_info._original_width,
                                             _decoded_img_info._original_height,
                                             _output_tensor->info().color_format(), _decoder_keep_original );
+            // unsigned char* dataPtr = (unsigned char *)data;
+            // for(uint i=0;i<10;i++)
+            //     std::cerr << "\n In Image Loader :: dataPtr [i]" << (float)dataPtr[i];
 
             if (load_status == LoaderModuleStatus::OK)
             {
@@ -251,8 +254,14 @@ ImageLoader::load_routine()
 
 bool ImageLoader::is_out_of_data()
 {
-    return (remaining_count() < _batch_size);
+    return (remaining_count() < 0);
 }
+
+size_t ImageLoader::last_batch_padded_size()
+{
+    return _image_loader->last_batch_padded_size();
+}
+
 LoaderModuleStatus
 ImageLoader::update_output_image()
 {

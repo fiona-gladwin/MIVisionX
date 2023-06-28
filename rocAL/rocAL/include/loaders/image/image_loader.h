@@ -41,6 +41,7 @@ public:
     void set_output (rocalTensor* output_image) override;
     void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) override;
     size_t remaining_count() override; // returns number of remaining items to be loaded
+    size_t last_batch_padded_size() override;
     void reset() override; // Resets the loader to load from the beginning of the media
     Timing timing() override;
     void start_loading() override;
@@ -60,7 +61,6 @@ private:
     LoaderModuleStatus update_output_image();
     LoaderModuleStatus load_routine();
 
-    std::shared_ptr<RandomBBoxCrop_MetaDataReader> _randombboxcrop_meta_data_reader = nullptr;
     rocalTensor* _output_tensor;
     std::vector<std::string> _output_names;//!< image name/ids that are stores in the _output_image
     size_t _output_mem_size;
@@ -85,5 +85,8 @@ private:
     bool _decoder_keep_original = false;
     int _device_id;
     size_t _max_decoded_width, _max_decoded_height;
+    std::shared_ptr<RandomBBoxCrop_MetaDataReader> _randombboxcrop_meta_data_reader = nullptr;
+    RocalBatchPolicy _last_batch_policy;
+    bool last_batch_padded;
 };
 

@@ -60,6 +60,7 @@ public:
     // introduce meta data reader
     virtual void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) = 0;
     virtual void shut_down() = 0;
+    virtual size_t last_batch_padded_size() = 0;
     virtual std::vector<size_t> get_sequence_start_frame_number() { return {}; };
     virtual std::vector<std::vector<float>> get_sequence_frame_timestamps() { return {}; };
 };
