@@ -41,11 +41,12 @@ THE SOFTWARE.
 #if ENABLE_HIP
 #include "device_manager_hip.h"
 #include "box_encoder_hip.h"
+#include "box_iou_matcher_hip.h"
 #endif
 #include "randombboxcrop_meta_data_reader.h"
 #include "rocal_api_types.h"
 #define MAX_STRING_LENGTH 100
-#define MAX_OBJECTS 50 // Max number of objects/image in COCO dataset is 93 
+#define MAX_OBJECTS 50 // Max number of objects/image in COCO dataset is 93
 #define BBOX_COUNT 4
 #define MAX_NUM_ANCHORS 8732
 #define MAX_ANCHORS 120087
@@ -183,6 +184,7 @@ private:
     bool _allow_low_quality_matches = true;
 #if ENABLE_HIP
     BoxEncoderGpu *_box_encoder_gpu = nullptr;
+    BoxIoUMatcherGpu *_box_iou_matcher_gpu = nullptr;
 #endif
     TimingDBG _rb_block_if_empty_time, _rb_block_if_full_time;
 };
