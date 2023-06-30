@@ -183,8 +183,8 @@ public:
     bool is_image() const { return _is_image; }
     void set_metadata() { _is_metadata = true; }
     bool is_metadata() const { return _is_metadata; }
-    const std::vector<uint32_t>& get_orig_roi_width_vec() const { return *_orig_roi_width; }
-    const std::vector<uint32_t>& get_orig_roi_height_vec() const { return *_orig_roi_height; }
+    const std::vector<uint32_t>& get_original_roi_width_vec() const { return *_orig_roi_width; }
+    const std::vector<uint32_t>& get_original_roi_height_vec() const { return *_orig_roi_height; }
 
 private:
     Type _type = Type::UNKNOWN;  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor
