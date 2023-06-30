@@ -1,4 +1,4 @@
-/*
+z/*
 Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <pybind11/eval.h>
 #include "rocal_api_types.h"
 #include "rocal_api.h"
+#include "rocal_api_tensor.h"
 #include "rocal_api_parameters.h"
 #include "rocal_api_data_loaders.h"
 #include "rocal_api_augmentation.h"
@@ -97,6 +98,17 @@ namespace rocal{
         std::string s(ptr);
         free(ptr);
         return py::bytes(s);
+    }
+
+    /*
+    // Commenting out the block as we no more use wrappers. Will remove this block in the upcoming PRs 
+    py::object wrapper_copy_to_output(RocalContext context, py::array_t<unsigned char> array)
+    {
+        auto buf = array.request();
+        unsigned char* ptr = (unsigned char*) buf.ptr;
+        // call pure C++ function
+        int status = rocalCopyToOutput(context, ptr, buf.size);
+        return py::cast<py::none>(Py_None);
     }
 
     py::object wrapper_tensor(RocalContext context, py::object p,
@@ -295,6 +307,27 @@ namespace rocal{
         return py::cast<py::none>(Py_None);
     }
 
+    */
+    std::unordered_map<int, std::string> rocALToPybindLayout = {
+        {0, "NHWC"},
+        {1, "NCHW"},
+        {2, "NFHWC"},
+        {3, "NFCHW"},
+    };
+
+    std::unordered_map<int, int> rocALToPybindImageColor = {
+        {0, 3},
+        {1, 3},
+        {2, 1},
+        {3, 3},
+    };
+
+    std::unordered_map<int, std::string> rocALToPybindOutputDtype = {
+        {0, "float32"},
+        {1, "float16"},
+        {2, "uint8"},
+        {3, "int8"},
+    };
 
     PYBIND11_MODULE(rocal_pybind, m) {
         m.doc() = "Python bindings for the C++ portions of ROCAL";
@@ -316,6 +349,164 @@ namespace rocal{
             .def_readwrite("decode_time",&TimingInfo::decode_time)
             .def_readwrite("process_time",&TimingInfo::process_time)
             .def_readwrite("transfer_time",&TimingInfo::transfer_time);
+        py::class_<rocalTensor>(m, "rocalTensor")
+            .def(
+                "max_shape",
+                [](rocalTensor &output_tensor) {
+                    return output_tensor.shape();
+                },
+                R"code(
+                Returns a tensor buffer's width.
+                )code"
+            )
+            .def(
+                "batch_size",
+                [](rocalTensor &output_tensor) {
+                    return output_tensor.dims().at(0);
+                },
+                R"code(
+                Returns a tensor batch size.
+                )code"
+            )
+            .def("layout", [](rocalTensor &output_tensor) {
+                return rocALToPybindLayout[(int)output_tensor.layout()];
+            },
+                R"code(
+                Returns layout of tensor.
+                )code"
+            )
+            .def("dtype", [](rocalTensor &output_tensor) {
+                return rocALToPybindOutputDtype[(int)output_tensor.data_type()];
+            },
+                R"code(
+                Returns dtype of tensor.
+                )code"
+            )
+            .def("torch_dtype", [](rocalTensor &output_tensor) {
+                return "torch." + rocALToPybindOutputDtype[(int)output_tensor.data_type()];
+            },
+                R"code(
+                Returns dtype of torch tensor.
+                )code"
+            )
+            .def("numpy_dtype", [](rocalTensor &output_tensor) {
+                return "np." + rocALToPybindOutputDtype[(int)output_tensor.data_type()];
+            },
+                R"code(
+                Returns dtype of numpy array.
+                )code"
+            )
+            .def("cupy_dtype", [](rocalTensor &output_tensor) {
+                return "cp." + rocALToPybindOutputDtype[(int)output_tensor.data_type()];
+            },
+                R"code(
+                Returns dtype of cupy array.
+                )code"
+            )
+            .def("dims", [](rocalTensor &output_tensor) {
+                return output_tensor.dims();
+            },
+                R"code(
+                Returns dims of tensor.
+                )code"
+            )
+            .def("dimensions", [](rocalTensor &output_tensor) {
+                py::list list;
+                for (uint i = 0; i < output_tensor.num_of_dims(); i++)
+                    list.append(output_tensor.dims().at(i));
+                return list;
+            },
+                R"code(
+                Returns dims of tensor.
+                )code"
+            )
+            .def(
+            "copy_data", [](rocalTensor &output_tensor, py::object p) {
+                auto ptr = ctypes_void_ptr(p);
+                output_tensor.copy_data(ptr);
+            },
+                R"code(
+                Copies the ring buffer data to python buffer pointers.
+                )code"
+            )
+            .def(
+                "at",
+                [](rocalTensor &output_tensor, uint idx) {
+                    uint idx_stride = 1;
+                    for (uint i = 0; i < output_tensor.num_of_dims() - 1 ; i++) idx_stride*=output_tensor.dims().at(i+1);
+                    std::vector<size_t> stride_per_sample(output_tensor.strides());
+                    stride_per_sample.erase(stride_per_sample.begin());
+                    std::vector<size_t> dims(output_tensor.dims());
+                    dims.erase(dims.begin());
+                    
+                    switch(output_tensor.data_type()) 
+                    {
+                        case RocalTensorOutputType::ROCAL_UINT8:
+
+                            return py::array(py::buffer_info(
+                                ((unsigned char *)(output_tensor.buffer())) + idx * idx_stride,
+                                sizeof(unsigned char),
+                                py::format_descriptor<unsigned char>::format(),
+                                output_tensor.num_of_dims() - 1,
+                                dims,
+                                stride_per_sample
+                                ));
+                        case RocalTensorOutputType::ROCAL_FP32:
+                            return py::array(py::buffer_info(
+                                ((float *)(output_tensor.buffer())) + idx * idx_stride,
+                                sizeof(float),
+                                py::format_descriptor<float>::format(),
+                                output_tensor.num_of_dims() - 1,
+                                dims,
+                                stride_per_sample
+                                ));
+
+                    }
+                },
+                "idx"_a,
+                R"code(
+                Returns a rocAL tensor at given position `idx` in the rocalTensorlist.
+                )code",
+                py::keep_alive<0, 1>());
+        py::class_<rocalTensorList>(m, "rocalTensorList")
+            .def(
+                "__getitem__",
+                [](rocalTensorList &output_tensor_list, uint idx) {
+                    return output_tensor_list.at(idx);
+                },
+                R"code(
+                Returns a tensor at given position in the list.
+                )code")
+
+            .def("at",
+                [](rocalTensorList &output_tensor_list, uint idx) {
+                    auto output_tensor = output_tensor_list.at(idx);
+                    switch(output_tensor->data_type()) 
+                    {
+                        case RocalTensorOutputType::ROCAL_UINT8:
+                                return py::array(py::buffer_info(
+                                    (unsigned char *)(output_tensor_list.at(idx)->buffer()),
+                                    sizeof(unsigned char),
+                                    py::format_descriptor<unsigned char>::format(),
+                                    output_tensor->num_of_dims(),
+                                    output_tensor->dims(),
+                                    output_tensor->strides()));
+                        case RocalTensorOutputType::ROCAL_FP32:
+                                return py::array(py::buffer_info(
+                                    (float *)(output_tensor_list.at(idx)->buffer()),
+                                    sizeof(float),
+                                    py::format_descriptor<float>::format(),
+                                    output_tensor->num_of_dims(),
+                                    output_tensor->dims(),
+                                    output_tensor->strides()));
+                    }
+                },
+                "idx"_a,
+                R"code(
+                Returns a rocAL tensor at given position `i` in the rocalTensorlist.
+                )code",
+                py::keep_alive<0, 1>());
+
         py::module types_m = m.def_submodule("types");
         types_m.doc() = "Datatypes and options used by ROCAL";
         py::enum_<RocalStatus>(types_m, "RocalStatus", "Status info")
@@ -418,7 +609,12 @@ namespace rocal{
         m.def("getCupyOneHotEncodedLabels",&wrapper_cupy_one_hot_label_copy);
         m.def("isEmpty",&rocalIsEmpty);
         m.def("BoxEncoder",&rocalBoxEncoder);
-        m.def("getTimingInfo",rocalGetTimingInfo);
+        // m.def("BoxIOUMatcher", &rocalBoxIOUMatcher);
+        m.def("getImgSizes", [](RocalContext context, py::array_t<int> array) {
+            auto buf = array.request();
+            int* ptr = (int*) buf.ptr;
+            rocalGetImageSizes(context, ptr);
+        });
         // rocal_api_parameter.h
         m.def("setSeed",&rocalSetSeed);
         m.def("getSeed",&rocalGetSeed);
@@ -437,12 +633,92 @@ namespace rocal{
         m.def("GetIntValue",&rocalGetIntValue);
         m.def("GetFloatValue",&rocalGetFloatValue);
         // rocal_api_data_transfer.h
-        m.def("rocalCopyToOutput",&wrapper_copy_to_output);
-        m.def("rocalToTensor",&wrapper_tensor);
-        m.def("rocalToTensor32",&wrapper_tensor32);
-        m.def("rocalToTensor16",&wrapper_tensor16);
-        m.def("rocalCupyToTensor32",&wrapper_copy_cupy_tensor32);
-        m.def("rocalCupyToTensor16",&wrapper_copy_cupy_tensor16);
+        m.def("getOutputTensors", [](RocalContext context) {
+            rocalTensorList * tl = rocalGetOutputTensors(context);
+            py::list list;
+            unsigned int size_of_tensor_list = tl->size();
+            for (uint i =0; i< size_of_tensor_list; i++)
+                list.append(tl->at(i));
+            return list; 
+        });
+        m.def("getBoundingBoxCount",&rocalGetBoundingBoxCount);
+        m.def("getImageLabels", [](RocalContext context) {
+            rocalTensorList *labels = rocalGetImageLabels(context);
+            return py::array(py::buffer_info(
+                            (int *)(labels->at(0)->buffer()),
+                            sizeof(int),
+                            py::format_descriptor<int>::format(),
+                            1,
+                            {labels->size()},
+                            {sizeof(int) }));
+        });
+        m.def("getBoundingBoxLabels", [](RocalContext context) {
+            rocalTensorList *labels = rocalGetBoundingBoxLabel(context);
+            py::list labels_list;
+            py::array_t<int> labels_array;
+            for (int i = 0; i < labels->size(); i++) {
+                int *labels_buffer = (int *)(labels->at(i)->buffer());
+                labels_array = py::array(py::buffer_info(
+                            (int *)(labels->at(i)->buffer()),
+                            sizeof(int),
+                            py::format_descriptor<int>::format(),
+                            1,
+                            {labels->at(i)->dims().at(0)},
+                            {sizeof(int) }));
+                labels_list.append(labels_array);
+            }
+            return labels_list;
+        });
+        m.def("getBoundingBoxCords", [](RocalContext context) {
+            rocalTensorList *boxes = rocalGetBoundingBoxCords(context);
+            py::list boxes_list;
+            py::array_t<double> boxes_array;
+            for (int i = 0; i < boxes->size(); i++) {
+                double *box_buffer = (double *)(boxes->at(i)->buffer());
+                boxes_array = py::array(py::buffer_info(
+                            (double *)(boxes->at(i)->buffer()),
+                            sizeof(double),
+                            py::format_descriptor<double>::format(),
+                            1,
+                            { boxes->at(i)->dims().at(0) * 4},
+                            {sizeof(double) }));
+                boxes_list.append(boxes_array);
+            }
+            return boxes_list;
+        });
+        // m.def("getMatchedIndices", [](RocalContext context) {
+        //     rocalTensorList *matches = rocalGetMatchedIndices(context);
+        //     return py::array(py::buffer_info(
+        //                     (int *)(matches->at(0)->buffer()),
+        //                     sizeof(int),
+        //                     py::format_descriptor<int>::format(),
+        //                     1,
+        //                     {matches->size() * 120087},
+        //                     {sizeof(int) }));
+        // }, py::return_value_policy::reference);
+        m.def("rocalGetEncodedBoxesAndLables", [](RocalContext context,uint batch_size, uint num_anchors) {
+                auto vec_pair_labels_boxes = rocalGetEncodedBoxesAndLables(context, batch_size * num_anchors);
+                auto labels_buf_ptr = (int*)(vec_pair_labels_boxes[0]->at(0)->buffer());
+                auto bboxes_buf_ptr = (float*)(vec_pair_labels_boxes[1]->at(0)->buffer());
+
+                py::array_t<int> labels_array = py::array_t<int>(py::buffer_info(
+                            labels_buf_ptr,
+                            sizeof(int),
+                            py::format_descriptor<int>::format(),
+                            2,
+                            {batch_size, num_anchors},
+                            {num_anchors*sizeof(int), sizeof(int)}));
+
+                py::array_t<float> bboxes_array = py::array_t<float>(py::buffer_info(
+                            bboxes_buf_ptr,
+                            sizeof(float),
+                            py::format_descriptor<float>::format(),
+                            1,
+                            {batch_size * num_anchors * 4},
+                            {sizeof(float)} ));
+                return std::make_pair(labels_array, bboxes_array);
+        }
+        );
         // rocal_api_data_loaders.h
         m.def("COCO_ImageDecoderSlice",&rocalJpegCOCOFileSourcePartial,"Reads file from the source given and decodes it according to the policy",
             py::return_value_policy::reference);
