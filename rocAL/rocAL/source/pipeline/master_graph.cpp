@@ -416,6 +416,30 @@ MasterGraph::update_node_parameters()
     return Status::OK;
 }
 
+size_t
+MasterGraph::augmentation_branch_count()
+{
+    return _output_tensor_list.size();
+}
+
+RocalColorFormat
+MasterGraph::output_color_format()
+{
+    return _output_tensor_list[0]->info().color_format();
+}
+
+size_t
+MasterGraph::output_width()
+{
+    return _output_tensor_list[0]->info().max_shape()[0];
+}
+
+size_t
+MasterGraph::output_height()
+{
+    return _output_tensor_list[0]->info().max_shape()[0];
+}
+
 void
 MasterGraph::sequence_start_frame_number(std::vector<size_t> &sequence_start_framenum)
 {
@@ -512,7 +536,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         // OCL device memory
         cl_int status;
 
-        size_t global_work_size = output_sample_size();
+        size_t global_work_size = _output_tensor_list[0]->info().data_size() / _output_tensor_list[0]->info().data_type_size(); // Sample size
         size_t local_work_size = 256;
 
         // TODO: Use the runKernel function instead
