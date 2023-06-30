@@ -163,6 +163,8 @@ rocalTensorInfo::rocalTensorInfo(const rocalTensorInfo &other) {
     _is_image = other._is_image;
     _is_metadata = other._is_metadata;
     _channels = other._channels;
+    _orig_roi_width = other._orig_roi_width;
+    _orig_roi_height = other._orig_roi_height;
     if(!other.is_metadata()) {  // For Metadata ROI buffer is not required
         allocate_host_or_pinned_mem(&_roi_buf, _batch_size * 4 * sizeof(unsigned), _mem_type);
         memcpy((void *)_roi_buf, (const void *)other.get_roi(), _batch_size * 4 * sizeof(unsigned));
