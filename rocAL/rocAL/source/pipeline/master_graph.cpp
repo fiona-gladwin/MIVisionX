@@ -873,8 +873,9 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
     }
     else {
 #endif
-        // get_host_master_read_buffer is blocking if _ring_buffer is empty, and blocks this thread till internal processing thread process a new batch and store in the _ring_buffer
-        memcpy(out_ptr, _ring_buffer.get_host_master_read_buffer(), size * _output_tensor_list.size());
+        // get_read_buffer is blocking if _ring_buffer is empty, and blocks this thread till internal processing thread process a new batch and store in the _ring_buffer
+        auto output_buffer = _ring_buffer.get_read_buffers()[0];
+        memcpy(out_ptr, output_buffer, size);
 #if ENABLE_OPENCL || ENABLE_HIP
     }
 #endif    

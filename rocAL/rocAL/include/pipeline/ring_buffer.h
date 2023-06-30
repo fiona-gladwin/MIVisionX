@@ -50,7 +50,6 @@ public:
     void init_metadata(RocalMemType mem_type, std::vector<size_t> &sub_buffer_size);
     void release_gpu_res();
     std::vector<void*> get_read_buffers();
-    void* get_host_master_read_buffer();
     std::vector<void*> get_write_buffers();
     std::pair<void*, void*> get_box_encode_write_buffers();
     std::pair<void*, void*> get_box_encode_read_buffers();
