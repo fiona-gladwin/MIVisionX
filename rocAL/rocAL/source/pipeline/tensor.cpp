@@ -85,12 +85,12 @@ vx_enum interpret_tensor_data_type(RocalTensorDataType data_type) {
 void allocate_host_or_pinned_mem(void **ptr, size_t size, RocalMemType mem_type) {
     if (mem_type == RocalMemType::HIP) {
 #if ENABLE_HIP
-        hipError_t err = hipHostMalloc((void **)ptr, size, hipHostMallocDefault);
-        if(err != hipSuccess || !*ptr)
-            THROW("hipHostMalloc of size " + TOSTR(size) + " failed " + TOSTR(err))
-        err = hipMemset((void *)*ptr, 0, size);
-        if(err != hipSuccess)
-            THROW("hipMemset of size " + TOSTR(size) + " failed " + TOSTR(err))
+    hipError_t err = hipHostMalloc((void **)ptr, size, hipHostMallocDefault);
+    if(err != hipSuccess || !*ptr)
+        THROW("hipHostMalloc of size " + TOSTR(size) + " failed " + TOSTR(err))
+    err = hipMemset((void *)*ptr, 0, size);
+    if(err != hipSuccess)
+        THROW("hipMemset of size " + TOSTR(size) + " failed " + TOSTR(err))
 #endif
     } else {
         *ptr = (void *)malloc(size);
@@ -112,6 +112,8 @@ void rocalTensorInfo::reset_tensor_roi_buffers() {
         size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
         allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
     }
+    _orig_roi_height = std::make_shared<std::vector<uint32_t>>(_batch_size);    // TODO - Check if this needs to be reallocated every time
+    _orig_roi_width = std::make_shared<std::vector<uint32_t>>(_batch_size);
     if (_is_image) {
         auto roi = get_roi();
         for (unsigned i = 0; i < _batch_size; i++) {
@@ -214,7 +216,23 @@ void rocalTensor::update_tensor_roi(const std::vector<uint32_t> &width,
     }
 }
 
-rocalTensor::~rocalTensor() {
+void Tensor::update_tensor_orig_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height)
+{
+    if(width.size() != height.size())
+        THROW("Batch size of image height and width info does not match")
+
+    if(width.size() != info().batch_size())
+        THROW("The batch size of actual image height and width different from image batch size "+ TOSTR(width.size())+ " != " +  TOSTR(info().batch_size()))
+    if(! _info._orig_roi_width || !_info._orig_roi_height)
+        THROW("ROI width or ROI height vector not created")
+    for(unsigned i = 0; i < info().batch_size(); i++)
+    {
+        _info._orig_roi_width->at(i) = width[i];
+        _info._orig_roi_height->at(i)= height[i];
+    }
+}
+
+Tensor::~Tensor() {
     _mem_handle = nullptr;
     if (_vx_handle) vxReleaseTensor(&_vx_handle);
 }
