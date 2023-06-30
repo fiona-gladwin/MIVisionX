@@ -128,8 +128,9 @@ private:
     std::list<std::shared_ptr<Node>> _root_nodes;//!< List of all root nodes (image/video loaders)
     std::list<std::shared_ptr<Node>> _meta_data_nodes;//!< List of nodes where meta data has to be updated after augmentation
     std::map<Tensor*, std::shared_ptr<Node>> _tensor_map;//!< key: tensor, value : Parent node
-    void * _output_tensor = nullptr;//!< In the GPU processing case , is used to convert the U8 samples to float32 before they are being transfered back to host
-    
+    void * _output_tensor_buffer = nullptr;//!< In the GPU processing case , is used to convert the U8 samples to float32 before they are being transfered back to host
+    bool _output_tensor_buffer_allocated = false;
+
     // Output tensorList for metadata
     std::vector<rocalTensorList *> _metadata_output_tensor_list;
     rocalTensorList _labels_tensor_list;

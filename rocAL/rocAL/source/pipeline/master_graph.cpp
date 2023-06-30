@@ -366,6 +366,22 @@ void MasterGraph::release()
     _ring_buffer.release_gpu_res();
     //shut_down loader:: required for releasing any allocated resourses
     _loader_module->shut_down();
+    // release output buffer if allocated
+    if(_output_tensor_buffer_allocated) {
+#if ENABLE_OPENCL
+        if(_output_tensor_buffer != nullptr)
+            clReleaseMemObject((cl_mem)_output_tensor_buffer );
+#elif ENABLE_HIP
+        if(_output_tensor_buffer != nullptr) {
+            hipError_t err = hipFree(_output_tensor_buffer );
+            if (err != hipSuccess) {
+                THROW("MasterGraph::deallocate_output_tensor  hipFree failed " + TOSTR(err))
+            }
+        }
+#endif
+        _output_tensor_buffer = nullptr;    
+    }
+    
     // release all openvx resources.
     vx_status status;
     for(auto& tensor: _internal_tensors)
@@ -468,6 +484,12 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
 {
     if(no_more_processed_data())
         return MasterGraph::Status::NO_MORE_DATA;
+    
+    if(_output_tensor_list.size() != 1)
+        THROW("Cannot copy, Multiple output tensors present in the list")
+    
+    if(_output_tensor_list[0]->info().data_type() != RocalTensorDataType::UINT8)
+        THROW("The output tensor is not of UINT8 type")
 
     if (_output_tensor_list[0]->info().color_format() == RocalColorFormat::RGB_PLANAR)
         return MasterGraph::copy_out_tensor_planar(out_ptr,format,multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, output_data_type);
@@ -500,13 +522,27 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         auto queue = _device.resources()->cmd_queue;
         unsigned dest_buf_offset = 0;
         auto output_buffers =_ring_buffer.get_read_buffers();
+        
+        if(!_output_tensor_buffer_allocated) {
+            size_t size = _output_tensor_list[0]->info().data_size() * sizeof(cl_float);
+            cl_mem clImgFloat  = clCreateBuffer(_device.resources()->context,
+                                                CL_MEM_READ_WRITE,
+                                                size,
+                                                nullptr, &ret);
+            if (!clImgFloat || ret != CL_SUCCESS)
+                THROW("clCreateBuffer of size " + TOSTR(size) + " failed " + TOSTR(ret))
+
+            _output_tensor_buffer = clImgFloat;
+            _output_tensor_buffer_allocated = true;
+        }
+        
         for( auto&& out_image: output_buffers)
         {
             int argIdx = 0;
             unsigned reverse_chnl = reverse_channels ? 1 : 0;
             auto img_buffer = out_image;
             CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_mem), (void*)& (img_buffer)))
-            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_mem), (void*)&_output_tensor ))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_mem), (void*)&_output_tensor_buffer))
             CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_uint), (void*)& dest_buf_offset))
             CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_uint), (void*)& w))
             CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_uint), (void*)& h))
@@ -532,7 +568,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
 
         int read_size = single_output_image_size * _output_tensor_list.size() * sizeof(cl_float);
         if((status = clEnqueueReadBuffer(queue,
-                                         (cl_mem)_output_tensor,
+                                         (cl_mem)_output_tensor_buffer,
                                          CL_TRUE,
                                          0,
                                          read_size,
@@ -573,23 +609,32 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
 
             auto output_buffers =_ring_buffer.get_read_buffers();
             unsigned dest_buf_offset = 0;
+            
+            if(!_output_tensor_buffer_allocated) {
+                size_t size = _output_tensor_list[0]->info().data_size() * (output_data_type == RocalTensorDataType::FP32 ? sizeof(float) : sizeof(half));
+                hipError_t status = hipMalloc(&_output_tensor_buffer, size);
+                if ((status != hipSuccess) || !_output_tensor_buffer)
+                    THROW("ROCAL::hipMalloc of size " + TOSTR(size) + " failed " + TOSTR(status))
+                _output_tensor_buffer_allocated = true;
+            }
+            
             // copy hip buffer to out_ptr
             // todo:: add callback routing to exchange memory pointer to avoid extra copy
             for( auto&& out_image: output_buffers)
             {
                 auto img_buffer = out_image;
-                auto return_status = hipMemcpy(_output_tensor, (const void *)img_buffer, sizeof(unsigned char) * n * c * h * w, hipMemcpyHostToDevice);
+                auto return_status = hipMemcpy(_output_tensor_buffer, (const void *)img_buffer, sizeof(unsigned char) * n * c * h * w, hipMemcpyHostToDevice);
                 if (return_status != hipSuccess) {
                     THROW("hipMemcpy failed with status " + TOSTR(return_status))
                 }
                 if (format == RocalTensorlayout::NHWC)
                 {
-                    HipExecCopyInt8ToNHWC(_device.resources()->hip_stream, (const void *)_output_tensor, out_ptr, dest_buf_offset, n, c, h, w,
+                    HipExecCopyInt8ToNHWC(_device.resources()->hip_stream, (const void *)_output_tensor_buffer, out_ptr, dest_buf_offset, n, c, h, w,
                                             multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, fp16);
 
                 }else
                 {
-                    HipExecCopyInt8ToNCHW(_device.resources()->hip_stream, (const void *)_output_tensor, out_ptr, dest_buf_offset, n, c, h, w,
+                    HipExecCopyInt8ToNCHW(_device.resources()->hip_stream, (const void *)_output_tensor_buffer, out_ptr, dest_buf_offset, n, c, h, w,
                                             multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, fp16);
                 }
                 dest_buf_offset += single_output_image_size;
@@ -816,9 +861,12 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
     if(no_more_processed_data())
         return MasterGraph::Status::NO_MORE_DATA;
 
+    if(_output_tensor_list.size() != 1)
+        THROW("Cannot copy, Multiple output tensors present in the list")
+
     // Copies to the output context given by the user
     size_t size = _output_tensor_list[0]->info().data_size();
-    if (out_size_in_bytes != (size *_output_tensor_list.size()))
+    if (out_size_in_bytes != (size * _output_tensor_list.size()))
         return MasterGraph::Status::INVALID_ARGUMENTS;
 
     _convert_time.start();
