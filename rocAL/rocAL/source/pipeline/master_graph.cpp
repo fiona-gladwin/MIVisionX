@@ -373,7 +373,7 @@ void MasterGraph::release()
     _internal_tensor_list.release(); // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
     _output_tensor_list.release();   // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
     for(auto tensor_list: _metadata_output_tensor_list)
-        tensor_list->release(); // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
+        dynamic_cast<TensorList *>(tensor_list)->release(); // It will call the vxReleaseTensor internally in the destructor for each tensor in the list
 
     if(_graph != nullptr)
         _graph->release();
@@ -460,7 +460,429 @@ MasterGraph::timing()
     return t;
 }
 
-rocalTensorList *
+#define CHECK_CL_CALL_RET(x) { cl_int ret; ret = x; if( ret != CL_SUCCESS) THROW("ocl call failed "+STR(#x)+" error "+TOSTR(ret)) }
+
+MasterGraph::Status
+MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier0, float multiplier1,
+                             float multiplier2, float offset0, float offset1, float offset2, bool reverse_channels, RocalTensorDataType output_data_type, RocalOutputMemType output_mem_type)
+{
+    if(no_more_processed_data())
+        return MasterGraph::Status::NO_MORE_DATA;
+
+    if (_output_tensor_list[0]->info().color_format() == RocalColorFormat::RGB_PLANAR)
+        return MasterGraph::copy_out_tensor_planar(out_ptr,format,multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, output_data_type);
+
+    _convert_time.start();
+    // Copies to the output context given by the user
+    auto dims = _output_tensor_list[0]->info().dims();
+    unsigned int n = dims[0];
+    const size_t c = dims[3];
+    const size_t h = dims[1];
+    const size_t w = dims[2];
+    const size_t single_output_image_size = _output_tensor_list[0]->info().data_size();
+
+
+#if ENABLE_OPENCL
+    if(_output_tensor_list[0]->info().mem_type() == RocalMemType::OCL)
+    {
+        if(output_data_type == RocalTensorDataType::FP16)
+            THROW("FP16 tensor output for GPU affinity is not implemented")
+        // OCL device memory
+        cl_int status;
+
+        size_t global_work_size = output_sample_size();
+        size_t local_work_size = 256;
+
+        // TODO: Use the runKernel function instead
+
+        auto kernel_name = (format == RocalTensorlayout::NHWC)? "copyInt8ToNHWC" : "copyInt8ToNCHW";
+        cl_kernel kernel = _device["utility"][kernel_name];
+        auto queue = _device.resources()->cmd_queue;
+        unsigned dest_buf_offset = 0;
+        auto output_buffers =_ring_buffer.get_read_buffers();
+        for( auto&& out_image: output_buffers)
+        {
+            int argIdx = 0;
+            unsigned reverse_chnl = reverse_channels ? 1 : 0;
+            auto img_buffer = out_image;
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_mem), (void*)& (img_buffer)))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_mem), (void*)&_output_tensor ))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_uint), (void*)& dest_buf_offset))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_uint), (void*)& w))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_uint), (void*)& h))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_uint), (void*)& c))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_float), (void*)& multiplier0))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_float), (void*)& multiplier1))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_float), (void*)& multiplier2))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_float), (void*)& offset0))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_float), (void*)& offset1))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_float), (void*)& offset2))
+            CHECK_CL_CALL_RET(clSetKernelArg( kernel, argIdx++, sizeof(cl_uint), (void*)& reverse_chnl))
+
+            if((status = clEnqueueNDRangeKernel(queue,
+                                                kernel,
+                                                1,
+                                                nullptr,
+                                                &global_work_size,
+                                                &local_work_size,
+                                                0 , nullptr, nullptr)) != CL_SUCCESS)
+                THROW("clEnqueueNDRangeKernel failed on kernel "+STR(kernel_name)+" error " + TOSTR(status))
+            dest_buf_offset += single_output_image_size;
+        }
+
+        int read_size = single_output_image_size * _output_tensor_list.size() * sizeof(cl_float);
+        if((status = clEnqueueReadBuffer(queue,
+                                         (cl_mem)_output_tensor,
+                                         CL_TRUE,
+                                         0,
+                                         read_size,
+                                         out_ptr,
+                                         0 , nullptr, nullptr)) != CL_SUCCESS)
+            THROW("clEnqueueReadBuffer failed: " + TOSTR(status))
+    }
+#elif ENABLE_HIP
+    if(_output_tensor_list[0]->info().mem_type() == RocalMemType::HIP)
+    {
+        unsigned int fp16 = (output_data_type == RocalTensorDataType::FP16);
+
+        auto output_buffers =_ring_buffer.get_read_buffers();
+        unsigned dest_buf_offset = 0;
+        // copy hip buffer to out_ptr
+        // todo:: add callback routing to exchange memory pointer to avoid extra copy
+        for( auto&& out_image: output_buffers)
+        {
+            auto img_buffer = out_image;
+            if (format == RocalTensorlayout::NHWC)
+            {
+                HipExecCopyInt8ToNHWC(_device.resources()->hip_stream, (const void *)img_buffer, out_ptr, dest_buf_offset, n, c, h, w,
+                                        multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, fp16);
+
+            }else
+            {
+                HipExecCopyInt8ToNCHW(_device.resources()->hip_stream, (const void *)img_buffer, out_ptr, dest_buf_offset, n, c, h, w,
+                                        multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, fp16);
+            }
+            dest_buf_offset += single_output_image_size;
+        }
+    }
+    if((_output_tensor_list[0]->info().mem_type() == RocalMemType::HOST))
+    {
+        if(output_mem_type == RocalOutputMemType::ROCAL_MEMCPY_GPU)
+        {
+            unsigned int fp16 = (output_data_type == RocalTensorDataType::FP16);
+
+            auto output_buffers =_ring_buffer.get_read_buffers();
+            unsigned dest_buf_offset = 0;
+            // copy hip buffer to out_ptr
+            // todo:: add callback routing to exchange memory pointer to avoid extra copy
+            for( auto&& out_image: output_buffers)
+            {
+                auto img_buffer = out_image;
+                auto return_status = hipMemcpy(_output_tensor, (const void *)img_buffer, sizeof(unsigned char) * n * c * h * w, hipMemcpyHostToDevice);
+                if (return_status != hipSuccess) {
+                    THROW("hipMemcpy failed with status " + TOSTR(return_status))
+                }
+                if (format == RocalTensorlayout::NHWC)
+                {
+                    HipExecCopyInt8ToNHWC(_device.resources()->hip_stream, (const void *)_output_tensor, out_ptr, dest_buf_offset, n, c, h, w,
+                                            multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, fp16);
+
+                }else
+                {
+                    HipExecCopyInt8ToNCHW(_device.resources()->hip_stream, (const void *)_output_tensor, out_ptr, dest_buf_offset, n, c, h, w,
+                                            multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, fp16);
+                }
+                dest_buf_offset += single_output_image_size;
+            }
+
+        }
+    }
+#endif
+    if((_output_tensor_list[0]->info().mem_type() == RocalMemType::HOST))
+    {
+        if(output_mem_type == RocalOutputMemType::ROCAL_MEMCPY_HOST)
+        {
+            float multiplier[3] = {multiplier0, multiplier1, multiplier2 };
+            float offset[3] = {offset0, offset1, offset2 };
+            size_t dest_buf_offset_start = 0;
+
+            auto output_buffers =_ring_buffer.get_read_buffers();
+            auto num_threads = _cpu_num_threads * 2;
+            for( auto&& out_image: output_buffers)
+            {
+                unsigned int single_image_size = w * c * h;
+                #pragma omp parallel for num_threads(num_threads)
+                for(unsigned int batchCount = 0; batchCount < n; batchCount ++)
+                {
+                    size_t dest_buf_offset = dest_buf_offset_start + single_image_size*batchCount;
+                    auto in_buffer = (unsigned char*)out_image + single_image_size*batchCount;
+
+                    if(format == RocalTensorlayout::NHWC)
+                    {
+                        if(output_data_type == RocalTensorDataType::FP32)
+                        {
+                            float *output_tensor_32 = static_cast<float *>(out_ptr);
+                            auto channel_size = w * h;
+                            for (unsigned channel_idx = 0; channel_idx < c; channel_idx++) {
+                                for (unsigned i = 0; i < channel_size; i++)
+                                    output_tensor_32[dest_buf_offset + channel_idx + i * c] =
+                                            offset[channel_idx] + multiplier[channel_idx] *
+                                                                    (reverse_channels ? (float) (in_buffer[i * c + c - channel_idx - 1])
+                                                                                    : (float) (in_buffer[i * c + channel_idx]));
+                            }
+                        }
+                        else if(output_data_type == RocalTensorDataType::FP16)
+                        {
+                            half *output_tensor_16 = static_cast<half *>(out_ptr);
+                            auto channel_size = w * h;
+                            for (unsigned channel_idx = 0; channel_idx < c; channel_idx++) {
+                                for (unsigned i = 0; i < channel_size; i++)
+                                    output_tensor_16[dest_buf_offset + channel_idx + i * c] =
+                                            offset[channel_idx] + multiplier[channel_idx] *
+                                                                (reverse_channels ? (half) (in_buffer[i * c + c - channel_idx - 1])
+                                                                                    : (half) (in_buffer[i * c + channel_idx]));
+                            }
+                        }
+                    }
+                    if(format == RocalTensorlayout::NCHW)
+                    {
+                        if(output_data_type == RocalTensorDataType::FP32)
+                        {
+                            float *output_tensor_32 = static_cast<float *>(out_ptr);
+                            auto channel_size  = w * h;
+                            if(c != 3)
+                            {
+                                for(unsigned i = 0; i < channel_size; i++)
+                                    output_tensor_32[dest_buf_offset + i] = offset[0] + multiplier[0]*(float)in_buffer[c*i];
+                            }
+                            else {
+        #if (ENABLE_SIMD && __AVX2__)
+                                float *B_buf = output_tensor_32 + dest_buf_offset;
+                                float *G_buf = B_buf + channel_size;
+                                float *R_buf = G_buf + channel_size;
+
+                                __m256i mask_B, mask_G, mask_R;
+                                if (reverse_channels) {
+                                    mask_B = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
+                                                            0x80808003, 0x80808006, 0x80808009);
+                                    mask_G = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
+                                                            0x80808004, 0x80808007, 0x8080800A);
+                                    mask_R = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
+                                                            0x80808005, 0x80808008, 0x8080800B);
+                                } else {
+                                    mask_R = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
+                                                            0x80808003, 0x80808006, 0x80808009);
+                                    mask_G = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
+                                                            0x80808004, 0x80808007, 0x8080800A);
+                                    mask_B = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
+                                                            0x80808005, 0x80808008, 0x8080800B);
+                                }
+                                __m256 pmul0 = _mm256_set1_ps(multiplier0);
+                                __m256 pmul1 = _mm256_set1_ps(multiplier1);
+                                __m256 pmul2 = _mm256_set1_ps(multiplier2);
+                                __m256 padd0 = _mm256_set1_ps(offset0);
+                                __m256 padd1 = _mm256_set1_ps(offset1);
+                                __m256 padd2 = _mm256_set1_ps(offset2);
+                                unsigned int alignedLength = (channel_size & ~7);    // multiple of 8
+                                unsigned int i = 0;
+
+                                __m256 fR, fG, fB;
+                                for (; i < alignedLength; i += 8) {
+                                    __m256i pix0 = _mm256_loadu_si256((const __m256i *) in_buffer);
+                                    pix0 = _mm256_permutevar8x32_epi32(pix0, _mm256_setr_epi32(0, 1, 2, 3, 3, 4, 5, 6));
+                                    fB = _mm256_cvtepi32_ps(_mm256_shuffle_epi8(pix0, mask_R));
+                                    fG = _mm256_cvtepi32_ps(_mm256_shuffle_epi8(pix0, mask_G));
+                                    fR = _mm256_cvtepi32_ps(_mm256_shuffle_epi8(pix0, mask_B));
+                                    fB = _mm256_mul_ps(fB, pmul0);
+                                    fG = _mm256_mul_ps(fG, pmul1);
+                                    fR = _mm256_mul_ps(fR, pmul2);
+                                    fB = _mm256_add_ps(fB, padd0);
+                                    fG = _mm256_add_ps(fG, padd1);
+                                    fR = _mm256_add_ps(fR, padd2);
+                                    _mm256_storeu_ps(B_buf, fB);
+                                    _mm256_storeu_ps(G_buf, fG);
+                                    _mm256_storeu_ps(R_buf, fR);
+                                    B_buf += 8;
+                                    G_buf += 8;
+                                    R_buf += 8;
+                                    in_buffer += 24;
+                                }
+                                for (; i < channel_size; i++, in_buffer += 3) {
+                                    *B_buf++ = (in_buffer[0] * multiplier0) + offset0;
+                                    *G_buf++ = (in_buffer[1] * multiplier1) + offset1;
+                                    *R_buf++ = (in_buffer[2] * multiplier2) + offset1;
+                                }
+        #else
+                                for(unsigned channel_idx = 0; channel_idx < c; channel_idx++) {
+                                    for(unsigned i = 0; i < channel_size; i++)
+                                        output_tensor_32[dest_buf_offset+channel_idx*channel_size + i] =
+                                                offset[channel_idx] + multiplier[channel_idx]*(reverse_channels ? (float)(in_buffer[(c*i+c-channel_idx-1)]) :
+                                                (float)(in_buffer[(c*i+channel_idx)]));
+                                }
+        #endif
+                            }
+                        }
+                        else if(output_data_type == RocalTensorDataType::FP16) 
+                        {
+                            half *output_tensor_16 = static_cast<half *>(out_ptr);
+                            auto channel_size = w * h;
+                            if(c != 3) {
+                                for(unsigned i = 0; i < channel_size; i++)
+                                    output_tensor_16[dest_buf_offset + i] = offset[0] + multiplier[0] * (half)in_buffer[c * i];
+                            }
+                            else {
+        #if (ENABLE_SIMD && __AVX2__)
+                                half *B_buf_16 = output_tensor_16 + dest_buf_offset;
+                                half *G_buf_16 = B_buf_16 + channel_size;
+                                half *R_buf_16 = G_buf_16 + channel_size;
+
+                                __m256i mask_B, mask_G, mask_R;
+                                if (reverse_channels) {
+                                    mask_B = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
+                                                                0x80808003, 0x80808006, 0x80808009);
+                                    mask_G = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
+                                                                0x80808004, 0x80808007, 0x8080800A);
+                                    mask_R = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
+                                                                0x80808005, 0x80808008, 0x8080800B);
+                                } else {
+                                    mask_R = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
+                                                                0x80808003, 0x80808006, 0x80808009);
+                                    mask_G = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
+                                                                0x80808004, 0x80808007, 0x8080800A);
+                                    mask_B = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
+                                                                0x80808005, 0x80808008, 0x8080800B);
+                                }
+                                __m256 pmul0 = _mm256_set1_ps(multiplier0);
+                                __m256 pmul1 = _mm256_set1_ps(multiplier1);
+                                __m256 pmul2 = _mm256_set1_ps(multiplier2);
+                                __m256 padd0 = _mm256_set1_ps(offset0);
+                                __m256 padd1 = _mm256_set1_ps(offset1);
+                                __m256 padd2 = _mm256_set1_ps(offset2);
+                                unsigned int alignedLength = (channel_size & ~7);    // multiple of 8
+                                unsigned int i = 0;
+
+                                __m256 fR, fG, fB;
+                                __m128i tempR, tempG, tempB;
+                                for (; i < alignedLength; i += 8) {
+                                    __m256i pix0 = _mm256_loadu_si256((const __m256i *) in_buffer);
+                                    pix0 = _mm256_permutevar8x32_epi32(pix0, _mm256_setr_epi32(0, 1, 2, 3, 3, 4, 5, 6));
+                                    fB = _mm256_cvtepi32_ps(_mm256_shuffle_epi8(pix0, mask_R));
+                                    fG = _mm256_cvtepi32_ps(_mm256_shuffle_epi8(pix0, mask_G));
+                                    fR = _mm256_cvtepi32_ps(_mm256_shuffle_epi8(pix0, mask_B));
+                                    fB = _mm256_fmadd_ps(fB, pmul0, padd0);
+                                    fG = _mm256_fmadd_ps(fG, pmul1, padd1);
+                                    fR = _mm256_fmadd_ps(fR, pmul2, padd2);
+                                    tempB = _mm256_cvtps_ph(fB, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+                                    tempG = _mm256_cvtps_ph(fG, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+                                    tempR = _mm256_cvtps_ph(fR, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+                                    _mm_storeu_si128((__m128i *)B_buf_16, tempB);
+                                    _mm_storeu_si128((__m128i *)G_buf_16, tempG);
+                                    _mm_storeu_si128((__m128i *)R_buf_16, tempR);
+                                    B_buf_16 += 8;
+                                    G_buf_16 += 8;
+                                    R_buf_16 += 8;
+                                    in_buffer += 24;
+                                }
+                                for (; i < channel_size; i++, in_buffer += 3) {
+                                    *B_buf_16++ = (half) (in_buffer[0] * multiplier0) + offset0;
+                                    *G_buf_16++ = (half) (in_buffer[1] * multiplier1) + offset1;
+                                    *R_buf_16++ = (half) (in_buffer[2] * multiplier2) + offset2;
+                                }
+        #else
+                                for (unsigned channel_idx = 0; channel_idx < c; channel_idx++) {
+                                    for (unsigned i = 0; i < channel_size; i++)
+                                        output_tensor_16[dest_buf_offset + channel_idx * channel_size + i] =
+                                                offset[channel_idx] + multiplier[channel_idx] *
+                                                                    (reverse_channels ? (half) (in_buffer[(c * i + c - channel_idx - 1)])
+                                                                                        : (half) (in_buffer[(c * i + channel_idx)]));
+                                }
+        #endif
+                            }
+                        }
+                    }  // NCHW or NHWC
+                } // for loop batch
+
+                dest_buf_offset_start += single_output_image_size;
+            }
+        }
+    }
+    _convert_time.end();
+    return Status::OK;
+}
+
+MasterGraph::Status
+MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
+{
+    if(no_more_processed_data())
+        return MasterGraph::Status::NO_MORE_DATA;
+
+    // Copies to the output context given by the user
+    size_t size = _output_tensor_list[0]->info().data_size();
+    if (out_size_in_bytes != (size *_output_tensor_list.size()))
+        return MasterGraph::Status::INVALID_ARGUMENTS;
+
+    _convert_time.start();
+
+#if ENABLE_OPENCL
+    if(_output_tensor_list[0]->info().mem_type() == RocalMemType::OCL)
+    {
+        size_t dest_buf_offset = 0;
+        //NOTE: the CL_TRUE flag is only used on the last buffer read 
+        // to avoid unnecessary sequence of synchronizations
+
+        // get_read_buffers() calls block_if_empty() internally and blocks if buffers are empty until a new batch is processed
+        auto output_buffers =_ring_buffer.get_read_buffers();
+        auto out_image_idx = output_buffers.size();
+        for( auto&& output_handle: output_buffers)
+        {
+            bool sync_flag = (--out_image_idx == 0) ? CL_TRUE : CL_FALSE;
+            cl_int status;
+            if((status = clEnqueueReadBuffer(_device.resources()->cmd_queue,
+                                             (cl_mem) output_handle,
+                                             sync_flag?(CL_TRUE):CL_FALSE,
+                                             0,
+                                             size,
+                                             out_ptr+dest_buf_offset,
+                                             0 , nullptr, nullptr)) != CL_SUCCESS)
+                THROW("clEnqueueReadBuffer failed: " + TOSTR(status))
+            dest_buf_offset += size;
+        }
+    }
+    else {
+#elif ENABLE_HIP
+    if(_output_tensor_list[0]->info().mem_type() == RocalMemType::HIP)
+    {
+        //NOTE: the CL_TRUE flag is only used on the last buffer read call,
+        // to avoid unnecessary sequence of synchronizations
+
+        // get_read_buffers() calls block_if_empty() internally and blocks if buffers are empty until a new batch is processed
+        size_t dest_buf_offset = 0;
+        auto output_buffers =_ring_buffer.get_read_buffers();
+        for( auto&& output_handle: output_buffers)
+        {
+            hipError_t err = hipMemcpyDtoHAsync((void *)(out_ptr+dest_buf_offset), output_handle, size, _device.resources()->hip_stream);
+            if (err) {
+                THROW("hipMemcpyDtoHAsync failed: " + TOSTR(err))
+            }
+            dest_buf_offset += size;
+        }
+        // sync to finish copy
+        if (hipStreamSynchronize(_device.resources()->hip_stream) != hipSuccess)
+            THROW("hipStreamSynchronize failed for hipMemcpy ")
+
+    }
+    else {
+#endif
+        // get_host_master_read_buffer is blocking if _ring_buffer is empty, and blocks this thread till internal processing thread process a new batch and store in the _ring_buffer
+        memcpy(out_ptr, _ring_buffer.get_host_master_read_buffer(), size * _output_tensor_list.size());
+#if ENABLE_OPENCL || ENABLE_HIP
+    }
+#endif    
+    _convert_time.end();
+    return Status::OK;
+}
+
+TensorList *
 MasterGraph::get_output_tensors()
 {
     auto output_ptr = _ring_buffer.get_read_buffers();
