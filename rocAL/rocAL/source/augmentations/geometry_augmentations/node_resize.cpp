@@ -61,16 +61,16 @@ void ResizeNode::create_node() {
 void ResizeNode::update_node() {
     std::vector<uint32_t> src_h_dims, src_w_dims;
     // Using original width and height instead of the decoded width and height for computing resize dimensions
-    src_w_dims = _inputs[0]->info().get_orig_roi_width_vec();
-    src_h_dims = _inputs[0]->info().get_orig_roi_height_vec();
+    src_w_dims = _inputs[0]->info().get_original_roi_width_vec();
+    src_h_dims = _inputs[0]->info().get_original_roi_height_vec();
     for (unsigned i = 0; i < _batch_size; i++) {
         _src_width = src_w_dims[i];
         _src_height = src_h_dims[i];
         _dst_width = _out_width;
         _dst_height = _out_height;
         adjust_out_roi_size();
-        _dst_width = std::min(_dst_width, (unsigned)_outputs[0]->info().max_shape()[0]);
-        _dst_height = std::min(_dst_height, (unsigned)_outputs[0]->info().max_shape()[1]);
+        _dst_width = std::min(_dst_width, static_cast<unsigned>(_outputs[0]->info().max_shape()[0]));
+        _dst_height = std::min(_dst_height, static_cast<unsigned>(_outputs[0]->info().max_shape()[1]));
         _dst_roi_width_vec.push_back(_dst_width);
         _dst_roi_height_vec.push_back(_dst_height);
     }
