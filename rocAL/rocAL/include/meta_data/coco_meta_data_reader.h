@@ -44,7 +44,7 @@ private:
     pMetaDataBatch _output;
     std::string _path;
     int meta_data_reader_type;
-    void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, uint image_id = 0);
+    void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, int image_id = 0);
     void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count); // To add Mask coordinates to Metadata struct
     bool exists(const std::string &image_name) override;
     std::map<std::string, std::shared_ptr<MetaData>> _map_content;

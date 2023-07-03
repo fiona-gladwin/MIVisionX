@@ -99,7 +99,7 @@ typedef struct
 
 typedef class MetaDataInfo {
 public:
-    uint img_id = -1;
+    int img_id = -1;
     std::string img_name = "";
     ImgSize img_size = {};
 } MetaDataInfo;
@@ -121,9 +121,9 @@ public:
     virtual void set_joints_data(JointsData *joints_data) = 0;
     ImgSize& get_img_size() { return _info.img_size; }
     std::string& get_image_name() { return _info.img_name; }
-    uint& get_image_id() { return _info.img_id; }
+    int& get_image_id() { return _info.img_id; }
     void set_img_size(ImgSize img_size) { _info.img_size = std::move(img_size); }
-    void set_img_id(uint img_id) { _info.img_id = img_id; }
+    void set_img_id(int img_id) { _info.img_id = img_id; }
     void set_img_name(std::string img_name) { _info.img_name = img_name; }
     void set_metadata_info(MetaDataInfo info) { _info = std::move(info); }
     protected:
@@ -155,7 +155,7 @@ class BoundingBox : public Label
 {
 public:
     BoundingBox()= default;
-    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size = ImgSize{0, 0}, uint img_id = 0)
+    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size = ImgSize{0, 0}, int img_id = 0)
     {
         _bb_cords =std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
@@ -208,7 +208,7 @@ protected:
 
 class MetaDataInfoBatch {
 public:
-    std::vector<uint> img_ids = {};
+    std::vector<int> img_ids = {};
     std::vector<std::string> img_names = {};
     std::vector<ImgSize> img_sizes = {};
     void clear() {
@@ -252,7 +252,7 @@ public:
     virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch() = 0;
     virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() = 0;
     virtual JointsDataBatch & get_joints_data_batch() = 0;
-    std::vector<uint>& get_image_id_batch() { return _info_batch.img_ids; }
+    std::vector<int>& get_image_id_batch() { return _info_batch.img_ids; }
     std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
     ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
     MetaDataInfoBatch& get_info_batch() { return _info_batch; }
