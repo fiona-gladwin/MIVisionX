@@ -108,7 +108,7 @@ CIFAR10DataLoader::load_next()
 }
 
 void
-CIFAR10DataLoader::set_output (Tensor* output_tensor)
+CIFAR10DataLoader::set_output(Tensor* output_tensor)
 {
     _output_tensor = output_tensor;
     _output_mem_size = _output_tensor->info().data_size();

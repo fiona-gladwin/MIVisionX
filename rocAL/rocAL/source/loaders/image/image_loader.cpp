@@ -108,7 +108,7 @@ ImageLoader::load_next()
     return update_output_image();
 }
 
-void ImageLoader::set_output (Tensor* output_tensor)
+void ImageLoader::set_output(Tensor* output_tensor)
 {
     _output_tensor = output_tensor;
     _output_mem_size = ((_output_tensor->info().data_size()/ 8) * 8 + 8); // TODO - CHECK why this is a multiple of 8 here
