@@ -105,7 +105,7 @@ VideoLoader::load_next()
 void VideoLoader::set_output(Tensor *output_tensor)
 {
     _output_tensor = output_tensor;
-    _output_mem_size = _output_tensor->info().data_size();
+    _output_mem_size = ((_output_tensor->info().data_size() + 8) &~ 7); // Making output size as a multiple of 8 to support vectorized load and store in RPP
 }
 
 void VideoLoader::stop_internal_thread()
