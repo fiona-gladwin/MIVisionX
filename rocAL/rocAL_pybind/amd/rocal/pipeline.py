@@ -326,6 +326,9 @@ class Pipeline(object):
 
     def rocalResetLoaders(self):
         return b.rocalResetLoaders(self._handle)
+    
+    def rocalRelease(self):
+        return b.rocalRelease(self._handle)
 
     def isEmpty(self):
         return b.isEmpty(self._handle)
