@@ -35,6 +35,9 @@ rocalToTensor32(RocalContext p_context, float *out_ptr, RocalTensorLayout tensor
     auto context = static_cast<Context*>(p_context);
     try
     {
+        if(tensor_format != ROCAL_NHWC && tensor_format != ROCAL_NCHW)
+            THROW("Supported only for NHWC and NCHW tensor layout")
+
         auto tensor_layout = (tensor_format == ROCAL_NHWC) ?  RocalTensorlayout::NHWC : RocalTensorlayout::NCHW;
         //auto tensor_output_data_type = (tensor_data_type == ROCAL_FP32) ? RocalTensorDataType::FP32 : RocalTensorDataType::FP16;
         context->master_graph->to_tensor(out_ptr, tensor_layout, multiplier0, multiplier1, multiplier2,
@@ -57,6 +60,9 @@ rocalToTensor16(RocalContext p_context, half *out_ptr, RocalTensorLayout tensor_
     auto context = static_cast<Context*>(p_context);
     try
     {
+        if(tensor_format != ROCAL_NHWC && tensor_format != ROCAL_NCHW)
+            THROW("Supported only for NHWC and NCHW tensor layout")
+
         auto tensor_layout = (tensor_format == ROCAL_NHWC) ?  RocalTensorlayout::NHWC : RocalTensorlayout::NCHW;
         //auto tensor_output_data_type = (tensor_data_type == ROCAL_FP32) ? RocalTensorDataType::FP32 : RocalTensorDataType::FP16;
         context->master_graph->to_tensor(out_ptr, tensor_layout, multiplier0, multiplier1, multiplier2,
@@ -79,6 +85,9 @@ rocalToTensor(RocalContext p_context, void *out_ptr, RocalTensorLayout tensor_fo
     auto context = static_cast<Context*>(p_context);
     try
     {
+        if(tensor_format != ROCAL_NHWC && tensor_format != ROCAL_NCHW)
+            THROW("Supported only for NHWC and NCHW tensor layout")
+
         auto tensor_layout = (tensor_format == ROCAL_NHWC) ?  RocalTensorlayout::NHWC : RocalTensorlayout::NCHW;
         auto tensor_output_data_type = (tensor_output_type == ROCAL_FP32) ? RocalTensorDataType::FP32 : RocalTensorDataType::FP16;
         context->master_graph->to_tensor(out_ptr, tensor_layout, multiplier0, multiplier1, multiplier2,
