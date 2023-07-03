@@ -22,45 +22,12 @@ import cupy as cp
 import numpy as np
 import rocal_pybind as b
 import amd.rocal.types as types
-
-class ROCALGenericImageIterator(object):
-    def __init__(self, pipeline):
-        self.loader = pipeline
-        self.w = b.getOutputWidth(self.loader._handle)
-        self.h = b.getOutputHeight(self.loader._handle)
-        self.n = b.getOutputImageCount(self.loader._handle)
-        color_format = b.getOutputColorFormat(self.loader._handle)
-        self.p = (1 if (color_format == int(types.GRAY)) else 3)
-        height = self.h*self.n
-        self.out_tensor = None
-        self.out_bbox = None
-        self.out_image = np.zeros((height, self.w, self.p), dtype = "uint8")
-        self.bs = pipeline._batch_size
-
-    def next(self):
-        return self.__next__()
-
-    def __next__(self):
-        if(self.loader.isEmpty()):
-            raise StopIteration
-
-        if self.loader.run() != 0:
-            raise StopIteration
-
-        self.loader.copyImage(self.out_image)
-        return self.out_image , self.out_tensor
-
-    def reset(self):
-        b.rocalResetLoaders(self.loader._handle)
-
-    def __iter__(self):
-        return self
-
+import ctypes
 
 class ROCALGenericIterator(object):
     def __init__(self, pipeline, tensor_layout = types.NCHW, reverse_channels = False, multiplier = [1.0,1.0,1.0], offset = [0.0, 0.0, 0.0], tensor_dtype=types.FLOAT, display=False, device="cpu", device_id =0):
         self.loader = pipeline
-        self.tensor_format =tensor_layout
+        self.tensor_format = tensor_layout
         self.multiplier = multiplier
         self.offset = offset
         self.device= device
@@ -68,76 +35,36 @@ class ROCALGenericIterator(object):
         self.reverse_channels = reverse_channels
         self.tensor_dtype = tensor_dtype
         self.display = display
-        self.w = b.getOutputWidth(self.loader._handle)
-        self.h = b.getOutputHeight(self.loader._handle)
-        self.n = b.getOutputImageCount(self.loader._handle)
-        self.bs = pipeline._batch_size
+        self.batch_size = pipeline._batch_size
         if self.loader._name is None:
-            self.loader._name= self.loader._reader
-        color_format = b.getOutputColorFormat(self.loader._handle)
-        self.p = (1 if (color_format == int(types.GRAY)) else 3)
+            self.loader._name = self.loader._reader
         self.labels_size = ((self.bs*self.loader._numOfClasses) if (self.loader._oneHotEncoding == True) else self.bs)
-        if tensor_layout == types.NCHW:
-            if self.device == "cpu":
-                if self.tensor_dtype == types.FLOAT:
-                    self.out = np.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=np.float32)
-                elif self.tensor_dtype == types.FLOAT16:
-                    self.out = np.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=np.float16)
-                elif self.tensor_dtype == types.UINT8:
-                    self.out = np.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=np.uint8)
-                self.labels = np.empty(self.labels_size, dtype = np.int32)
-
-            else:
-                with cp.cuda.Device(device=self.device_id):
-                    if self.tensor_dtype == types.FLOAT:
-                        self.out = cp.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=cp.float32)
-                    elif self.tensor_dtype == types.FLOAT16:
-                        self.out = cp.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=cp.float16)
-                    elif self.tensor_dtype == types.UINT8:
-                        self.out = cp.empty((self.bs*self.n, self.p, int(self.h/self.bs), self.w,), dtype=cp.uint8)
-                    self.labels = cp.empty(self.labels_size, dtype = cp.int32)
-
-        else: #NHWC
-            if self.device == "cpu":
-                if self.tensor_dtype == types.FLOAT:
-                    self.out = np.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=np.float32)
-                elif self.tensor_dtype == types.FLOAT16:
-                    self.out = np.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=np.float16)
-                elif self.tensor_dtype == types.UINT8:
-                    self.out = np.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=np.uint8)
-                self.labels = np.empty(self.labels_size, dtype = np.int32)
-
-            else:
-                with cp.cuda.Device(device=self.device_id):
-                    if self.tensor_dtype == types.FLOAT:
-                        self.out = cp.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=cp.float32)
-                    elif self.tensor_dtype == types.FLOAT16:
-                        self.out = cp.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=cp.float16)
-                    elif self.tensor_dtype == types.UINT8:
-                        self.out = cp.empty((self.bs*self.n, int(self.h/self.bs), self.w, self.p), dtype=cp.uint8)
-                    self.labels = cp.empty(self.labels_size, dtype = cp.int32)
-
-
-        if self.bs != 0:
-            self.len = b.getRemainingImages(self.loader._handle)//self.bs
-        else:
-            self.len = b.getRemainingImages(self.loader._handle)
+        self.out = self.dimensions = self.dtype = None
+        self.len = b.getRemainingImages(self.loader._handle)//self.bs # iteration length
 
     def next(self):
         return self.__next__()
 
     def __next__(self):
+        
         if(b.isEmpty(self.loader._handle)):
             raise StopIteration
-
-        if self.loader.run() != 0:
-            raise StopIteration
-
-        if(types.NCHW == self.tensor_format):
-            self.loader.copyToExternalTensorNCHW(self.out, self.multiplier, self.offset, self.reverse_channels, int(self.tensor_dtype))
         else:
-            self.loader.copyToExternalTensorNHWC(self.out, self.multiplier, self.offset, self.reverse_channels, int(self.tensor_dtype))
-    
+            self.output_tensor_list = self.loader.getOutputTensors()
+
+        if self.out is None:
+            self.dimensions = self.output_tensor_list[0].dimensions()
+            if self.device == "cpu":
+                self.dtype = self.output_tensor_list[0].dtype()
+                self.out = np.empty((self.dimensions[0], self.dimensions[1], self.dimensions[2], self.dimensions[3],), dtype = self.dtype)
+                self.labels = np.empty(self.labels_size, dtype = self.dtype)
+            else:
+                self.dtype = self.output_tensor_list[0].dtype()
+                with cp.cuda.Device(device = self.device_id):
+                    self.out = cp.empty((self.dimensions[0], self.dimensions[1], self.dimensions[2], self.dimensions[3],), dtype = self.dtype)
+                    self.labels = cp.empty(self.labels_size, dtype = self.dtype)
+
+        self.output_tensor_list[0].copy_data(ctypes.c_void_p(self.out.data_ptr()))
         if(self.loader._name == "labelReader"):
             if(self.loader._oneHotEncoding == True):
                 self.loader.GetOneHotEncodedLabels(self.labels, self.device)
@@ -147,12 +74,12 @@ class ROCALGenericIterator(object):
                     for i in range(self.bs):
                         img = (self.out)
                         draw_patches(img[i], i, 0)
-                self.loader.getImageLabels(self.labels)
+                self.labels = self.loader.rocalGetImageLabels()
                 if self.device == "cpu":
-                    self.labels_tensor = self.labels.astype(dtype=np.int_)
+                    self.labels_tensor = self.labels.astype(dtype = np.int_)
                 else:
-                    with cp.cuda.Device(device=self.device_id):
-                        self.labels_tensor = self.labels.astype(dtype=cp.int_)
+                    with cp.cuda.Device(device = self.device_id):
+                        self.labels_tensor = self.labels.astype(dtype = cp.int_)
 
             return self.out, self.labels_tensor
 
@@ -239,30 +166,12 @@ class ROCALClassificationIterator(ROCALGenericIterator):
                  device_id =0):
         pipe = pipelines
         super(ROCALClassificationIterator, self).__init__(pipe, tensor_layout = pipe._tensor_layout, tensor_dtype = pipe._tensor_dtype,
-                                                            multiplier=pipe._multiplier, offset=pipe._offset,display=display, device=device, device_id = device_id)
-
-
-class ROCAL_iterator(ROCALGenericImageIterator):
-    """
-    ROCAL iterator for classification tasks for images. It returns 2 outputs
-    (data and label) in the form of numpy/cupy Tensor.
-
-    """
-    def __init__(self,
-                 pipelines,
-                 size = 0,
-                 auto_reset=False,
-                 fill_last_batch=True,
-                 dynamic_shape=False,
-                 last_batch_padded=False):
-        pipe = pipelines
-        super(ROCAL_iterator, self).__init__(pipe)
-
+                                                            multiplier = pipe._multiplier, offset = pipe._offset,display = display, device = device, device_id = device_id)
 
 def draw_patches(img,idx, bboxes):
     #image is expected as a tensor, bboxes as numpy
     import cv2
-    img=img.cpu()
+    img = img.cpu()
     image = img.detach().numpy()
     image = image.transpose([1,2,0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR )

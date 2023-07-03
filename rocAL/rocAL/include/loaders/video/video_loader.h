@@ -41,7 +41,7 @@ public:
     ~VideoLoader() override;
     LoaderModuleStatus load_next() override;
     void initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool keep_orig_size = false) override;
-    void set_output(rocalTensor* output_image) override;
+    void set_output(Tensor* output_image) override;
     size_t remaining_count() override; // returns number of remaining items to be loaded
     void reset() override;             // Resets the loader to load from the beginning
     Timing timing() override;
@@ -64,7 +64,7 @@ private:
     std::shared_ptr<VideoReadAndDecode> _video_loader;
     LoaderModuleStatus update_output_image();
     LoaderModuleStatus load_routine();
-    rocalTensor* _output_tensor;
+    Tensor* _output_tensor;
     std::vector<std::string> _output_names; //!< frame name/ids that are stored in the _output_image
     size_t _output_mem_size;
     bool _internal_thread_running;

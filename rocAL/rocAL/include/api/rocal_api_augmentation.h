@@ -33,7 +33,7 @@ THE SOFTWARE.
 /// \param new_order
 /// \param is_output
 /// \return
-extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceRearrange(RocalContext p_context, RocalTensor input,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceRearrange(RocalContext p_context, RocalTensor p_input,
                                                               std::vector<unsigned int>& new_order,
                                                               bool is_output);
 

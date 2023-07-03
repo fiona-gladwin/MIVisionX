@@ -29,15 +29,15 @@ THE SOFTWARE.
 class Node
 {
 public:
-    Node(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs) :
+    Node(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         _inputs(inputs),
         _outputs(outputs),
         _batch_size(outputs[0]->info().batch_size()) {}
     virtual ~Node();
     void create(std::shared_ptr<Graph> graph);
     void update_parameters();
-    std::vector<rocalTensor *> input() { return _inputs; };
-    std::vector<rocalTensor *> output() { return _outputs; };
+    std::vector<Tensor *> input() { return _inputs; };
+    std::vector<Tensor *> output() { return _outputs; };
     void add_next(const std::shared_ptr<Node>& node) {} // To be implemented
     void add_previous(const std::shared_ptr<Node>& node) {} //To be implemented
     std::shared_ptr<Graph> graph() { return _graph; }
@@ -46,8 +46,8 @@ public:
 protected:
     virtual void create_node() = 0;
     virtual void update_node() = 0;
-    const std::vector<rocalTensor *> _inputs;
-    const std::vector<rocalTensor *> _outputs;
+    const std::vector<Tensor *> _inputs;
+    const std::vector<Tensor *> _outputs;
     std::shared_ptr<Graph> _graph = nullptr;
     vx_tensor _src_tensor_roi = nullptr;
     vx_tensor _dst_tensor_roi = nullptr;

@@ -20,20 +20,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#pragma once
-#include "node.h"
-#include "parameter_factory.h"
-#include "parameter_vx.h"
-#include "graph.h"
+#ifndef MIVISIONX_ROCAL_API_TENSOR_H
+#define MIVISIONX_ROCAL_API_TENSOR_H
+#include "rocal_api_types.h"
 
-class SequenceRearrangeNode : public Node {
+class rocalTensor {
 public:
-    SequenceRearrangeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
-    SequenceRearrangeNode() = delete;
-    void init(std::vector<unsigned int>& new_order);
-protected:
-    void create_node() override;
-    void update_node() override;
-private:
-    std::vector<unsigned int> _new_order;
+    virtual ~rocalTensor() = default;
+    virtual void* buffer() = 0;
+    virtual unsigned copy_data(void* user_buffer, RocalOutputMemType external_mem_type = ROCAL_MEMCPY_HOST) = 0;
+    virtual unsigned num_of_dims() = 0;
+    virtual unsigned batch_size() = 0;
+    virtual std::vector<size_t> dims() = 0;
+    virtual RocalTensorLayout layout() = 0;
+    virtual RocalTensorBackend backend() = 0;
+    virtual RocalTensorOutputType data_type() = 0;
+    virtual size_t data_size() = 0;
+    virtual RocalROICordsType roi_type() = 0;
+    virtual RocalROICords *get_roi() = 0;
+    virtual std::vector<size_t> shape() = 0;
 };
+
+class rocalTensorList {
+public:
+    virtual uint64_t size() = 0;
+    virtual rocalTensor* at(size_t index) = 0;
+    // isDenseTensor
+};
+
+typedef rocalTensor * RocalTensor;
+typedef rocalTensorList * RocalTensorList;
+typedef std::vector<rocalTensorList *> RocalMetaData;
+
+#endif //MIVISIONX_ROCAL_API_TENSOR_H
+
