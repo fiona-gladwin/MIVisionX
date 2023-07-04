@@ -252,6 +252,8 @@ Reader::Status FileSourceReader::open_folder()
     }
     if(_file_names.empty())
         WRN("FileReader ShardID ["+ TOSTR(_shard_id)+ "] Did not load any file from " + _folder_path)
+    std::sort(_file_names.begin(), _file_names.end());
+    _last_file_name = _file_names[_file_names.size()-1];
 
     closedir(_src_dir);
     return Reader::Status::OK;

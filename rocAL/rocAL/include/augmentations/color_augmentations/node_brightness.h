@@ -31,17 +31,13 @@ class BrightnessNode : public Node
 public:
     BrightnessNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     BrightnessNode() = delete;
-
-    void init( float alpha, float beta);
-    void init( FloatParam* alpha_param, FloatParam* beta_param);
-
+    void init(float alpha, float beta);
+    void init(FloatParam* alpha_param, FloatParam* beta_param);
 protected:
     void create_node() override ;
     void update_node() override;
 private:
-
-    ParameterVX<float> _alpha;
-    ParameterVX<float> _beta;
+    ParameterVX<float> _alpha, _beta;
     constexpr static float ALPHA_RANGE [2] = {0.1, 1.95};
     constexpr static float   BETA_RANGE [2] = {0, 25};
 };
