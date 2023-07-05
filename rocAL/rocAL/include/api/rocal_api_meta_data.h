@@ -145,8 +145,8 @@ extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int
 ///
 /// \param rocal_context
 /// \param bufcount The user's buffer that will be filled with polygon size for the mask info
-/// \return The tensorlist with the mask coordinates
-extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int* bufcount);
+/// \param buf The user's buffer that will be filled with mask info for the images in the output batch. It needs to be of size returned by a call to the rocalGetMaskCount
+extern "C" void ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext rocal_context, int* bufcount, float* buf);
 
 ///
 /// \param rocal_context
@@ -156,6 +156,7 @@ extern "C" RocalTensorList ROCAL_API_CALL rocalGetBoundingBoxCords(RocalContext 
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetMatchedIndices(RocalContext rocal_context);
 
 extern "C" void ROCAL_API_CALL rocalGetImageSizes(RocalContext rocal_context, int* buf );
+extern "C" void ROCAL_API_CALL rocalGetROIImageSizes(RocalContext rocal_context, int* buf );
 
 ///
 /// \param rocal_context

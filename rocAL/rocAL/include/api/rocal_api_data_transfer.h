@@ -38,7 +38,7 @@ extern "C"  RocalStatus   ROCAL_API_CALL rocalToTensor(RocalContext p_context, v
                                                               RocalTensorlayout tensor_format, RocalTensorOutputType tensor_output_type, 
                                                               float multiplier0, float multiplier1, float multiplier2, float offset0, 
                                                               float offset1, float offset2,
-                                                              bool reverse_channels, RocalOutputMemType output_mem_type);
+                                                              bool reverse_channels, RocalOutputMemType output_mem_type, int max_height=0, int max_width=0);
 
 extern "C"  RocalStatus   ROCAL_API_CALL rocalCopyToOutputTensor32(RocalContext rocal_context, float *out_ptr,
                                                               RocalTensorLayout tensor_format, float multiplier0,

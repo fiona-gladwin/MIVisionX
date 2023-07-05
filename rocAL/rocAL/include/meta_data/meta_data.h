@@ -102,6 +102,7 @@ public:
     uint img_id = -1;
     std::string img_name = "";
     ImgSize img_size = {};
+    ImgSize img_roi_size = {};
 } MetaDataInfo;
 
 class MetaData
@@ -120,9 +121,11 @@ public:
     virtual JointsData& get_joints_data() = 0;
     virtual void set_joints_data(JointsData *joints_data) = 0;
     ImgSize& get_img_size() { return _info.img_size; }
+    ImgSize& get_img_roi_size() { return _info.img_roi_size; }
     std::string& get_image_name() { return _info.img_name; }
     uint& get_image_id() { return _info.img_id; }
     void set_img_size(ImgSize img_size) { _info.img_size = std::move(img_size); }
+    void set_img_roi_size(ImgSize img_roi_size) { _info.img_roi_size = std::move(img_roi_size); }
     void set_img_id(uint img_id) { _info.img_id = img_id; }
     void set_img_name(std::string img_name) { _info.img_name = img_name; }
     void set_metadata_info(MetaDataInfo info) { _info = std::move(info); }
@@ -211,18 +214,22 @@ public:
     std::vector<uint> img_ids = {};
     std::vector<std::string> img_names = {};
     std::vector<ImgSize> img_sizes = {};
+    std::vector<ImgSize> img_roi_sizes = {};
     void clear() {
         img_ids.clear();
         img_names.clear();
         img_sizes.clear();
+        img_roi_sizes.clear();
     }
     void resize(int batch_size) {
         img_ids.resize(batch_size);
         img_names.resize(batch_size);
         img_sizes.resize(batch_size);
+        img_roi_sizes.resize(batch_size);
     }
     void insert(MetaDataInfoBatch &other) {
         img_sizes.insert(img_sizes.end(), other.img_sizes.begin(), other.img_sizes.end());
+        img_roi_sizes.insert(img_roi_sizes.end(), other.img_roi_sizes.begin(), other.img_roi_sizes.end());
         img_ids.insert(img_ids.end(), other.img_ids.begin(), other.img_ids.end());
         img_names.insert(img_names.end(), other.img_names.begin(), other.img_names.end());
     }
@@ -255,6 +262,7 @@ public:
     std::vector<uint>& get_image_id_batch() { return _info_batch.img_ids; }
     std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
     ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
+    ImgSizes& get_img_roi_sizes_batch() { return _info_batch.img_roi_sizes; }
     MetaDataInfoBatch& get_info_batch() { return _info_batch; }
     void set_metadata_type(MetaDataType metadata_type) { _type = metadata_type; }
     MetaDataType get_metadata_type() { return _type; }

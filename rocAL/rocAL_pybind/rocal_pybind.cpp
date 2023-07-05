@@ -93,11 +93,40 @@ namespace rocal
         return py::bytes(s);
     }
 
+    py::object wrapper_img_roi_sizes_copy(RocalContext context, py::array_t<int> array)
+    {
+        auto buf = array.request();
+        int* ptr = (int*) buf.ptr;
+        // call pure C++ function
+        rocalGetROIImageSizes(context, ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
+    py::object wrapper_mask_count_copy(RocalContext context, py::array_t<int> array)
+    {
+        auto buf = array.request();
+        int* ptr = (int*) buf.ptr;
+        // call pure C++ function
+        int count = rocalGetMaskCount(context,ptr);
+        return py::cast(count);
+    }
+
+    py::object wrapper_mask_coordinates_copy(RocalContext context, py::array_t<int> array_count, py::array_t<float> array)
+    {
+        auto buf = array.request();
+        float* ptr = (float*) buf.ptr;
+        auto buf_count = array_count.request();
+        int* ptr1 = (int*) buf_count.ptr;
+        // call pure C++ function
+        rocalGetMaskCoordinates(context, ptr1, ptr);
+        return py::cast<py::none>(Py_None);
+    }
+
     py::object wrapper_tensor(RocalContext context, py::object p,
                                 RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type, float multiplier0,
                                 float multiplier1, float multiplier2, float offset0,
                                 float offset1, float offset2,
-                                bool reverse_channels, RocalOutputMemType output_mem_type)
+                                bool reverse_channels, RocalOutputMemType output_mem_type, int max_height, int max_width)
     {
         auto ptr = ctypes_void_ptr(p);
         // call pure C++ function
@@ -110,7 +139,7 @@ namespace rocal
 
         int status = rocalToTensor(context, ptr, new_tensor_format, tensor_output_type, multiplier0,
                                               multiplier1, multiplier2, offset0,
-                                              offset1, offset2, reverse_channels, output_mem_type);
+                                              offset1, offset2, reverse_channels, output_mem_type, max_height, max_width);
         // std::cerr<<"\n Copy failed with status :: "<<status;
         return py::cast<py::none>(Py_None);
     }
@@ -355,6 +384,8 @@ namespace rocal
         m.def("COCOReader", &rocalCreateCOCOReader, py::return_value_policy::reference);
         // rocal_api_meta_data.h
         m.def("RandomBBoxCrop", &rocalRandomBBoxCrop);
+        m.def("getMaskCount", &wrapper_mask_count_copy);
+        m.def("getMaskCoordinates", &wrapper_mask_coordinates_copy);
         m.def("BoxEncoder",&rocalBoxEncoder);
         m.def("BoxIOUMatcher", &rocalBoxIOUMatcher);
         m.def("getImageId", [](RocalContext context, py::array_t<int> array)
@@ -369,6 +400,13 @@ namespace rocal
             auto buf = array.request();
             int* ptr = (int*) buf.ptr;
             rocalGetImageSizes(context,ptr);
+        }
+        );
+        m.def("getROIImgSizes", [](RocalContext context, py::array_t<int> array)
+        {
+            auto buf = array.request();
+            int* ptr = (int*) buf.ptr;
+            rocalGetROIImageSizes(context,ptr);
         }
         );
         // rocal_api_parameter.h

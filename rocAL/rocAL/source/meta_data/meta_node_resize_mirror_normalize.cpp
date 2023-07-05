@@ -24,9 +24,11 @@ THE SOFTWARE.
 
 void ResizeMirrorNormalizeMetaNode::initialize()
 {
-    _mirror_val.resize(_batch_size);
     _src_height_val.resize(_batch_size);
     _src_width_val.resize(_batch_size);
+    _dst_width_val.resize(_batch_size);
+    _dst_height_val.resize(_batch_size);
+    _mirror_val.resize(_batch_size);
 }
 void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
@@ -36,36 +38,60 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
         _batch_size = input_meta_data->size();
     }
     _mirror = _node->return_mirror();
+    _src_width = _node->get_src_width();
+    _src_height = _node->get_src_height();
+    _dst_width = _node->get_dst_width();
+    _dst_height = _node->get_dst_height();
 
     vxCopyArrayRange((vx_array)_mirror, 0, _batch_size, sizeof(uint), _mirror_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_src_width, 0, _batch_size, sizeof(uint), _src_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_src_height, 0, _batch_size, sizeof(uint), _src_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_dst_width, 0, _batch_size, sizeof(uint), _dst_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_dst_height, 0, _batch_size, sizeof(uint), _dst_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
 
     for (int i = 0; i < _batch_size; i++)
     {
+        _dst_to_src_width_ratio = _dst_width_val[i] / float(_src_width_val[i]);
+        _dst_to_src_height_ratio = _dst_height_val[i] / float(_src_height_val[i]);
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
-        Labels labels_buf = input_meta_data->get_labels_batch()[i];
+        Labels labels_buf = input_meta_data->get_labels_batch()[i];        
         BoundingBoxCords bb_coords;
         Labels bb_labels;
+        if (input_meta_data->get_metadata_type() == MetaDataType::PolygonMask)
+        {
+            // auto ptr = mask_data;
+            auto mask_data_ptr = input_meta_data->get_mask_cords_batch()[i].data();
+            int mask_size = input_meta_data->get_mask_cords_batch()[i].size();
+            for (int idx = 0; idx < mask_size; idx += 2)
+            {
+                if(_mirror_val[i] == 1)
+                {
+                    mask_data_ptr[idx] = _dst_width_val[i] - (mask_data_ptr[idx] * _dst_to_src_width_ratio) - 1;
+                    mask_data_ptr[idx + 1] = mask_data_ptr[idx + 1] * _dst_to_src_height_ratio;
+                }
+                else
+                {
+                    mask_data_ptr[idx] = mask_data_ptr[idx] * _dst_to_src_width_ratio;
+                    mask_data_ptr[idx + 1] = mask_data_ptr[idx + 1] * _dst_to_src_height_ratio;
+                }
+            }
+        }
+
         for (uint j = 0; j < bb_count; j++)
         {
-            /*if(_mirror_val[i] == 1)
+            if(_mirror_val[i] == 1)
             {
-                float one_by_width_coeff = 1 / float(dst_roi[i].x2);
-                float l = 1 - coords_buf[j].r - one_by_width_coeff;
+                double one_by_width_coeff = 1 / double(_dst_width_val[i]);
+                double l = 1 - coords_buf[j].r - one_by_width_coeff;
                 coords_buf[j].r = 1 - coords_buf[j].l - one_by_width_coeff;
-                coords_buf[j].l = l;
-            }*/
-            if (_mirror_val[i] == 1)
-            {
-
-                double l = 1 - coords_buf[j].r;
-                coords_buf[j].r = 1 - coords_buf[j].l;
-                coords_buf[j].l = l;
+                coords_buf[j].l = l; 
             }
             bb_coords.push_back(coords_buf[j]);
             bb_labels.push_back(labels_buf[j]);
         }
         output_meta_data->get_bb_cords_batch()[i] = bb_coords;
         output_meta_data->get_labels_batch()[i] = bb_labels;
+        output_meta_data->get_mask_cords_batch()[i] = input_meta_data->get_mask_cords_batch()[i];
     }
 }
