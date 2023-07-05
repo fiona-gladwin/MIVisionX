@@ -217,6 +217,7 @@ ROCAL_API_CALL rocalGetImageId(RocalContext p_context,  int* buf)
     {
         std::string str_id = meta_data.first[i].erase(0, meta_data.first[i].find_first_not_of('0'));
         buf[i] = stoi(str_id);
+        // buf[i] = meta_data.second->get_image_id_batch()[i];  // TODO - Change for retinanet pipeline
     }
 }
 
@@ -396,7 +397,7 @@ ROCAL_API_CALL rocalGetImageSizes(RocalContext p_context, int* buf)
     for(unsigned i = 0; i < meta_data_batch_size; i++)
     {
         memcpy(buf, &(meta_data.second->get_img_sizes_batch()[i]), sizeof(ImgSize));
-        buf += 3; // TODO - To be checked if this is valid anymore
+        buf += 2;
     }
 }
 
