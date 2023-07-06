@@ -35,6 +35,7 @@ from rocal_pybind.types import CPU
 from rocal_pybind.types import UINT8
 from rocal_pybind.types import FLOAT
 from rocal_pybind.types import FLOAT16
+from rocal_pybind.types import UINT8
 
 #  RocalOutputMemType
 from rocal_pybind.types import CPU_MEMORY
@@ -96,6 +97,7 @@ _known_types = {
     UINT8: ("UINT8", UINT8),
     FLOAT: ("FLOAT", FLOAT),
     FLOAT16: ("FLOAT16", FLOAT16),
+    UINT8 : ("UINT8", UINT8),
     CPU_MEMORY: ("CPU_MEMORY", CPU_MEMORY),
     GPU_MEMORY: ("GPU_MEMORY", GPU_MEMORY),
     PINNED_MEMORY: ("PINNED_MEMORY", PINNED_MEMORY),

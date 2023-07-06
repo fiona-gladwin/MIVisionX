@@ -31,10 +31,11 @@ THE SOFTWARE.
 
 RocalTensor  ROCAL_API_CALL
 rocalSequenceRearrange(RocalContext p_context,
-                       RocalTensor input,
+                       RocalTensor p_input,
                        std::vector<unsigned int>& new_order,
                        bool is_output) {
-    rocalTensor* output = nullptr;
+    Tensor* output = nullptr;
+    auto input = static_cast<Tensor*>(p_input);
     if ((p_context == nullptr) || (input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
@@ -44,7 +45,7 @@ rocalSequenceRearrange(RocalContext p_context,
 
         if(new_order.size() == 0)
             THROW("The new order for the sequence passed should be greater than 0")
-        rocalTensorInfo output_info = input->info();
+        TensorInfo output_info = input->info();
         std::vector<size_t> new_dims;
         new_dims = output_info.dims();
         new_dims[1] = new_order.size();
@@ -616,20 +617,20 @@ rocalBrightness(
         RocalFloatParam p_beta,
         RocalTensorLayout rocal_tensor_output_layout,
         RocalTensorOutputType rocal_tensor_output_datatype) {
-    rocalTensor* output = nullptr;
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input tensor")
         return output;
     }
 
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<rocalTensor*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     auto alpha = static_cast<FloatParam*>(p_alpha);
     auto beta = static_cast<FloatParam*>(p_beta);
     try {
         RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
         RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
-        rocalTensorInfo output_info = input->info();
+        TensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensorLayout);
         output_info.set_data_type(op_tensorDataType);
         output = context->master_graph->create_tensor(output_info, is_output);
@@ -1675,20 +1676,20 @@ rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned c
                          std::vector<float> &std_dev, bool is_output, RocalIntParam p_mirror, 
                          RocalTensorLayout rocal_tensor_output_layout,
                          RocalTensorOutputType rocal_tensor_output_datatype) {
-    rocalTensor* output = nullptr;
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input tensor")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<rocalTensor*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     auto mirror = static_cast<IntParam *>(p_mirror);
     try {
         if( crop_width == 0 || crop_height == 0)
             THROW("Null values passed as input")
         RocalTensorlayout op_tensorLayout = (RocalTensorlayout)rocal_tensor_output_layout;
         RocalTensorDataType op_tensorDataType = (RocalTensorDataType)rocal_tensor_output_datatype;
-        rocalTensorInfo output_info = input->info();
+        TensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensorLayout);
         output_info.set_data_type(op_tensorDataType);
         

@@ -39,9 +39,6 @@ using half_float::half;
 typedef void * RocalFloatParam;
 typedef void * RocalIntParam;
 typedef void * RocalContext;
-typedef std::vector<rocalTensorList *> RocalMetaData;
-typedef rocalTensor * RocalTensor;
-typedef rocalTensorList * RocalTensorList;
 
 typedef std::vector<int> ImageIDBatch,AnnotationIDBatch;
 typedef std::vector<std::string> ImagePathBatch;
@@ -121,7 +118,8 @@ enum RocalTensorLayout
     ROCAL_NHWC = 0,
     ROCAL_NCHW = 1,
     ROCAL_NFHWC = 2,
-    ROCAL_NFCHW = 3
+    ROCAL_NFCHW = 3,
+    ROCAL_NONE = 4 // Layout for generic tensors (Non-Image or Non-Video)
 };
 
 enum RocalTensorOutputType
@@ -168,4 +166,21 @@ enum RocalResizeInterpolationType {
     ROCAL_TRIANGULAR_INTERPOLATION = 5
 };
 
+enum RocalTensorBackend {
+    ROCAL_CPU = 0,
+    ROCAL_GPU = 1
+};
+
+/*! \brief Tensor ROI type
+ *
+ * currently supports following formats
+ */
+enum class RocalROICordsType {
+    ROCAL_XYWH = 0,
+    ROCAL_LTRB = 1
+};
+
+typedef struct {
+    unsigned x1, y1, x2, y2;
+} RocalROICords;
 #endif //MIVISIONX_ROCAL_API_TYPES_H

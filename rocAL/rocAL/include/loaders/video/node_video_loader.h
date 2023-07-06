@@ -30,7 +30,7 @@ THE SOFTWARE.
 class VideoLoaderNode : public Node
 {
 public:
-    VideoLoaderNode(rocalTensor *output, void * device_resources);
+    VideoLoaderNode(Tensor *output, void * device_resources);
     ~VideoLoaderNode() override;
     VideoLoaderNode() = delete;
     ///

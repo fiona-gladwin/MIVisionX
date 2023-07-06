@@ -30,7 +30,7 @@ THE SOFTWARE.
 class VideoLoaderSingleShardNode : public Node
 {
 public:
-    VideoLoaderSingleShardNode(rocalTensor *output, void *device_resources);
+    VideoLoaderSingleShardNode(Tensor *output, void *device_resources);
     ~VideoLoaderSingleShardNode() override;
 
     /// \param user_shard_count shard count from user

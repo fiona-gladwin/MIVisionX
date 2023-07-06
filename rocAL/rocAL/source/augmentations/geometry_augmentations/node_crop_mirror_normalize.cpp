@@ -26,8 +26,8 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-CropMirrorNormalizeNode::CropMirrorNormalizeNode(const std::vector<rocalTensor *> &inputs,
-                                                 const std::vector<rocalTensor *> &outputs) :
+CropMirrorNormalizeNode::CropMirrorNormalizeNode(const std::vector<Tensor *> &inputs,
+                                                 const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1]) {
         _crop_param = std::make_shared<RocalCropParam>(_batch_size);

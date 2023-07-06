@@ -120,7 +120,7 @@ ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outpu
     auto context = static_cast<Context *>(p_context);
     std::vector<Image*> output_images_vector ;
     for (auto& it : output_images) {
-        auto img = static_cast<Image*>(it);
+        auto img = static_cast<Tensor *>(it);
         context->master_graph->set_output(img);
     }
 }

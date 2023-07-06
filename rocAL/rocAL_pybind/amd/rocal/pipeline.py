@@ -138,6 +138,7 @@ class Pipeline(object):
         self._name = None
         self._anchors = None
         self._BoxEncoder = None
+        self._BoxIOUMatcher = None
         self._encode_tensor = None
         self._numOfClasses = None
         self._oneHotEncoding = False
@@ -156,7 +157,7 @@ class Pipeline(object):
             exit(0)
         return self
 
-    def run(self):
+    def rocalRun(self):
         """ Run the pipeline using rocalRun call
         """
         status = b.rocalRun(self._handle)
@@ -174,48 +175,6 @@ class Pipeline(object):
     def get_handle(self):
         return self._handle
 
-    def copyImage(self, array):
-        out = np.frombuffer(array, dtype=array.dtype)
-        b.rocalCopyToOutput(
-            self._handle, np.ascontiguousarray(out, dtype=array.dtype))
-
-    def copyToExternalTensor(self, array,  multiplier, offset, reverse_channels, tensor_format, tensor_dtype):
-
-        b.rocalToTensor(self._handle, ctypes.c_void_p(array.data_ptr()), tensor_format, tensor_dtype,
-                                    multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
-
-    def copyToExternalTensorNHWC(self, array,  multiplier, offset, reverse_channels, tensor_dtype):
-        if(self._rocal_cpu):
-            out = np.frombuffer(array, dtype=array.dtype)
-            if tensor_dtype == types.FLOAT:
-                b.rocalToTensor32(self._handle, np.ascontiguousarray(out, dtype=array.dtype), types.NHWC,
-                                        multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
-            elif tensor_dtype == types.FLOAT16:
-                b.rocalToTensor16(self._handle, np.ascontiguousarray(out, dtype=array.dtype), types.NHWC,
-                                       multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
-        else:
-            if tensor_dtype == types.FLOAT:
-                b.rocalCupyToTensor32(self._handle, array.data.ptr, types.NHWC,
-                                        multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
-            elif tensor_dtype == types.FLOAT16:
-                b.rocalCupyToTensor16(self._handle, ctypes.c_void_p(array.ctypes.data), types.NHWC,
-                                       multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
-    def copyToExternalTensorNCHW(self, array,  multiplier, offset, reverse_channels, tensor_dtype):
-        if(self._rocal_cpu):
-            out = np.frombuffer(array, dtype=array.dtype)
-            if tensor_dtype == types.FLOAT:
-                b.rocalToTensor32(self._handle, np.ascontiguousarray(out, dtype=array.dtype), types.NCHW,
-                                        multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
-            elif tensor_dtype == types.FLOAT16:
-                b.rocalToTensor16(self._handle, np.ascontiguousarray(out, dtype=array.dtype), types.NCHW,
-                                        multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
-        else:
-            if tensor_dtype == types.FLOAT:
-                b.rocalCupyToTensor32(self._handle, array.data.ptr, types.NCHW,
-                                        multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
-            elif tensor_dtype == types.FLOAT16:
-                b.rocalCupyToTensor16(self._handle, ctypes.c_void_p(array.ctypes.data), types.NCHW,
-                                        multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type)
     def GetOneHotEncodedLabels(self, array, device):
         if device=="cpu":
             if (isinstance(array,np.ndarray)):
@@ -275,23 +234,17 @@ class Pipeline(object):
     def GetImageId(self, array):
         b.getImageId(self._handle, array)
 
-    def GetBoundingBoxCount(self, array):
-        return b.getBoundingBoxCount(self._handle, array)
+    def GetBoundingBoxCount(self):
+        return b.getBoundingBoxCount(self._handle)
 
-    def GetBBLabels(self, array):
-        return b.getBBLabels(self._handle, array)
+    def GetBoundingBoxLabels(self):
+        return b.getBoundingBoxLabels(self._handle)
 
-    def GetBBCords(self, array):
-        return b.getBBCords(self._handle, array)
+    def GetBoundingBoxCords(self):
+        return b.getBoundingBoxCords(self._handle)
 
-    def getImageLabels(self, array):
-        if (isinstance(array,np.ndarray)):
-            b.getImageLabels(self._handle, array.ctypes.data_as(ctypes.c_void_p), self._output_memory_type)
-        elif (isinstance(array,cp.ndarray)):
-            # Not passing copy_labels_to_device since if cupy arrays are already device memory
-            b.getCupyImageLabels(self._handle, array.data.ptr, self._output_memory_type)
-        else: #pytorch tensor
-            b.getImageLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._output_memory_type)
+    def GetImageLabels(self):
+        return b.getImageLabels(self._handle)
 
     def copyEncodedBoxesAndLables(self, bbox_array, label_array):
         b.rocalCopyEncodedBoxesAndLables(self._handle, bbox_array, label_array)
@@ -302,23 +255,8 @@ class Pipeline(object):
     def GetImgSizes(self, array):
         return b.getImgSizes(self._handle, array)
 
-    def GetBoundingBox(self,array):
-        return array
-
     def GetImageNameLength(self,idx):
         return b.getImageNameLen(self._handle,idx)
-
-    def getOutputWidth(self):
-        return b.getOutputWidth(self._handle)
-
-    def getOutputHeight(self):
-        return b.getOutputHeight(self._handle)
-
-    def getOutputImageCount(self):
-        return b.getOutputImageCount(self._handle)
-
-    def getOutputColorFormat(self):
-        return b.getOutputColorFormat(self._handle)
 
     def getRemainingImages(self):
         return b.getRemainingImages(self._handle)
@@ -331,6 +269,29 @@ class Pipeline(object):
 
     def Timing_Info(self):
         return b.getTimingInfo(self._handle)
+
+    def GetMatchedIndices(self):
+        return b.getMatchedIndices(self._handle)
+
+    def GetOutputTensors(self):
+        return b.getOutputTensors(self._handle)
+
+    def run(self):
+        """
+        It rises StopIteration if data set reached its end.
+        return:
+        :return:
+        A list of `rocalTensorList` objects for respective pipeline outputs.
+        """
+        try:
+            print("getRemainingImages :", self.getRemainingImages())
+            if self.getRemainingImages() > 0:
+                self.rocalRun()
+                return b.getOutputTensors(self._handle)
+        except:
+                print("Raise stop iter")
+                raise StopIteration
+
 
 def _discriminate_args(func, **func_kwargs):
     """Split args on those applicable to Pipeline constructor and the decorated function."""
