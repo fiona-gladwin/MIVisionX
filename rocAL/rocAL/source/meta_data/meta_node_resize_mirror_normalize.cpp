@@ -58,14 +58,10 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
         Labels labels_buf = input_meta_data->get_labels_batch()[i];        
         BoundingBoxCords bb_coords;
         Labels bb_labels;
-        auto mask_coords = input_meta_data->get_mask_cords_batch()[i];
-        auto mask_polygons_count = input_meta_data->get_mask_polygons_count_batch()[i];
-        auto mask_vertices_count = input_meta_data->get_mask_vertices_count_batch()[i];
         if (input_meta_data->get_metadata_type() == MetaDataType::PolygonMask)
         {
-            // auto ptr = mask_data;
-            auto mask_data_ptr = mask_coords;
-            int mask_size = mask_coords.size();
+            auto mask_data_ptr = input_meta_data->get_mask_cords_batch()[i].data();
+            int mask_size = input_meta_data->get_mask_cords_batch()[i].size();
             for (int idx = 0; idx < mask_size; idx += 2)
             {
                 if(_mirror_val[i] == 1)
@@ -95,8 +91,8 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
         }
         output_meta_data->get_bb_cords_batch()[i] = bb_coords;
         output_meta_data->get_labels_batch()[i] = bb_labels;
-        output_meta_data->get_mask_cords_batch()[i] = mask_coords;
-        output_meta_data->get_mask_polygons_count_batch()[i] = mask_polygons_count;
-        output_meta_data->get_mask_vertices_count_batch()[i] = mask_vertices_count;
+        output_meta_data->get_mask_cords_batch()[i] = input_meta_data->get_mask_cords_batch()[i];
+        output_meta_data->get_mask_polygons_count_batch()[i] = input_meta_data->get_mask_polygons_count_batch()[i];
+        output_meta_data->get_mask_vertices_count_batch()[i] = input_meta_data->get_mask_vertices_count_batch()[i];
     }
 }
