@@ -627,12 +627,13 @@ namespace rocal{
                             sizeof(double),
                             py::format_descriptor<double>::format(),
                             1,
-                            { boxes->at(i)->dims().at(0) * 4},
+                            {boxes->at(i)->dims().at(0) * 4},
                             {sizeof(double) }));
                 boxes_list.append(boxes_array);
             }
             return boxes_list;
         });
+        // Will be enabled when IOU matcher changes are introduced in C++
         // m.def("getMatchedIndices", [](RocalContext context) {
         //     rocalTensorList *matches = rocalGetMatchedIndices(context);
         //     return py::array(py::buffer_info(
@@ -654,7 +655,7 @@ namespace rocal{
                             py::format_descriptor<int>::format(),
                             2,
                             {batch_size, num_anchors},
-                            {num_anchors*sizeof(int), sizeof(int)}));
+                            {num_anchors * sizeof(int), sizeof(int)}));
 
                 py::array_t<float> bboxes_array = py::array_t<float>(py::buffer_info(
                             bboxes_buf_ptr,
@@ -662,7 +663,7 @@ namespace rocal{
                             py::format_descriptor<float>::format(),
                             1,
                             {batch_size * num_anchors * 4},
-                            {sizeof(float)} ));
+                            {sizeof(float)}));
                 return std::make_pair(labels_array, bboxes_array);
         }
         );

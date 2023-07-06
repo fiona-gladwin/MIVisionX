@@ -437,7 +437,7 @@ MasterGraph::output_width()
 size_t
 MasterGraph::output_height()
 {
-    return _output_tensor_list[0]->info().max_shape()[0];
+    return _output_tensor_list[0]->info().max_shape()[1];
 }
 
 void
@@ -516,7 +516,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         THROW("The output tensor is not of UINT8 type")
 
     if (_output_tensor_list[0]->info().color_format() == RocalColorFormat::RGB_PLANAR)
-        return MasterGraph::copy_out_tensor_planar(out_ptr,format,multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, output_data_type);
+        return MasterGraph::copy_out_tensor_planar(out_ptr, format,multiplier0, multiplier1, multiplier2, offset0, offset1, offset2, reverse_channels, output_data_type);
 
     _convert_time.start();
     // Copies to the output context given by the user
@@ -526,7 +526,6 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
     const size_t h = dims[1];
     const size_t w = dims[2];
     const size_t single_output_image_size = _output_tensor_list[0]->info().data_size();
-
 
 #if ENABLE_OPENCL
     if(_output_tensor_list[0]->info().mem_type() == RocalMemType::OCL)
@@ -609,7 +608,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         unsigned dest_buf_offset = 0;
         // copy hip buffer to out_ptr
         // todo:: add callback routing to exchange memory pointer to avoid extra copy
-        for( auto&& out_image: output_buffers)
+        for(auto&& out_image: output_buffers)
         {
             auto img_buffer = out_image;
             if (format == RocalTensorlayout::NHWC)
@@ -671,8 +670,8 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
     {
         if(output_mem_type == RocalOutputMemType::ROCAL_MEMCPY_HOST)
         {
-            float multiplier[3] = {multiplier0, multiplier1, multiplier2 };
-            float offset[3] = {offset0, offset1, offset2 };
+            float multiplier[3] = {multiplier0, multiplier1, multiplier2};
+            float offset[3] = {offset0, offset1, offset2};
             size_t dest_buf_offset_start = 0;
 
             auto output_buffers =_ring_buffer.get_read_buffers();
@@ -683,8 +682,8 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
                 #pragma omp parallel for num_threads(num_threads)
                 for(unsigned int batchCount = 0; batchCount < n; batchCount ++)
                 {
-                    size_t dest_buf_offset = dest_buf_offset_start + single_image_size*batchCount;
-                    auto in_buffer = (unsigned char*)out_image + single_image_size*batchCount;
+                    size_t dest_buf_offset = dest_buf_offset_start + single_image_size * batchCount;
+                    auto in_buffer = (unsigned char*)out_image + single_image_size * batchCount;
 
                     if(format == RocalTensorlayout::NHWC)
                     {
@@ -718,11 +717,11 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
                         if(output_data_type == RocalTensorDataType::FP32)
                         {
                             float *output_tensor_32 = static_cast<float *>(out_ptr);
-                            auto channel_size  = w * h;
+                            auto channel_size = w * h;
                             if(c != 3)
                             {
                                 for(unsigned i = 0; i < channel_size; i++)
-                                    output_tensor_32[dest_buf_offset + i] = offset[0] + multiplier[0]*(float)in_buffer[c*i];
+                                    output_tensor_32[dest_buf_offset + i] = offset[0] + multiplier[0] * (float)in_buffer[c * i];
                             }
                             else {
         #if (ENABLE_SIMD && __AVX2__)
@@ -784,9 +783,9 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         #else
                                 for(unsigned channel_idx = 0; channel_idx < c; channel_idx++) {
                                     for(unsigned i = 0; i < channel_size; i++)
-                                        output_tensor_32[dest_buf_offset+channel_idx*channel_size + i] =
-                                                offset[channel_idx] + multiplier[channel_idx]*(reverse_channels ? (float)(in_buffer[(c*i+c-channel_idx-1)]) :
-                                                (float)(in_buffer[(c*i+channel_idx)]));
+                                        output_tensor_32[dest_buf_offset + channel_idx * channel_size + i] =
+                                                offset[channel_idx] + multiplier[channel_idx] * (reverse_channels ? (float)(in_buffer[(c * i + c - channel_idx - 1)]) :
+                                                (float)(in_buffer[(c * i + channel_idx)]));
                                 }
         #endif
                             }
@@ -932,7 +931,7 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
         auto output_buffers =_ring_buffer.get_read_buffers();
         for( auto&& output_handle: output_buffers)
         {
-            hipError_t err = hipMemcpyDtoHAsync((void *)(out_ptr+dest_buf_offset), output_handle, size, _device.resources()->hip_stream);
+            hipError_t err = hipMemcpyDtoHAsync((void *)(out_ptr + dest_buf_offset), output_handle, size, _device.resources()->hip_stream);
             if (err) {
                 THROW("hipMemcpyDtoHAsync failed: " + TOSTR(err))
             }
