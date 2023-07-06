@@ -99,7 +99,7 @@ typedef struct
 
 typedef class MetaDataInfo {
 public:
-    uint img_id = -1;
+    int img_id = -1;
     std::string img_name = "";
     ImgSize img_size = {};
     ImgSize img_roi_size = {};
@@ -123,10 +123,10 @@ public:
     ImgSize& get_img_size() { return _info.img_size; }
     ImgSize& get_img_roi_size() { return _info.img_roi_size; }
     std::string& get_image_name() { return _info.img_name; }
-    uint& get_image_id() { return _info.img_id; }
+    int& get_image_id() { return _info.img_id; }
     void set_img_size(ImgSize img_size) { _info.img_size = std::move(img_size); }
     void set_img_roi_size(ImgSize img_roi_size) { _info.img_roi_size = std::move(img_roi_size); }
-    void set_img_id(uint img_id) { _info.img_id = img_id; }
+    void set_img_id(int img_id) { _info.img_id = img_id; }
     void set_img_name(std::string img_name) { _info.img_name = img_name; }
     void set_metadata_info(MetaDataInfo info) { _info = std::move(info); }
     protected:
@@ -158,7 +158,7 @@ class BoundingBox : public Label
 {
 public:
     BoundingBox()= default;
-    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size = ImgSize{0, 0}, uint img_id = 0)
+    BoundingBox(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size = ImgSize{0, 0}, int img_id = 0)
     {
         _bb_cords =std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
@@ -211,7 +211,7 @@ protected:
 
 class MetaDataInfoBatch {
 public:
-    std::vector<uint> img_ids = {};
+    std::vector<int> img_ids = {};
     std::vector<std::string> img_names = {};
     std::vector<ImgSize> img_sizes = {};
     std::vector<ImgSize> img_roi_sizes = {};
@@ -259,7 +259,7 @@ public:
     virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch() = 0;
     virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() = 0;
     virtual JointsDataBatch & get_joints_data_batch() = 0;
-    std::vector<uint>& get_image_id_batch() { return _info_batch.img_ids; }
+    std::vector<int>& get_image_id_batch() { return _info_batch.img_ids; }
     std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
     ImgSizes& get_img_sizes_batch() { return _info_batch.img_sizes; }
     ImgSizes& get_img_roi_sizes_batch() { return _info_batch.img_roi_sizes; }
@@ -300,10 +300,14 @@ public:
     }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        if(copy_contents)
+        if(copy_contents) {
             return std::make_shared<LabelBatch>(*this);
-        else
-            return std::make_shared<LabelBatch>();
+        } else {
+            std::shared_ptr<MetaDataBatch> label_batch_instance = std::make_shared<LabelBatch>();
+            label_batch_instance->resize(this->size());
+            label_batch_instance->get_info_batch() = this->get_info_batch();
+            return label_batch_instance;
+        }
     }
     explicit LabelBatch(std::vector<Labels>& labels)
     {
@@ -370,10 +374,14 @@ public:
     }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        if(copy_contents)
+        if(copy_contents) {
             return std::make_shared<BoundingBoxBatch>(*this);
-        else
-            return std::make_shared<BoundingBoxBatch>();
+        } else {
+            std::shared_ptr<MetaDataBatch> bbox_instance = std::make_shared<BoundingBoxBatch>();
+            bbox_instance->resize(this->size());
+            bbox_instance->get_info_batch() = this->get_info_batch();
+            return bbox_instance;
+        }
     }
     void convert_ltrb_to_xywh(BoundingBoxCords& ltrb_bbox_list) {
         for(unsigned i = 0; i < ltrb_bbox_list.size(); i++) {
@@ -452,10 +460,14 @@ public:
     int mask_size() override { return _mask_cords.size(); }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        if(copy_contents)
+        if(copy_contents) {
             return std::make_shared<PolygonMaskBatch>(*this);
-        else
-            return std::make_shared<PolygonMaskBatch>();
+        } else {
+            std::shared_ptr<MetaDataBatch> mask_batch_instance = std::make_shared<PolygonMaskBatch>();
+            mask_batch_instance->resize(this->size());
+            mask_batch_instance->get_info_batch() = this->get_info_batch();
+            return mask_batch_instance;
+        }
     }
     void copy_data(std::vector<void*> buffer) override
     {
@@ -538,10 +550,14 @@ public:
     }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
-        if(copy_contents)
+        if(copy_contents) {
             return std::make_shared<KeyPointBatch>(*this);
-        else
-            return std::make_shared<KeyPointBatch>();
+        } else {
+            std::shared_ptr<MetaDataBatch> joints_batch_instance = std::make_shared<KeyPointBatch>();
+            joints_batch_instance->resize(this->size());
+            joints_batch_instance->get_info_batch() = this->get_info_batch();
+            return joints_batch_instance;
+        }
     }
     JointsDataBatch& get_joints_data_batch() override { return _joints_data; }
     void copy_data(std::vector<void*> buffer) override {}

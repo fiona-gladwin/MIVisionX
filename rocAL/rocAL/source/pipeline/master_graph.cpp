@@ -838,7 +838,6 @@ void MasterGraph::output_routine()
                 output_meta_data = _augmented_meta_data->clone(!_augmentation_metanode); // copy the data if metadata is not processed by the nodes, else create an empty instance
                 if (_meta_data_graph)
                 {
-                    if(_augmentation_metanode) output_meta_data->resize(_user_batch_size);
                     if(_is_random_bbox_crop)
                     {
                         _meta_data_graph->update_random_bbox_meta_data(_augmented_meta_data, output_meta_data, decode_image_info, crop_image_info);
@@ -878,7 +877,7 @@ void MasterGraph::output_routine()
             if(_is_box_iou_matcher) {
                 //TODO - to add call for hip kernel.
                 auto matches_write_buffer = _ring_buffer.get_meta_write_buffers()[2];
-                _meta_data_graph->update_box_iou_matcher(&_anchors_double, (int *)matches_write_buffer, output_meta_data, _criteria, _high_threshold, _low_threshold, _allow_low_quality_matches);
+                _meta_data_graph->update_box_iou_matcher(&_anchors, (int *)matches_write_buffer, output_meta_data, _criteria, _high_threshold, _low_threshold, _allow_low_quality_matches);
             }
             _bencode_time.end();
             _ring_buffer.set_meta_data(full_batch_image_names, output_meta_data);
@@ -966,7 +965,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
                                         RocalTensorDataType::INT32);
         default_matches_info.set_metadata();
         default_matches_info.set_tensor_layout(RocalTensorlayout::NONE);
-        _meta_data_buffer_size.emplace_back(dims.at(0) * _user_batch_size * sizeof(vx_int32)); // TODO - replace with data size from info   // shobi check if this needs to be changed to double
+        _meta_data_buffer_size.emplace_back(MAX_ANCHORS * _user_batch_size * sizeof(vx_int32)); // TODO - replace with data size from info   // shobi check if this needs to be changed to double
     }
 
     for(unsigned i = 0; i < _user_batch_size; i++) // Create rocALTensorList for each metadata
@@ -1325,10 +1324,10 @@ void MasterGraph::box_iou_matcher(std::vector<float> &anchors, float criteria, f
     //do nothing for now - have to add gpu kernels
 #endif
     _anchors = anchors;
-    _anchors_double.resize(anchors.size());
-    for(unsigned b = 0; b < anchors.size(); b++) {
-        _anchors_double[b] = static_cast<double>(anchors.data()[b]);
-    }
+    // _anchors_double.resize(anchors.size());
+    // for(unsigned b = 0; b < anchors.size(); b++) {
+    //     _anchors_double[b] = static_cast<double>(anchors.data()[b]);
+    // }
 
     _high_threshold = high_threshold;
     _low_threshold = low_threshold;
