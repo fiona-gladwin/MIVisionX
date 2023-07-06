@@ -112,8 +112,6 @@ void TensorInfo::reset_tensor_roi_buffers() {
         size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
         allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
     }
-    _orig_roi_height = std::make_shared<std::vector<uint32_t>>(_batch_size);    // TODO - Check if this needs to be reallocated every time
-    _orig_roi_width = std::make_shared<std::vector<uint32_t>>(_batch_size);
     if (_is_image) {
         auto roi = get_roi();
         for (unsigned i = 0; i < _batch_size; i++) {
@@ -167,8 +165,8 @@ TensorInfo::TensorInfo(const TensorInfo &other) {
     _is_image = other._is_image;
     _is_metadata = other._is_metadata;
     _channels = other._channels;
-    _orig_roi_width = other._orig_roi_width;
-    _orig_roi_height = other._orig_roi_height;
+    _original_roi_width = other._original_roi_width;
+    _original_roi_height = other._original_roi_height;
     if(!other.is_metadata()) {  // For Metadata ROI buffer is not required
         allocate_host_or_pinned_mem(&_roi_buf, _batch_size * 4 * sizeof(unsigned), _mem_type);
         memcpy((void *)_roi_buf, (const void *)other.get_roi(), _batch_size * 4 * sizeof(unsigned));
@@ -222,19 +220,19 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
     }
 }
 
-void Tensor::update_tensor_orig_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height)
+void Tensor::update_tensor_original_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height)
 {
     if(width.size() != height.size())
-        THROW("Batch size of image height and width info does not match")
+        THROW("Batch size of tensor height and width info does not match")
 
     if(width.size() != info().batch_size())
-        THROW("The batch size of actual image height and width different from image batch size "+ TOSTR(width.size())+ " != " +  TOSTR(info().batch_size()))
-    if(! _info._orig_roi_width || !_info._orig_roi_height)
+        THROW("The size of actual tensor height and width different from tensor batch size "+ TOSTR(width.size())+ " != " +  TOSTR(info().batch_size()))
+    if(!_info._original_roi_width || !_info._original_roi_height)
         THROW("ROI width or ROI height vector not created")
     for(unsigned i = 0; i < info().batch_size(); i++)
     {
-        _info._orig_roi_width->at(i) = width[i];
-        _info._orig_roi_height->at(i)= height[i];
+        _info._original_roi_width->at(i) = width[i];
+        _info._original_roi_height->at(i) = height[i];
     }
 }
 
