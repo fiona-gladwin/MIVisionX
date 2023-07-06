@@ -23,6 +23,10 @@ THE SOFTWARE.
 #ifndef MIVISIONX_ROCAL_API_INFO_H
 #define MIVISIONX_ROCAL_API_INFO_H
 #include "rocal_api_types.h"
+///
+/// \param rocal_context
+/// \return The color format of the ROCAL's output. It's equivalent of what's passed to the loaders as input color format.
+extern "C" int ROCAL_API_CALL rocalGetOutputColorFormat(RocalContext rocal_context);
 
 ///
 /// \param rocal_context

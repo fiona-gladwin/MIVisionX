@@ -321,6 +321,8 @@ class ROCALCOCOIterator(object):
         self.display = display
         self.out = None
         print("____________REMAINING IMAGES____________:", self.rim)
+        color_format = self.loader.getOutputColorFormat()
+        self.p = (1 if color_format is types.GRAY else 3)
 
     def next(self):
         return self.__next__()
@@ -336,16 +338,6 @@ class ROCALCOCOIterator(object):
 
         if self.loader.rocalRun() != 0:
             raise StopIteration
-        else:
-            self.output_tensor_list = self.loader.rocalGetOutputTensors()
-
-        if self.out is None:
-            self.augmentation_count = len(self.output_tensor_list)
-            self.w = self.output_tensor_list[0].batch_width()
-            self.h = self.output_tensor_list[0].batch_height()
-            self.batch_size = self.output_tensor_list[0].batch_size()
-            self.color_format = self.output_tensor_list[0].color_format()
-
 
         #Image ROI width and height
         self.roi_sizes_wh = np.zeros((self.bs * 2),dtype = "int32")
@@ -362,27 +354,27 @@ class ROCALCOCOIterator(object):
         if self.tensor_format == types.NCHW:
             if self.device == "cpu":
                 if self.tensor_dtype == types.FLOAT:
-                    self.out = torch.empty((self.bs, self.color_format, max_size[0], max_size[1],), dtype=torch.float32)
+                    self.out = torch.empty((self.bs, self.p, max_size[0], max_size[1],), dtype=torch.float32)
                 elif self.tensor_dtype == types.FLOAT16:
-                    self.out = torch.empty((self.bs, self.color_format, max_size[0], max_size[1],), dtype=torch.float16)
+                    self.out = torch.empty((self.bs, self.p, max_size[0], max_size[1],), dtype=torch.float16)
             else:
                 torch_gpu_device = torch.device('cuda', self.device_id)
                 if self.tensor_dtype == types.FLOAT:
-                    self.out = torch.empty((self.bs, self.color_format, max_size[0], max_size[1],), dtype=torch.float32, device=torch_gpu_device)
+                    self.out = torch.empty((self.bs, self.p, max_size[0], max_size[1],), dtype=torch.float32, device=torch_gpu_device)
                 elif self.tensor_dtype == types.FLOAT16:
-                    self.out = torch.empty((self.bs, self.color_format, max_size[0], max_size[1],), dtype=torch.float16, device=torch_gpu_device)
+                    self.out = torch.empty((self.bs, self.p, max_size[0], max_size[1],), dtype=torch.float16, device=torch_gpu_device)
         else:
             if self.device == "cpu":
                 if self.tensor_dtype == types.FLOAT:
-                    self.out = torch.empty((self.bs, max_size[0], max_size[1], self.color_format), dtype=torch.float32)
+                    self.out = torch.empty((self.bs, max_size[0], max_size[1], self.p), dtype=torch.float32)
                 elif self.tensor_dtype == types.FLOAT16:
-                    self.out = torch.empty((self.bs, max_size[0], max_size[1], self.color_format), dtype=torch.float16)
+                    self.out = torch.empty((self.bs, max_size[0], max_size[1], self.p), dtype=torch.float16)
             else:
                 torch_gpu_device = torch.device('cuda', self.device_id)
                 if self.tensor_dtype == types.FLOAT:
-                    self.out = torch.empty((self.bs, max_size[0], max_size[1], self.color_format), dtype=torch.float32, device=torch_gpu_device)
+                    self.out = torch.empty((self.bs, max_size[0], max_size[1], self.p), dtype=torch.float32, device=torch_gpu_device)
                 elif self.tensor_dtype == types.FLOAT16:
-                    self.out = torch.empty((self.bs, max_size[0], max_size[1], self.color_format), dtype=torch.float16, device=torch_gpu_device)
+                    self.out = torch.empty((self.bs, max_size[0], max_size[1], self.p), dtype=torch.float16, device=torch_gpu_device)
         
         self.loader.copyToExternalTensor(
             self.out, self.multiplier, self.offset, self.reverse_channels, self.tensor_format, self.tensor_dtype, max_height=max_size[0], max_width=max_size[1])
@@ -390,25 +382,16 @@ class ROCALCOCOIterator(object):
         img_ids = np.empty(self.bs, dtype="int32")
         self.loader.GetImageId(img_ids)
 #Count of labels/ bboxes in a batch
-        # self.bboxes_label_count = np.zeros(self.bs, dtype="int32")
-        # self.loader.rocalGetBoundingBoxCount(self.bboxes_label_count)
+        self.count_batch = self.loader.rocalGetBoundingBoxCount()
 # 1D labels array in a batch
         self.labels = self.loader.rocalGetBoundingBoxLabel()
         self.bboxes = self.loader.rocalGetBoundingBoxCords()
-        
-        self.count_batch = 0
-        for label in self.labels:
-            self.count_batch += len(label)
-# #Mask info of a batch
-#         print(self.count_batch)
-#         self.mask_count = np.zeros(self.count_batch, dtype="int32")
-#         # print(self.mask_count)
-#         self.mask_size = self.loader.GetMaskCount(self.mask_count)
-#         print(self.mask_size)
-#         self.polygon_size = np.zeros(self.mask_size, dtype= "int32")
-#         self.mask_data = np.zeros(100000, dtype = "float32")
-#         self.loader.GetMaskCoordinates(self.polygon_size, self.mask_data)
-#         print(self.polygon_size)
+#Mask info of a batch
+        self.mask_count = np.zeros(self.count_batch, dtype="int32")
+        self.mask_size = self.loader.GetMaskCount(self.mask_count)
+        self.polygon_size = np.zeros(self.mask_size, dtype= "int32")
+        self.mask_data = np.zeros(100000, dtype = "float32")
+        self.loader.GetMaskCoordinates(self.polygon_size, self.mask_data)
 
         count =0
         sum_count=0
@@ -435,23 +418,23 @@ class ROCALCOCOIterator(object):
             self.target = BoxList(self.bb_2d_numpy, (self.img_roi_size2d_numpy_wh[0],self.img_roi_size2d_numpy_wh[1]), mode="xyxy")
             self.target.add_field("labels", self.label_2d_numpy)
 
-            # self.count_mask = len(self.labels[i])
-            # poly_batch_list = []
-            # for i in range(self.count_mask):
-            #     poly_list = []
-            #     for _ in range(self.mask_count[iteration1]):
-            #         polygons = []
-            #         polygon_size_check = self.polygon_size[iteration]
-            #         iteration = iteration + 1
-            #         for _ in range(polygon_size_check):
-            #             polygons.append(self.mask_data[j])
-            #             j = j + 1
-            #         poly_list.append(polygons)
-            #     iteration1 = iteration1 + 1
-            #     poly_batch_list.append(poly_list)
+            self.count_mask = len(self.labels[i])
+            poly_batch_list = []
+            for i in range(self.count_mask):
+                poly_list = []
+                for _ in range(self.mask_count[iteration1]):
+                    polygons = []
+                    polygon_size_check = self.polygon_size[iteration]
+                    iteration = iteration + 1
+                    for _ in range(polygon_size_check):
+                        polygons.append(self.mask_data[j])
+                        j = j + 1
+                    poly_list.append(polygons)
+                iteration1 = iteration1 + 1
+                poly_batch_list.append(poly_list)
 
-            # masks = SegmentationMask(poly_batch_list, (self.img_roi_size2d_numpy_wh[0],self.img_roi_size2d_numpy_wh[1]))
-            # self.target.add_field("masks", masks)
+            masks = SegmentationMask(poly_batch_list, (self.img_roi_size2d_numpy_wh[0],self.img_roi_size2d_numpy_wh[1]))
+            self.target.add_field("masks", masks)
 
             self.target_batch.append(self.target)
             sum_count = sum_count +count
@@ -505,7 +488,7 @@ def main():
 
     with pipe:
         jpegs, bboxes, labels = fn.readers.coco(
-            file_root=image_path, annotations_file=ann_path, random_shuffle=True, seed=local_rank, masks=False)
+            file_root=image_path, annotations_file=ann_path, random_shuffle=True, seed=local_rank, masks=True)
         images_decoded = fn.decoders.image(jpegs, output_type=types.RGB, file_root=image_path, annotations_file=ann_path, shard_id=local_rank, num_shards=world_size, random_shuffle=True, seed=local_rank)
         coin_flip = fn.random.coin_flip(probability=0.5)
         rmn_images = fn.resize_mirror_normalize(images_decoded,

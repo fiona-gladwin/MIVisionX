@@ -373,6 +373,7 @@ namespace rocal
             .value("TRIANGULAR_INTERPOLATION",ROCAL_TRIANGULAR_INTERPOLATION)
             .export_values();
         // rocal_api_info.h
+        m.def("getOutputColorFormat",&rocalGetOutputColorFormat);
         m.def("getRemainingImages", &rocalGetRemainingImages);
         m.def("isEmpty", &rocalIsEmpty);
         m.def("getStatus", rocalGetStatus);

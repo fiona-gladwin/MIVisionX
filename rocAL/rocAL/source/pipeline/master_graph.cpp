@@ -472,6 +472,12 @@ MasterGraph::get_output_tensors()
     return &_output_tensor_list;
 }
 
+RocalColorFormat
+MasterGraph::output_color_format()
+{
+    return _output_tensor_list[0]->info().color_format();
+}
+
 #define CHECK_CL_CALL_RET(x) { cl_int ret; ret = x; if( ret != CL_SUCCESS) THROW("ocl call failed "+STR(#x)+" error "+TOSTR(ret)) }
 
 MasterGraph::Status
