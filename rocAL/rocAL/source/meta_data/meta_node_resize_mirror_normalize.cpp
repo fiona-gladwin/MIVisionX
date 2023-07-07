@@ -75,6 +75,9 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
                     mask_data_ptr[idx + 1] = mask_data_ptr[idx + 1] * _dst_to_src_height_ratio;
                 }
             }
+            output_meta_data->get_mask_cords_batch()[i] = input_meta_data->get_mask_cords_batch()[i];
+            output_meta_data->get_mask_polygons_count_batch()[i] = input_meta_data->get_mask_polygons_count_batch()[i];
+            output_meta_data->get_mask_vertices_count_batch()[i] = input_meta_data->get_mask_vertices_count_batch()[i];
         }
 
         for (uint j = 0; j < bb_count; j++)
@@ -95,8 +98,5 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
         }
         output_meta_data->get_bb_cords_batch()[i] = bb_coords;
         output_meta_data->get_labels_batch()[i] = bb_labels;
-        output_meta_data->get_mask_cords_batch()[i] = input_meta_data->get_mask_cords_batch()[i];
-        output_meta_data->get_mask_polygons_count_batch()[i] = input_meta_data->get_mask_polygons_count_batch()[i];
-        output_meta_data->get_mask_vertices_count_batch()[i] = input_meta_data->get_mask_vertices_count_batch()[i];
     }
 }

@@ -96,7 +96,8 @@ def resize_mirror_normalize(*inputs, bytes_per_sample_hint=0, interp_type=1, mag
 
     # pybind call arguments
     kwargs_pybind = {"input_image0": inputs[0],  "dest_width:" : resize_width , "dest_height": resize_height, "mean":mean, "std_dev":std, "is_output": False,
-                     "mirror": mirror, "rocal_tensor_layout" : rocal_tensor_layout, "rocal_tensor_output_type" : rocal_tensor_output_type}
+                     "scaling_mode": scaling_mode, "max_size": max_size, "resize_shorter": resize_shorter, "resize_longer": resize_longer, "interpolation_type":interpolation_type, "mirror": mirror,
+                     "rocal_tensor_layout" : rocal_tensor_layout, "rocal_tensor_output_type" : rocal_tensor_output_type}
     b.setSeed(seed)
     rmn = b.ResizeMirrorNormalize(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
     return (rmn)

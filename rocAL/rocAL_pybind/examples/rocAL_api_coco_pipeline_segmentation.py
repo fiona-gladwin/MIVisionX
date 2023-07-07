@@ -466,6 +466,11 @@ def main():
                                             rocal_tensor_layout=types.NHWC,
                                             resize_width = 1344,
                                             resize_height = 1344,
+                                            scaling_mode=types.SCALING_MODE_MIN_MAX,
+                                            max_size=[1344,1344],
+                                            resize_shorter=800,
+                                            resize_longer=1333,
+                                            interpolation_type=types.LINEAR_INTERPOLATION,
                                             mirror=coin_flip,
                                             mean= [0., 0., 0.],
                                             std = [1. , 1., 1.])

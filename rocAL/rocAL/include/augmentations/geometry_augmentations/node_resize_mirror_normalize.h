@@ -31,11 +31,13 @@ class ResizeMirrorNormalizeNode : public Node
 public:
     ResizeMirrorNormalizeNode(const std::vector<rocalTensor *> &inputs, const std::vector<rocalTensor *> &outputs);
     ResizeMirrorNormalizeNode() = delete;
-    void init(std::vector<float>& mean,  std::vector<float>& std_dev, IntParam *mirror);
+    void init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode,
+              std::vector<unsigned> max_size, RocalResizeInterpolationType interpolation_type,std::vector<float>& mean,  std::vector<float>& std_dev, IntParam *mirror);
     vx_array get_dst_width() { return _dst_roi_width; }
-    vx_array get_dst_height() { return _dst_roi_height;}
+    vx_array get_dst_height() { return _dst_roi_height; }
     vx_array get_src_width() { return _src_roi_width; }
     vx_array get_src_height() { return _src_roi_height; }
+    void adjust_out_roi_size();
     vx_array return_mirror(){ return _mirror.default_array();  }
 protected:
     void create_node() override;
@@ -46,7 +48,7 @@ private:
     std::vector<uint> _dest_width_val, _dest_height_val;
     vx_array _mean_array, _std_dev_array, _mean_vx_array, _std_dev_vx_array, _mirror_vx_array;
     std::vector<float> _mean;
-    std::vector<float> _std_dev; 
+    std::vector<float> _std_dev;
     int _interpolation_type;
     ParameterVX<int> _mirror;
     constexpr static int _mirror_range[2] = {0, 1};

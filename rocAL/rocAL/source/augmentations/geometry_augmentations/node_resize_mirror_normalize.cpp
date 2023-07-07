@@ -80,7 +80,7 @@ void ResizeMirrorNormalizeNode::create_node()
     status |= vxAddArrayItems(_std_dev_vx_array, mean_std_array_size, std_dev_vec.data(), sizeof(vx_float32));
     _mirror.create_array(_graph , VX_TYPE_UINT32, _batch_size);
     if(status != 0)
-        THROW(" vxAddArrayItems failed in the resize_mirror_normalize node (vxExtrppNode_CropMirrorNormalize)  node: "+ TOSTR(status) + "  "+ TOSTR(status))    
+        THROW(" vxAddArrayItems failed in the resize_mirror_normalize node (vxExtrppNode_CropMirrorNormalize)  node: "+ TOSTR(status) + "  "+ TOSTR(status))
 
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
@@ -102,36 +102,11 @@ void ResizeMirrorNormalizeNode::update_node()
     for (unsigned i = 0; i < _batch_size; i++) {
         _src_width = src_roi[i].x2;
         _src_height = src_roi[i].y2;
+        _dst_width = _out_width;
+        _dst_height = _out_height;
+        adjust_out_roi_size();
         _src_roi_width_vec.push_back(_src_width);
         _src_roi_height_vec.push_back(_src_height);
-        // Min size and max size used for MLPerf MaskRCNN resize augmentation
-        // TODO: Get the min_size and max_size as user arguments from python
-        int min_size = 800;
-        int max_size = 1333;
-        int src_width = src_roi[i].x2;
-        int src_height = src_roi[i].y2;
-        int size = min_size;
-        int output_width, output_height;
-
-        float min_original_size = static_cast<float>(std::min(src_width, src_height));
-        float max_original_size = static_cast<float>(std::max(src_width, src_height));
-        if(max_original_size / min_original_size * size > max_size)
-            size = static_cast<size_t>(round(max_size * min_original_size / max_original_size));
-
-        if (((src_width <= src_height) && (src_width == size)) || ((src_height <= src_width) && (src_height == size)))
-        {
-            _dst_height = src_height;
-            _dst_width = src_width;
-            continue;
-        }
-
-        if(src_width < src_height) {
-            _dst_width = size;
-            _dst_height = static_cast<size_t>(size * src_height / src_width);	
-        } else {
-            _dst_height = size;
-            _dst_width = static_cast<size_t>(size * src_width / src_height);
-        }
         _dst_width = std::min(_dst_width, (unsigned)_outputs[0]->info().max_shape()[0]);
         _dst_height = std::min(_dst_height, (unsigned)_outputs[0]->info().max_shape()[1]);
         _dst_roi_width_vec.push_back(_dst_width);
@@ -154,11 +129,84 @@ void ResizeMirrorNormalizeNode::update_node()
     _dst_roi_height_vec.clear();
     _mirror.update_array();
 }
-
-void ResizeMirrorNormalizeNode::init(std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror)
+void ResizeMirrorNormalizeNode::init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode, std::vector<unsigned> max_size,
+                                     RocalResizeInterpolationType interpolation_type, std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror)
 {
-    _interpolation_type = 1;
-    _mean   = mean;
+    _interpolation_type = (int)interpolation_type;
+    _scaling_mode = scaling_mode;
+    _out_width = dest_width;
+    _out_height = dest_height;
+    if(max_size.size() > 0) {
+        _max_width = max_size[0];
+        _max_height = max_size[1];
+    }
+    _mean = mean;
     _std_dev = std_dev;
     _mirror.set_param(core(mirror));
+}
+
+void ResizeMirrorNormalizeNode::adjust_out_roi_size() {
+    bool has_max_size = (_max_width | _max_height) > 0;
+
+    if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_MIN_MAX) {
+        // Min size and max size used for MLPerf MaskRCNN resize augmentation
+        int min_size = _max_width;
+        int max_size = _max_height;
+        int size = min_size;
+
+        float min_original_size = static_cast<float>(std::min(_src_width, _src_height));
+        float max_original_size = static_cast<float>(std::max(_src_width, _src_height));
+        if(max_original_size / min_original_size * size > max_size)
+            size = static_cast<size_t>(round(max_size * min_original_size / max_original_size));
+
+        if (((_src_width <= _src_height) && (_src_width == size)) || ((_src_height <= _src_width) && (_src_height == size)))
+        {
+            _dst_height = _src_height;
+            _dst_width = _src_width;
+        }
+
+        if(_src_width < _src_height) {
+            _dst_width = size;
+            _dst_height = static_cast<size_t>(size * _src_height / _src_width);	
+        } else {
+            _dst_height = size;
+            _dst_width = static_cast<size_t>(size * _src_width / _src_height);
+        }
+    } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_STRETCH) {
+        if (_dst_width == 0) _dst_width = _src_width;
+        if (_dst_height == 0) _dst_height = _src_height;
+
+        if (has_max_size) {
+            if (_max_width != 0) _dst_width = std::min(_dst_width, _max_width);
+            if (_max_height != 0) _dst_height = std::min(_dst_height, _max_height);
+        }
+    } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_DEFAULT) {
+        if (_dst_width == 0 && _dst_height != 0) {  // Only height is passed
+            _dst_width = std::lround(_src_width * (static_cast<float>(_dst_height) / _src_height));
+        } else if (_dst_height == 0 && _dst_width != 0) {  // Only width is passed
+            _dst_height = std::lround(_src_height * (static_cast<float>(_dst_width) / _src_width));
+        }
+
+        if (has_max_size) {
+            if (_max_width != 0) _dst_width = std::min(_dst_width, _max_width);
+            if (_max_height != 0) _dst_height = std::min(_dst_height, _max_height);
+        }
+    } else {
+        float scale = 1.0f;
+        float scale_w = static_cast<float>(_dst_width) / _src_width;
+        float scale_h = static_cast<float>(_dst_height) / _src_height;
+        if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_SMALLER) {
+            scale = std::max(scale_w, scale_h);
+        } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_LARGER) {
+            scale = (scale_w > 0 && scale_h > 0) ? std::min(scale_w, scale_h) : ((scale_w > 0) ? scale_w : scale_h);
+        }
+
+        if (has_max_size) {
+            if (_max_width != 0) scale = std::min(scale, static_cast<float>(_max_width) / _src_width);
+            if (_max_height != 0) scale = std::min(scale, static_cast<float>(_max_height) / _src_height);
+        }
+
+        if ((scale_w != scale) || (_dst_width == 0)) _dst_width = std::lround(_src_width * scale);
+        if ((scale_h != scale) || (_dst_height == 0)) _dst_height = std::lround(_src_height * scale);
+    }
 }

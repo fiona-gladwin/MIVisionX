@@ -343,6 +343,7 @@ namespace rocal
             .value("SCALING_MODE_STRETCH",ROCAL_SCALING_MODE_STRETCH)
             .value("SCALING_MODE_NOT_SMALLER",ROCAL_SCALING_MODE_NOT_SMALLER)
             .value("SCALING_MODE_NOT_LARGER",ROCAL_SCALING_MODE_NOT_LARGER)
+            .value("SCALING_MODE_MIN_MAX",ROCAL_SCALING_MODE_MIN_MAX)
             .export_values();
         py::enum_<RocalResizeInterpolationType>(types_m,"RocalResizeInterpolationType","Decode size policies")
             .value("NEAREST_NEIGHBOR_INTERPOLATION",ROCAL_NEAREST_NEIGHBOR_INTERPOLATION)
