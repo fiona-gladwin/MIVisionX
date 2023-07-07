@@ -76,16 +76,16 @@ auto convert_color_format = [](RocalImageColor color_format)
 {
     switch(color_format){
         case ROCAL_COLOR_RGB24:
-            return std::make_tuple(RocalColorFormat::RGB24, 3);
+            return std::make_tuple(RocalColorFormat::RGB24, 3u);
 
         case ROCAL_COLOR_BGR24:
-            return std::make_tuple(RocalColorFormat::BGR24, 3);
+            return std::make_tuple(RocalColorFormat::BGR24, 3u);
 
         case ROCAL_COLOR_U8:
-            return std::make_tuple(RocalColorFormat::U8, 1);
+            return std::make_tuple(RocalColorFormat::U8, 1u);
 
         case ROCAL_COLOR_RGB_PLANAR:
-            return std::make_tuple(RocalColorFormat::RGB_PLANAR, 3);
+            return std::make_tuple(RocalColorFormat::RGB_PLANAR, 3u);
 
         default:
             THROW("Unsupported Image type" + TOSTR(color_format))
