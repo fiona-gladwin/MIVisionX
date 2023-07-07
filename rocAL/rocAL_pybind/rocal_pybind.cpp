@@ -102,26 +102,6 @@ namespace rocal
         return py::cast<py::none>(Py_None);
     }
 
-    py::object wrapper_mask_count_copy(RocalContext context, py::array_t<int> array)
-    {
-        auto buf = array.request();
-        int* ptr = (int*) buf.ptr;
-        // call pure C++ function
-        int count = rocalGetMaskCount(context,ptr);
-        return py::cast(count);
-    }
-
-    py::object wrapper_mask_coordinates_copy(RocalContext context, py::array_t<int> array_count, py::array_t<float> array)
-    {
-        auto buf = array.request();
-        float* ptr = (float*) buf.ptr;
-        auto buf_count = array_count.request();
-        int* ptr1 = (int*) buf_count.ptr;
-        // call pure C++ function
-        rocalGetMaskCoordinates(context, ptr1, ptr);
-        return py::cast<py::none>(Py_None);
-    }
-
     py::object wrapper_tensor(RocalContext context, py::object p,
                                 RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type, float multiplier0,
                                 float multiplier1, float multiplier2, float offset0,
@@ -385,8 +365,6 @@ namespace rocal
         m.def("COCOReader", &rocalCreateCOCOReader, py::return_value_policy::reference);
         // rocal_api_meta_data.h
         m.def("RandomBBoxCrop", &rocalRandomBBoxCrop);
-        m.def("getMaskCount", &wrapper_mask_count_copy);
-        m.def("getMaskCoordinates", &wrapper_mask_coordinates_copy);
         m.def("BoxEncoder",&rocalBoxEncoder);
         m.def("BoxIOUMatcher", &rocalBoxIOUMatcher);
         m.def("getImageId", [](RocalContext context, py::array_t<int> array)
@@ -486,6 +464,54 @@ namespace rocal
                 boxes_list.append(boxes_array);
             }
             return boxes_list;
+    }
+            );
+        m.def(
+            "getMaskCount", [](RocalContext context, py::array_t<int> array)
+    {
+        auto buf = array.mutable_data();
+        unsigned count = rocalGetMaskCount(context, buf); //total number of polygons in complete batch
+        return count;
+    }
+            );
+        m.def(
+            "getMaskCoordinates", [](RocalContext context, py::array_t<int> polygon_size, py::array_t<int> mask_count)
+    {
+            auto buf = polygon_size.request();
+            int* polygon_size_ptr = (int*) buf.ptr;
+            // call pure C++ function
+            rocalTensorList * mask_data = rocalGetMaskCoordinates(context, polygon_size_ptr);
+            rocalTensorList * bbox_labels = rocalGetBoundingBoxLabel(context);
+            py::list complete_list;
+            int poly_cnt = 0;
+            int prev_object_cnt = 0;
+            auto mask_count_buf = mask_count.request();
+            int* mask_count_ptr = (int*) mask_count_buf.ptr;
+            for(int i = 0; i < bbox_labels->size(); i++) // nbatchSize
+            {
+                float *mask_buffer = (float *)(mask_data->at(i)->buffer());
+                py::list single_image;
+                unsigned int mask_idx = 0;
+                for(unsigned j = prev_object_cnt; j < bbox_labels->at(i)->info().dims().at(0) + prev_object_cnt; j++)
+                {
+                    py::list polygons_buffer;
+                    for(int k = 0; k < mask_count_ptr[j]; k++)
+                    {
+                        py::list single_mask;
+                        single_mask.append(mask_idx);
+                        mask_idx++;
+                        py::list mask_buffer_coordinates;
+                        for(int l = 0; l < polygon_size_ptr[poly_cnt]; l++)
+                        {
+                            single_image.append(mask_buffer[l]);
+                        }
+                        mask_buffer += polygon_size_ptr[poly_cnt++];
+                    }
+                }
+                prev_object_cnt += bbox_labels->at(i)->info().dims().at(0);
+                complete_list.append(single_image);
+            }
+            return complete_list;
     }
             );
         m.def(

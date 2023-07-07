@@ -390,8 +390,7 @@ class ROCALCOCOIterator(object):
         self.mask_count = np.zeros(self.count_batch, dtype="int32")
         self.mask_size = self.loader.GetMaskCount(self.mask_count)
         self.polygon_size = np.zeros(self.mask_size, dtype= "int32")
-        self.mask_data = np.zeros(100000, dtype = "float32")
-        self.loader.GetMaskCoordinates(self.polygon_size, self.mask_data)
+        self.mask_data = self.loader.GetMaskCoordinates(self.polygon_size, self.mask_count)
 
         count =0
         sum_count=0
@@ -418,22 +417,8 @@ class ROCALCOCOIterator(object):
             self.target = BoxList(self.bb_2d_numpy, (self.img_roi_size2d_numpy_wh[0],self.img_roi_size2d_numpy_wh[1]), mode="xyxy")
             self.target.add_field("labels", self.label_2d_numpy)
 
-            self.count_mask = len(self.labels[i])
-            poly_batch_list = []
-            for i in range(self.count_mask):
-                poly_list = []
-                for _ in range(self.mask_count[iteration1]):
-                    polygons = []
-                    polygon_size_check = self.polygon_size[iteration]
-                    iteration = iteration + 1
-                    for _ in range(polygon_size_check):
-                        polygons.append(self.mask_data[j])
-                        j = j + 1
-                    poly_list.append(polygons)
-                iteration1 = iteration1 + 1
-                poly_batch_list.append(poly_list)
 
-            masks = SegmentationMask(poly_batch_list, (self.img_roi_size2d_numpy_wh[0],self.img_roi_size2d_numpy_wh[1]))
+            masks = SegmentationMask(self.mask_data[i], (self.img_roi_size2d_numpy_wh[0],self.img_roi_size2d_numpy_wh[1]))
             self.target.add_field("masks", masks)
 
             self.target_batch.append(self.target)
