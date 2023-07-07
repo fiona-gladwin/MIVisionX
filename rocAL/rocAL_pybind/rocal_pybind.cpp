@@ -490,26 +490,22 @@ namespace rocal
             for(int i = 0; i < bbox_labels->size(); i++) // nbatchSize
             {
                 float *mask_buffer = (float *)(mask_data->at(i)->buffer());
-                py::list single_image;
-                unsigned int mask_idx = 0;
+                py::list poly_batch_list;
                 for(unsigned j = prev_object_cnt; j < bbox_labels->at(i)->info().dims().at(0) + prev_object_cnt; j++)
                 {
-                    py::list polygons_buffer;
+                    py::list single_image;
                     for(int k = 0; k < mask_count_ptr[j]; k++)
                     {
-                        py::list single_mask;
-                        single_mask.append(mask_idx);
-                        mask_idx++;
-                        py::list mask_buffer_coordinates;
+                        py::list polygons_buffer;
                         for(int l = 0; l < polygon_size_ptr[poly_cnt]; l++)
-                        {
-                            single_image.append(mask_buffer[l]);
-                        }
+                            polygons_buffer.append(mask_buffer[l]);
                         mask_buffer += polygon_size_ptr[poly_cnt++];
+                        single_image.append(polygons_buffer);
                     }
+                    poly_batch_list.append(single_image);
                 }
                 prev_object_cnt += bbox_labels->at(i)->info().dims().at(0);
-                complete_list.append(single_image);
+                complete_list.append(poly_batch_list);
             }
             return complete_list;
     }
