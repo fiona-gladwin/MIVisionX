@@ -65,10 +65,9 @@ void RocalCropParam::fill_crop_dims() {
           crop_h_factor_ = crop_height_factor->get();
           crop_width_factor->renew();
           crop_w_factor_ = crop_width_factor->get();
-          cropw_arr_val[img_idx] = static_cast<size_t> (crop_w_factor_ * in_roi[img_idx].x2);
-          croph_arr_val[img_idx] = static_cast<size_t> (crop_h_factor_ * in_roi[img_idx].y2);
+          cropw_arr_val[img_idx] = static_cast<size_t>(crop_w_factor_ * in_roi[img_idx].x2);
+          croph_arr_val[img_idx] = static_cast<size_t>(crop_h_factor_ * in_roi[img_idx].y2);
           x_drift_factor->renew();
-          y_drift_factor->renew();
           y_drift_factor->renew();
           x_drift = x_drift_factor->get();
           y_drift = y_drift_factor->get();
