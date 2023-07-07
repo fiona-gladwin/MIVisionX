@@ -342,7 +342,8 @@ class ROCALCOCOIterator(object):
         #Image ROI width and height
         self.roi_sizes_wh = np.zeros((self.bs * 2),dtype = "int32")
         self.loader.GetROIImgSizes(self.roi_sizes_wh)
-        max_size = tuple(max(s) for s in zip(*[self.roi_sizes_wh[i*2:(i*2)+2] for i in range(self.bs)]))
+        img_size_list = [self.roi_sizes_wh[i*2:(i*2)+2] for i in range(self.bs)]
+        max_size = tuple(max(s) for s in zip(*img_size_list))
 
         stride = 32
         max_size = list(max_size)
@@ -392,39 +393,22 @@ class ROCALCOCOIterator(object):
         self.polygon_size = np.zeros(self.mask_size, dtype= "int32")
         self.mask_data = self.loader.GetMaskCoordinates(self.polygon_size, self.mask_count)
 
-        count =0
-        sum_count=0
-        j = 0
-        iteration1 = 0
-        iteration = 0
+        output_sizes = []
         self.target_batch = []
         for i in range(self.bs):
-            self.img_roi_size2d_numpy_wh = (self.roi_sizes_wh[i*2:(i*2)+2])
+            self.img_roi_size2d_numpy_wh = img_size_list[i]
 
-            self.label_2d_numpy = self.labels[i]
-            self.bb_2d_numpy = self.bboxes[i]
-            
-
-            for index, _ in enumerate(self.bb_2d_numpy):
-                if index % 2 == 0:
-                    self.bb_2d_numpy[index] = self.bb_2d_numpy[index] * self.img_roi_size2d_numpy_wh[0]
-                elif index % 2 != 0:
-                    self.bb_2d_numpy[index] = self.bb_2d_numpy[index] * self.img_roi_size2d_numpy_wh[1]
-
-
-            self.bb_2d_numpy = np.reshape(self.bb_2d_numpy, (-1, 4)).tolist()
-
+            self.bb_2d_numpy = np.reshape(self.bboxes[i], (-1, 4)).tolist()
             self.target = BoxList(self.bb_2d_numpy, (self.img_roi_size2d_numpy_wh[0],self.img_roi_size2d_numpy_wh[1]), mode="xyxy")
-            self.target.add_field("labels", self.label_2d_numpy)
-
+            self.target.add_field("labels", self.labels[i])
 
             masks = SegmentationMask(self.mask_data[i], (self.img_roi_size2d_numpy_wh[0],self.img_roi_size2d_numpy_wh[1]))
             self.target.add_field("masks", masks)
 
+            output_sizes.append((self.img_roi_size2d_numpy_wh[1], self.img_roi_size2d_numpy_wh[0]))
             self.target_batch.append(self.target)
-            sum_count = sum_count +count
 
-        self.img_list_obj = ImageList(self.out, (self.img_roi_size2d_numpy_wh[1], self.img_roi_size2d_numpy_wh[0]))
+        self.img_list_obj = ImageList(self.out, output_sizes)
         if self.display:
             for i in range(self.bs):
                 image = self.img_list_obj.tensors[i].cpu().numpy()
