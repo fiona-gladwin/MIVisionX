@@ -927,14 +927,14 @@ void MasterGraph::stop_processing()
         _output_thread.join();
 }
 
-std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType metadata_type, bool ltrb_bbox, bool is_box_encoder, bool is_box_iou_matcher)
+std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType metadata_type, bool ltrb_bbox, bool is_box_encoder, bool is_box_iou_matcher, bool avoid_class_remapping)
 {
     if(_meta_data_reader)
         THROW("A metadata reader has already been created")
     if (_augmented_meta_data)
         THROW("Metadata output already defined, there can only be a single output for metadata augmentation");
 
-    MetaDataConfig config(metadata_type, reader_type, source_path, std::map<std::string, std::string>(), std::string());
+    MetaDataConfig config(metadata_type, reader_type, source_path, std::map<std::string, std::string>(), std::string(), avoid_class_remapping=avoid_class_remapping);
     _meta_data_graph = create_meta_data_graph(config);
     _meta_data_reader = create_meta_data_reader(config, _augmented_meta_data);
     _meta_data_reader->read_all(source_path);

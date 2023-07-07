@@ -32,6 +32,7 @@ using namespace std;
 void COCOMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
+    _avoid_class_remapping = cfg.class_remapping();
     _output = meta_data_batch;
     _output->set_metadata_type(cfg.type());
 }
@@ -380,11 +381,14 @@ void COCOMetaDataReader::read_all(const std::string &path)
         bb_coords = elem.second->get_bb_cords();
         bb_labels = elem.second->get_labels();
         Labels continuous_label_id;
+        int cnt_idx;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
             auto _it_label = _label_info.find(bb_labels[i]);
-            int cnt_idx = _it_label->second; // To be changed for Retinanet
-            // int cnt_idx = _it_label->first;
+            if (_avoid_class_remapping)
+                cnt_idx = _it_label->first;
+            else
+                cnt_idx = _it_label->second;
             continuous_label_id.push_back(cnt_idx);
         }
         elem.second->set_labels(continuous_label_id);
