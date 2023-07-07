@@ -597,7 +597,7 @@ namespace rocal{
                             py::format_descriptor<int>::format(),
                             1,
                             {labels->size()},
-                            {sizeof(int) }));
+                            {sizeof(int)}));
         });
         m.def("getBoundingBoxLabels", [](RocalContext context) {
             rocalTensorList *labels = rocalGetBoundingBoxLabel(context);
@@ -611,7 +611,7 @@ namespace rocal{
                             py::format_descriptor<int>::format(),
                             1,
                             {labels->at(i)->dims().at(0)},
-                            {sizeof(int) }));
+                            {sizeof(int)}));
                 labels_list.append(labels_array);
             }
             return labels_list;
@@ -619,16 +619,16 @@ namespace rocal{
         m.def("getBoundingBoxCords", [](RocalContext context) {
             rocalTensorList *boxes = rocalGetBoundingBoxCords(context);
             py::list boxes_list;
-            py::array_t<double> boxes_array;
+            py::array_t<float> boxes_array;
             for (int i = 0; i < boxes->size(); i++) {
-                double *box_buffer = (double *)(boxes->at(i)->buffer());
+                float *box_buffer = (float *)(boxes->at(i)->buffer());
                 boxes_array = py::array(py::buffer_info(
-                            (double *)(boxes->at(i)->buffer()),
-                            sizeof(double),
-                            py::format_descriptor<double>::format(),
+                            (float *)(boxes->at(i)->buffer()),
+                            sizeof(float),
+                            py::format_descriptor<float>::format(),
                             1,
                             {boxes->at(i)->dims().at(0) * 4},
-                            {sizeof(double) }));
+                            {sizeof(float)}));
                 boxes_list.append(boxes_array);
             }
             return boxes_list;
