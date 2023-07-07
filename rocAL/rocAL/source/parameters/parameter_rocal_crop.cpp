@@ -77,6 +77,8 @@ void RocalCropParam::fill_crop_dims() {
         x2_arr_val[img_idx] = x1_arr_val[img_idx] + cropw_arr_val[img_idx];
         y2_arr_val[img_idx] = y1_arr_val[img_idx] + croph_arr_val[img_idx];
         // Evaluating the crop
+        x1_arr_val[img_idx] = std::max(x1_arr_val[img_idx], 0u);
+        y1_arr_val[img_idx] = std::max(y1_arr_val[img_idx], 0u);
         x2_arr_val[img_idx] = std::min(x2_arr_val[img_idx], in_roi[img_idx].x2);
         y2_arr_val[img_idx] = std::min(y2_arr_val[img_idx], in_roi[img_idx].y2);
     }
