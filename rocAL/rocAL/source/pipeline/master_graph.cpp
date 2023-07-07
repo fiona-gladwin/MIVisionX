@@ -367,19 +367,16 @@ void MasterGraph::release()
     //shut_down loader:: required for releasing any allocated resourses
     _loader_module->shut_down();
     // release output buffer if allocated
-    if(_output_tensor_buffer_allocated) {
+    if(_output_tensor_buffer != nullptr) {
 #if ENABLE_OPENCL
-        if(_output_tensor_buffer != nullptr)
-            clReleaseMemObject((cl_mem)_output_tensor_buffer );
+        clReleaseMemObject((cl_mem)_output_tensor_buffer);
 #elif ENABLE_HIP
-        if(_output_tensor_buffer != nullptr) {
-            hipError_t err = hipFree(_output_tensor_buffer );
-            if (err != hipSuccess) {
-                THROW("MasterGraph::deallocate_output_tensor  hipFree failed " + TOSTR(err))
-            }
+        hipError_t err = hipFree(_output_tensor_buffer);
+        if (err != hipSuccess) {
+            THROW("MasterGraph::deallocate_output_tensor  hipFree failed " + TOSTR(err))
         }
 #endif
-        _output_tensor_buffer = nullptr;    
+        _output_tensor_buffer = nullptr;
     }
     
     // release all openvx resources.
@@ -546,7 +543,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         unsigned dest_buf_offset = 0;
         auto output_buffers =_ring_buffer.get_read_buffers();
         
-        if(!_output_tensor_buffer_allocated) {
+        if(_output_tensor_buffer == nullptr) {
             size_t size = _output_tensor_list[0]->info().data_size() * sizeof(cl_float);
             cl_mem clImgFloat  = clCreateBuffer(_device.resources()->context,
                                                 CL_MEM_READ_WRITE,
@@ -556,7 +553,6 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
                 THROW("clCreateBuffer of size " + TOSTR(size) + " failed " + TOSTR(ret))
 
             _output_tensor_buffer = clImgFloat;
-            _output_tensor_buffer_allocated = true;
         }
         
         for( auto&& out_image: output_buffers)
@@ -633,12 +629,11 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
             auto output_buffers =_ring_buffer.get_read_buffers();
             unsigned dest_buf_offset = 0;
             
-            if(!_output_tensor_buffer_allocated) {
+            if(_output_tensor_buffer == nullptr) {
                 size_t size = _output_tensor_list[0]->info().data_size() * (output_data_type == RocalTensorDataType::FP32 ? sizeof(float) : sizeof(half));
                 hipError_t status = hipMalloc(&_output_tensor_buffer, size);
                 if ((status != hipSuccess) || !_output_tensor_buffer)
                     THROW("ROCAL::hipMalloc of size " + TOSTR(size) + " failed " + TOSTR(status))
-                _output_tensor_buffer_allocated = true;
             }
             
             // copy hip buffer to out_ptr
@@ -902,7 +897,7 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
         // to avoid unnecessary sequence of synchronizations
 
         // get_read_buffers() calls block_if_empty() internally and blocks if buffers are empty until a new batch is processed
-        auto output_buffers =_ring_buffer.get_read_buffers();
+        auto output_buffers = _ring_buffer.get_read_buffers();
         auto out_image_idx = output_buffers.size();
         for( auto&& output_handle: output_buffers)
         {
