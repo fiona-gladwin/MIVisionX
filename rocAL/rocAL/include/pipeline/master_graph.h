@@ -50,6 +50,25 @@ THE SOFTWARE.
 #define MAX_NUM_ANCHORS 8732  // Num of bbox achors used in SSD training
 #define MAX_MASK_BUFFER 10000
 
+#if ENABLE_SIMD
+#if _WIN32
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#include <smmintrin.h>
+#include <immintrin.h>
+#endif
+#endif
+
+#if (ENABLE_SIMD && __AVX2__)
+const __m256i avx_pkdMaskR = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
+                                               0x80808003, 0x80808006, 0x80808009);
+const __m256i avx_pkdMaskG = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
+                                               0x80808004, 0x80808007, 0x8080800A);
+const __m256i avx_pkdMaskB = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
+                                               0x80808005, 0x80808008, 0x8080800B);
+#endif
+                                  
 class MasterGraph
 {
 public:

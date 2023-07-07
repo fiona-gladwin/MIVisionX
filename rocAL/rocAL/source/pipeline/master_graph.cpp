@@ -38,16 +38,6 @@ THE SOFTWARE.
 
 using half_float::half;
 
-#if ENABLE_SIMD
-#if _WIN32
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#include <smmintrin.h>
-#include <immintrin.h>
-#endif
-#endif
-
 #if ENABLE_HIP
 #include <rocal_hip_kernels.h>
 #endif
@@ -530,9 +520,9 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         if(output_data_type == RocalTensorDataType::FP16)
             THROW("FP16 tensor output for GPU affinity is not implemented")
         // OCL device memory
-        cl_int status;
+        cl_int status, ret;
 
-        size_t global_work_size = _output_tensor_list[0]->info().data_size() / _output_tensor_list[0]->info().data_type_size(); // Sample size
+        size_t global_work_size = _output_tensor_list[0]->info().data_size(); // Sample size
         size_t local_work_size = 256;
 
         // TODO: Use the runKernel function instead
@@ -542,7 +532,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         auto queue = _device.resources()->cmd_queue;
         unsigned dest_buf_offset = 0;
         auto output_buffers =_ring_buffer.get_read_buffers();
-        
+
         if(_output_tensor_buffer == nullptr) {
             size_t size = _output_tensor_list[0]->info().data_size() * sizeof(cl_float);
             cl_mem clImgFloat  = clCreateBuffer(_device.resources()->context,
@@ -641,10 +631,14 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
             for( auto&& out_image: output_buffers)
             {
                 auto img_buffer = out_image;
-                auto return_status = hipMemcpy(_output_tensor_buffer, (const void *)img_buffer, sizeof(unsigned char) * n * c * h * w, hipMemcpyHostToDevice);
+                auto return_status = hipMemcpyHtoDAsync(_output_tensor_buffer, (void *)img_buffer, sizeof(unsigned char) * n * c * h * w, _device.resources()->hip_stream);
                 if (return_status != hipSuccess) {
                     THROW("hipMemcpy failed with status " + TOSTR(return_status))
                 }
+                // sync to finish copy
+                if (hipStreamSynchronize(_device.resources()->hip_stream) != hipSuccess)
+                    THROW("hipStreamSynchronize failed for hipMemcpy ")
+
                 if (format == RocalTensorlayout::NHWC)
                 {
                     HipExecCopyInt8ToNHWC(_device.resources()->hip_stream, (const void *)_output_tensor_buffer, out_ptr, dest_buf_offset, n, c, h, w,
@@ -674,6 +668,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
             for( auto&& out_image: output_buffers)
             {
                 unsigned int single_image_size = w * c * h;
+                auto channel_size = w * h;
                 #pragma omp parallel for num_threads(num_threads)
                 for(unsigned int batchCount = 0; batchCount < n; batchCount ++)
                 {
@@ -685,19 +680,17 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
                         if(output_data_type == RocalTensorDataType::FP32)
                         {
                             float *output_tensor_32 = static_cast<float *>(out_ptr);
-                            auto channel_size = w * h;
                             for (unsigned channel_idx = 0; channel_idx < c; channel_idx++) {
                                 for (unsigned i = 0; i < channel_size; i++)
                                     output_tensor_32[dest_buf_offset + channel_idx + i * c] =
                                             offset[channel_idx] + multiplier[channel_idx] *
-                                                                    (reverse_channels ? (float) (in_buffer[i * c + c - channel_idx - 1])
-                                                                                    : (float) (in_buffer[i * c + channel_idx]));
+                                                                    (reverse_channels ? static_cast<float>(in_buffer[i * c + c - channel_idx - 1])
+                                                                                    : static_cast<float>(in_buffer[i * c + channel_idx]));
                             }
                         }
                         else if(output_data_type == RocalTensorDataType::FP16)
                         {
                             half *output_tensor_16 = static_cast<half *>(out_ptr);
-                            auto channel_size = w * h;
                             for (unsigned channel_idx = 0; channel_idx < c; channel_idx++) {
                                 for (unsigned i = 0; i < channel_size; i++)
                                     output_tensor_16[dest_buf_offset + channel_idx + i * c] =
@@ -712,11 +705,10 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
                         if(output_data_type == RocalTensorDataType::FP32)
                         {
                             float *output_tensor_32 = static_cast<float *>(out_ptr);
-                            auto channel_size = w * h;
                             if(c != 3)
                             {
                                 for(unsigned i = 0; i < channel_size; i++)
-                                    output_tensor_32[dest_buf_offset + i] = offset[0] + multiplier[0] * (float)in_buffer[c * i];
+                                    output_tensor_32[dest_buf_offset + i] = offset[0] + multiplier[0] * static_cast<float>(in_buffer[c * i]);
                             }
                             else {
         #if (ENABLE_SIMD && __AVX2__)
@@ -726,19 +718,13 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
 
                                 __m256i mask_B, mask_G, mask_R;
                                 if (reverse_channels) {
-                                    mask_B = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
-                                                            0x80808003, 0x80808006, 0x80808009);
-                                    mask_G = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
-                                                            0x80808004, 0x80808007, 0x8080800A);
-                                    mask_R = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
-                                                            0x80808005, 0x80808008, 0x8080800B);
+                                    mask_B = avx_pkdMaskR;
+                                    mask_G = avx_pkdMaskG;
+                                    mask_R = avx_pkdMaskB;
                                 } else {
-                                    mask_R = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
-                                                            0x80808003, 0x80808006, 0x80808009);
-                                    mask_G = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
-                                                            0x80808004, 0x80808007, 0x8080800A);
-                                    mask_B = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
-                                                            0x80808005, 0x80808008, 0x8080800B);
+                                    mask_R = avx_pkdMaskR;
+                                    mask_G = avx_pkdMaskG;
+                                    mask_B = avx_pkdMaskB;
                                 }
                                 __m256 pmul0 = _mm256_set1_ps(multiplier0);
                                 __m256 pmul1 = _mm256_set1_ps(multiplier1);
@@ -779,8 +765,8 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
                                 for(unsigned channel_idx = 0; channel_idx < c; channel_idx++) {
                                     for(unsigned i = 0; i < channel_size; i++)
                                         output_tensor_32[dest_buf_offset + channel_idx * channel_size + i] =
-                                                offset[channel_idx] + multiplier[channel_idx] * (reverse_channels ? (float)(in_buffer[(c * i + c - channel_idx - 1)]) :
-                                                (float)(in_buffer[(c * i + channel_idx)]));
+                                                offset[channel_idx] + multiplier[channel_idx] * (reverse_channels ? static_cast<float>(in_buffer[(c * i + c - channel_idx - 1)]) :
+                                                static_cast<float>(in_buffer[(c * i + channel_idx)]));
                                 }
         #endif
                             }
@@ -788,7 +774,6 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
                         else if(output_data_type == RocalTensorDataType::FP16) 
                         {
                             half *output_tensor_16 = static_cast<half *>(out_ptr);
-                            auto channel_size = w * h;
                             if(c != 3) {
                                 for(unsigned i = 0; i < channel_size; i++)
                                     output_tensor_16[dest_buf_offset + i] = offset[0] + multiplier[0] * (half)in_buffer[c * i];
@@ -801,19 +786,13 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
 
                                 __m256i mask_B, mask_G, mask_R;
                                 if (reverse_channels) {
-                                    mask_B = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
-                                                                0x80808003, 0x80808006, 0x80808009);
-                                    mask_G = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
-                                                                0x80808004, 0x80808007, 0x8080800A);
-                                    mask_R = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
-                                                                0x80808005, 0x80808008, 0x8080800B);
+                                    mask_B = avx_pkdMaskR;
+                                    mask_G = avx_pkdMaskG;
+                                    mask_R = avx_pkdMaskB;
                                 } else {
-                                    mask_R = _mm256_setr_epi32(0x80808000, 0x80808003, 0x80808006, 0x80808009, 0x80808000,
-                                                                0x80808003, 0x80808006, 0x80808009);
-                                    mask_G = _mm256_setr_epi32(0x80808001, 0x80808004, 0x80808007, 0x8080800A, 0x80808001,
-                                                                0x80808004, 0x80808007, 0x8080800A);
-                                    mask_B = _mm256_setr_epi32(0x80808002, 0x80808005, 0x80808008, 0x8080800B, 0x80808002,
-                                                                0x80808005, 0x80808008, 0x8080800B);
+                                    mask_R = avx_pkdMaskR;
+                                    mask_G = avx_pkdMaskG;
+                                    mask_B = avx_pkdMaskB;
                                 }
                                 __m256 pmul0 = _mm256_set1_ps(multiplier0);
                                 __m256 pmul1 = _mm256_set1_ps(multiplier1);
