@@ -204,11 +204,12 @@ void RingBuffer::init(RocalMemType mem_type, void *devres, std::vector<size_t> &
         }
 #if ENABLE_OPENCL || ENABLE_HIP
     }
-#endif    
+#endif
 }
 
 void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size)
 {
+    _box_encoder = true;
 #if ENABLE_HIP
     DeviceResourcesHip *dev_hip = static_cast<DeviceResourcesHip *>(_dev);
     if(_mem_type == RocalMemType::HIP)
@@ -256,7 +257,7 @@ void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bb
             }
         }
     }
-#else    
+#else
     {
         if(_meta_data_sub_buffer_count < 2)
             THROW("Insufficient HOST metadata buffers for Box Encoder");
@@ -272,13 +273,13 @@ void RingBuffer::initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bb
 #endif
 }
 
-void RingBuffer::init_metadata(RocalMemType mem_type, std::vector<size_t> sub_buffer_size, unsigned sub_buffer_count)
+void RingBuffer::init_metadata(RocalMemType mem_type, std::vector<size_t> &sub_buffer_size)
 {
     if(BUFF_DEPTH < 2)
         THROW ("Error internal buffer size for the ring buffer should be greater than one")
 
     // Allocating buffers
-    _meta_data_sub_buffer_count = sub_buffer_count;
+    _meta_data_sub_buffer_count = sub_buffer_size.size();
     if(mem_type== RocalMemType::OCL || mem_type== RocalMemType::HIP)
     {
         THROW("Metadata is not supported with GPU backends")
@@ -289,8 +290,8 @@ void RingBuffer::init_metadata(RocalMemType mem_type, std::vector<size_t> sub_bu
         _meta_data_sub_buffer_size.resize(BUFF_DEPTH);
         for(size_t buffIdx = 0; buffIdx < BUFF_DEPTH; buffIdx++)
         {
-            _host_meta_data_buffers[buffIdx].resize(sub_buffer_count);
-            for(size_t sub_buff_idx = 0; sub_buff_idx < sub_buffer_count; sub_buff_idx++)
+            _host_meta_data_buffers[buffIdx].resize(sub_buffer_size.size());
+            for(size_t sub_buff_idx = 0; sub_buff_idx < sub_buffer_size.size(); sub_buff_idx++)
             {
                 _meta_data_sub_buffer_size[buffIdx].emplace_back(sub_buffer_size[sub_buff_idx]);
                 _host_meta_data_buffers[buffIdx][sub_buff_idx] = malloc(sub_buffer_size[sub_buff_idx]);
@@ -432,7 +433,7 @@ void RingBuffer::set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data)
     else
     {
         _last_image_meta_data = std::move(std::make_pair(std::move(names), meta_data));
-        if(!_box_encoder_gpu)
+        if(!_box_encoder) 
         {
             auto actual_buffer_size = meta_data->get_buffer_size();
             for(unsigned i = 0; i < actual_buffer_size.size(); i++)
@@ -443,6 +444,7 @@ void RingBuffer::set_meta_data(ImageNameBatch names, pMetaDataBatch meta_data)
             meta_data->copy_data(_host_meta_data_buffers[_write_ptr]);
         }
     }
+
 }
 
 void RingBuffer::rellocate_meta_data_buffer(void * buffer, size_t buffer_size, unsigned buff_idx)
@@ -461,14 +463,5 @@ MetaDataNamePair& RingBuffer::get_meta_data()
     if(_level != _meta_ring_buffer.size())
         THROW("ring buffer internals error, image and metadata sizes not the same "+TOSTR(_level) + " != "+TOSTR(_meta_ring_buffer.size()))
     return  _meta_ring_buffer.front();
-}
-
-MetaDataDimensionsBatch& RingBuffer::get_meta_data_info()
-{
-    block_if_empty();
-    std::unique_lock<std::mutex> lock(_names_buff_lock);
-    if(_level != _meta_ring_buffer.size())
-        THROW("ring buffer internals error, image and metadata sizes not the same "+TOSTR(_level) + " != "+TOSTR(_meta_ring_buffer.size()))
-    return  _meta_ring_buffer.front().second->get_metadata_dimensions_batch();
 }
 

@@ -41,11 +41,11 @@ Cifar10MetaDataReader::Cifar10MetaDataReader()
     _sub_dir = nullptr;
 }
 
-void Cifar10MetaDataReader::init(const MetaDataConfig& cfg)
+void Cifar10MetaDataReader::init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
     _file_prefix = cfg.file_prefix();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
     _raw_file_size = 32*32*3 + 1;   // 1 extra byte is label
 }
 bool Cifar10MetaDataReader::exists(const std::string& image_name)
@@ -67,7 +67,7 @@ void Cifar10MetaDataReader::print_map_contents()
 {
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label() << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_labels()[0] << std::endl;
     }
 }
 
@@ -102,8 +102,7 @@ void Cifar10MetaDataReader::lookup(const std::vector<std::string>& image_names)
         auto it = _map_content.find(image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ image_name )
-        _output->get_label_batch()[i] = it->second->get_label();
-        _output->increment_object_count(it->second->get_object_count());
+        _output->get_labels_batch()[i] = it->second->get_labels();
     }
 }
 

@@ -33,11 +33,11 @@ THE SOFTWARE.
 
 using namespace std;
 
-void TFMetaDataReader::init(const MetaDataConfig &cfg)
+void TFMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
     _feature_key_map = cfg.feature_key_map();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
     _last_rec = false;
 }
 
@@ -64,9 +64,8 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         WRN("No image names passed")
         return;
     }
-    if(_image_names.size() != (unsigned)_output->size())   
+    if(_image_names.size() != (unsigned)_output->size())
         _output->resize(_image_names.size());
-    _output->reset_objects_count();
 
     for(unsigned i = 0; i < _image_names.size(); i++)
     {
@@ -74,8 +73,7 @@ void TFMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         auto it = _map_content.find(_image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ _image_name )
-        _output->get_label_batch()[i] = it->second->get_label();
-        _output->increment_object_count(it->second->get_object_count());
+        _output->get_labels_batch()[i] = it->second->get_labels();
     }
 
 }
@@ -84,7 +82,7 @@ void TFMetaDataReader::print_map_contents()
 {
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label() << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_labels()[0] << std::endl;
     }
 }
 
@@ -189,7 +187,7 @@ void TFMetaDataReader::read_files(const std::string& _path)
         if(_entity->d_type != DT_REG)
             continue;
 
-        _file_names.push_back(_entity->d_name);  
+        _file_names.push_back(_entity->d_name);
     }
     if(_file_names.empty())
         WRN("TFMetadataReader: Could not find any file in " + _path)

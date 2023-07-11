@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "randombboxcrop_meta_data_reader_factory.h"
 #include "exception.h"
 
-std::shared_ptr<RandomBBoxCrop_MetaDataReader> create_meta_data_reader(const RandomBBoxCrop_MetaDataConfig &config)
+std::shared_ptr<RandomBBoxCrop_MetaDataReader> create_meta_data_reader(const RandomBBoxCrop_MetaDataConfig &config, std::shared_ptr<CropCordBatch>& meta_data_batch)
 {
     switch (config.reader_type())
     {
@@ -33,7 +33,8 @@ std::shared_ptr<RandomBBoxCrop_MetaDataReader> create_meta_data_reader(const Ran
         if (config.type() != RandomBBoxCrop_MetaDataType::BoundingBox)
             THROW("RANDOMBBOXCROP can only be used to load CROP OUTPUTS")
         auto ret = std::make_shared<RandomBBoxCropReader>();
-        ret->init(config);
+        meta_data_batch = std::make_shared<CropCordBatch>();
+        ret->init(config,meta_data_batch);
         return ret;
     }
     break;

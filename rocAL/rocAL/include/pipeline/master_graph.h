@@ -45,11 +45,11 @@ THE SOFTWARE.
 #include "randombboxcrop_meta_data_reader.h"
 #include "rocal_api_types.h"
 #define MAX_STRING_LENGTH 100
-#define MAX_OBJECTS 50 // Max number of objects/image in COCO dataset is 93 
+#define MAX_OBJECTS 50 // Setting an arbitrary value 50.(Max number of objects/image in COCO dataset is 93)
 #define BBOX_COUNT 4
-#define MAX_NUM_ANCHORS 8732
+#define MAX_NUM_ANCHORS 8732  // Num of bbox achors used in SSD training
+#define MAX_MASK_BUFFER 10000
 #define MAX_ANCHORS 120087
-
 class MasterGraph
 {
 public:
@@ -78,7 +78,7 @@ public:
     Tensor *create_loader_output_tensor(const TensorInfo &info);
     std::vector<rocalTensorList *> create_label_reader(const char *source_path, MetaDataReaderType reader_type);
     std::vector<rocalTensorList *> create_video_label_reader(const char *source_path, MetaDataReaderType reader_type, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
-    std::vector<rocalTensorList *> create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool is_box_encoder = false, bool is_box_iou_matcher = false); // Need to add keypoints support
+    std::vector<rocalTensorList *> create_coco_meta_data_reader(const char *source_path, bool is_output, MetaDataReaderType reader_type, MetaDataType label_type, bool ltrb_bbox = true, bool is_box_encoder = false, bool is_box_iou_matcher = false);
     std::vector<rocalTensorList *> create_tf_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type, const std::map<std::string, std::string> feature_key_map);
     std::vector<rocalTensorList *> create_caffe_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
     std::vector<rocalTensorList *> create_caffe2_lmdb_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type,  MetaDataType label_type);
@@ -90,11 +90,9 @@ public:
     void create_randombboxcrop_reader(RandomBBoxCrop_MetaDataReaderType reader_type, RandomBBoxCrop_MetaDataType label_type, bool all_boxes_overlap, bool no_crop, FloatParam* aspect_ratio, bool has_shape, int crop_width, int crop_height, int num_attempts, FloatParam* scaling, int total_num_attempts, int64_t seed=0);
     const std::pair<ImageNameBatch,pMetaDataBatch>& meta_data();
     TensorList * labels_meta_data();
-    TensorList * bbox_labels_meta_data();
     TensorList * bbox_meta_data();
+    TensorList * mask_meta_data();
     TensorList * matches_meta_data();
-    ImgSizes& get_image_sizes();
-
     void set_loop(bool val) { _loop = val; }
     void set_output(Tensor* output_tensor);
     size_t calculate_cpu_num_threads(size_t shard_count);
@@ -107,7 +105,7 @@ public:
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
     std::vector<rocalTensorList *> get_bbox_encoded_buffers(size_t num_encoded_boxes);
-    size_t bounding_box_batch_count(int* buf, pMetaDataBatch meta_data_batch);
+    size_t bounding_box_batch_count(pMetaDataBatch meta_data_batch);
 #if ENABLE_OPENCL
     cl_command_queue get_ocl_cmd_q() { return _device.resources()->cmd_queue; }
 #endif
@@ -123,8 +121,8 @@ private:
     /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed tensors
     bool no_more_processed_data();
     RingBuffer _ring_buffer;//!< The queue that keeps the tensors that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
-    MetaDataBatch* _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
-    CropCordBatch* _random_bbox_crop_cords_data = nullptr;
+    pMetaDataBatch _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
+    std::shared_ptr<CropCordBatch> _random_bbox_crop_cords_data = nullptr;
     std::thread _output_thread;
     TensorList _internal_tensor_list;  //!< Keeps a list of ovx tensors that are used to store the augmented outputs (there is an augmentation output batch per element in the list)
     TensorList _output_tensor_list;    //!< Keeps a list of ovx tensors(augmented outputs) that are to be passed to the user (there is an augmentation output batch per element in the list)
@@ -140,10 +138,8 @@ private:
     std::vector<rocalTensorList *> _metadata_output_tensor_list;
     TensorList _labels_tensor_list;
     TensorList _bbox_tensor_list;
+    TensorList _mask_tensor_list;
     TensorList _matches_tensor_list;
-    std::vector<std::vector<unsigned>> _labels_tensor_dims;
-    std::vector<std::vector<unsigned>> _bbox_tensor_dims;
-    std::vector<std::vector<unsigned>> _matches_tensor_dims;
     std::vector<size_t> _meta_data_buffer_size;
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU
@@ -188,6 +184,7 @@ private:
     float _high_threshold = 0.5;
     float _low_threshold = 0.4;
     bool _allow_low_quality_matches = true;
+    bool _augmentation_metanode = false; // enabled when geometric Augmentations with metanodes are present in the pipeline
 #if ENABLE_HIP
     BoxEncoderGpu *_box_encoder_gpu = nullptr;
 #endif
@@ -223,6 +220,7 @@ std::shared_ptr<T> MasterGraph::meta_add_node(std::shared_ptr<M> node)
     _meta_data_graph->_meta_nodes.push_back(meta_node);
     meta_node->_node = node;
     meta_node->_batch_size = _user_batch_size;
+    _augmentation_metanode = true;
     return meta_node;
 }
 
@@ -255,7 +253,7 @@ template<> inline std::shared_ptr<ImageLoaderSingleShardNode> MasterGraph::add_n
     auto node = std::make_shared<ImageLoaderSingleShardNode>(outputs[0], (void *)_device.resources());
 #else
     auto node = std::make_shared<ImageLoaderSingleShardNode>(outputs[0], nullptr);
-#endif    
+#endif
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _root_nodes.push_back(node);
@@ -292,7 +290,7 @@ template<> inline std::shared_ptr<FusedJpegCropSingleShardNode> MasterGraph::add
     auto node = std::make_shared<FusedJpegCropSingleShardNode>(outputs[0], (void *)_device.resources());
 #else
     auto node = std::make_shared<FusedJpegCropSingleShardNode>(outputs[0], nullptr);
-#endif    
+#endif
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _loader_module->set_random_bbox_data_reader(_randombboxcrop_meta_data_reader);
@@ -333,9 +331,9 @@ template<> inline std::shared_ptr<VideoLoaderNode> MasterGraph::add_node(const s
         THROW("A loader already exists, cannot have more than one loader")
 #if ENABLE_HIP || ENABLE_OPENCL
     auto node = std::make_shared<VideoLoaderNode>(outputs[0], (void *)_device.resources());
-#else    
+#else
     auto node = std::make_shared<VideoLoaderNode>(outputs[0], nullptr);
-#endif 
+#endif
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _root_nodes.push_back(node);
@@ -353,7 +351,7 @@ template<> inline std::shared_ptr<VideoLoaderSingleShardNode> MasterGraph::add_n
     auto node = std::make_shared<VideoLoaderSingleShardNode>(outputs[0], (void *)_device.resources());
 #else
     auto node = std::make_shared<VideoLoaderSingleShardNode>(outputs[0], nullptr);
-#endif    
+#endif
     _loader_module = node->get_loader_module();
     _loader_module->set_prefetch_queue_depth(_prefetch_queue_depth);
     _root_nodes.push_back(node);

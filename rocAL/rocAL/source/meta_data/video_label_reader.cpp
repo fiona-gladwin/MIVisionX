@@ -41,13 +41,13 @@ VideoLabelReader::VideoLabelReader()
     _sub_dir = nullptr;
 }
 
-void VideoLabelReader::init(const MetaDataConfig &cfg)
+void VideoLabelReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
     _sequence_length = cfg.sequence_length();
     _step = cfg.frame_step();
     _stride = cfg.frame_stride();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
 }
 
 bool VideoLabelReader::exists(const std::string &frame_name)
@@ -86,7 +86,7 @@ void VideoLabelReader::print_map_contents()
     std::cerr << "\nMap contents: \n";
     for (auto &elem : _map_content)
     {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label() << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_labels()[0] << std::endl;
     }
 }
 
@@ -121,8 +121,7 @@ void VideoLabelReader::lookup(const std::vector<std::string> &frame_names)
         auto it = _map_content.find(frame_name);
         if (_map_content.end() == it)
             THROW("ERROR: Video label reader folders Given name not present in the map" + frame_name)
-        _output->get_label_batch()[i] = it->second->get_label();
-        _output->increment_object_count(it->second->get_object_count());
+        _output->get_labels_batch()[i] = it->second->get_labels();
     }
 }
 

@@ -29,10 +29,11 @@ THE SOFTWARE.
 
 using namespace std;
 
-void COCOMetaDataReader::init(const MetaDataConfig &cfg)
+void COCOMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new BoundingBoxBatch();
+    _output = meta_data_batch;
+    _output->set_metadata_type(cfg.type());
 }
 
 bool COCOMetaDataReader::exists(const std::string &image_name)
@@ -51,7 +52,6 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
     if (image_names.size() != (unsigned)_output->size())
         _output->resize(image_names.size());
 
-    _output->reset_objects_count();
     for (unsigned i = 0; i < image_names.size(); i++)
     {
         auto image_name = image_names[i];
@@ -59,44 +59,85 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         if (_map_content.end() == it)
             THROW("ERROR: Given name not present in the map" + image_name)
         _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
-        _output->get_bb_labels_batch()[i] = it->second->get_bb_labels();
+        _output->get_labels_batch()[i] = it->second->get_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
-        _output->increment_object_count(it->second->get_object_count());
-        _output->get_metadata_dimensions_batch().bb_labels_dims()[i] = it->second->get_bb_label_dims();
-        _output->get_metadata_dimensions_batch().bb_cords_dims()[i] = it->second->get_bb_cords_dims();
+        if (_output->get_metadata_type() == MetaDataType::PolygonMask)
+        {
+            auto mask_cords = it->second->get_mask_cords();
+            _output->get_mask_cords_batch()[i] = mask_cords;
+            _output->get_mask_polygons_count_batch()[i] = it->second->get_polygon_count();
+            _output->get_mask_vertices_count_batch()[i] = it->second->get_vertices_count();
+        }
     }
 }
 
-void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, BoundingBoxLabels bb_labels, ImgSize image_size)
+void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
 {
     if (exists(image_name))
     {
         auto it = _map_content.find(image_name);
         it->second->get_bb_cords().push_back(bb_coords[0]);
-        it->second->get_bb_labels().push_back(bb_labels[0]);
+        it->second->get_labels().push_back(bb_labels[0]);
+        it->second->get_mask_cords().insert(it->second->get_mask_cords().end(), mask_cords.begin(), mask_cords.end());
+        it->second->get_polygon_count().push_back(polygon_count[0]);
+        it->second->get_vertices_count().push_back(vertices_count[0]);
         return;
     }
-    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size);
+    pMetaDataPolygonMask info = std::make_shared<PolygonMask>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
+    _map_content.insert(pair<std::string, std::shared_ptr<PolygonMask>>(image_name, info));
+}
+
+void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, uint image_id)
+{
+    if (exists(image_name))
+    {
+        auto it = _map_content.find(image_name);
+        it->second->get_bb_cords().push_back(bb_coords[0]);
+        it->second->get_labels().push_back(bb_labels[0]);
+        return;
+    }
+    pMetaDataBox info = std::make_shared<BoundingBox>(bb_coords, bb_labels, image_size, image_id);
     _map_content.insert(pair<std::string, std::shared_ptr<BoundingBox>>(image_name, info));
 }
 
 void COCOMetaDataReader::print_map_contents()
 {
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
     ImgSize img_size;
+    MaskCords mask_cords;
+    std::vector<int> polygon_size;
+    std::vector<std::vector<int>> vertices_count;
 
     std::cout << "\nBBox Annotations List: \n";
     for (auto &elem : _map_content)
     {
         std::cout << "\nName :\t " << elem.first;
         bb_coords = elem.second->get_bb_cords();
-        bb_labels = elem.second->get_bb_labels();
+        bb_labels = elem.second->get_labels();
         img_size = elem.second->get_img_size();
         std::cout << "<wxh, num of bboxes>: " << img_size.w << " X " << img_size.h << " , " << bb_coords.size() << std::endl;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
             std::cout << " l : " << bb_coords[i].l << " t: :" << bb_coords[i].t << " r : " << bb_coords[i].r << " b: :" << bb_coords[i].b << "Label Id : " << bb_labels[i] << std::endl;
+        }
+        if (_output->get_metadata_type() == MetaDataType::PolygonMask)
+        {
+            int count = 0;
+            mask_cords = elem.second->get_mask_cords();
+            polygon_size = elem.second->get_polygon_count();
+            vertices_count = elem.second->get_vertices_count();
+            std::cout << "\nNumber of objects : " << bb_coords.size() << std::endl;
+            for (unsigned int i = 0; i < bb_coords.size(); i++)
+            {
+                std::cout << "\nNumber of polygons for object[ << " << i << "]:" << polygon_size[i];
+                for (int j = 0; j < polygon_size[i]; j++)
+                {
+                    std::cout << "\nPolygon size :" << vertices_count[i][j] << "Elements::";
+                    for (int k = 0; k < vertices_count[i][j]; k++, count++)
+                        std::cout << "\t " << mask_cords[count];
+                }
+            }
         }
     }
 }
@@ -127,8 +168,11 @@ void COCOMetaDataReader::read_all(const std::string &path)
     LookaheadParser parser(buff.get());
 
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
     ImgSizes img_sizes;
+    std::vector<int> polygon_count;
+    int polygon_size = 0;
+    std::vector<std::vector<int>> vertices_count;
 
     BoundingBoxCord box;
     ImgSize img_size;
@@ -138,12 +182,12 @@ void COCOMetaDataReader::read_all(const std::string &path)
     {
         if (0 == std::strcmp(key, "images"))
         {
+            int original_id;
             RAPIDJSON_ASSERT(parser.PeekType() == kArrayType);
             parser.EnterArray();
             while (parser.NextArrayValue())
             {
                 string image_name;
-                int original_id;
                 if (parser.PeekType() != kObjectType)
                 {
                     continue;
@@ -165,14 +209,14 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     }
                     else if(0 == std::strcmp(internal_key, "id"))
                     {
-                        img_size.original_id = parser.GetInt();
+                        original_id = parser.GetInt();
                     }
                     else
                     {
                         parser.SkipValue();
                     }
                 }
-                _map_img_names.insert(pair<int, std::string>(img_size.original_id, image_name));
+                _map_img_names.insert(pair<int, std::string>(original_id, image_name));
                 _map_img_sizes.insert(pair<std::string, ImgSize>(image_name, img_size));
                 img_size = {};
             }
@@ -210,8 +254,10 @@ void COCOMetaDataReader::read_all(const std::string &path)
             parser.EnterArray();
             while (parser.NextArrayValue())
             {
-                int id = 1, label = 0;
-                std::array<float, 4> bbox = {};
+                int id = 1, label = 0, iscrowd = 0;
+                std::array<double, 4> bbox;
+                std::vector<float> mask;
+                std::vector<int> vertices_array;
                 if (parser.PeekType() != kObjectType)
                 {
                     continue;
@@ -227,6 +273,10 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     {
                         label = parser.GetInt();
                     }
+                    else if (0 == std::strcmp(internal_key, "iscrowd"))
+                    {
+                        iscrowd = parser.GetInt();
+                    }
                     else if (0 == std::strcmp(internal_key, "bbox"))
                     {
                         RAPIDJSON_ASSERT(parser.PeekType() == kArrayType);
@@ -238,6 +288,36 @@ void COCOMetaDataReader::read_all(const std::string &path)
                             ++i;
                         }
                     }
+                    else if ((_output->get_metadata_type() == MetaDataType::PolygonMask) && 0 == std::strcmp(internal_key, "segmentation"))
+                    {
+                        if (parser.PeekType() == kObjectType)
+                        {
+                            parser.EnterObject();
+                            const char *key = parser.NextObjectKey();
+                            if (0 == std::strcmp(key, "counts"))
+                            {
+                                parser.SkipArray();
+                            }
+                        }
+                        else
+                        {
+                            RAPIDJSON_ASSERT(parser.PeekType() == kArrayType);
+                            parser.EnterArray();
+                            while (parser.NextArrayValue())
+                            {
+                                polygon_size += 1;
+                                int vertex_count = 0;
+                                parser.EnterArray();
+                                while (parser.NextArrayValue())
+                                {
+
+                                    mask.push_back(parser.GetDouble());
+                                    vertex_count += 1;
+                                }
+                                vertices_array.push_back(vertex_count);
+                            }
+                        }
+                    }
                     else
                     {
                         parser.SkipValue();
@@ -247,15 +327,37 @@ void COCOMetaDataReader::read_all(const std::string &path)
                 auto itr = _map_img_names.find(id);
                 auto it = _map_img_sizes.find(itr->second);
                 ImgSize image_size = it->second; //Normalizing the co-ordinates & convert to "ltrb" format
-                box.l = bbox[0] / static_cast<double>(image_size.w);
-                box.t = bbox[1] / static_cast<double>(image_size.h);
-                box.r = (bbox[0] + bbox[2]) / static_cast<double>(image_size.w);
-                box.b = (bbox[1] + bbox[3]) / static_cast<double>(image_size.h);
-                bb_coords.push_back(box);
-                bb_labels.push_back(label);
-                add(itr->second, bb_coords, bb_labels, image_size);
-                bb_coords.clear();
-                bb_labels.clear();
+                if ((_output->get_metadata_type() == MetaDataType::PolygonMask) && iscrowd == 0)
+                {
+                    box.l = bbox[0] / static_cast<double>(image_size.w);
+                    box.t = bbox[1] / static_cast<double>(image_size.h);
+                    box.r = (bbox[0] + bbox[2] - 1) / static_cast<double>(image_size.w);
+                    box.b = (bbox[1] + bbox[3] - 1) / static_cast<double>(image_size.h);
+                    bb_coords.push_back(box);
+                    bb_labels.push_back(label);
+                    polygon_count.push_back(polygon_size);
+                    vertices_count.push_back(vertices_array);
+                    add(itr->second, bb_coords, bb_labels, image_size, mask, polygon_count, vertices_count);
+                    mask.clear();
+                    polygon_size = 0;
+                    polygon_count.clear();
+                    vertices_count.clear();
+                    vertices_array.clear();
+                    bb_coords.clear();
+                    bb_labels.clear();
+                }
+                else if (!(_output->get_metadata_type() == MetaDataType::PolygonMask))
+                {
+                    box.l = bbox[0] / static_cast<double>(image_size.w);
+                    box.t = bbox[1] / static_cast<double>(image_size.h);
+                    box.r = (bbox[0] + bbox[2]) / static_cast<double>(image_size.w);
+                    box.b = (bbox[1] + bbox[3]) / static_cast<double>(image_size.h);
+                    bb_coords.push_back(box);
+                    bb_labels.push_back(label);
+                    add(itr->second, bb_coords, bb_labels, image_size, id);
+                    bb_coords.clear();
+                    bb_labels.clear();
+                }
                 image_size = {};
             }
         }
@@ -267,16 +369,16 @@ void COCOMetaDataReader::read_all(const std::string &path)
     for (auto &elem : _map_content)
     {
         bb_coords = elem.second->get_bb_cords();
-        bb_labels = elem.second->get_bb_labels();
-        BoundingBoxLabels continuous_label_id;
+        bb_labels = elem.second->get_labels();
+        Labels continuous_label_id;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
             auto _it_label = _label_info.find(bb_labels[i]);
-            //int cnt_idx = _it_label->second;
-            int cnt_idx = _it_label->first;
+            int cnt_idx = _it_label->second; // To be changed for Retinanet
+            // int cnt_idx = _it_label->first;
             continuous_label_id.push_back(cnt_idx);
         }
-        elem.second->set_bb_labels(continuous_label_id);
+        elem.second->set_labels(continuous_label_id);
     }
     _coco_metadata_read_time.end(); // Debug timing
     //print_map_contents();

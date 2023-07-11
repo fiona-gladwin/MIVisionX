@@ -29,9 +29,9 @@ THE SOFTWARE.
 #include "exception.h"
 #include "text_file_meta_data_reader.h"
 
-void TextFileMetaDataReader::init(const MetaDataConfig &cfg) {
+void TextFileMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch) {
 	_path = cfg.path();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
 }
 
 bool TextFileMetaDataReader::exists(const std::string& image_name)
@@ -56,17 +56,15 @@ void TextFileMetaDataReader::lookup(const std::vector<std::string> &image_names)
         WRN("No image names passed")
         return;
     }
-    if(image_names.size() != (unsigned)_output->size())   
+    if(image_names.size() != (unsigned)_output->size())
         _output->resize(image_names.size());
-    _output->reset_objects_count();
     for(unsigned i = 0; i < image_names.size(); i++)
     {
         auto image_name = image_names[i];
         auto it = _map_content.find(image_name);
         if(_map_content.end() == it)
             THROW("ERROR: Given name not present in the map"+ image_name )
-        _output->get_label_batch()[i] = it->second->get_label();
-        _output->increment_object_count(it->second->get_object_count());
+        _output->get_labels_batch()[i] = it->second->get_labels();
     }
 }
 

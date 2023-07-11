@@ -33,7 +33,7 @@ THE SOFTWARE.
 class CaffeMetaDataReader: public MetaDataReader
 {
 public :
-    void init(const MetaDataConfig& cfg) override;
+    void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     void read_all(const std::string& path) override;
     void release(std::string image_name);
@@ -41,9 +41,7 @@ public :
     bool set_timestamp_mode() override { return false; }
     void print_map_contents();
     std::map<std::string, std::shared_ptr<MetaData>> &get_map_content() override { return _map_content;}
-    MetaDataBatch * get_output() override { return _output; }
     CaffeMetaDataReader();
-    ~CaffeMetaDataReader() override { delete _output; }
 private:
     void read_files(const std::string& _path);
     void read_lmdb_record(std::string _path, uint file_size);
@@ -52,7 +50,7 @@ private:
     std::map<std::string, std::shared_ptr<MetaData>> _map_content;
     std::map<std::string, std::shared_ptr<MetaData>>::iterator _itr;
     std::string _path;
-    LabelBatch* _output;
+    pMetaDataBatch _output;
     DIR *_src_dir, *_sub_dir;
     struct dirent *_entity;
     std::vector<std::string> _file_names;

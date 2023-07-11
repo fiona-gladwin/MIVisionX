@@ -31,10 +31,10 @@ THE SOFTWARE.
 namespace filesys = boost::filesystem;
 using namespace std;
 
-void MXNetMetaDataReader::init(const MetaDataConfig &cfg)
+void MXNetMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
-    _output = new LabelBatch();
+    _output = meta_data_batch;
     _src_dir = nullptr;
     _entity = nullptr;
 }
@@ -71,7 +71,7 @@ void MXNetMetaDataReader::lookup(const std::vector<std::string> &_image_names)
         auto it = _map_content.find(_image_name);
         if(_map_content.end() == it)
             THROW("MXNetMetaDataReader ERROR: Given name not present in the map"+ _image_name )
-        _output->get_label_batch()[i] = it->second->get_label();
+        _output->get_labels_batch()[i] = it->second->get_labels();
     }
 }
 
@@ -79,7 +79,7 @@ void MXNetMetaDataReader::print_map_contents()
 {
     std::cerr << "\nMap contents: \n";
     for (auto& elem : _map_content) {
-        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_label() << std::endl;
+        std::cerr << "Name :\t " << elem.first << "\t ID:  " << elem.second->get_labels()[0] << std::endl;
     }
 }
 
