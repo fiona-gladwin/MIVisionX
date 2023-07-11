@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 
 
+
 # RocalStatus
 from rocal_pybind.types import OK
 from rocal_pybind.types import CONTEXT_INVALID
@@ -96,6 +97,7 @@ _known_types = {
     UINT8: ("UINT8", UINT8),
     FLOAT: ("FLOAT", FLOAT),
     FLOAT16: ("FLOAT16", FLOAT16),
+    UINT8 : ("UINT8", UINT8),
     CPU_MEMORY: ("CPU_MEMORY", CPU_MEMORY),
     GPU_MEMORY: ("GPU_MEMORY", GPU_MEMORY),
     PINNED_MEMORY: ("PINNED_MEMORY", PINNED_MEMORY),

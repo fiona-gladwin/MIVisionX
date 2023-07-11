@@ -18,288 +18,408 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import amd.rocal.types as types
 import rocal_pybind as b
-from amd.rocal.pipeline import Pipeline
-
-def image(*inputs, user_feature_key_map=None, path='', file_root='', annotations_file='', shard_id=0, num_shards=1, random_shuffle=False, 
-          affine=True, bytes_per_sample_hint=0, cache_batch_copy=True, cache_debug=False, cache_size=0, cache_threshold=0, cache_type='', 
-          device_memory_padding=16777216, host_memory_padding=8388608, hybrid_huffman_threshold=1000000, output_type=types.RGB, 
-          decoder_type=types.DECODER_TJPEG, preserve=False, seed=1, split_stages=False, use_chunk_allocator=False, use_fast_idct=False,
-          device=None, decode_size_policy=types.USER_GIVEN_SIZE_ORIG, max_decoded_width=1000, max_decoded_height=1000):
-    reader = Pipeline._current_pipeline._reader
-    if (device == "gpu"):
-        decoder_type = types.DECODER_HW_JEPG
-    else:
-        decoder_type = types.DECODER_TJPEG
-    if(reader == 'COCOReader'):
-        kwargs_pybind = {
-            "source_path": file_root,
-            "json_path": annotations_file,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width, # 1024
-            "max_height": max_decoded_height, # 1024
-            "dec_type": decoder_type} # USER_GIVEN_SIZE_ORIG
-        decoded_image = b.COCO_ImageDecoderShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-
-    elif (reader == "TFRecordReaderClassification" or reader == "TFRecordReaderDetection"):
-        kwargs_pybind = {
-            "source_path": path,
-            "color_format": output_type,
-            "num_shards": num_shards,
-            'is_output': False,
-            "user_key_for_encoded": user_feature_key_map["image/encoded"],
-            "user_key_for_filename": user_feature_key_map["image/filename"],
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height,
-            "dec_type": decoder_type}
-        decoded_image = b.TF_ImageDecoder(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-
-    elif (reader == "Caffe2Reader" or reader == "Caffe2ReaderDetection"):
-        kwargs_pybind = {
-            "source_path": path,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height,
-            "dec_type" : decoder_type}
-        decoded_image = b.Caffe2_ImageDecoderShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-
-    elif reader == "CaffeReader" or reader == "CaffeReaderDetection":
-        kwargs_pybind = {
-            "source_path": path,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height,
-            "dec_type" : decoder_type}
-        decoded_image = b.Caffe_ImageDecoderShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-
-    else:
-        kwargs_pybind = {
-            "source_path": file_root,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height,
-            "dec_type": decoder_type}
-        decoded_image = b.ImageDecoderShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-
-    return (decoded_image)
+import amd.rocal.types as types
+import numpy as np
+import cupy as cp
+import ctypes
+import functools
+import inspect
 
 
-def image_raw(*inputs, user_feature_key_map=None, path='', file_root='', annotations_file='', shard_id=0, num_shards=1, random_shuffle=False,
-              affine=True, bytes_per_sample_hint=0, cache_batch_copy=True, cache_debug=False, cache_size=0, cache_threshold=0, cache_type='',
-              device_memory_padding=16777216, host_memory_padding=8388608, hybrid_huffman_threshold=1000000, output_type=types.RGB,
-              preserve=False, seed=1, split_stages=False, use_chunk_allocator=False, use_fast_idct=False, device=None, 
-              decode_size_policy=types.USER_GIVEN_SIZE_ORIG, max_decoded_width=1000, max_decoded_height=1000):
-    reader = Pipeline._current_pipeline._reader
+class Pipeline(object):
 
-    if (reader == "TFRecordReaderClassification" or reader == "TFRecordReaderDetection"):
-        kwargs_pybind = {
-            "source_path": path,
-            "user_key_for_encoded": user_feature_key_map["image/encoded"],
-            "user_key_for_filename": user_feature_key_map["image/filename"],
-            "color_format": output_type,
-            'is_output': False,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        decoded_image = b.TF_ImageDecoderRaw(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-        return (decoded_image)
+    """Pipeline class internally calls RocalCreate which returns context which will have all
+    the info set by the user.
 
-def image_random_crop(*inputs, user_feature_key_map=None, path='', file_root='', annotations_file='', num_shards=1, shard_id=0, 
-                      random_shuffle=False, affine=True, bytes_per_sample_hint=0, device_memory_padding=16777216, host_memory_padding=8388608,
-                      hybrid_huffman_threshold=1000000, num_attempts=10, output_type=types.RGB, preserve=False, random_area=[0.08, 1.0],
-                      random_aspect_ratio=[0.8, 1.25], seed=1, split_stages=False, use_chunk_allocator=False, use_fast_idct=False, device=None, 
-                      decode_size_policy=types.USER_GIVEN_SIZE_ORIG, max_decoded_width=1000, max_decoded_height=1000):
+    Parameters
+    ----------
+    `batch_size` : int, optional, default = -1
+        Batch size of the pipeline. Negative values for this parameter
+        are invalid - the default value may only be used with
+        serialized pipeline (the value stored in serialized pipeline
+        is used instead).
+    `num_threads` : int, optional, default = -1
+        Number of CPU threads used by the pipeline.
+        Negative values for this parameter are invalid - the default
+        value may only be used with serialized pipeline (the value
+        stored in serialized pipeline is used instead).
+    `device_id` : int, optional, default = -1
+        Id of GPU used by the pipeline.
+        Negative values for this parameter are invalid - the default
+        value may only be used with serialized pipeline (the value
+        stored in serialized pipeline is used instead).
+    `seed` : int, optional, default = -1
+        Seed used for random number generation. Leaving the default value
+        for this parameter results in random seed.
+    `exec_pipelined` : bool, optional, default = True
+        Whether to execute the pipeline in a way that enables
+        overlapping CPU and GPU computation, typically resulting
+        in faster execution speed, but larger memory consumption.
+    `prefetch_queue_depth` : int or {"cpu_size": int, "gpu_size": int}, optional, default = 2
+        Depth of the executor pipeline. Deeper pipeline makes ROCAL
+        more resistant to uneven execution time of each batch, but it
+        also consumes more memory for internal buffers.
+        Specifying a dict:
+        ``{ "cpu_size": x, "gpu_size": y }``
+        instead of an integer will cause the pipeline to use separated
+        queues executor, with buffer queue size `x` for cpu stage
+        and `y` for mixed and gpu stages. It is not supported when both `exec_async`
+        and `exec_pipelined` are set to `False`.
+        Executor will buffer cpu and gpu stages separatelly,
+        and will fill the buffer queues when the first :meth:`amd.rocal.pipeline.Pipeline.run`
+        is issued.
+    `exec_async` : bool, optional, default = True
+        Whether to execute the pipeline asynchronously.
+        This makes :meth:`amd.rocal.pipeline.Pipeline.run` method
+        run asynchronously with respect to the calling Python thread.
+    `bytes_per_sample` : int, optional, default = 0
+        A hint for ROCAL for how much memory to use for its tensors.
+    `set_affinity` : bool, optional, default = False
+        Whether to set CPU core affinity to the one closest to the
+        GPU being used.
+    `max_streams` : int, optional, default = -1
+        Limit the number of CUDA streams used by the executor.
+        Value of -1 does not impose a limit.
+        This parameter is currently unused (and behavior of
+        unrestricted number of streams is assumed).
+    `default_cuda_stream_priority` : int, optional, default = 0
+        CUDA stream priority used by ROCAL. See `cudaStreamCreateWithPriority` in CUDA documentation
+    """
+    '''.
+    Args: batch_size
+          rocal_cpu
+          gpu_id (default 0)
+          cpu_threads (default 1)
+    This returns a context'''
+    _handle = None
+    _current_pipeline = None
 
-    reader = Pipeline._current_pipeline._reader
-    # Internally calls the C++ Partial decoder's
-    if(reader == 'COCOReader'):
-        kwargs_pybind = {
-            "source_path": file_root,
-            "json_path": annotations_file,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "area_factor": random_area,
-            "aspect_ratio": random_aspect_ratio,
-            "num_attempts": num_attempts,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        crop_output_image = b.COCO_ImageDecoderSliceShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    elif (reader == "TFRecordReaderClassification" or reader == "TFRecordReaderDetection"):
-        kwargs_pybind = {
-            "source_path": path,
-            "color_format": output_type,
-            "num_shards": num_shards,
-            'is_output': False,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        crop_output_image = b.TF_ImageDecoder(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
-    elif (reader == "CaffeReader" or reader == "CaffeReaderDetection"):
-        kwargs_pybind = {
-            "source_path": path,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "area_factor": random_area,
-            "aspect_ratio": random_aspect_ratio,
-            "num_attempts": num_attempts,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        crop_output_image = b.Caffe_ImageDecoderPartialShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    elif (reader == "Caffe2Reader" or reader == "Caffe2ReaderDetection"):
-        kwargs_pybind = {
-            "source_path": path,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "area_factor": random_area,
-            "aspect_ratio": random_aspect_ratio,
-            "num_attempts": num_attempts,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        crop_output_image = b.Caffe2_ImageDecoderPartialShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    else:
-        kwargs_pybind = {
-            "source_path": file_root,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "area_factor": random_area,
-            "aspect_ratio": random_aspect_ratio,
-            "num_attempts": num_attempts,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        crop_output_image = b.FusedDecoderCropShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    def __init__(self, batch_size=-1, num_threads=0, device_id=-1, seed=1,
+                 exec_pipelined=True, prefetch_queue_depth=2,
+                 exec_async=True, bytes_per_sample=0,
+                 rocal_cpu=False, max_streams=-1, default_cuda_stream_priority=0, tensor_layout = types.NCHW, reverse_channels = False, mean = None, std = None, tensor_dtype=types.FLOAT, output_memory_type = types.CPU_MEMORY):
+        if(rocal_cpu):
+            self._handle = b.rocalCreate(
+                batch_size, types.CPU, device_id, num_threads,prefetch_queue_depth,types.FLOAT)
+        else:
+            self._handle = b.rocalCreate(
+                batch_size, types.GPU, device_id, num_threads,prefetch_queue_depth,types.FLOAT)
 
-    return (crop_output_image)
+        if(b.getStatus(self._handle) == types.OK):
+            print("Pipeline has been created succesfully")
+        else:
+            raise Exception("Failed creating the pipeline")
+        self._check_ops = ["CropMirrorNormalize"]
+        self._check_crop_ops = ["Resize"]
+        self._check_ops_decoder = ["ImageDecoder", "ImageDecoderSlice" , "ImageDecoderRandomCrop", "ImageDecoderRaw"]
+        self._check_ops_reader = ["labelReader", "TFRecordReaderClassification", "TFRecordReaderDetection",
+            "COCOReader", "Caffe2Reader", "Caffe2ReaderDetection", "CaffeReader", "CaffeReaderDetection"]
+        self._batch_size = batch_size
+        self._num_threads = num_threads
+        self._device_id = device_id
+        self._output_memory_type = output_memory_type
+        self._seed = seed
+        self._exec_pipelined = exec_pipelined
+        self._prefetch_queue_depth = prefetch_queue_depth
+        self._exec_async = exec_async
+        self._bytes_per_sample = bytes_per_sample
+        self._rocal_cpu = rocal_cpu
+        self._max_streams = max_streams
+        self._default_cuda_stream_priority = default_cuda_stream_priority
+        self._tensor_layout = tensor_layout
+        self._tensor_dtype = tensor_dtype
+        self._multiplier = list(map(lambda x: 1/x , std)) if std else [1.0,1.0,1.0]
+        self._offset = list(map(lambda x, y: -(x/y), mean, std)) if mean and std else [0.0, 0.0, 0.0]
+        self._reverse_channels = reverse_channels
+        self._img_h = None
+        self._img_w = None
+        self._shuffle = None
+        self._name = None
+        self._anchors = None
+        self._BoxEncoder = None
+        self._BoxIOUMatcher = None
+        self._encode_tensor = None
+        self._numOfClasses = None
+        self._oneHotEncoding = False
+        self._castLabels = False
+        self._current_pipeline = None
+        self._reader = None
+        self._define_graph_set = False
+        self.set_seed(self._seed)
 
-def image_slice(*inputs, file_root='', path='', annotations_file='', shard_id=0, num_shards=1, random_shuffle=False, affine=True, axes=None,
-                axis_names="WH", bytes_per_sample_hint=0, device_memory_padding=16777216, device_memory_padding_jpeg2k=0, 
-                host_memory_padding=8388608, random_aspect_ratio=[0.75, 1.33333], random_area=[0.08, 1.0], num_attempts=100,
-                host_memory_padding_jpeg2k=0, hybrid_huffman_threshold=1000000, memory_stats=False, normalized_anchor=True, 
-                normalized_shape=True, output_type=types.RGB, preserve=False, seed=1, split_stages=False, use_chunk_allocator=False, 
-                use_fast_idct=False, device=None, decode_size_policy=types.USER_GIVEN_SIZE_ORIG, max_decoded_width=1000, max_decoded_height=1000):
+    def build(self):
+        """Build the pipeline using rocalVerify call
+        """
+        status = b.rocalVerify(self._handle)
+        if(status != types.OK):
+            print("Verify graph failed")
+            exit(0)
+        return self
 
-    reader = Pipeline._current_pipeline._reader
-    #Reader -> Randon BBox Crop -> ImageDecoderSlice
-    #Random crop parameters taken from pytorch's RandomResizedCrop default function arguments
-    #TODO:To pass the crop co-ordinates from random_bbox_crop to image_slice 
-    #in tensor branch integration, 
-    #for now calling partial decoder to match SSD training outer API's .
-    if(reader == 'COCOReader'):
+    def rocalRun(self):
+        """ Run the pipeline using rocalRun call
+        """
+        status = b.rocalRun(self._handle)
+        if(status != types.OK):
+            print("Rocal Run failed")
+        return status
 
-        kwargs_pybind = {
-            "source_path": file_root,
-            "json_path": annotations_file,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "shard_count": num_shards,
-            'is_output': False,
-            "area_factor": random_area,
-            "aspect_ratio": random_aspect_ratio,
-            "num_attempts": num_attempts,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        image_decoder_slice = b.COCO_ImageDecoderSliceShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    elif (reader == "CaffeReader" or reader == "CaffeReaderDetection"):
-        kwargs_pybind = {
-            "source_path": path,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "area_factor": random_area,
-            "aspect_ratio": random_aspect_ratio,
-            "num_attempts": num_attempts,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        image_decoder_slice = b.Caffe_ImageDecoderPartialShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    elif (reader == "Caffe2Reader" or reader == "Caffe2ReaderDetection"):
-        kwargs_pybind = {
-            "source_path": path,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "area_factor": random_area,
-            "aspect_ratio": random_aspect_ratio,
-            "num_attempts": num_attempts,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        image_decoder_slice = b.Caffe2_ImageDecoderPartialShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    else:
-        kwargs_pybind = {
-            "source_path": file_root,
-            "color_format": output_type,
-            "shard_id": shard_id,
-            "num_shards": num_shards,
-            'is_output': False,
-            "area_factor": random_area,
-            "aspect_ratio": random_aspect_ratio,
-            "num_attempts": num_attempts,
-            "shuffle": random_shuffle,
-            "loop": False,
-            "decode_size_policy": decode_size_policy,
-            "max_width": max_decoded_width,
-            "max_height": max_decoded_height}
-        image_decoder_slice = b.FusedDecoderCropShard(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    return (image_decoder_slice)
+    def define_graph(self):
+        """This function is defined by the user to construct the
+        graph of operations for their pipeline.
+        It returns a list of outputs created by calling ROCAL Operators."""
+        print("definegraph is deprecated")
+        raise NotImplementedError
+
+    def get_handle(self):
+        return self._handle
+
+    def GetOneHotEncodedLabels(self, array, device):
+        if device=="cpu":
+            if (isinstance(array,np.ndarray)):
+                b.getOneHotEncodedLabels(self._handle, array.ctypes.data_as(ctypes.c_void_p), self._numOfClasses, 0)
+            else: #torch tensor
+                return b.getOneHotEncodedLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._numOfClasses, 0)
+        else:
+            if (isinstance(array,cp.ndarray)):
+                b.getCupyOneHotEncodedLabels(self._handle, array.data.ptr, self._numOfClasses, 1)
+            else: #torch tensor
+                return b.getOneHotEncodedLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._numOfClasses, 1)
+
+    def set_outputs(self, *output_list):
+        self._output_list_length = len(output_list)
+        b.setOutputImages(self._handle,len(output_list),output_list)
+
+    def __enter__(self):
+        Pipeline._current_pipeline = self
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        pass
+
+    def set_seed(self,seed=0):
+        return b.setSeed(seed)
+
+    @classmethod
+    def create_int_param(self,value=1):
+        return b.CreateIntParameter(value)
+
+    @classmethod
+    def create_float_param(self,value=1):
+        return b.CreateFloatParameter(value)
+
+    @classmethod
+    def update_int_param(self,value=1,param=1):
+        b.UpdateIntParameter(value,param)
+
+    @classmethod
+    def update_float_param(self,value=1,param=1):
+        b.UpdateFloatParameter(value,param)
+
+    @classmethod
+    def get_int_value(self,param):
+        return b.GetIntValue(param)
+
+    @classmethod
+    def get_float_value(self,param):
+        return b.GetFloatValue(param)
+
+    def GetImageNameLen(self, array):
+        return b.getImageNameLen(self._handle, array)
+
+    def GetImageName(self, array_len):
+        return b.getImageName(self._handle,array_len)
+
+    def GetImageId(self, array):
+        b.getImageId(self._handle, array)
+
+    def GetBoundingBoxCount(self):
+        return b.getBoundingBoxCount(self._handle)
+
+    def GetBoundingBoxLabels(self):
+        return b.getBoundingBoxLabels(self._handle)
+
+    def GetBoundingBoxCords(self):
+        return b.getBoundingBoxCords(self._handle)
+
+    def GetImageLabels(self):
+        return b.getImageLabels(self._handle)
+
+    def copyEncodedBoxesAndLables(self, bbox_array, label_array):
+        b.rocalCopyEncodedBoxesAndLables(self._handle, bbox_array, label_array)
+
+    def getEncodedBoxesAndLables(self, batch_size, num_anchors):
+        return b.rocalGetEncodedBoxesAndLables(self._handle, batch_size, num_anchors)
+
+    def GetImgSizes(self, array):
+        return b.getImgSizes(self._handle, array)
+
+    def GetImageNameLength(self,idx):
+        return b.getImageNameLen(self._handle,idx)
+
+    def getRemainingImages(self):
+        return b.getRemainingImages(self._handle)
+
+    def rocalResetLoaders(self):
+        return b.rocalResetLoaders(self._handle)
+
+    def isEmpty(self):
+        return b.isEmpty(self._handle)
+
+    def Timing_Info(self):
+        return b.getTimingInfo(self._handle)
+
+    def GetMatchedIndices(self):
+        return b.getMatchedIndices(self._handle)
+
+    def GetOutputTensors(self):
+        return b.getOutputTensors(self._handle)
+
+    def run(self):
+        """
+        It rises StopIteration if data set reached its end.
+        return:
+        :return:
+        A list of `rocalTensorList` objects for respective pipeline outputs.
+        """
+        try:
+            print("getRemainingImages :", self.getRemainingImages())
+            if self.getRemainingImages() > 0:
+                self.rocalRun()
+                return b.getOutputTensors(self._handle)
+        except:
+                print("Raise stop iter")
+                raise StopIteration
 
 
+def _discriminate_args(func, **func_kwargs):
+    """Split args on those applicable to Pipeline constructor and the decorated function."""
+    func_argspec = inspect.getfullargspec(func)
+    ctor_argspec = inspect.getfullargspec(Pipeline.__init__)
+
+    if 'debug' not in func_argspec.args and 'debug' not in func_argspec.kwonlyargs:
+        func_kwargs.pop('debug', False)
+
+    ctor_args = {}
+    fn_args = {}
+
+    if func_argspec.varkw is not None:
+        raise TypeError(
+            f"Using variadic keyword argument `**{func_argspec.varkw}` in a  "
+            f"graph-defining function is not allowed.")
+
+    for farg in func_kwargs.items():
+        is_ctor_arg = farg[0] in ctor_argspec.args or farg[0] in ctor_argspec.kwonlyargs
+        is_fn_arg = farg[0] in func_argspec.args or farg[0] in func_argspec.kwonlyargs
+        if is_fn_arg:
+            fn_args[farg[0]] = farg[1]
+            if is_ctor_arg:
+                print(
+                    "Warning: the argument `{farg[0]}` shadows a Pipeline constructor "
+                    "argument of the same name.")
+        elif is_ctor_arg:
+            ctor_args[farg[0]] = farg[1]
+        else:
+            assert False, f"This shouldn't happen. Please double-check the `{farg[0]}` argument"
+
+    return ctor_args, fn_args
+
+
+def pipeline_def(fn=None, **pipeline_kwargs):
+    """
+    Decorator that converts a graph definition function into a rocAL pipeline factory.
+
+    A graph definition function is a function that returns intended pipeline outputs.
+    You can decorate this function with ``@pipeline_def``::
+
+        @pipeline_def
+        def my_pipe(flip_vertical, flip_horizontal):
+            ''' Creates a rocAL pipeline, which returns flipped and original images '''
+            data, _ = fn.readers.file(file_root=images_dir)
+            img = fn.decoders.image(data, device="mixed")
+            flipped = fn.flip(img, horizontal=flip_horizontal, vertical=flip_vertical)
+            return flipped, img
+
+    The decorated function returns a rocAL Pipeline object::
+
+        pipe = my_pipe(True, False)
+        # pipe.build()  # the pipeline is not configured properly yet
+
+    A pipeline requires additional parameters such as batch size, number of worker threads,
+    GPU device id and so on (see :meth:`amd.rocal.Pipeline()` for a
+    complete list of pipeline parameters).
+    These parameters can be supplied as additional keyword arguments,
+    passed to the decorated function::
+
+        pipe = my_pipe(True, False, batch_size=32, num_threads=1, device_id=0)
+        pipe.build()  # the pipeline is properly configured, we can build it now
+
+    The outputs from the original function became the outputs of the Pipeline::
+
+        flipped, img = pipe.run()
+
+    When some of the pipeline parameters are fixed, they can be specified by name in the decorator::
+
+        @pipeline_def(batch_size=42, num_threads=3)
+        def my_pipe(flip_vertical, flip_horizontal):
+            ...
+
+    Any Pipeline constructor parameter passed later when calling the decorated function will
+    override the decorator-defined params::
+
+        @pipeline_def(batch_size=32, num_threads=3)
+        def my_pipe():
+            data = fn.external_source(source=my_generator)
+            return data
+
+        pipe = my_pipe(batch_size=128)  # batch_size=128 overrides batch_size=32
+
+    .. warning::
+
+        The arguments of the function being decorated can shadow pipeline constructor arguments -
+        in which case there's no way to alter their values.
+
+    .. note::
+
+        Using ``**kwargs`` (variadic keyword arguments) in graph-defining function is not allowed.
+        They may result in unwanted, silent hijacking of some arguments of the same name by
+        Pipeline constructor. Code written this way would cease to work with future versions of rocAL
+        when new parameters are added to the Pipeline constructor.
+
+    To access any pipeline arguments within the body of a ``@pipeline_def`` function, the function
+    :meth:`amd.rocal.Pipeline.current()` can be used:: ( note: this is not supported yet)
+
+        @pipeline_def()
+        def my_pipe():
+            pipe = Pipeline.current()
+            batch_size = pipe.batch_size
+            num_threads = pipe.num_threads
+            ...
+
+        pipe = my_pipe(batch_size=42, num_threads=3)
+        ...
+    """
+
+    def actual_decorator(func):
+
+        @functools.wraps(func)
+        def create_pipeline(*args, **kwargs):
+            ctor_args, fn_kwargs = _discriminate_args(func, **kwargs)
+            pipe = Pipeline(**{**pipeline_kwargs, **ctor_args})  # Merge and overwrite dict
+            with pipe:
+                pipe_outputs = func(*args, **fn_kwargs)
+                if isinstance(pipe_outputs, tuple):
+                    po = pipe_outputs
+                elif pipe_outputs is None:
+                    po = ()
+                else:
+                    po = (pipe_outputs, )
+                pipe.set_outputs(*po)
+            return pipe
+
+        # Add `is_pipeline_def` attribute to the function marked as `@pipeline_def`
+        create_pipeline._is_pipeline_def = True
+        return create_pipeline
+
+    return actual_decorator(fn) if fn else actual_decorator
