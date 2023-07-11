@@ -186,8 +186,6 @@ public:
     bool is_image() const { return _is_image; }
     void set_metadata() { _is_metadata = true; }
     bool is_metadata() const { return _is_metadata; }
-    const std::vector<uint32_t>& get_original_roi_width_vec() const { return *_original_roi_width; }
-    const std::vector<uint32_t>& get_original_roi_height_vec() const { return *_original_roi_height; }
 
 private:
     Type _type = Type::UNKNOWN;  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor
@@ -208,8 +206,6 @@ private:
     bool _is_image = false;
     bool _is_metadata = false;
     size_t _channels = 3;   //!< stores the channel dimensions in the tensor
-    std::shared_ptr<std::vector<uint32_t>> _original_roi_width;//!< The actual image width stored in the buffer, it's always smaller than _width. It's created as a vector of pointers to integers, so that if it's passed from one tensor to another and get updated by one and observed for all.
-    std::shared_ptr<std::vector<uint32_t>> _original_roi_height;//!< The actual image height stored in the buffer, it's always smaller than _height. It's created as a vector of pointers to integers, so that if it's passed from one tensor to another and get updated by one changes can be observed for all.
 };
 
 bool operator==(const TensorInfo& rhs, const TensorInfo& lhs);
@@ -242,7 +238,6 @@ public:
     explicit Tensor(const TensorInfo& tensor_info);
     int create(vx_context context);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
-    void update_tensor_original_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
