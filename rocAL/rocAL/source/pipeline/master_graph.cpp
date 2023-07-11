@@ -938,6 +938,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _meta_data_graph = create_meta_data_graph(config);
     _meta_data_reader = create_meta_data_reader(config, _augmented_meta_data);
     _meta_data_reader->read_all(source_path);
+    auto max_img_size = _meta_data_reader->get_max_size();
     if(!ltrb_bbox)  _augmented_meta_data->set_xywh_bbox();
     std::vector<size_t> dims;
     size_t max_objects = static_cast<size_t>(is_box_encoder ? MAX_NUM_ANCHORS : MAX_OBJECTS);
@@ -957,6 +958,13 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     {
         dims = { MAX_MASK_BUFFER, 1 };
         default_mask_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP32);   // Create default mask Info
+        default_mask_info.set_metadata();
+        _meta_data_buffer_size.emplace_back(_user_batch_size * default_mask_info.data_size());
+    }
+    if (metadata_type == MetaDataType::PixelwiseMask)
+    {
+        dims = { max_img_size.first, max_img_size.second }; 
+        default_mask_info  = rocalTensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32);
         default_mask_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_mask_info.data_size());
     }
@@ -985,7 +993,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
             auto matches_info = default_matches_info;
             _matches_tensor_list.push_back(new rocalTensor(matches_info));
         }
-        if(metadata_type == MetaDataType::PolygonMask)
+        if(metadata_type == MetaDataType::PolygonMask || metadata_type == MetaDataType::PixelwiseMask)
         {
             auto mask_info = default_mask_info;
             _mask_tensor_list.push_back(new rocalTensor(mask_info));
@@ -994,7 +1002,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
     _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
-    if(metadata_type == MetaDataType::PolygonMask)
+    if(metadata_type == MetaDataType::PolygonMask || metadata_type == MetaDataType::PixelwiseMask)
         _metadata_output_tensor_list.emplace_back(&_mask_tensor_list);
     if(is_box_iou_matcher)
         _metadata_output_tensor_list.emplace_back(&_matches_tensor_list);

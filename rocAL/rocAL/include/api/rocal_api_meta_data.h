@@ -61,7 +61,7 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
 /// \param rocal_context
 /// \param source_path path to the coco json file
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
-extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool mask = false, bool ltrb = true, bool is_box_encoder = false, bool is_box_iou_matcher = false, bool avoid_class_remapping=false);
+extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool is_polygon_mask = false, bool is_pixelwise_mask = false, bool ltrb = true, bool is_box_encoder = false, bool is_box_iou_matcher = false, bool avoid_class_remapping=false);
 
 ///
 /// \param rocal_context
@@ -141,6 +141,8 @@ extern "C" void ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext rocal_cont
 /// \param buf the imageIdx in the output batch
 /// \return The size of the buffer needs to be provided by user to get mask box info associated with image_idx in the output batch.
 extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int* buf);
+
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetPixelwiseLabels(RocalContext p_context);
 
 ///
 /// \param rocal_context
