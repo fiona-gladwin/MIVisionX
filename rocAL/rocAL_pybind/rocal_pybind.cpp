@@ -386,7 +386,7 @@ namespace rocal{
                     {
                     case RocalTensorOutputType::ROCAL_UINT8:
                         numpy_array = py::array(py::buffer_info(
-                            ((unsigned char *)(output_tensor.buffer())) + idx * (output_tensor.strides()[0]/sizeof(float)),
+                            ((unsigned char *)(output_tensor.buffer())) + idx * (output_tensor.strides()[0]/sizeof(unsigned char)),
                             sizeof(unsigned char),
                             py::format_descriptor<unsigned char>::format(),
                             output_tensor.num_of_dims() - 1,
@@ -403,8 +403,7 @@ namespace rocal{
                             stride_per_sample));
                         break;
                     default:
-                        THROW("Unkown Rocal data type")
-                        break;
+                        throw py::type_error("Unknown rocAL data type");
                     }
                     return numpy_array;
                 },
@@ -451,8 +450,7 @@ namespace rocal{
                             output_tensor->strides()));
                         break;
                     default:
-                        THROW("Unkown Rocal data type")
-                        break;
+                        throw py::type_error("Unknown rocAL data type");
                     }
                     return numpy_array;
                 },
