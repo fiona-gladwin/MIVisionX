@@ -403,7 +403,7 @@ namespace rocal{
                             stride_per_sample));
                             break;
                     default:
-                        THROW("Unkown Rocal data type")
+                        throw py::type_error("rocal data type unknown");
                         break;
                     }
                     return numpy_array;
@@ -451,7 +451,7 @@ namespace rocal{
                             output_tensor->strides()));
                         break;
                     default:
-                        THROW("Unkown Rocal data type")
+                        throw py::type_error("rocal data type unknown");
                         break;
                     }
                     return numpy_array;
@@ -708,22 +708,22 @@ namespace rocal{
             py::return_value_policy::reference);
         m.def("rocalResetLoaders",&rocalResetLoaders);
         // rocal_api_augmentation.h
-        m.def("SSDRandomCrop",&rocalSSDRandomCrop,
-            py::return_value_policy::reference);
+        // m.def("SSDRandomCrop",&rocalSSDRandomCrop,
+        //     py::return_value_policy::reference);
         m.def("Resize",&rocalResize, 
             py::return_value_policy::reference);
         m.def("ResizeMirrorNormalize", &rocalResizeMirrorNormalize,
             py::return_value_policy::reference);
-        m.def("CropResize",&rocalCropResize,
-            py::return_value_policy::reference);
-        m.def("rocalCopy",&rocalCopy,
-            py::return_value_policy::reference);
-        m.def("rocalNop",&rocalNop,
-            py::return_value_policy::reference);
+        // m.def("CropResize",&rocalCropResize,
+        //     py::return_value_policy::reference);
+        // m.def("rocalCopy",&rocalCopy,
+        //     py::return_value_policy::reference);
+        // m.def("rocalNop",&rocalNop,
+        //     py::return_value_policy::reference);
         m.def("ColorTwist",&rocalColorTwist,
             py::return_value_policy::reference);
-        m.def("ColorTwistFixed",&rocalColorTwistFixed,
-             py::return_value_policy::reference);
+        // m.def("ColorTwistFixed",&rocalColorTwistFixed,
+        //      py::return_value_policy::reference);
         m.def("CropMirrorNormalize",&rocalCropMirrorNormalize,
             py::return_value_policy::reference);
         m.def("Crop",&rocalCrop,
@@ -734,7 +734,7 @@ namespace rocal{
             py::return_value_policy::reference);
         m.def("Brightness",&rocalBrightness,
             py::return_value_policy::reference);
-        m.def("GammaCorrection",&rocalGamma,
+        /*m.def("GammaCorrection",&rocalGamma,
             py::return_value_policy::reference);
         m.def("Rain",&rocalRain,
             py::return_value_policy::reference);
@@ -773,6 +773,6 @@ namespace rocal{
         m.def("RandomCrop",&rocalRandomCrop,
             py::return_value_policy::reference);
         m.def("ColorTemp",&rocalColorTemp,
-            py::return_value_policy::reference);
+            py::return_value_policy::reference);*/
     }
 }
