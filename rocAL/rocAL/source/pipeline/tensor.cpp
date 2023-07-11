@@ -150,9 +150,12 @@ TensorInfo::TensorInfo(std::vector<size_t> dims,
       _data_type(data_type) {
     _batch_size = dims.at(0);
     _num_of_dims = dims.size();
-    _data_size = tensor_data_size(data_type);
-    for (unsigned i = 0; i < _num_of_dims; i++) _data_size *= dims.at(i);
-
+    _strides.resize(_num_of_dims);
+    _strides[_num_of_dims - 1] = tensor_data_size(data_type);
+    for (int i = _num_of_dims - 2; i >= 0; i--) {
+        _strides[i] = _strides[i + 1] * dims[i + 1];
+    }
+    _data_size = _strides[0] * dims[0];
     if (_num_of_dims <= 3) _is_image = false;
 }
 

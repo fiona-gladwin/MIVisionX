@@ -141,12 +141,13 @@ public:
         _layout = layout;
     }
     void set_dims(std::vector<size_t>& new_dims) {
-        _data_size = _data_type_size;
         if (_num_of_dims == new_dims.size()) {
-            for (unsigned i = 0; i < _num_of_dims; i++) {
-                _dims.at(i) = new_dims[i];
-                _data_size *= new_dims[i];
+            _dims = new_dims;
+            _strides[_num_of_dims - 1] = _data_type_size;
+            for (int i = _num_of_dims - 2; i >= 0; i--) {
+                _strides[i] = _strides[i + 1] * _dims[i + 1];
             }
+            _data_size = _strides[0] * _dims[0];
             set_max_shape();
         } else {
             THROW("The size of number of dimensions does not match with the dimensions of existing tensor")
@@ -165,6 +166,7 @@ public:
     uint64_t data_size() const { return _data_size; }
     std::vector<size_t> max_shape() const { return _max_shape; }
     std::vector<size_t> dims() const { return _dims; }
+    std::vector<size_t> strides() const { return _strides; }
     RocalMemType mem_type() const { return _mem_type; }
     RocalROIType roi_type() const { return _roi_type; }
     RocalTensorDataType data_type() const { return _data_type; }
@@ -186,6 +188,7 @@ private:
     Type _type = Type::UNKNOWN;  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor
     unsigned _num_of_dims;  //!< denotes the number of dimensions in the tensor
     std::vector<size_t> _dims;  //!< denotes the dimensions of the tensor
+    std::vector<size_t> _strides; //!< stores the stride for each dimension in the tensor
     unsigned _batch_size;       //!< the batch size
     RocalMemType _mem_type;     //!< memory type, currently either OpenCL or Host
     RocalROIType _roi_type = RocalROIType::XYWH;     //!< ROI type, currently either XYWH or LTRB
@@ -246,6 +249,7 @@ public:
     unsigned num_of_dims() override { return _info.num_of_dims(); }
     unsigned batch_size() override { return _info.batch_size(); }
     std::vector<size_t> dims() override { return _info.dims(); }
+    std::vector<size_t> strides() override { return _info.strides(); }
     RocalTensorLayout layout() override { return (RocalTensorLayout)_info.layout(); }
     RocalTensorOutputType data_type() override { return (RocalTensorOutputType)_info.data_type(); }
     size_t data_size() override { return _info.data_size(); }

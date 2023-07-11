@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include <pybind11/eval.h>
 #include "rocal_api_types.h"
 #include "rocal_api.h"
-#include "tensor.h"
+#include "rocal_api_tensor.h"
 #include "rocal_api_parameters.h"
 #include "rocal_api_data_loaders.h"
 #include "rocal_api_augmentation.h"
@@ -92,7 +92,7 @@ namespace rocal{
     }
 
     /*
-    # Commenting out the block as we no more use wrappers. Will remove this block in the upcoming PRs 
+    // Commenting out the block as we no more use wrappers. Will remove this block in the upcoming PRs 
     py::object wrapper_copy_to_output(RocalContext context, py::array_t<unsigned char> array)
     {
         auto buf = array.request();
@@ -329,7 +329,7 @@ namespace rocal{
             .def(
                 "max_shape",
                 [](rocalTensor &output_tensor) {
-                    return output_tensor.info().max_shape();
+                    return output_tensor.shape();
                 },
                 R"code(
                 Returns a tensor buffer's width.
@@ -338,28 +338,28 @@ namespace rocal{
             .def(
                 "batch_size",
                 [](rocalTensor &output_tensor) {
-                    return output_tensor.info().dims().at(0);
+                    return output_tensor.dims().at(0);
                 },
                 R"code(
                 Returns a tensor batch size.
                 )code"
             )
             .def("layout", [](rocalTensor &output_tensor) {
-                return rocalToPybindLayout[(int)output_tensor.info().layout()];
+                return rocalToPybindLayout[(int)output_tensor.layout()];
             },
                 R"code(
                 Returns layout of tensor.
                 )code"
             )
             .def("dtype", [](rocalTensor &output_tensor) {
-                return rocalToPybindOutputDtype[(int)output_tensor.info().data_type()];
+                return rocalToPybindOutputDtype[(int)output_tensor.data_type()];
             },
                 R"code(
                 Returns dtype of tensor.
                 )code"
             )
             .def("dimensions", [](rocalTensor &output_tensor) {
-                return output_tensor.info().dims();
+                return output_tensor.dims();
             },
                 R"code(
                 Returns dims of tensor.
@@ -377,30 +377,28 @@ namespace rocal{
             .def(
                 "at",
                 [](rocalTensor &output_tensor, uint idx) {
-                    const auto& info = output_tensor.info();
-                    std::vector<size_t> stride_per_sample(info.strides());
+                    std::vector<size_t> stride_per_sample(output_tensor.strides());
                     stride_per_sample.erase(stride_per_sample.begin());
-                    std::vector<size_t> dims(info.dims());
+                    std::vector<size_t> dims(output_tensor.dims());
                     dims.erase(dims.begin());
                     py::array numpy_array;
-                    switch (output_tensor.info().data_type())
+                    switch (output_tensor.data_type())
                     {
-                    case RocalTensorDataType::UINT8:
-
+                    case RocalTensorOutputType::ROCAL_UINT8:
                         numpy_array = py::array(py::buffer_info(
-                            ((unsigned char *)(output_tensor.buffer())) + idx * (info.strides()[0]/sizeof(float)),
+                            ((unsigned char *)(output_tensor.buffer())) + idx * (output_tensor.strides()[0]/sizeof(unsigned char)),
                             sizeof(unsigned char),
                             py::format_descriptor<unsigned char>::format(),
-                            info.num_of_dims() - 1,
+                            output_tensor.num_of_dims() - 1,
                             dims,
                             stride_per_sample));
                             break;
-                    case RocalTensorDataType::FP32:
+                    case RocalTensorOutputType::ROCAL_FP32:
                         numpy_array = py::array(py::buffer_info(
-                            ((float *)(output_tensor.buffer())) + idx * (info.strides()[0]/sizeof(float)),
+                            ((float *)(output_tensor.buffer())) + idx * (output_tensor.strides()[0]/sizeof(float)),
                             sizeof(float),
                             py::format_descriptor<float>::format(),
-                            info.num_of_dims() - 1,
+                            output_tensor.num_of_dims() - 1,
                             dims,
                             stride_per_sample));
                             break;
@@ -430,27 +428,27 @@ namespace rocal{
                 "at",
                 [](rocalTensorList &output_tensor_list, uint idx)
                 {
-                    const auto &info = output_tensor_list.at(idx)->info();
+                    auto output_tensor = output_tensor_list.at(idx);
                     py::array numpy_array;
-                    switch (output_tensor_list.at(idx)->info().data_type())
+                    switch (output_tensor->data_type())
                     {
-                    case RocalTensorDataType::UINT8:
+                    case RocalTensorOutputType::ROCAL_UINT8:
                         numpy_array = py::array(py::buffer_info(
-                            (unsigned char *)(output_tensor_list.at(idx)->buffer()),
+                            (unsigned char *)(output_tensor->buffer()),
                             sizeof(unsigned char),
                             py::format_descriptor<unsigned char>::format(),
-                            output_tensor_list.at(idx)->info().num_of_dims(),
-                            info.dims(),
-                            info.strides()));
+                            output_tensor->num_of_dims(),
+                            output_tensor->dims(),
+                            output_tensor->strides()));
                         break;
-                    case RocalTensorDataType::FP32:
+                    case RocalTensorOutputType::ROCAL_FP32:
                         numpy_array = py::array(py::buffer_info(
-                            (float *)(output_tensor_list.at(idx)->buffer()),
+                            (float *)(output_tensor->buffer()),
                             sizeof(float),
                             py::format_descriptor<float>::format(),
-                            output_tensor_list.at(idx)->info().num_of_dims(),
-                            info.dims(),
-                            info.strides()));
+                            output_tensor->num_of_dims(),
+                            output_tensor->dims(),
+                            output_tensor->strides()));
                         break;
                     default:
                         THROW("Unkown Rocal data type")
@@ -463,7 +461,6 @@ namespace rocal{
                 Returns a rocal tensor at given position `i` in the rocalTensorlist.
                 )code",
                 py::keep_alive<0, 1>());
-        py::class_<rocalTensorInfo>(m, "rocalTensorInfo");
 
         py::module types_m = m.def_submodule("types");
         types_m.doc() = "Datatypes and options used by ROCAL";
@@ -559,7 +556,7 @@ namespace rocal{
         // rocal_api_meta_data.h
         m.def("RandomBBoxCrop", &rocalRandomBBoxCrop);
         m.def("BoxEncoder",&rocalBoxEncoder);
-        m.def("BoxIOUMatcher", &rocalBoxIOUMatcher);
+        // m.def("BoxIOUMatcher", &rocalBoxIOUMatcher);
         m.def("getImgSizes", [](RocalContext context, py::array_t<int> array) {
             auto buf = array.request();
             int* ptr = (int*) buf.ptr;
@@ -600,7 +597,7 @@ namespace rocal{
                             py::format_descriptor<int>::format(),
                             1,
                             {labels->size()},
-                            {sizeof(int) }));
+                            {sizeof(int)}));
         });
         m.def("getBoundingBoxLabels", [](RocalContext context) {
             rocalTensorList *labels = rocalGetBoundingBoxLabel(context);
@@ -613,8 +610,8 @@ namespace rocal{
                             sizeof(int),
                             py::format_descriptor<int>::format(),
                             1,
-                            {labels->at(i)->info().dims().at(0)},
-                            {sizeof(int) }));
+                            {labels->at(i)->dims().at(0)},
+                            {sizeof(int)}));
                 labels_list.append(labels_array);
             }
             return labels_list;
@@ -622,30 +619,31 @@ namespace rocal{
         m.def("getBoundingBoxCords", [](RocalContext context) {
             rocalTensorList *boxes = rocalGetBoundingBoxCords(context);
             py::list boxes_list;
-            py::array_t<double> boxes_array;
+            py::array_t<float> boxes_array;
             for (int i = 0; i < boxes->size(); i++) {
-                double *box_buffer = (double *)(boxes->at(i)->buffer());
+                float *box_buffer = (float *)(boxes->at(i)->buffer());
                 boxes_array = py::array(py::buffer_info(
-                            (double *)(boxes->at(i)->buffer()),
-                            sizeof(double),
-                            py::format_descriptor<double>::format(),
+                            (float *)(boxes->at(i)->buffer()),
+                            sizeof(float),
+                            py::format_descriptor<float>::format(),
                             1,
-                            { boxes->at(i)->info().dims().at(0) * 4},
-                            {sizeof(double) }));
+                            {boxes->at(i)->dims().at(0) * 4},
+                            {sizeof(float)}));
                 boxes_list.append(boxes_array);
             }
             return boxes_list;
         });
-        m.def("getMatchedIndices", [](RocalContext context) {
-            rocalTensorList *matches = rocalGetMatchedIndices(context);
-            return py::array(py::buffer_info(
-                            (int *)(matches->at(0)->buffer()),
-                            sizeof(int),
-                            py::format_descriptor<int>::format(),
-                            1,
-                            {matches->size() * 120087},
-                            {sizeof(int) }));
-        }, py::return_value_policy::reference);
+        // Will be enabled when IOU matcher changes are introduced in C++
+        // m.def("getMatchedIndices", [](RocalContext context) {
+        //     rocalTensorList *matches = rocalGetMatchedIndices(context);
+        //     return py::array(py::buffer_info(
+        //                     (int *)(matches->at(0)->buffer()),
+        //                     sizeof(int),
+        //                     py::format_descriptor<int>::format(),
+        //                     1,
+        //                     {matches->size() * 120087},
+        //                     {sizeof(int) }));
+        // }, py::return_value_policy::reference);
         m.def("rocalGetEncodedBoxesAndLables", [](RocalContext context,uint batch_size, uint num_anchors) {
                 auto vec_pair_labels_boxes = rocalGetEncodedBoxesAndLables(context, batch_size * num_anchors);
                 auto labels_buf_ptr = (int*)(vec_pair_labels_boxes[0]->at(0)->buffer());
@@ -657,7 +655,7 @@ namespace rocal{
                             py::format_descriptor<int>::format(),
                             2,
                             {batch_size, num_anchors},
-                            {num_anchors*sizeof(int), sizeof(int)}));
+                            {num_anchors * sizeof(int), sizeof(int)}));
 
                 py::array_t<float> bboxes_array = py::array_t<float>(py::buffer_info(
                             bboxes_buf_ptr,
@@ -665,7 +663,7 @@ namespace rocal{
                             py::format_descriptor<float>::format(),
                             1,
                             {batch_size * num_anchors * 4},
-                            {sizeof(float)} ));
+                            {sizeof(float)}));
                 return std::make_pair(labels_array, bboxes_array);
         }
         );

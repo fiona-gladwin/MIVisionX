@@ -32,6 +32,7 @@ public:
     virtual unsigned num_of_dims() = 0;
     virtual unsigned batch_size() = 0;
     virtual std::vector<size_t> dims() = 0;
+    virtual std::vector<size_t> strides() = 0;
     virtual RocalTensorLayout layout() = 0;
     virtual RocalTensorBackend backend() = 0;
     virtual RocalTensorOutputType data_type() = 0;
