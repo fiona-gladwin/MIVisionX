@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "commons.h"
 #include "image.h"
 
-vx_enum vx_mem_type(RocalMemType mem)
+vx_enum vx_image_mem_type(RocalMemType mem)
 {
     switch(mem)
     {
@@ -291,7 +291,7 @@ int Image::create_from_handle(vx_context context)
     vx_size size = (addr_in.dim_y+0) * (addr_in.stride_y+0);
 
     vx_df_image vx_color_format = interpret_color_fmt(_info._color_fmt);
-    vx_handle = vxCreateImageFromHandle(context, vx_color_format , &addr_in, ptr, vx_mem_type(_info._mem_type));
+    vx_handle = vxCreateImageFromHandle(context, vx_color_format , &addr_in, ptr, vx_image_mem_type(_info._mem_type));
     if((status = vxGetStatus((vx_reference)vx_handle)) != VX_SUCCESS)
         THROW("Error: vxCreateImageFromHandle(input:[" + TOSTR(_info.width()) + "x" + TOSTR(_info.height_batch()) + "]): failed " + TOSTR(status))
 

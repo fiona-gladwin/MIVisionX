@@ -42,7 +42,7 @@ THE SOFTWARE.
  * @param mem input Rocal type
  * @return the OpenVX type associated with input argument
  */
-vx_enum vx_mem_type(RocalMemType mem);
+vx_enum vx_image_mem_type(RocalMemType mem);
 struct Point
 {
     unsigned x; // Along the width
