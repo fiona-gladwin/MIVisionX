@@ -153,6 +153,7 @@ TensorInfo::TensorInfo(const TensorInfo &other) {
     _type = other._type;
     _num_of_dims = other._num_of_dims;
     _dims = other._dims;
+    _strides = other._strides;
     _batch_size = other._batch_size;
     _mem_type = other._mem_type;
     _roi_type = other._roi_type;
