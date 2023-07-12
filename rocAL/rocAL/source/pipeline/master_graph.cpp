@@ -1516,6 +1516,161 @@ bool MasterGraph::no_more_processed_data()
     return (_output_routine_finished_processing && _ring_buffer.empty());
 }
 
+MasterGraph::Status
+MasterGraph::copy_out_tensor_planar(void *out_ptr, RocalTensorlayout format, float multiplier0, float multiplier1,
+                                    float multiplier2, float offset0, float offset1, float offset2, bool reverse_channels, RocalTensorDataType output_data_type)
+{
+    if(no_more_processed_data())
+        return MasterGraph::Status::NO_MORE_DATA;
+
+    _convert_time.start();
+    // Copies to the output context given by the user, each image is copied separate for planar
+    auto output_tensor_info = _output_tensor_list[0]->info();
+    auto dims = output_tensor_info.dims();
+    const size_t w = dims[2];
+    const size_t h = dims[1];
+    const size_t c = dims[3];
+    const size_t n = dims[0];
+
+    const size_t single_output_tensor_size = output_tensor_info.data_size();
+
+    if(output_tensor_info.mem_type() == RocalMemType::OCL || output_tensor_info.mem_type() == RocalMemType::HIP)
+    {
+        THROW("copy_out_tensor_planar for GPU affinity is not implemented")
+    }
+    else if(output_tensor_info.mem_type() == RocalMemType::HOST)
+    {
+        float multiplier[3] = {multiplier0, multiplier1, multiplier2 };
+        float offset[3] = {offset0, offset1, offset2 };
+        size_t dest_buf_offset = 0;
+
+        auto output_buffers = _ring_buffer.get_read_buffers();
+
+        for( auto&& out_tensor: output_buffers)
+        {
+            for (unsigned batch = 0; batch < n ; batch++) {
+                const size_t batch_offset = w * h * c * batch;
+                auto channel_size = w * h;
+                auto in_buffer = (unsigned char *) out_tensor + batch_offset;
+                if (format == RocalTensorlayout::NHWC) {
+                    if (output_data_type == RocalTensorDataType::FP32) {
+                        float *output_tensor_32 = static_cast<float *>(out_ptr) + batch_offset;
+                        for (unsigned channel_idx = 0; channel_idx < c; channel_idx++)
+                            for (unsigned i = 0; i < channel_size; i++)
+                                output_tensor_32[dest_buf_offset + channel_idx + i * c] =
+                                        offset[channel_idx] + multiplier[channel_idx] *
+                                                              (reverse_channels ? static_cast<float>(in_buffer[i +
+                                                                                                     (c - channel_idx -
+                                                                                                      1) *
+                                                                                                     channel_size])
+                                                                                : static_cast<float>(in_buffer[i + channel_idx *
+                                                                                                         channel_size]));
+                    } else if (output_data_type == RocalTensorDataType::FP16) {
+                        half *output_tensor_16 = static_cast<half *>(out_ptr) + batch_offset;
+                        for (unsigned channel_idx = 0; channel_idx < c; channel_idx++)
+                            for (unsigned i = 0; i < channel_size; i++)
+                                output_tensor_16[dest_buf_offset + channel_idx + i * c] =
+                                        offset[channel_idx] + multiplier[channel_idx] *
+                                                              (reverse_channels ? static_cast<half>(in_buffer[
+                                                                      (c - channel_idx - 1) * channel_size + i])
+                                                                                : static_cast<half>(in_buffer[
+                                                                              channel_idx * channel_size + i]));
+                    }
+                }
+                if (format == RocalTensorlayout::NCHW) {
+                    if (output_data_type == RocalTensorDataType::FP32) {
+                        float *output_tensor_32 = static_cast<float *>(out_ptr) + batch_offset;
+                        //output_tensor_32 += batch_offset;
+                        if (c != 3) {
+                            for (unsigned channel_idx = 0; channel_idx < c; channel_idx++)
+                                for (unsigned i = 0; i < channel_size; i++)
+                                    output_tensor_32[dest_buf_offset + channel_idx * channel_size + i] =
+                                            offset[channel_idx] + multiplier[channel_idx] *
+                                                                  (reverse_channels ? (float) (in_buffer[
+                                                                          (c - channel_idx - 1) * channel_size + i])
+                                                                                    : (float) (in_buffer[
+                                                                                  channel_idx * channel_size + i]));
+                        } else {
+#if (ENABLE_SIMD && __AVX2__)
+
+                            float *B_buf = output_tensor_32 + dest_buf_offset;
+                            float *G_buf = B_buf + channel_size;
+                            float *R_buf = G_buf + channel_size;
+                            unsigned char *in_buffer_R = in_buffer;
+                            unsigned char *in_buffer_G = in_buffer + channel_size;
+                            unsigned char *in_buffer_B = in_buffer_G + channel_size;
+
+                            __m256 pmul0 = _mm256_set1_ps(multiplier0);
+                            __m256 pmul1 = _mm256_set1_ps(multiplier1);
+                            __m256 pmul2 = _mm256_set1_ps(multiplier2);
+                            __m256 padd0 = _mm256_set1_ps(offset0);
+                            __m256 padd1 = _mm256_set1_ps(offset1);
+                            __m256 padd2 = _mm256_set1_ps(offset2);
+                            unsigned int alignedLength = (channel_size & ~7);    // multiple of 8
+                            unsigned int i = 0;
+
+                            __m256 fR, fG, fB;
+                            for (; i < alignedLength; i += 8) {
+                                __m128i pixR, pixG, pixB;
+                                if (reverse_channels) {
+                                    pixB = _mm_loadl_epi64((const __m128i *) in_buffer_R);
+                                    pixG = _mm_loadl_epi64((const __m128i *) in_buffer_G);
+                                    pixR = _mm_loadl_epi64((const __m128i *) in_buffer_B);
+                                } else {
+                                    pixR = _mm_loadl_epi64((const __m128i *) in_buffer_R);
+                                    pixG = _mm_loadl_epi64((const __m128i *) in_buffer_G);
+                                    pixB = _mm_loadl_epi64((const __m128i *) in_buffer_B);
+                                }
+                                fB = _mm256_cvtepi32_ps(_mm256_cvtepu8_epi32(pixR));
+                                fG = _mm256_cvtepi32_ps(_mm256_cvtepu8_epi32(pixG));
+                                fR = _mm256_cvtepi32_ps(_mm256_cvtepu8_epi32(pixB));
+                                fB = _mm256_mul_ps(fB, pmul0);
+                                fG = _mm256_mul_ps(fG, pmul1);
+                                fR = _mm256_mul_ps(fR, pmul2);
+                                fB = _mm256_add_ps(fB, padd0);
+                                fG = _mm256_add_ps(fG, padd1);
+                                fR = _mm256_add_ps(fR, padd2);
+                                _mm256_storeu_ps(B_buf, fB);
+                                _mm256_storeu_ps(G_buf, fG);
+                                _mm256_storeu_ps(R_buf, fR);
+                                B_buf += 8;
+                                G_buf += 8;
+                                R_buf += 8;
+                                in_buffer_R += 8, in_buffer_G += 8, in_buffer_B += 8;
+                            }
+                            for (; i < channel_size; i++) {
+                                *B_buf++ = (*in_buffer_R++ * multiplier0) + offset0;
+                                *G_buf++ = (*in_buffer_G++ * multiplier1) + offset1;
+                                *R_buf++ = (*in_buffer_B++ * multiplier2) + offset1;
+                            }
+
+#else
+                            for(unsigned channel_idx = 0; channel_idx < c; channel_idx++)
+                                for(unsigned i = 0; i < channel_size; i++)
+                                    output_tensor_32[dest_buf_offset+channel_idx*channel_size + i] =
+                                            offset[channel_idx] + multiplier[channel_idx]*(reverse_channels ? (float)(in_buffer[i+(c-channel_idx-1)*channel_size]) : (float)(in_buffer[i+channel_idx*channel_size]));
+#endif
+                        }
+                    } else if (output_data_type == RocalTensorDataType::FP16) {
+                        half *output_tensor_16 = static_cast<half *>(out_ptr) + batch_offset;
+                        for (unsigned channel_idx = 0; channel_idx < c; channel_idx++)
+                            for (unsigned i = 0; i < channel_size; i++)
+                                output_tensor_16[dest_buf_offset + channel_idx * channel_size + i] =
+                                        offset[channel_idx] + multiplier[channel_idx] *
+                                                              (reverse_channels ? (half) (in_buffer[i +
+                                                                                                    (c - channel_idx -
+                                                                                                     1) * channel_size])
+                                                                                : (half) (in_buffer[i + channel_idx *
+                                                                                                        channel_size]));
+                    }
+                }
+            }
+            dest_buf_offset += single_output_tensor_size;
+        }
+    }
+    _convert_time.end();
+    return Status::OK;
+}
 
 std::vector<rocalTensorList *>
 MasterGraph::get_bbox_encoded_buffers(size_t num_encoded_boxes)
