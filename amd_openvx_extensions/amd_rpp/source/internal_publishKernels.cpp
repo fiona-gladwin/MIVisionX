@@ -130,6 +130,34 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(CropMirrorNormalize_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Copy_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Nop_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Resizetensor_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Resize_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Crop_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(ColorTwist_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(ResizeMirrorNormalize_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(GammaCorrection_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Contrast_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Flip_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Blend_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Exposure_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(WarpAffine_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Rotate_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(ResizeCropMirror_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Blur_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Snow_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Fog_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Hue_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Saturation_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(FishEye_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Rain_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(LensCorrection_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Pixelate_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Vignette_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Jitter_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(ColorTemperature_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Glitch_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Noise_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(ResizeCrop_Register));
     return status;
 }
 

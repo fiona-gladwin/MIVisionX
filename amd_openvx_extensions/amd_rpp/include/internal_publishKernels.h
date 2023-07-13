@@ -104,7 +104,6 @@ vx_status ResizeMirrorNormalizeTensor_Register(vx_context);
 vx_status RotatebatchPD_Register(vx_context);
 vx_status SaturationbatchPD_Register(vx_context);
 vx_status ScalebatchPD_Register(vx_context);
-vx_status SequenceRearrange_Register(vx_context);
 vx_status SnowbatchPD_Register(vx_context);
 vx_status SobelbatchPD_Register(vx_context);
 vx_status SubtractbatchPD_Register(vx_context);
@@ -118,10 +117,40 @@ vx_status VignettebatchPD_Register(vx_context);
 vx_status WarpAffinebatchPD_Register(vx_context);
 vx_status WarpPerspectivebatchPD_Register(vx_context);
 vx_status Resizetensor_Register(vx_context);
+
+// Tensor registers which calls RPP Tensor API's.
+vx_status Blend_Register(vx_context);
+vx_status Blur_Register(vx_context);
 vx_status Brightness_Register(vx_context);
+vx_status ColorTwist_Register(vx_context);
+vx_status Contrast_Register(vx_context);
 vx_status Copy_Register(vx_context);
+vx_status Crop_Register(vx_context);
 vx_status CropMirrorNormalize_Register(vx_context);
+vx_status Exposure_Register(vx_context);
+vx_status Flip_Register(vx_context);
+vx_status Fog_Register(vx_context);
+vx_status GammaCorrection_Register(vx_context);
+vx_status Hue_Register(vx_context);
 vx_status Nop_Register(vx_context);
+vx_status Resize_Register(vx_context);
+vx_status ResizeCropMirror_Register(vx_context);
+vx_status ResizeMirrorNormalize_Register(vx_context);
+vx_status Rotate_Register(vx_context);
+vx_status Saturation_Register(vx_context);
+vx_status FishEye_Register(vx_context);
+vx_status Rain_Register(vx_context);
+vx_status LensCorrection_Register(vx_context);
+vx_status SequenceRearrange_Register(vx_context);
+vx_status Snow_Register(vx_context);
+vx_status Pixelate_Register(vx_context);
+vx_status Vignette_Register(vx_context);
+vx_status Jitter_Register(vx_context);
+vx_status ColorTemperature_Register(vx_context);
+vx_status Glitch_Register(vx_context);
+vx_status WarpAffine_Register(vx_context);
+vx_status Noise_Register(vx_context);
+vx_status ResizeCrop_Register(vx_context);
 
 // kernel names
 #define VX_KERNEL_RPP_NOPBATCHPD_NAME                   "org.rpp.NopbatchPD"
@@ -206,9 +235,39 @@ vx_status Nop_Register(vx_context);
 #define VX_KERNEL_RPP_RESIZEMIRRORNORMALIZETENSOR_NAME        	"org.rpp.ResizeMirrorNormalizeTensor"
 #define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                    "org.rpp.SequenceRearrange"
 #define VX_KERNEL_RPP_RESIZETENSOR_NAME      					"org.rpp.Resizetensor"
+
+// Tensor kernel names
+#define VX_KERNEL_RPP_BLEND_NAME                                "org.rpp.Blend"
+#define VX_KERNEL_RPP_BLUR_NAME                                 "org.rpp.Blur"
 #define VX_KERNEL_RPP_BRIGHTNESS_NAME                           "org.rpp.Brightness"
+#define VX_KERNEL_RPP_COLORTWIST_NAME                           "org.rpp.ColorTwist"
+#define VX_KERNEL_RPP_CONTRAST_NAME                             "org.rpp.Contrast"
 #define VX_KERNEL_RPP_COPY_NAME                                 "org.rpp.Copy"
-#define VX_KERNEL_RPP_CROP_MIRROR_NORMALIZE_NAME                "org.rpp.CropMirrorNormalize"
+#define VX_KERNEL_RPP_NOISE_NAME                                "org.rpp.Noise"
+#define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                  "org.rpp.CropMirrorNormalize"
+#define VX_KERNEL_RPP_CROP_NAME                                 "org.rpp.Crop"
+#define VX_KERNEL_RPP_EXPOSURE_NAME                             "org.rpp.Exposure"
+#define VX_KERNEL_RPP_FISHEYE_NAME                              "org.rpp.FishEye"
+#define VX_KERNEL_RPP_FLIP_NAME                                 "org.rpp.Flip"
+#define VX_KERNEL_RPP_FOG_NAME                                  "org.rpp.Fog"
+#define VX_KERNEL_RPP_GAMMACORRECTION_NAME                      "org.rpp.GammaCorrection"
+#define VX_KERNEL_RPP_HUE_NAME                                  "org.rpp.Hue"
+#define VX_KERNEL_RPP_LENSCORRECTION_NAME                       "org.rpp.LensCorrection"
 #define VX_KERNEL_RPP_NOP_NAME                                  "org.rpp.Nop"
+#define VX_KERNEL_RPP_WARPAFFINE_NAME                           "org.rpp.WarpAffine"
+#define VX_KERNEL_RPP_RAIN_NAME                                 "org.rpp.Rain"
+#define VX_KERNEL_RPP_RESIZE_NAME                               "org.rpp.Resize"
+#define VX_KERNEL_RPP_RESIZEMIRROR_NAME                         "org.rpp.ResizeMirrorNormalize"
+#define VX_KERNEL_RPP_RESIZECROPMIRROR_NAME                     "org.rpp.ResizeCropMirror"
+#define VX_KERNEL_RPP_ROTATE_NAME                               "org.rpp.Rotate"
+#define VX_KERNEL_RPP_SATURATION_NAME                           "org.rpp.Saturation"
+#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                    "org.rpp.SequenceRearrange"
+#define VX_KERNEL_RPP_SNOW_NAME                                 "org.rpp.Snow"
+#define VX_KERNEL_RPP_PIXELATE_NAME                             "org.rpp.Pixelate"
+// #define VX_KERNEL_RPP_VIGNETTE_NAME                          "org.rpp.Vignette"
+#define VX_KERNEL_RPP_JITTER_NAME                               "org.rpp.Jitter"
+#define VX_KERNEL_RPP_COLORTEMPERATURE_NAME                     "org.rpp.ColorTemperature"
+#define VX_KERNEL_RPP_GLITCH_NAME                               "org.rpp.Glitch"
+#define VX_KERNEL_RPP_RESIZECROP_NAME                           "org.rpp.ResizeCrop"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
