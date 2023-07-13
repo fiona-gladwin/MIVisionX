@@ -1406,7 +1406,7 @@ rocalTensorList * MasterGraph::mask_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get mask buffer from ring buffer
-    auto mask_cords = _ring_buffer.get_meta_data().second->get_mask_cords_batch();
+    auto mask_cords = _ring_buffer.get_meta_data().second->get_pixelwise_labels_batch();
     for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
     {
         _mask_tensor_list[i]->set_dims({mask_cords[i].size(), 1});

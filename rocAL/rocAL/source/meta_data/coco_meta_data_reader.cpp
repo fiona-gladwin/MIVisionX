@@ -85,7 +85,8 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         if (_output->get_metadata_type() == MetaDataType::PixelwiseMask)
         {
             _output->get_pixelwise_labels_batch()[i] = it->second->get_pixelwise_label();
-        
+            //for (auto vk : vp) std::cout << vk << "\n";
+            //std::cout << "\n\n";
         }
     }
 }
@@ -323,6 +324,10 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *R_in
             }
         }
     }
+    
+    std::cout << "Check:::\n\n";
+    for (auto uu : pixelwise_labels) std::cout << uu << "\t";
+    std::cout << "\n\n";
 
     // Destroy RLEs
     rlesFree(&R, *labels.rbegin() + 1);
