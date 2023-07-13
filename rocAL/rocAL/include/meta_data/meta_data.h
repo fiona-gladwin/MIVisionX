@@ -121,6 +121,8 @@ public:
     virtual void set_vertices_counts(std::vector<std::vector<int>> vertices_count) = 0;
     virtual JointsData& get_joints_data() = 0;
     virtual void set_joints_data(JointsData *joints_data) = 0;
+    virtual std::vector<int>& get_pixelwise_label() = 0;
+    virtual void set_pixelwise_label(std::vector<int> pixelwise_label) = 0;
     ImgSize& get_img_size() { return _info.img_size; }
     ImgSize& get_img_roi_size() { return _info.img_roi_size; }
     std::string& get_image_name() { return _info.img_name; }
@@ -149,6 +151,8 @@ public:
     void set_mask_cords(MaskCords mask_cords) override { THROW("Not Implemented") }
     void set_polygon_counts(std::vector<int> polygon_count) override { THROW("Not Implemented") }
     void set_vertices_counts(std::vector<std::vector<int>> vertices_count) override { THROW("Not Implemented") }
+    std::vector<int>& get_pixelwise_label() override { THROW("Not Implemented") };
+    void set_pixelwise_label(std::vector<int> pixelwise_label) override { THROW("Not Implemented") };
     JointsData& get_joints_data() override { THROW("Not Implemented") }
     void set_joints_data(JointsData *joints_data) override { THROW("Not Implemented") }
 protected:
@@ -174,6 +178,7 @@ protected:
 
 struct PolygonMask : public BoundingBox {
 public:
+    PolygonMask() = default;
     PolygonMask(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
     {
         _bb_cords = std::move(bb_cords);
@@ -197,6 +202,16 @@ protected:
 
 struct PixelwiseMask : public PolygonMask {
 public:
+    PixelwiseMask() = default;
+    PixelwiseMask(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
+    {
+        _bb_cords = std::move(bb_cords);
+        _label_ids = std::move(bb_label_ids);
+        _info.img_size = std::move(img_size);
+        _mask_cords = std::move(mask_cords);
+        _polygon_count = std::move(polygon_count);
+        _vertices_count = std::move(vertices_count);
+    }
     PixelwiseMask(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count, std::vector<int> pixelwise_label)
     {
         _bb_cords = std::move(bb_cords);
@@ -277,6 +292,7 @@ public:
     virtual std::vector<MaskCords>& get_mask_cords_batch() = 0;
     virtual std::vector<std::vector<int>>& get_mask_polygons_count_batch() = 0;
     virtual std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() = 0;
+    virtual std::vector<std::vector<int>>& get_pixelwise_labels_batch() = 0;
     virtual JointsDataBatch & get_joints_data_batch() = 0;
     std::vector<int>& get_image_id_batch() { return _info_batch.img_ids; }
     std::vector<std::string>& get_image_names_batch() {return _info_batch.img_names; }
@@ -358,6 +374,7 @@ public:
     std::vector<MaskCords>& get_mask_cords_batch() override { THROW("Not Implemented") };
     std::vector<std::vector<int>>& get_mask_polygons_count_batch() override { THROW("Not Implemented") };
     std::vector<std::vector<std::vector<int>>>& get_mask_vertices_count_batch() override { THROW("Not Implemented") };
+    std::vector<std::vector<int>>& get_pixelwise_labels_batch() override { THROW("Not Implemented") };
     JointsDataBatch & get_joints_data_batch() override { THROW("Not Implemented") };
 protected:
     std::vector<Labels> _label_ids = {};
@@ -558,7 +575,7 @@ public:
         _vertices_counts.resize(batch_size);
         _pixelwise_labels.resize(batch_size);
     }
-    std::vector<std::vector<int>>& get_pixelwise_labels_batch() { return _pixelwise_labels; }
+    std::vector<std::vector<int>>& get_pixelwise_labels_batch() override { return _pixelwise_labels; }
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
         if(copy_contents) {

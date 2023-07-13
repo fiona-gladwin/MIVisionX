@@ -102,11 +102,11 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
         it->second->get_vertices_count().push_back(vertices_count[0]);
         return;
     }
-    if (metadatatype == MetaDataType::PolygonMask) {
+    if (meta_data_type == MetaDataType::PolygonMask) {
         pMetaDataPolygonMask info = std::make_shared<PolygonMask>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
         _map_content.insert(pair<std::string, std::shared_ptr<PolygonMask>>(image_name, info));
     }
-    if (metadatatype == MetaDataType::PixelwisenMask) {
+    if (meta_data_type == MetaDataType::PixelwiseMask) {
         pMetaDataPixelwiseMask info = std::make_shared<PixelwiseMask>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
         _map_content.insert(pair<std::string, std::shared_ptr<PixelwiseMask>>(image_name, info));    
     }
@@ -169,7 +169,7 @@ void COCOMetaDataReader::print_map_contents()
 
 void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *R_in) {
     BoundingBoxCords bb_coords;
-    BoundingBoxLabels bb_labels;
+    Labels bb_labels;
     ImgSize img_size;
     MaskCords mask_cords;
     std::vector<int> polygon_size;
@@ -178,7 +178,7 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *R_in
     auto it = _map_content.find(filename);
     bb_coords = it->second->get_bb_cords();
     auto &pixelwise_labels = it->second->get_pixelwise_label();
-    bb_labels = it->second->get_bb_labels();
+    bb_labels = it->second->get_labels();
     img_size = it->second->get_img_size();
     mask_cords = it->second->get_mask_cords();
     polygon_size = it->second->get_polygon_count();
@@ -546,6 +546,10 @@ void COCOMetaDataReader::read_all(const std::string &path)
                         parser.SkipValue();
                     }
                 }
+                char buffer[13];
+                sprintf(buffer, "%012d", id);
+                string str(buffer);
+                std::string file_name = str + ".jpg";
 
                 auto itr = _map_img_names.find(id);
                 auto it = _map_img_sizes.find(itr->second);
