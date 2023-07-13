@@ -91,7 +91,7 @@ public:
     const std::pair<ImageNameBatch,pMetaDataBatch>& meta_data();
     rocalTensorList * labels_meta_data();
     rocalTensorList * bbox_meta_data();
-    rocalTensorList * mask_meta_data();
+    rocalTensorList * mask_meta_data(bool is_polygon_mask);
     rocalTensorList * matches_meta_data();
 
     void set_loop(bool val) { _loop = val; }

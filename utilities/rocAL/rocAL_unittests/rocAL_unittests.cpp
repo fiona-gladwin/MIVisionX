@@ -313,6 +313,24 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     case 11: // coco detection segmentation
     {
         std::cout << ">>>>>>> Running COCO READER" << std::endl;
+        pipeline_type = 3;
+        if (strcmp(rocal_data_path.c_str(), "") == 0)
+        {
+            std::cout << "\n ROCAL_DATA_PATH env variable has not been set. ";
+            exit(0);
+        }
+        // setting the default json path to ROCAL_DATA_PATH coco sample train annotation
+        std::string json_path = rocal_data_path + "MIVisionX-data/mini_coco_dataset/coco_test_4/annotations/instances_val2017_small.json";
+        rocalCreateCOCOReader(handle, json_path.c_str(), true, true);
+        if (decode_max_height <= 0 || decode_max_width <= 0)
+            input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
+        else
+            input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+    }
+    break;
+    case 12: // coco detection segmentation + pixelwise
+    {
+        std::cout << ">>>>>>> Running COCO READER" << std::endl;
         pipeline_type = 4;
         if (strcmp(rocal_data_path.c_str(), "") == 0)
         {
@@ -506,14 +524,12 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         break;
         case 4: // detection + segmentation + pixelwise pipeline
         {
-            std::cout << "Pipeline 4" << std::endl;
             RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
             RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
             RocalTensorList mask_data = rocalGetPixelwiseLabels(handle);
             std::cerr << "\n>>>>> PIXELWISE LABELS : ";
             for (int i = 0; i < bbox_labels->size(); i++)
             {
-                std::cout << "Imagename:" << i << std::endl;
                 int *mask_buffer = (int *)(mask_data->at(i)->buffer());
                 int mask_size = mask_data->at(i)->info().dims().at(0) * mask_data->at(i)->info().dims().at(1);
                 for (int j = 0; j < mask_size; j++)

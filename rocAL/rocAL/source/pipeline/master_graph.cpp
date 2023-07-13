@@ -1401,17 +1401,30 @@ rocalTensorList * MasterGraph::bbox_meta_data()
     return &_bbox_tensor_list;
 }
 
-rocalTensorList * MasterGraph::mask_meta_data()
+rocalTensorList * MasterGraph::mask_meta_data(bool is_polygon_mask)
 {
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get mask buffer from ring buffer
-    auto mask_cords = _ring_buffer.get_meta_data().second->get_pixelwise_labels_batch();
-    for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
-    {
-        _mask_tensor_list[i]->set_dims({mask_cords[i].size(), 1});
-        _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
-        meta_data_buffers += _mask_tensor_list[i]->info().data_size();
+    std::vector<std::vector<int>> mask_cords;
+    if (!is_polygon_mask) {
+        auto mask_cords = _ring_buffer.get_meta_data().second->get_pixelwise_labels_batch();
+
+        for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
+        {
+            _mask_tensor_list[i]->set_dims({mask_cords[i].size(), 1});
+            _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
+            meta_data_buffers += _mask_tensor_list[i]->info().data_size();
+        }
+    } else {
+        auto mask_cords = _ring_buffer.get_meta_data().second->get_mask_cords_batch();
+        
+        for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
+        {
+            _mask_tensor_list[i]->set_dims({mask_cords[i].size(), 1});
+            _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
+            meta_data_buffers += _mask_tensor_list[i]->info().data_size();
+        }
     }
 
     return &_mask_tensor_list;

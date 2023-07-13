@@ -324,10 +324,6 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *R_in
             }
         }
     }
-    
-    std::cout << "Check:::\n\n";
-    for (auto uu : pixelwise_labels) std::cout << uu << "\t";
-    std::cout << "\n\n";
 
     // Destroy RLEs
     rlesFree(&R, *labels.rbegin() + 1);
