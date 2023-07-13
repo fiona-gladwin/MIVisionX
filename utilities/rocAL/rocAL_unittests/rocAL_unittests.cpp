@@ -88,7 +88,7 @@ void convert_nchw_to_nhwc(unsigned char * input_chw, unsigned char * output_hwc,
     }
 }
 
-int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height,int num_of_classes, int display_all);
+int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height,int num_of_classes, int display_all, int resize_interpolation_type, int resize_scaling_mode);
 int main(int argc, const char **argv)
 {
     // check command-line usage
@@ -501,7 +501,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                     for(int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
                         std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
                     std::cerr << "\n>>>>>>> MASK COORDS : ";
-                    for(unsigned j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
+                    for(unsigned j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
                     {
                         std::cerr << "Mask idx : " << j << "Polygons : " <<  mask_count[++mask_idx] << "[" ;
                         for(int k = 0; k < mask_count[mask_idx]; k++)
