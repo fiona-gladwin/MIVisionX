@@ -23,11 +23,12 @@ THE SOFTWARE.
 #include "node.h"
 Node::~Node()
 {
-    if(!_node)
-        vxReleaseNode(&_node);
+    if(!_src_tensor_roi) vxReleaseTensor(&_src_tensor_roi);
+    if(!_dst_tensor_roi) vxReleaseTensor(&_dst_tensor_roi);
+    if(!_node) vxReleaseNode(&_node);
     _node = nullptr;
-    vxReleaseTensor(&_src_tensor_roi);
-    vxReleaseTensor(&_dst_tensor_roi);
+    _src_tensor_roi = nullptr;
+    _dst_tensor_roi = nullptr;
 }
 
 void
@@ -60,8 +61,15 @@ Node::create(std::shared_ptr<Graph> graph)
             THROW("Error: vxCreateTensorFromHandle(src tensor roi: failed " + TOSTR(status))
         if ((status = vxGetStatus((vx_reference)_dst_tensor_roi)) != VX_SUCCESS)
             THROW("Error: vxCreateTensorFromHandle(dst tensor roi: failed " + TOSTR(status))
+        
+        // Create vx_scalar for layout and roi type to be passed for each node
+        int input_layout = (int)_inputs[0]->info().layout();
+        int output_layout = (int)_outputs[0]->info().layout();
+        int roi_type = (int)_inputs[0]->info().roi_type();
+        _input_layout = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
+        _output_layout = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
+        _roi_type = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
     }
-
     create_node();
 }
 
