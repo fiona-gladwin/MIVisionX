@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 struct SequenceRearrangeLocalData
 {
-    vxRppHandle * handle;
+    vxRppHandle *handle;
     RppPtr_t pSrc;
     RppPtr_t pDst;
     Rpp32u deviceType;

@@ -645,7 +645,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
     }
 #endif
     if((_output_tensor_list[0]->info().mem_type() == RocalMemType::HOST))
-    {
+    {        
         if(output_mem_type == RocalOutputMemType::ROCAL_MEMCPY_HOST)
         {
             float multiplier[3] = {multiplier0, multiplier1, multiplier2 };

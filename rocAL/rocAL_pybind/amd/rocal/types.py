@@ -42,6 +42,11 @@ from rocal_pybind.types import CPU_MEMORY
 from rocal_pybind.types import GPU_MEMORY
 from rocal_pybind.types import PINNED_MEMORY
 
+#  RocalOutputMemType
+from rocal_pybind.types import CPU_MEMORY
+from rocal_pybind.types import GPU_MEMORY
+from rocal_pybind.types import PINNED_MEMORY
+
 # RocalImageSizeEvaluationPolicy
 from rocal_pybind.types import MAX_SIZE
 from rocal_pybind.types import USER_GIVEN_SIZE

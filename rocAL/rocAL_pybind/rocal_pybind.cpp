@@ -485,6 +485,11 @@ namespace rocal{
             .value("GPU_MEMORY", ROCAL_MEMCPY_GPU)
             .value("PINNED_MEMORY", ROCAL_MEMCPY_PINNED)
             .export_values();
+        py::enum_<RocalOutputMemType>(types_m, "RocalOutputMemType", "Output memory types")
+            .value("CPU_MEMORY", ROCAL_MEMCPY_HOST)
+            .value("GPU_MEMORY", ROCAL_MEMCPY_GPU)
+            .value("PINNED_MEMORY", ROCAL_MEMCPY_PINNED)
+            .export_values();
         py::enum_<RocalResizeScalingMode>(types_m,"RocalResizeScalingMode","Decode size policies")
             .value("SCALING_MODE_DEFAULT",ROCAL_SCALING_MODE_DEFAULT)
             .value("SCALING_MODE_STRETCH",ROCAL_SCALING_MODE_STRETCH)

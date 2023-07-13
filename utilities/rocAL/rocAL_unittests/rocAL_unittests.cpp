@@ -111,6 +111,8 @@ int main(int argc, const char **argv)
     bool gpu = 1;
     int test_case = 3; // For Rotate
     int num_of_classes = 0;
+    int resize_interpolation_type = 1; // For Bilinear interpolations
+    int resize_scaling_mode = 0; // For Default scaling mode
 
     if (argc >= argIdx + MIN_ARG_COUNT)
         test_case = atoi(argv[++argIdx]);
@@ -126,19 +128,25 @@ int main(int argc, const char **argv)
 
     if (argc >= argIdx + MIN_ARG_COUNT)
         display_all = atoi(argv[++argIdx]);
+    
+    if (argc >= argIdx + MIN_ARG_COUNT)
+        resize_interpolation_type = atoi(argv[++argIdx]);
+    
+    if (argc >= argIdx + MIN_ARG_COUNT)
+        resize_scaling_mode = atoi(argv[++argIdx]);
 
-    test(test_case, reader_type, path, outName, rgb, gpu, width, height, num_of_classes, display_all);
+    test(test_case, reader_type, path, outName, rgb, gpu, width, height, num_of_classes, display_all, resize_interpolation_type, resize_scaling_mode);
 
     return 0;
 }
 
-int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height, int num_of_classes, int display_all)
+int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height, int num_of_classes, int display_all, int resize_interpolation_type, int resize_scaling_mode)
 {
     size_t num_threads = 1;
     unsigned int inputBatchSize = 2;
     int decode_max_width = width;
     int decode_max_height = height;
-    int pipeline_type;
+    int pipeline_type = -1;
     std::cout << ">>> test case " << test_case << std::endl;
     std::cout << ">>> Running on " << (gpu ? "GPU" : "CPU") << " , " << (rgb ? " Color " : " Grayscale ") << std::endl;
 
@@ -167,6 +175,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
 
     // Creating uniformly distributed random objects to override some of the default augmentation parameters
     RocalIntParam color_temp_adj = rocalCreateIntParameter(-50);
+    RocalIntParam mirror = rocalCreateIntParameter(1);
 
 
     /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
@@ -209,7 +218,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             if (decode_max_height <= 0 || decode_max_width <= 0)
                 input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
             else
-                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 3: //coco detection partial

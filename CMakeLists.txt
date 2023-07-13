@@ -20,7 +20,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(MIVisionX)
-set(VERSION "2.4.0")
+set(VERSION "2.5.0")
 
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE STRING "Library install directory")
 include(GNUInstallDirs)
@@ -147,6 +147,10 @@ if(ROCAL)
 else()
   message("-- ${Cyan}ROCAL Module turned OFF by user option -D ROCAL=OFF ${ColourReset}")
 endif()
+
+enable_testing()
+include(CTest)
+add_subdirectory(tests/openvx)
 
 # set package information
 set(CPACK_PACKAGE_VERSION       ${VERSION})
