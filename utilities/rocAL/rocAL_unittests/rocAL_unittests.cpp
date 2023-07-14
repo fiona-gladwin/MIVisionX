@@ -570,14 +570,14 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         image1 = rocalCropMirrorNormalize(handle, image0, 224, 224, 0.2, 0.2, mean, std_dev, true, mirror);
     }
     break;
-    /*case 26:
+    case 26:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalCrop" << std::endl;
         image1 = rocalCrop(handle, image0, true);
     }
     break;
-    case 27:
+    /*case 27:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalResizeCropMirror" << std::endl;
@@ -732,7 +732,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalColorTwistFixed" << std::endl;
         image1 = rocalColorTwistFixed(handle, image0, 0.2, 10.0, 100.0, 0.25, true);
     }
-    break;
+    break;*/
     case 51:
     {
         std::cout << ">>>>>>> Running "
@@ -747,7 +747,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         image1 = rocalCropCenterFixed(handle, image0, 224, 224, 2, true);
     }
     break;
-    case 53:
+    /*case 53:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalResizeCropMirrorFixed" << std::endl;

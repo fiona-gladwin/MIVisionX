@@ -569,29 +569,35 @@ extern "C" RocalTensor ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext cont
                                                                RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 extern "C" RocalTensor  ROCAL_API_CALL rocalCrop(RocalContext context, RocalTensor input, bool is_output,
-                                             RocalFloatParam crop_width = NULL,
-                                             RocalFloatParam crop_height = NULL,
-                                             RocalFloatParam crop_depth = NULL,
-                                             RocalFloatParam crop_pox_x = NULL,
-                                             RocalFloatParam crop_pos_y = NULL,
-                                             RocalFloatParam crop_pos_z = NULL);
+                                                 RocalFloatParam crop_width = NULL,
+                                                 RocalFloatParam crop_height = NULL,
+                                                 RocalFloatParam crop_depth = NULL,
+                                                 RocalFloatParam crop_pox_x = NULL,
+                                                 RocalFloatParam crop_pos_y = NULL,
+                                                 RocalFloatParam crop_pos_z = NULL,
+                                                 RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                 RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 extern "C"  RocalTensor  ROCAL_API_CALL rocalCropFixed(RocalContext context, RocalTensor  input,
-                                                   unsigned crop_width,
-                                                   unsigned crop_height,
-                                                   unsigned crop_depth,
-                                                   bool is_output,
-                                                   float crop_pox_x,
-                                                   float crop_pos_y,
-                                                   float crop_pos_z);
+                                                       unsigned crop_width,
+                                                       unsigned crop_height,
+                                                       unsigned crop_depth,
+                                                       bool is_output,
+                                                       float crop_pox_x,
+                                                       float crop_pos_y,
+                                                       float crop_pos_z,
+                                                       RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                       RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 // //// \param crop_width
 
 
 extern "C" RocalTensor  ROCAL_API_CALL rocalCropCenterFixed(RocalContext context, RocalTensor input,
-                                                        unsigned crop_width,
-                                                        unsigned crop_height,
-                                                        unsigned crop_depth,
-                                                        bool output);
+                                                            unsigned crop_width,
+                                                            unsigned crop_height,
+                                                            unsigned crop_depth,
+                                                            bool output,
+                                                            RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                            RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 extern "C"  RocalTensor  ROCAL_API_CALL rocalResizeCropMirrorFixed( RocalContext context, RocalTensor input,
                                                            unsigned dest_width, unsigned dest_height,

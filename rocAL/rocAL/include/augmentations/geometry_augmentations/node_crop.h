@@ -31,6 +31,7 @@ class CropNode : public Node
 public:
     CropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     CropNode() = delete;
+    ~CropNode();
     void init(unsigned int crop_h, unsigned int crop_w, float x_drift, float y_drift);
     void init(unsigned int crop_h, unsigned int crop_w);
     void init( FloatParam *crop_h_factor, FloatParam *crop_w_factor, FloatParam * x_drift, FloatParam * y_drift);
@@ -41,9 +42,7 @@ protected:
     void create_node() override ;
     void update_node() override;
 private:
-
-    size_t _dest_width;
-    size_t _dest_height;
     std::shared_ptr<RocalCropParam> _crop_param;
+    void * _crop_coordinates;
+    vx_tensor _crop_tensor;
 };
-
