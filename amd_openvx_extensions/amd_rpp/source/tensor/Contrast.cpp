@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "internal_publishKernels.h"
 
 struct ContrastLocalData {
-    RPPCommonHandle * handle;
+    vxRppHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
@@ -180,7 +180,7 @@ static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference
     data->min = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     data->max = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     refreshContrast(node, parameters, num, data);
-    STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
+    STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
@@ -188,7 +188,7 @@ static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference
 static vx_status VX_CALLBACK uninitializeContrast(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ContrastLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
+    STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
     free(data->min);
     free(data->max);
     delete (data);

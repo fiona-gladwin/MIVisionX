@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "internal_publishKernels.h"
 
 struct SaturationLocalData {
-    RPPCommonHandle * handle;
+    vxRppHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
@@ -189,7 +189,7 @@ static vx_status VX_CALLBACK initializeSaturation(vx_node node, const vx_referen
     data->maxSrcDimensions.height = data->srcDescPtr->h;
     data->maxSrcDimensions.width = data->srcDescPtr->w;
     refreshSaturation(node, parameters, num, data);
-    STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
+    STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
@@ -197,7 +197,7 @@ static vx_status VX_CALLBACK initializeSaturation(vx_node node, const vx_referen
 static vx_status VX_CALLBACK uninitializeSaturation(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     SaturationLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
+    STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
     free(data->saturationFactor);
     free(data->srcDimensions);
 

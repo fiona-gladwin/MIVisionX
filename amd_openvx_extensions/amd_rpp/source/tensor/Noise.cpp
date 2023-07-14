@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "internal_publishKernels.h"
 
 struct NoiseLocalData {
-    RPPCommonHandle * handle;
+    vxRppHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
@@ -190,7 +190,7 @@ static vx_status VX_CALLBACK initializeNoise(vx_node node, const vx_reference *p
     data->noise_value = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     data->salt_value = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     refreshNoise(node, parameters, num, data);
-    STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
+    STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
@@ -198,7 +198,7 @@ static vx_status VX_CALLBACK initializeNoise(vx_node node, const vx_reference *p
 static vx_status VX_CALLBACK uninitializeNoise(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     NoiseLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
+    STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
     free(data->noise_prob);
     free(data->salt_prob);
     free(data->noise_value);

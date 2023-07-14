@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "internal_publishKernels.h"
 
 struct BlendLocalData {
-    RPPCommonHandle * handle;
+    vxRppHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pSrc2;
@@ -176,7 +176,7 @@ static vx_status VX_CALLBACK initializeBlend(vx_node node, const vx_reference *p
 
     data->alpha = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     refreshBlend(node, parameters, num, data);
-    STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
+    STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
@@ -184,7 +184,7 @@ static vx_status VX_CALLBACK initializeBlend(vx_node node, const vx_reference *p
 static vx_status VX_CALLBACK uninitializeBlend(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     BlendLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
+    STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
     free(data->alpha);
     delete (data);
     return VX_SUCCESS;

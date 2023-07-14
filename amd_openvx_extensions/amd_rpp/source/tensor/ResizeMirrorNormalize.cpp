@@ -25,7 +25,7 @@ THE SOFTWARE.
 
 struct ResizeMirrorNormalizeLocalData
 {
-    RPPCommonHandle * handle;
+    vxRppHandle * handle;
     Rpp32u device_type;
     RppPtr_t pSrc;
     RppPtr_t pDst;
@@ -196,7 +196,7 @@ static vx_status VX_CALLBACK initializeResizeMirrorNormalize(vx_node node, const
     data->dstImgSize = (RpptImagePatch *)calloc(data->src_desc_ptr->n, sizeof(RpptImagePatch));
 #endif    
     refreshResizeMirrorNormalize(node, parameters, num, data);
-    STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->src_desc_ptr->n, data->device_type));
+    STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->src_desc_ptr->n, data->device_type));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
@@ -205,7 +205,7 @@ static vx_status VX_CALLBACK uninitializeResizeMirrorNormalize(vx_node node, con
 {
     ResizeMirrorNormalizeLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->device_type));
+    STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->device_type));
     free(data->resize_w);
     free(data->resize_h);
     free(data->mean);

@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 struct ColorTwistLocalData
 {
-    RPPCommonHandle handle;
+    vxRppHandle handle;
     rppHandle_t rppHandle;
     Rpp32u device_type;
     Rpp32u nbatchSize;
