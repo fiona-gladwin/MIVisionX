@@ -81,7 +81,7 @@ void ResizeMirrorNormalizeNode::create_node()
    _node = vxExtrppNode_ResizeMirrorNormalize(_graph->get(), _inputs[0]->handle(),
                                              _src_tensor_roi, _outputs[0]->handle(), _dst_roi_width, _dst_roi_height,
                                              interpolation_vx, _mean_vx_array, _std_dev_vx_array, _mirror.default_array(),
-                                             _input_layout, _output_layout, _roi_type, _batch_size);
+                                             _input_layout, _output_layout, _roi_type);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the resize (vxExtrppNode_ResizeMirrorNormalize) node failed: "+ TOSTR(status))
 }
