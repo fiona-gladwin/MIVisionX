@@ -74,35 +74,11 @@ void CropMirrorNormalizeNode::create_node() {
     status |= vxAddArrayItems(_offset_vx_array, multiplier_offset_array_size, offset_vec.data(), sizeof(vx_float32));
     _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
     if(status != 0)
-        THROW(" vxAddArrayItems failed in the crop_mirror_normalize node (vxExtrppNode_CropMirrorNormalize)  node: "+ TOSTR(status) + "  "+ TOSTR(status))
-
-    int input_layout = (int)_inputs[0]->info().layout();
-    int output_layout = (int)_outputs[0]->info().layout();
-    int roi_type = (int)_inputs[0]->info().roi_type();
-    vx_scalar in_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
-    vx_scalar out_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
-    vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
-    
-    // Create vx_tensor for the crop coordinates
-    vx_size num_of_dims = 2;
-    vx_size stride[num_of_dims];
-    std::vector<size_t> crop_tensor_dims = {_batch_size, 4};
-    if(_inputs[0]->info().layout() == RocalTensorlayout::NFCHW || _inputs[0]->info().layout() == RocalTensorlayout::NFHWC)
-        crop_tensor_dims = {_inputs[0]->info().dims()[0] * _inputs[0]->info().dims()[1], 4}; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
-    stride[0] = sizeof(vx_uint32);
-    stride[1] = stride[0] * crop_tensor_dims[0];
-    vx_enum mem_type = VX_MEMORY_TYPE_HOST;
-    if (_inputs[0]->info().mem_type() == RocalMemType::HIP)
-        mem_type = VX_MEMORY_TYPE_HIP;
-    allocate_host_or_pinned_mem(&_crop_coordinates, stride[1] * 4, _inputs[0]->info().mem_type());
-    
-    _crop_tensor = vxCreateTensorFromHandle(vxGetContext((vx_reference) _graph->get()), num_of_dims, crop_tensor_dims.data(), VX_TYPE_UINT32, 0, 
-                                                                  stride, (void *)_crop_coordinates, mem_type);
-    if ((status = vxGetStatus((vx_reference)_crop_tensor)) != VX_SUCCESS)
-        THROW("Error: vxCreateTensorFromHandle(crop_tensor: failed " + TOSTR(status))
+        THROW(" vxAddArrayItems failed in the crop_mirror_normalize node (vxExtrppNode_CropMirrorNormalize)  node: "+ TOSTR(status) + "  "+ TOSTR(status))   
+    create_crop_tensor(_crop_tensor, &_crop_coordinates);
     
     _node = vxExtrppNode_CropMirrorNormalize(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(),
-                                             _multiplier_vx_array, _offset_vx_array, _mirror.default_array(), in_layout_vx, out_layout_vx, roi_type_vx);
+                                             _multiplier_vx_array, _offset_vx_array, _mirror.default_array(), _input_layout, _output_layout, _roi_type);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the crop mirror normalize (vxExtrppNode_CropMirrorNormalize) failed: " + TOSTR(status))
 }

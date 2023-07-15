@@ -39,7 +39,7 @@ public:
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     std::shared_ptr<RocalCropParam> get_crop_param() { return _crop_param; }
 protected:
-    void create_node() override ;
+    void create_node() override;
     void update_node() override;
 private:
     std::shared_ptr<RocalCropParam> _crop_param;
