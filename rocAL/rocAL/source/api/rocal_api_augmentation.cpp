@@ -2222,56 +2222,45 @@ rocalSSDRandomCrop(
     }
     return output;
 }
-/*
-RocalImage  ROCAL_API_CALL
-rocalCopy(
-        RocalContext p_context,
-        RocalImage p_input,
-        bool is_output)
-{
-    Image* output = nullptr;
+
+RocalTensor ROCAL_API_CALL
+rocalCopy(RocalContext p_context,
+          RocalTensor p_input,
+          bool is_output) {
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
-        ERR("Invalid ROCAL context or invalid input image")
+        ERR("Invalid ROCAL context or invalid input tensor")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
-    try
-    {
-        output = context->master_graph->create_image(input->info(), is_output);
+    auto input = static_cast<Tensor*>(p_input);
+    try {
+        output = context->master_graph->create_tensor(input->info(), is_output);
         context->master_graph->add_node<CopyNode>({input}, {output});
-    }
-    catch(const std::exception& e)
-    {
+    } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
     return output;
 }
 
-RocalImage  ROCAL_API_CALL
-rocalNop(
-        RocalContext p_context,
-        RocalImage p_input,
-        bool is_output)
-{
-    Image* output = nullptr;
+RocalTensor  ROCAL_API_CALL
+rocalNop(RocalContext p_context,
+         RocalTensor p_input,
+         bool is_output) {
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
-        ERR("Invalid ROCAL context or invalid input image")
+        ERR("Invalid ROCAL context or invalid input tensor")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
-    try
-    {
-        output = context->master_graph->create_image(input->info(), is_output);
+    auto input = static_cast<Tensor*>(p_input);
+    try {
+        output = context->master_graph->create_tensor(input->info(), is_output);
         context->master_graph->add_node<NopNode>({input}, {output});
-    }
-    catch(const std::exception& e)
-    {
+    } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
     return output;
 }
-*/
