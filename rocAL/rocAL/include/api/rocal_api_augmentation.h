@@ -72,10 +72,21 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalResize(RocalContext context, RocalT
 /// using it directly. This option allows certain optimizations to be achieved.
 /// \param p_mirror Parameter to enable horizontal flip for output image.
 /// \return
-extern "C"  RocalTensor  ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context, RocalTensor p_input,
-                                                                  unsigned dest_width, unsigned dest_height,
-                                                                  std::vector<float> &mean, std::vector<float> &std_dev,
-                                                                  bool is_output, RocalIntParam p_mirror = NULL);
+extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context, 
+                                            RocalTensor p_input,
+                                            unsigned dest_width, unsigned dest_height,
+                                            std::vector<float> &mean,
+                                            std::vector<float> &std_dev,
+                                            bool is_output,
+                                            RocalResizeScalingMode scaling_mode = ROCAL_SCALING_MODE_STRETCH,
+                                            std::vector<unsigned> max_size = {},
+                                            unsigned resize_shorter = 0,
+                                            unsigned resize_longer = 0,
+                                            RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                            RocalIntParam mirror = NULL,
+                                            RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                            RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
 
 /// Accepts U8 and RGB24 input.
 /// \param context

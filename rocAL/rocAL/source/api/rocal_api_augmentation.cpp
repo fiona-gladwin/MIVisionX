@@ -593,56 +593,125 @@ rocalResize(
     }
     return output;
 }
-/*
-RocalImage  ROCAL_API_CALL
-rocalResizeMirrorNormalize(
-            RocalContext p_context,
-            RocalImage p_input,
-            unsigned dest_width,
-            unsigned dest_height,
-            std::vector<float> &mean,
-            std::vector<float> &std_dev,
-            bool is_output,
-            RocalIntParam p_mirror)
-{
+
+RocalTensor  ROCAL_API_CALL
+ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context, 
+                                          RocalTensor p_input,
+                                          unsigned dest_width,
+                                          unsigned dest_height,
+                                          std::vector<float> &mean,
+                                          std::vector<float> &std_dev,
+                                          bool is_output,
+                                          RocalResizeScalingMode scaling_mode,
+                                          std::vector<unsigned> max_size,
+                                          unsigned resize_shorter,
+                                          unsigned resize_longer,
+                                          RocalResizeInterpolationType interpolation_type,
+                                          RocalIntParam p_mirror,
+                                          RocalTensorLayout rocal_tensor_output_layout,
+                                          RocalTensorOutputType rocal_tensor_output_datatype) {
     if(!p_context || !p_input || dest_width == 0 || dest_height == 0 )
         THROW("Null values passed as input")
-    Image* output = nullptr;
+    Tensor* output = nullptr;
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     auto mirror = static_cast<IntParam *>(p_mirror);
-    for(unsigned i = 0; i < mean.size(); i++) {
-        mean[i] = 0;
-        std_dev[i] = 1;
-    }
+    
+    try {
+        if((dest_width | dest_height | resize_longer | resize_shorter) == 0)
+            THROW("Atleast one size 'dest_width' or 'dest_height' or 'resize_shorter' or 'resize_longer' must be specified")
+        if((dest_width | dest_height) && (resize_longer | resize_shorter))
+            THROW("Only one method of specifying size can be used \ndest_width and/or dest_height\nresize_shorter\nresize_longer")
+        if(resize_longer && resize_shorter)
+            THROW("'resize_longer' and 'resize_shorter' cannot be passed together. They are mutually exclusive.")
 
-   try
-    {
-        // For the resize mirror normalize resize node, user can create an image with a different width and height
-        ImageInfo output_info = input->info();
-        output_info.width(dest_width);
-        output_info.height(dest_height);
-        output = context->master_graph->create_image(output_info, is_output);
-        // For the nodes that user provides the output size the dimension of all the images after this node will be fixed and equal to that size
-        output->reset_image_roi();
+        unsigned out_width, out_height;
+        RocalResizeScalingMode resize_scaling_mode;
 
-        std::shared_ptr<ResizeMirrorNormalizeNode> rmn_node =  context->master_graph->add_node<ResizeMirrorNormalizeNode>({input}, {output});
-        // RPP doesn't support returning float buffers so passing 0 and 1 as mean and std and doing normalization in rocAL
-        // TODO: To be removed with rocAL Tensor support
-        // rmn_node->init(0, 1, mirror);
-        rmn_node->init(mean, std_dev, mirror);
-        // TODO: Uncomment the below lines once RMN meta node is added to ToT
+        // Change the scaling mode if resize_shorter or resize_longer is specified
+        if(resize_shorter) {
+            resize_scaling_mode = RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_SMALLER;
+            out_width = out_height = resize_shorter;
+        } else if(resize_longer) {
+            resize_scaling_mode = RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_LARGER;
+            out_width = out_height = resize_longer;
+        } else {
+            resize_scaling_mode = scaling_mode;
+            out_width = dest_width;
+            out_height = dest_height;
+        }
+
+        std::vector<unsigned> maximum_size;
+        if (max_size.size()) {
+            if(max_size.size() == 1) {
+                maximum_size = {max_size[0], max_size[0]};
+            } else if(max_size.size() == 2) {
+                maximum_size = {max_size[0], max_size[1]}; // {width, height}
+            } else {
+                THROW("The length of max_size vector exceeds the image dimension.")
+            }
+        }
+
+        // Determine the max width and height to be set to the output info
+        unsigned max_out_width, max_out_height;
+        if (maximum_size.size() && maximum_size[0] != 0 && maximum_size[1] != 0) {
+            // If max_size is passed by the user, the resized images cannot exceed the max size,
+            max_out_width = maximum_size[0];
+            max_out_height = maximum_size[1];
+        } else {
+            // compute the output info width and height wrt the scaling modes and roi passed
+            if(resize_scaling_mode == ROCAL_SCALING_MODE_STRETCH) {
+                max_out_width = out_width ? out_width : input->info().max_shape()[0];
+                max_out_height = out_height ? out_height : input->info().max_shape()[1];
+            } else if(resize_scaling_mode == ROCAL_SCALING_MODE_NOT_SMALLER) {
+                max_out_width = (out_width ? out_width : out_height) * MAX_ASPECT_RATIO;
+                max_out_height = (out_height ? out_height : out_width) * MAX_ASPECT_RATIO;
+            } else {
+                max_out_width = out_width ? out_width : out_height * MAX_ASPECT_RATIO;
+                max_out_height = out_height ? out_height : out_width * MAX_ASPECT_RATIO;
+            }
+            if(maximum_size.size() == 2) {
+                max_out_width = maximum_size[0] ? maximum_size[0] : max_out_width;
+                max_out_height = maximum_size[1] ? maximum_size[1] : max_out_height;
+            }
+        }
+
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        std::vector<size_t> out_dims = output_info.dims();
+        if(op_tensor_layout == RocalTensorlayout::NHWC) {
+            out_dims[1] = max_out_height;
+            out_dims[2] = max_out_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NCHW) {
+            out_dims[2] = max_out_height;
+            out_dims[3] = max_out_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFHWC) {
+            out_dims[2] = max_out_height;
+            out_dims[3] = max_out_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFCHW) {
+            out_dims[3] = max_out_height;
+            out_dims[4] = max_out_width;
+        }
+        output_info.set_dims(out_dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
+        std::shared_ptr<ResizeMirrorNormalizeNode> rmn_node = context->master_graph->add_node<ResizeMirrorNormalizeNode>({input}, {output});
+        rmn_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type, mean, std_dev, mirror);
         // if (context->master_graph->meta_data_graph())
         //     context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode,ResizeMirrorNormalizeNode>(rmn_node);
     }
     catch(const std::exception& e)
     {
         context->capture_error(e.what());
-        ERR(e.what())
+        ERR(e.what());
     }
-    return output;
+
+    return output; // Changed to input----------------IMPORTANT
 }
-*/
+
 RocalTensor ROCAL_API_CALL
 rocalBrightness(
         RocalContext p_context,
