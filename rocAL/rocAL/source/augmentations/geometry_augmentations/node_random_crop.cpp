@@ -26,10 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _dest_width(_outputs[0]->info().max_shape()[0]),
-        _dest_height(_outputs[0]->info().max_shape()[1])
-{
+        Node(inputs, outputs) {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
 
@@ -38,16 +35,14 @@ void RandomCropNode::create_node()
     if(_node)
         return;
 
-    if(_dest_width == 0 || _dest_height == 0)
-        THROW("Uninitialized destination dimension")
-
     _crop_param->create_array(_graph);
-    // _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
-                                // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
-
+    create_crop_tensor(_crop_tensor, &_crop_coordinates);
+    
+    _node = vxExtrppNode_Crop(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(),
+                              _input_layout, _output_layout, _roi_type);
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Error adding the crop resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: "+TOSTR(status))
+        THROW("Error adding the random crop node (vxExtrppNode_Crop) failed: " + TOSTR(status))
 }
 
 void RandomCropNode::update_node()
@@ -57,17 +52,38 @@ void RandomCropNode::update_node()
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
+
+    // Obtain the crop coordinates and update the roi
+    auto x1 = _crop_param->get_x1_arr_val();
+    auto y1 = _crop_param->get_y1_arr_val();
+    RocalROI *src_roi = (RocalROI *)_crop_coordinates;
+    for(unsigned i = 0; i < _batch_size; i++) {
+        src_roi[i].x1 = x1[i];
+        src_roi[i].y1 = y1[i];
+        src_roi[i].x2 = crop_w_dims[i];
+        src_roi[i].y2 = crop_h_dims[i];
+    }
 }
 
-void RandomCropNode::init(float crop_area_factor, float crop_aspect_ratio, float x_drift, float y_drift)
-{
+void RandomCropNode::init(float crop_area_factor, float crop_aspect_ratio, float x_drift, float y_drift) { }    // Is this required?
 
-}
-void RandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts)
-{
+void RandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts) {
     _crop_param->set_x_drift_factor(core(x_drift));
     _crop_param->set_y_drift_factor(core(y_drift));
     _crop_param->set_area_factor(core(crop_area_factor));
     _crop_param->set_aspect_ratio(core(crop_aspect_ratio));
     _num_of_attempts = num_of_attempts;
+}
+
+RandomCropNode::~RandomCropNode() {
+    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
+#if ENABLE_HIP
+        hipError_t err = hipHostFree(_crop_coordinates);
+        if(err != hipSuccess)
+            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
+#endif
+    } else {
+        free(_crop_coordinates);
+    }
+    vxReleaseTensor(&_crop_tensor);
 }
