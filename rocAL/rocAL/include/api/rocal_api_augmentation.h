@@ -119,7 +119,10 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalCropResizeFixed(RocalContext contex
 /// \return Returns a new image that keeps the result.
 extern "C"  RocalTensor  ROCAL_API_CALL rocalRotate(RocalContext context, RocalTensor input, bool is_output,
                                                 RocalFloatParam angle = NULL,  unsigned dest_width = 0,
-                                                unsigned dest_height = 0);
+                                                unsigned dest_height = 0,
+                                                RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 input. The output image dimension can be set to new values allowing the rotated image to fit,
 /// otherwise; the image is cropped to fit the result.
@@ -131,7 +134,10 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalRotate(RocalContext context, RocalT
 /// \param angle The rotation angle value in degrees.
 /// \return Returns a new image that keeps the result.
 extern "C"  RocalTensor  ROCAL_API_CALL rocalRotateFixed(RocalContext context, RocalTensor input, float angle,
-                                                    bool is_output, unsigned dest_width = 0, unsigned dest_height = 0);
+                                                    bool is_output, unsigned dest_width = 0, unsigned dest_height = 0,
+                                                    RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                    RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                    RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 inputs
 /// \param context Rocal context
@@ -270,7 +276,10 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalWarpAffine(RocalContext context, Ro
                                                      unsigned dest_height = 0, unsigned dest_width = 0,
                                                      RocalFloatParam x0 = NULL, RocalFloatParam x1 = NULL,
                                                      RocalFloatParam y0= NULL, RocalFloatParam y1 = NULL,
-                                                     RocalFloatParam o0 = NULL, RocalFloatParam o1 = NULL);
+                                                     RocalFloatParam o0 = NULL, RocalFloatParam o1 = NULL,
+                                                     RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                     RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                     RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 ///
 /// \param context
@@ -287,7 +296,10 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalWarpAffine(RocalContext context, Ro
 /// \return
 extern "C"  RocalTensor  ROCAL_API_CALL rocalWarpAffineFixed(RocalContext context, RocalTensor input, float x0, float x1,
                                                          float y0, float y1, float o0, float o1, bool is_output,
-                                                         unsigned int dest_height = 0, unsigned int dest_width = 0);
+                                                         unsigned int dest_height = 0, unsigned int dest_width = 0,
+                                                         RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                         RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                         RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 /// \param context
 /// \param input

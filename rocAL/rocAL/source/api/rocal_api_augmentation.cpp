@@ -61,104 +61,127 @@ rocalSequenceRearrange(RocalContext p_context,
     }
     return output;
 }
-/*
-RocalImage  ROCAL_API_CALL
+
+RocalTensor  ROCAL_API_CALL
 rocalRotate(
         RocalContext p_context,
-        RocalImage p_input,
+        RocalTensor p_input,
         bool is_output,
         RocalFloatParam p_angle,
         unsigned dest_width,
-        unsigned dest_height)
-{
+        unsigned dest_height,
+        RocalResizeInterpolationType interpolation_type,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
 
-    Image* output = nullptr;
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     auto angle = static_cast<FloatParam*>(p_angle);
-    try
-    {
-        if(dest_width == 0 || dest_height == 0)
-        {
-            dest_width = input->info().width();
-            dest_height = input->info().height_single();
+    try {
+        if(dest_width == 0 || dest_height == 0) {
+            dest_width = input->info().max_shape()[0];
+            dest_height = input->info().max_shape()[1];
         }
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+
         // For the rotate node, user can create an image with a different width and height
-        ImageInfo output_info = input->info();
-        output_info.width(dest_width);
-        output_info.height(dest_height);
-
-        output = context->master_graph->create_image(output_info, is_output);
-
-        // If the user has provided the output size the dimension of all the images after this node will be fixed and equal to that size
-        if(dest_width != 0 && dest_height != 0)
-            output->reset_image_roi();
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        std::vector<size_t> out_dims = output_info.dims();
+        if(op_tensor_layout == RocalTensorlayout::NHWC) {
+            out_dims[1] = dest_height;
+            out_dims[2] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NCHW) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFHWC) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFCHW) {
+            out_dims[3] = dest_height;
+            out_dims[4] = dest_width;
+        }
+        output_info.set_dims(out_dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
         std::shared_ptr<RotateNode> rotate_node =  context->master_graph->add_node<RotateNode>({input}, {output});
-        rotate_node->init(angle);
+        rotate_node->init(angle, interpolation_type);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<RotateMetaNode,RotateNode>(rotate_node);
-    }
-    catch(const std::exception& e)
-    {
+    } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
     return output;
 }
 
-RocalImage  ROCAL_API_CALL
+RocalTensor  ROCAL_API_CALL
 rocalRotateFixed(
         RocalContext p_context,
-        RocalImage p_input,
+        RocalTensor p_input,
         float angle,
         bool is_output,
         unsigned dest_width,
-        unsigned dest_height)
-{
-
-    Image* output = nullptr;
+        unsigned dest_height,
+        RocalResizeInterpolationType interpolation_type,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
-        ERR("Invalid ROCAL context or invalid input image")
+        ERR("Invalid ROCAL context or invalid input tensor")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
 
-    try
-    {
-        if(dest_width == 0 || dest_height == 0)
-        {
-            dest_width = input->info().width();
-            dest_height = input->info().height_single();
+    try {
+        if(dest_width == 0 || dest_height == 0) {
+            dest_width = input->info().max_shape()[0];
+            dest_height = input->info().max_shape()[1];
         }
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+
         // For the rotate node, user can create an image with a different width and height
-        ImageInfo output_info = input->info();
-        output_info.width(dest_width);
-        output_info.height(dest_height);
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        std::vector<size_t> out_dims = output_info.dims();
+        if(op_tensor_layout == RocalTensorlayout::NHWC) {
+            out_dims[1] = dest_height;
+            out_dims[2] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NCHW) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFHWC) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFCHW) {
+            out_dims[3] = dest_height;
+            out_dims[4] = dest_width;
+        }
+        output_info.set_dims(out_dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
 
-        output = context->master_graph->create_image(output_info, is_output);
-
-        // If the user has provided the output size the dimension of all the images after this node will be fixed and equal to that size
-        if(dest_width != 0 && dest_height != 0)
-            output->reset_image_roi();
-
-        std::shared_ptr<RotateNode> rotate_node =  context->master_graph->add_node<RotateNode>({input}, {output});
-        rotate_node->init(angle);
+        std::shared_ptr<RotateNode> rotate_node = context->master_graph->add_node<RotateNode>({input}, {output});
+        rotate_node->init(angle, interpolation_type);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<RotateMetaNode,RotateNode>(rotate_node);
-    }
-    catch(const std::exception& e)
-    {
+    } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
     return output;
 }
-
+/*
 RocalImage ROCAL_API_CALL
 rocalFlip(
         RocalContext p_context,
@@ -804,106 +827,127 @@ rocalBlendFixed(
     }
     return output;
 }
+*/
 
-
-RocalImage  ROCAL_API_CALL
+RocalTensor  ROCAL_API_CALL
 rocalWarpAffine(
         RocalContext p_context,
-        RocalImage p_input,
+        RocalTensor p_input,
         bool is_output,
         unsigned dest_height, unsigned dest_width,
         RocalFloatParam p_x0, RocalFloatParam p_x1,
         RocalFloatParam p_y0, RocalFloatParam p_y1,
-        RocalFloatParam p_o0, RocalFloatParam p_o1)
-{
-    Image* output = nullptr;
+        RocalFloatParam p_o0, RocalFloatParam p_o1,
+        RocalResizeInterpolationType interpolation_type,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     auto x0 = static_cast<FloatParam*>(p_x0);
     auto x1 = static_cast<FloatParam*>(p_x1);
     auto y0 = static_cast<FloatParam*>(p_y0);
     auto y1 = static_cast<FloatParam*>(p_y1);
     auto o0 = static_cast<FloatParam*>(p_o0);
     auto o1 = static_cast<FloatParam*>(p_o1);
-    try
-    {
-        if(dest_width == 0 || dest_height == 0)
-        {
-            dest_width = input->info().width();
-            dest_height = input->info().height_single();
+    try {
+        if(dest_width == 0 || dest_height == 0) {
+            dest_width = input->info().max_shape()[0];
+            dest_height = input->info().max_shape()[1];
         }
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+
         // For the warp affine node, user can create an image with a different width and height
-        ImageInfo output_info = input->info();
-        output_info.width(dest_width);
-        output_info.height(dest_height);
-
-        output = context->master_graph->create_image(output_info, is_output);
-
-        // If the user has provided the output size the dimension of all the images after this node will be fixed and equal to that size
-        if(dest_width != 0 && dest_height != 0)
-            output->reset_image_roi();
-
-        context->master_graph->add_node<WarpAffineNode>({input}, {output})->init(x0, x1, y0, y1, o0, o1);
-    }
-    catch(const std::exception& e)
-    {
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        std::vector<size_t> out_dims = output_info.dims();
+        if(op_tensor_layout == RocalTensorlayout::NHWC) {
+            out_dims[1] = dest_height;
+            out_dims[2] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NCHW) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFHWC) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFCHW) {
+            out_dims[3] = dest_height;
+            out_dims[4] = dest_width;
+        }
+        output_info.set_dims(out_dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
+        context->master_graph->add_node<WarpAffineNode>({input}, {output})->init(x0, x1, y0, y1, o0, o1, static_cast<int>(interpolation_type));
+    } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
     return output;
 }
 
-RocalImage  ROCAL_API_CALL
+RocalTensor  ROCAL_API_CALL
 rocalWarpAffineFixed(
         RocalContext p_context,
-        RocalImage p_input,
+        RocalTensor p_input,
         float x0, float x1,
         float y0, float y1,
         float o0, float o1,
         bool is_output,
         unsigned int dest_height,
-        unsigned int dest_width)
-{
-    Image* output = nullptr;
+        unsigned int dest_width,
+        RocalResizeInterpolationType interpolation_type,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
-    try
-    {
-
-        if(dest_width == 0 || dest_height == 0)
-        {
-            dest_width = input->info().width();
-            dest_height = input->info().height_single();
+    auto input = static_cast<Tensor*>(p_input);
+    try {
+        if(dest_width == 0 || dest_height == 0) {
+            dest_width = input->info().max_shape()[0];
+            dest_height = input->info().max_shape()[1];
         }
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+
         // For the warp affine node, user can create an image with a different width and height
-        ImageInfo output_info = input->info();
-        output_info.width(dest_width);
-        output_info.height(dest_height);
-
-        output = context->master_graph->create_image(input->info(), is_output);
-
-        // If the user has provided the output size the dimension of all the images after this node will be fixed and equal to that size
-        if(dest_width != 0 && dest_height != 0)
-            output->reset_image_roi();
-
-        context->master_graph->add_node<WarpAffineNode>({input}, {output})->init(x0, x1, y0, y1, o0, o1);
-    }
-    catch(const std::exception& e)
-    {
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        std::vector<size_t> out_dims = output_info.dims();
+        if(op_tensor_layout == RocalTensorlayout::NHWC) {
+            out_dims[1] = dest_height;
+            out_dims[2] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NCHW) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFHWC) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFCHW) {
+            out_dims[3] = dest_height;
+            out_dims[4] = dest_width;
+        }
+        output_info.set_dims(out_dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
+        context->master_graph->add_node<WarpAffineNode>({input}, {output})->init(x0, x1, y0, y1, o0, o1, static_cast<int>(interpolation_type));
+    } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
     return output;
 }
-
+/*
 RocalImage  ROCAL_API_CALL
 rocalFishEye(
         RocalContext p_context,

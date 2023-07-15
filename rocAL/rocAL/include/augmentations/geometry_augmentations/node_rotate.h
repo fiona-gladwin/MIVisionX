@@ -25,14 +25,16 @@ THE SOFTWARE.
 #include "parameter_factory.h"
 #include "parameter_vx.h"
 #include "graph.h"
+#include "rocal_api_types.h"
+
 
 class RotateNode : public Node
 {
 public:
     RotateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     RotateNode() = delete;
-    void init(float angle);
-    void init(FloatParam *angle);
+    void init(float angle, RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
+    void init(FloatParam* angle_param, RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     vx_array get_src_width() { return _src_roi_width; }
@@ -44,7 +46,6 @@ protected:
     void update_node() override;
 private:
     ParameterVX<float> _angle;
-    vx_array _dst_roi_width,_dst_roi_height;
+    int _interpolation_type;
     constexpr static float ROTATE_ANGLE_RANGE [2] = {0, 180};
-
 };
