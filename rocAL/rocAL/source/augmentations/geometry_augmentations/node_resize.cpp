@@ -25,7 +25,6 @@ THE SOFTWARE.
 #include "node_resize.h"
 #include "exception.h"
 
-
 ResizeNode::ResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
@@ -46,16 +45,15 @@ void ResizeNode::create_node() {
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
      if(width_status != 0 || height_status != 0)
-        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizebatchPD) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
-#if ENABLE_OPENCL
-    // fall back to batch_pd version since there is no tensor implementation for OPENCL    
-    // _node = vxExtrppNode_ResizebatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width, _dst_roi_height, _batch_size);
-#else
-   // _node = vxExtrppNode_Resizetensor(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width, _dst_roi_height, _interpolation_type, _batch_size);
-#endif
+        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_Resize) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status));
+
+    vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_INT32,&_interpolation_type);
+   _node = vxExtrppNode_Resize(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _dst_roi_width, 
+                               _dst_roi_height, interpolation_vx, _input_layout, _output_layout, _roi_type, _batch_size);
+
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the resize (vxExtrppNode_Resizetensor) node failed: "+ TOSTR(status))
+        THROW("Adding the resize (vxExtrppNode_Resize) node failed: "+ TOSTR(status))
 }
 
 void ResizeNode::update_node() {

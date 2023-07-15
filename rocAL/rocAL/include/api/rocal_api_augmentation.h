@@ -56,7 +56,9 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalResize(RocalContext context, RocalT
                                                    std::vector<unsigned> max_size = {},
                                                    unsigned resize_shorter = 0,
                                                    unsigned resize_longer = 0,
-                                                   RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
+                                                   RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION,
+                                                   RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                   RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 input.
 /// \param context Rocal context
@@ -599,31 +601,36 @@ extern "C" RocalTensor  ROCAL_API_CALL rocalCropCenterFixed(RocalContext context
                                                             RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
                                                             RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
-extern "C"  RocalTensor  ROCAL_API_CALL rocalResizeCropMirrorFixed( RocalContext context, RocalTensor input,
-                                                           unsigned dest_width, unsigned dest_height,
-                                                            bool is_output,
-                                                            unsigned crop_h,
-                                                            unsigned crop_w,
-                                                            RocalIntParam mirror
-                                                            );
-extern "C"  RocalTensor  ROCAL_API_CALL rocalResizeCropMirror( RocalContext context, RocalTensor input,
-                                                           unsigned dest_width, unsigned dest_height,
-                                                            bool is_output, RocalFloatParam crop_height = NULL,
-                                                            RocalFloatParam crop_width = NULL, RocalIntParam mirror = NULL
-                                                            );
+extern "C"  RocalTensor  ROCAL_API_CALL rocalResizeCropMirrorFixed(RocalContext context, RocalTensor input,
+                                                                    unsigned dest_width, unsigned dest_height,
+                                                                    bool is_output,
+                                                                    unsigned crop_h,
+                                                                    unsigned crop_w,
+                                                                    RocalIntParam mirror,
+                                                                    RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                                    RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+        
+extern "C"  RocalTensor  ROCAL_API_CALL rocalResizeCropMirror(RocalContext context, RocalTensor input,
+                                                              unsigned dest_width, unsigned dest_height,
+                                                              bool is_output, RocalFloatParam crop_height = NULL,
+                                                              RocalFloatParam crop_width = NULL, RocalIntParam mirror = NULL,
+                                                              RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                              RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 inputs and Ouptus Cropped Images, valid bounding boxes and labels
 /// \param context
 /// \param input
 /// \param num_of_attmpts
 /// \return
-extern "C" RocalTensor ROCAL_API_CALL rocalRandomCrop(  RocalContext context, RocalTensor input,
+extern "C" RocalTensor ROCAL_API_CALL rocalRandomCrop(RocalContext context, RocalTensor input,
                                                     bool is_output,
                                                     RocalFloatParam crop_area_factor  = NULL,
                                                     RocalFloatParam crop_aspect_ratio = NULL,
                                                     RocalFloatParam crop_pos_x = NULL,
                                                     RocalFloatParam crop_pos_y = NULL,
-                                                    int num_of_attempts = 20);
+                                                    int num_of_attempts = 20,
+                                                    RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                    RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 inputs and Ouptus Cropped Images, valid bounding boxes and labels
 /// \param context

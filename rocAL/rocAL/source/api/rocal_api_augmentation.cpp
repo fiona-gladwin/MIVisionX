@@ -456,11 +456,11 @@ rocalCropResizeFixed(
     }
     return output;
 }
-
-RocalImage  ROCAL_API_CALL
+*/
+RocalTensor  ROCAL_API_CALL
 rocalResize(
         RocalContext p_context,
-        RocalImage p_input,
+        RocalTensor p_input,
         unsigned dest_width,
         unsigned dest_height,
         bool is_output,
@@ -468,18 +468,19 @@ rocalResize(
         std::vector<unsigned> max_size,
         unsigned resize_shorter,
         unsigned resize_longer,
-        RocalResizeInterpolationType interpolation_type) {
+        RocalResizeInterpolationType interpolation_type,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
 
-    Image* output = nullptr;
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
-        ERR("Invalid ROCAL context or invalid input image")
+        ERR("Invalid ROCAL context or invalid input tensor")
         return output;
     }
 
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
-    try
-    {
+    auto input = static_cast<Tensor*>(p_input);
+    try {
         if((dest_width | dest_height | resize_longer | resize_shorter) == 0)
             THROW("Atleast one size 'dest_width' or 'dest_height' or 'resize_shorter' or 'resize_longer' must be specified")
         if((dest_width | dest_height) && (resize_longer | resize_shorter))
@@ -523,8 +524,8 @@ rocalResize(
         } else {
             // compute the output info width and height wrt the scaling modes and roi passed
             if(resize_scaling_mode == ROCAL_SCALING_MODE_STRETCH) {
-                max_out_width = out_width ? out_width : input->info().width();
-                max_out_height = out_height ? out_height : input->info().height_single();
+                max_out_width = out_width ? out_width : input->info().max_shape()[0];
+                max_out_height = out_height ? out_height : input->info().max_shape()[1];
             } else if(resize_scaling_mode == ROCAL_SCALING_MODE_NOT_SMALLER) {
                 max_out_width = (out_width ? out_width : out_height) * MAX_ASPECT_RATIO;
                 max_out_height = (out_height ? out_height : out_width) * MAX_ASPECT_RATIO;
@@ -538,27 +539,38 @@ rocalResize(
             }
         }
 
-        // set the width and height in the output info
-        // For the resize node, user can create an image with a different width and height
-        ImageInfo output_info = input->info();
-        output_info.width(max_out_width);
-        output_info.height(max_out_height);
-        output = context->master_graph->create_image(output_info, is_output);
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        std::vector<size_t> out_dims = output_info.dims();
+        if(op_tensor_layout == RocalTensorlayout::NHWC) {
+            out_dims[1] = max_out_height;
+            out_dims[2] = max_out_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NCHW) {
+            out_dims[2] = max_out_height;
+            out_dims[3] = max_out_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFHWC) {
+            out_dims[2] = max_out_height;
+            out_dims[3] = max_out_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFCHW) {
+            out_dims[3] = max_out_height;
+            out_dims[4] = max_out_width;
+        }
+        output_info.set_dims(out_dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
 
-        // For the nodes that user provides the output size the dimension of all the images after this node will be fixed and equal to that size
-        output->reset_image_roi();
-
-        std::shared_ptr<ResizeNode> resize_node =  context->master_graph->add_node<ResizeNode>({input}, {output});
+        std::shared_ptr<ResizeNode> resize_node = context->master_graph->add_node<ResizeNode>({input}, {output});
         resize_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type);
-    }
-    catch(const std::exception& e)
-    {
+    } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
     return output;
 }
-
+/*
 RocalImage  ROCAL_API_CALL
 rocalResizeMirrorNormalize(
             RocalContext p_context,
@@ -1878,37 +1890,55 @@ rocalCropCenterFixed(
     }
     return output;
 }
-/*
-RocalImage  ROCAL_API_CALL
+
+RocalTensor  ROCAL_API_CALL
 rocalResizeCropMirrorFixed(
         RocalContext p_context,
-        RocalImage p_input,
+        RocalTensor p_input,
         unsigned dest_width,
         unsigned dest_height,
         bool is_output,
         unsigned crop_h,
         unsigned crop_w,
-        RocalIntParam p_mirror
-        )
+        RocalIntParam p_mirror,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype)
 {
-    Image* output = nullptr;
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
-        ERR("Invalid ROCAL context or invalid input image")
+        ERR("Invalid ROCAL context or invalid input tensor")
         return output;
     }
     auto mirror = static_cast<IntParam *>(p_mirror);
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     try
     {
         if(dest_width == 0 || dest_height == 0)
             THROW("Crop Mirror node needs tp receive non-zero destination dimensions")
-        // For the crop node, user can create an image with a different width and height
-        ImageInfo output_info = input->info();
-        output_info.width(dest_width);
-        output_info.height(dest_height);
-        output = context->master_graph->create_image(output_info, is_output);
-        output->reset_image_roi();
+
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);  
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        std::vector<size_t> out_dims = output_info.dims();
+        if(op_tensor_layout == RocalTensorlayout::NHWC) {
+            out_dims[1] = dest_height;
+            out_dims[2] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NCHW) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFHWC) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFCHW) {
+            out_dims[3] = dest_height;
+            out_dims[4] = dest_width;
+        }
+        output_info.set_dims(out_dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
         std::shared_ptr<ResizeCropMirrorNode> rcm_node =  context->master_graph->add_node<ResizeCropMirrorNode>({input}, {output});
         rcm_node->init(crop_h, crop_w, mirror);
         if (context->master_graph->meta_data_graph())
@@ -1922,19 +1952,20 @@ rocalResizeCropMirrorFixed(
     return output;
 }
 
-extern "C"  RocalImage  ROCAL_API_CALL rocalResizeCropMirror( RocalContext p_context, RocalImage p_input,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalResizeCropMirror( RocalContext p_context, RocalTensor p_input,
                                                            unsigned dest_width, unsigned dest_height,
                                                             bool is_output, RocalFloatParam p_crop_height,
-                                                            RocalFloatParam p_crop_width, RocalIntParam p_mirror
-                                                            )
+                                                            RocalFloatParam p_crop_width, RocalIntParam p_mirror,
+                                                            RocalTensorLayout rocal_tensor_output_layout,
+                                                            RocalTensorOutputType rocal_tensor_output_datatype)
 {
-    Image* output = nullptr;
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     auto crop_h = static_cast<FloatParam*>(p_crop_height);
     auto crop_w = static_cast<FloatParam*>(p_crop_width);
     auto mirror  = static_cast<IntParam*>(p_mirror);
@@ -1942,12 +1973,28 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalResizeCropMirror( RocalContext p_con
     {
         if(dest_width == 0 || dest_height == 0)
             THROW("Crop Mirror node needs tp receive non-zero destination dimensions")
-        // For the crop node, user can create an image with a different width and height
-        ImageInfo output_info = input->info();
-        output_info.width(dest_width);
-        output_info.height(dest_height);
-        output = context->master_graph->create_image(output_info, is_output);
-        output->reset_image_roi();
+        // For the resize node, user can create an image with a different width and height
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);  
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        std::vector<size_t> out_dims = output_info.dims();
+        if(op_tensor_layout == RocalTensorlayout::NHWC) {
+            out_dims[1] = dest_height;
+            out_dims[2] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NCHW) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFHWC) {
+            out_dims[2] = dest_height;
+            out_dims[3] = dest_width;
+        } else if(op_tensor_layout == RocalTensorlayout::NFCHW) {
+            out_dims[3] = dest_height;
+            out_dims[4] = dest_width;
+        }
+        output_info.set_dims(out_dims);
+        output = context->master_graph->create_tensor(output_info, is_output);
         std::shared_ptr<ResizeCropMirrorNode> rcm_node =  context->master_graph->add_node<ResizeCropMirrorNode>({input}, {output});
         rcm_node->init(crop_h, crop_w, mirror);
         if (context->master_graph->meta_data_graph())
@@ -1961,24 +2008,26 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalResizeCropMirror( RocalContext p_con
     return output;
 }
 
-extern "C" RocalImage ROCAL_API_CALL
+extern "C" RocalTensor ROCAL_API_CALL
 rocalRandomCrop(
         RocalContext p_context,
-        RocalImage p_input,
+        RocalTensor p_input,
         bool is_output,
         RocalFloatParam p_crop_area_factor,
         RocalFloatParam p_crop_aspect_ratio,
         RocalFloatParam p_crop_pox_x,
         RocalFloatParam p_crop_pos_y,
-        int num_of_attempts)
+        int num_of_attempts,
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype)
 {
-    Image* output = nullptr;
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
-        ERR("Invalid ROCAL context or invalid input image")
+        ERR("Invalid ROCAL context or invalid input tensor")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     auto crop_area_factor  = static_cast<FloatParam*>(p_crop_area_factor);
     auto crop_aspect_ratio = static_cast<FloatParam*>(p_crop_aspect_ratio);
     auto x_drift = static_cast<FloatParam*>(p_crop_pox_x);
@@ -1986,11 +2035,13 @@ rocalRandomCrop(
 
     try
     {
-        ImageInfo output_info = input->info();
-        output_info.width(input->info().width());
-        output_info.height(input->info().height_single());
-        output = context->master_graph->create_image(output_info, is_output);
-        output->reset_image_roi();
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
         std::shared_ptr<RandomCropNode> crop_node =  context->master_graph->add_node<RandomCropNode>({input}, {output});
         crop_node->init(crop_area_factor, crop_aspect_ratio, x_drift, y_drift, num_of_attempts);
         // if (context->master_graph->meta_data_graph())
@@ -2003,7 +2054,7 @@ rocalRandomCrop(
     }
     return output;
 }
-
+/*
 extern "C" RocalImage ROCAL_API_CALL
 rocalSSDRandomCrop(
         RocalContext p_context,
