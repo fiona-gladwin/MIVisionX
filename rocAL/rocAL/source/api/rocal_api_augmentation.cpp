@@ -2178,51 +2178,51 @@ rocalRandomCrop(
     }
     return output;
 }
-/*
-extern "C" RocalImage ROCAL_API_CALL
+
+RocalTensor ROCAL_API_CALL
 rocalSSDRandomCrop(
         RocalContext p_context,
-        RocalImage p_input,
+        RocalTensor p_input,
         bool is_output,
         RocalFloatParam p_threshold,
         RocalFloatParam p_crop_area_factor,
         RocalFloatParam p_crop_aspect_ratio,
         RocalFloatParam p_crop_pox_x,
         RocalFloatParam p_crop_pos_y,
-        int num_of_attempts)
-{
-    Image* output = nullptr;
+        int num_of_attempts, 
+        RocalTensorLayout rocal_tensor_output_layout,
+        RocalTensorOutputType rocal_tensor_output_datatype) {
+    Tensor* output = nullptr;
     if ((p_context == nullptr) || (p_input == nullptr)) {
         ERR("Invalid ROCAL context or invalid input image")
         return output;
     }
     auto context = static_cast<Context*>(p_context);
-    auto input = static_cast<Image*>(p_input);
+    auto input = static_cast<Tensor*>(p_input);
     auto crop_area_factor  = static_cast<FloatParam*>(p_crop_area_factor);
     auto crop_aspect_ratio = static_cast<FloatParam*>(p_crop_aspect_ratio);
     auto x_drift = static_cast<FloatParam*>(p_crop_pox_x);
     auto y_drift = static_cast<FloatParam*>(p_crop_pos_y);
 
-    try
-    {
-        ImageInfo output_info = input->info();
-        output_info.width(input->info().width());
-        output_info.height(input->info().height_single());
-        output = context->master_graph->create_image(output_info, is_output);
-        output->reset_image_roi();
+    try {
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+        TensorInfo output_info = input->info();
+        output_info.set_tensor_layout(op_tensor_layout);
+        output_info.set_data_type(op_tensor_datatype);
+        output = context->master_graph->create_tensor(output_info, is_output);
+        output->reset_tensor_roi();
         std::shared_ptr<SSDRandomCropNode> crop_node =  context->master_graph->add_node<SSDRandomCropNode>({input}, {output});
         crop_node->init(crop_area_factor, crop_aspect_ratio, x_drift, y_drift, num_of_attempts);
         if (context->master_graph->meta_data_graph())
             context->master_graph->meta_add_node<SSDRandomCropMetaNode,SSDRandomCropNode>(crop_node);
-    }
-    catch(const std::exception& e)
-    {
+    } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
     }
     return output;
 }
-
+/*
 RocalImage  ROCAL_API_CALL
 rocalCopy(
         RocalContext p_context,
