@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "node_copy.h"
 #include "exception.h"
 
-CopyNode::CopyNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+CopyNode::CopyNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
 }
@@ -34,7 +34,7 @@ void CopyNode::create_node()
     if(_node)
         return;
 
-    _node = vxExtrppNode_CopybatchPD(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle());
+    // _node = vxExtrppNode_CopybatchPD(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle());
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)

@@ -29,7 +29,7 @@ THE SOFTWARE.
 class SnowNode : public Node
 {
 public:
-    SnowNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    SnowNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SnowNode() = delete;
     void init(float shift);
     void init(FloatParam *shift);

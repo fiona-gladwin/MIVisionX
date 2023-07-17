@@ -29,7 +29,7 @@ THE SOFTWARE.
 class FisheyeNode : public Node
 {
 public:
-    FisheyeNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    FisheyeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     FisheyeNode() = delete;
 
 protected:

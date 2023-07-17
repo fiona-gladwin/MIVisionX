@@ -29,7 +29,7 @@ THE SOFTWARE.
 class VignetteNode : public Node
 {
 public:
-    VignetteNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    VignetteNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     VignetteNode () = delete;
     void init(float sdev);
     void init(FloatParam *sdev);

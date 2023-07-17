@@ -23,21 +23,23 @@ THE SOFTWARE.
 #include "commons.h"
 #include "context.h"
 #include "rocal_api.h"
-size_t ROCAL_API_CALL rocalGetImageWidth(RocalImage p_image)
+
+size_t ROCAL_API_CALL rocalGetImageWidth(RocalTensor p_image)
 {
-    auto image = static_cast<Image *>(p_image);
-    return image->info().width();
-}
-size_t ROCAL_API_CALL rocalGetImageHeight(RocalImage p_image)
-{
-    auto image = static_cast<Image *>(p_image);
-    return image->info().height_batch();
+    auto image = static_cast<Tensor *>(p_image);
+    return image->info().max_shape()[0];
 }
 
-size_t ROCAL_API_CALL rocalGetImagePlanes(RocalImage p_image)
+size_t ROCAL_API_CALL rocalGetImageHeight(RocalTensor p_image)
 {
-    auto image = static_cast<Image *>(p_image);
-    return image->info().color_plane_count();
+    auto image = static_cast<Tensor *>(p_image);
+    return image->info().max_shape()[1];
+}
+
+size_t ROCAL_API_CALL rocalGetImagePlanes(RocalTensor p_image)
+{
+    auto image = static_cast<Tensor *>(p_image);
+    return image->info().get_channels();
 }
 
 int ROCAL_API_CALL rocalGetOutputWidth(RocalContext p_context)
@@ -74,6 +76,7 @@ int ROCAL_API_CALL rocalGetOutputColorFormat(RocalContext p_context)
 
     return translate_color_format(context->master_graph->output_color_format());
 }
+
 size_t ROCAL_API_CALL rocalGetAugmentationBranchCount(RocalContext p_context)
 {
     auto context = static_cast<Context *>(p_context);
@@ -121,9 +124,9 @@ TimingInfo
     auto context = static_cast<Context *>(p_context);
     auto info = context->timing();
     // INFO("bbencode time "+ TOSTR(info.bb_process_time)); //to display time taken for bbox encoder
-    if (context->master_graph->is_video_loader())
-        return {info.video_read_time, info.video_decode_time, info.video_process_time, info.copy_to_output};
-    else
+    // if (context->master_graph->is_video_loader()) // TO BE FIXED
+    //     return {info.video_read_time, info.video_decode_time, info.video_process_time, info.copy_to_output}; // TODO - Add unified timers for all decoders
+    // else
         return {info.image_read_time, info.image_decode_time, info.image_process_time, info.copy_to_output};
 }
 

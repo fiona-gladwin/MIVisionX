@@ -26,18 +26,6 @@ THE SOFTWARE.
 
 extern "C"  RocalStatus   ROCAL_API_CALL rocalCopyToOutput(RocalContext context, unsigned char * out_ptr, size_t out_size);
 
-extern "C"  RocalStatus   ROCAL_API_CALL rocalToTensor32(RocalContext rocal_context, float *out_ptr,
-                                                              RocalTensorLayout tensor_format, float multiplier0,
-                                                              float multiplier1, float multiplier2, float offset0,
-                                                              float offset1, float offset2,
-                                                              bool reverse_channels, RocalOutputMemType output_mem_type);
-
-extern "C"  RocalStatus   ROCAL_API_CALL rocalToTensor16(RocalContext rocal_context, half *out_ptr,
-                                                              RocalTensorLayout tensor_format, float multiplier0,
-                                                              float multiplier1, float multiplier2, float offset0,
-                                                              float offset1, float offset2,
-                                                              bool reverse_channels, RocalOutputMemType output_mem_type);
-
 extern "C"  RocalStatus   ROCAL_API_CALL rocalToTensor(RocalContext rocal_context, void *out_ptr,
                                                               RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type,
                                                               float multiplier0, float multiplier1, float multiplier2, float offset0,
@@ -46,7 +34,11 @@ extern "C"  RocalStatus   ROCAL_API_CALL rocalToTensor(RocalContext rocal_contex
 ///
 /// \param rocal_context
 /// \param output_images The buffer that will be filled with output images with set_output = True
-extern "C" void ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalImage> &output_images);
+extern "C" void ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalTensor> &output_images);
 
+///
+/// \param rocal_context
+/// \param output_tensor_list Returns a list of the tensor (decoder/augmentation outputs) with set_output = True
+extern "C"  RocalTensorList ROCAL_API_CALL rocalGetOutputTensors(RocalContext p_context);
 
 #endif //MIVISIONX_ROCAL_API_DATA_TRANSFER_H

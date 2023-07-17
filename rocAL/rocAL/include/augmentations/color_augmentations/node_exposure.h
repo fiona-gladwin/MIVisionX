@@ -29,7 +29,7 @@ THE SOFTWARE.
 class ExposureNode : public Node
 {
 public:
-    ExposureNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    ExposureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ExposureNode() = delete;
     void init(float shift);
     void init(FloatParam *shift);

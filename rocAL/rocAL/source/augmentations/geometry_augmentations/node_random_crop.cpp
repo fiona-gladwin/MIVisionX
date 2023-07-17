@@ -25,10 +25,10 @@ THE SOFTWARE.
 #include "node_random_crop.h"
 #include "exception.h"
 
-RandomCropNode::RandomCropNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _dest_width(_outputs[0]->info().width()),
-        _dest_height(_outputs[0]->info().height_batch())
+        _dest_width(_outputs[0]->info().max_shape()[0]),
+        _dest_height(_outputs[0]->info().max_shape()[1])
 {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
@@ -42,8 +42,8 @@ void RandomCropNode::create_node()
         THROW("Uninitialized destination dimension")
 
     _crop_param->create_array(_graph);
-    _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
-                                _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
+    // _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
+                                // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
@@ -52,11 +52,11 @@ void RandomCropNode::create_node()
 
 void RandomCropNode::update_node()
 {
-    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi_width_vec(), _inputs[0]->info().get_roi_height_vec());
+    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
-    _outputs[0]->update_image_roi(crop_w_dims, crop_h_dims);
+    _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
 }
 
 void RandomCropNode::init(float crop_area_factor, float crop_aspect_ratio, float x_drift, float y_drift)

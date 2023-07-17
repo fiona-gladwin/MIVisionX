@@ -29,7 +29,7 @@ THE SOFTWARE.
 class ColorTwistBatchNode : public Node
 {
 public:
-    ColorTwistBatchNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    ColorTwistBatchNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ColorTwistBatchNode() = delete;
     void init(float alpha, float beta, float hue, float sat);
     void init(FloatParam *alpha, FloatParam *beta, FloatParam *hue, FloatParam *sat);

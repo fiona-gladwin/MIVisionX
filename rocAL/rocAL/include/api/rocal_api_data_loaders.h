@@ -135,7 +135,7 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalCont
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCOCOFileSource(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCOCOFileSource(RocalContext context,
                                                               const char* source_path,
                                                               const char* json_path,
                                                               RocalImageColor color_format,
@@ -162,7 +162,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCOCOFileSource(RocalContext cont
 /// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCOCOFileSourcePartial(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCOCOFileSourcePartial(RocalContext p_context,
                                                             const char* source_path,
                                                             const char* json_path,
                                                             RocalImageColor rocal_color_format,
@@ -191,7 +191,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCOCOFileSourcePartial(RocalConte
 /// \param area_factor Determines how much area to be cropped. Ranges from from 0.08 - 1.
 /// \param aspect_ratio Determines the aspect ration of crop. Ranges from 0.75 to 1.33.
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCOCOFileSourcePartialSingleShard(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCOCOFileSourcePartialSingleShard(RocalContext p_context,
                                                             const char* source_path,
                                                             const char* json_path,
                                                             RocalImageColor rocal_color_format,
@@ -217,7 +217,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCOCOFileSourcePartialSingleShard
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C" RocalImage ROCAL_API_CALL rocalJpegCOCOFileSourceSingleShard(RocalContext context,
+extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourceSingleShard(RocalContext context,
                                                                         const char *source_path,
                                                                         const char *json_path,
                                                                         RocalImageColor color_format,
@@ -243,7 +243,7 @@ extern "C" RocalImage ROCAL_API_CALL rocalJpegCOCOFileSourceSingleShard(RocalCon
 /// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSource(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSource(RocalContext context,
                                                             const char* source_path,
                                                             RocalImageColor rocal_color_format,
                                                             unsigned internal_shard_count,
@@ -268,7 +268,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSource(RocalConte
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourceSingleShard(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourceSingleShard(RocalContext p_context,
                                                             const char* source_path,
                                                             RocalImageColor rocal_color_format,
                                                             unsigned shard_id,
@@ -294,7 +294,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourceSingleShard
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSource(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSource(RocalContext context,
                                                             const char* source_path,
                                                             RocalImageColor rocal_color_format,
                                                             unsigned internal_shard_count,
@@ -319,7 +319,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSource(RocalCont
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourceSingleShard(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourceSingleShard(RocalContext p_context,
                                                                         const char* source_path,
                                                                         RocalImageColor rocal_color_format,
                                                                         unsigned shard_id,
@@ -345,7 +345,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourceSingleShar
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalMXNetRecordSource(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalMXNetRecordSource(RocalContext context,
                                                             const char* source_path,
                                                             RocalImageColor rocal_color_format,
                                                             unsigned internal_shard_count,
@@ -370,7 +370,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalMXNetRecordSource(RocalContext conte
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalMXNetRecordSourceSingleShard(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalMXNetRecordSourceSingleShard(RocalContext p_context,
                                                                         const char* source_path,
                                                                         RocalImageColor rocal_color_format,
                                                                         unsigned shard_id,
@@ -398,7 +398,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalMXNetRecordSourceSingleShard(RocalCo
 /// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalFusedJpegCrop(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalFusedJpegCrop(RocalContext context,
                                                         const char* source_path,
                                                         RocalImageColor rocal_color_format,
                                                         unsigned num_threads,
@@ -425,7 +425,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalFusedJpegCrop(RocalContext context,
 /// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalFusedJpegCropSingleShard(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalFusedJpegCropSingleShard(RocalContext context,
                                                         const char* source_path,
                                                         RocalImageColor color_format,
                                                         unsigned shard_id,
@@ -453,7 +453,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalFusedJpegCropSingleShard(RocalContex
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegTFRecordSource(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegTFRecordSource(RocalContext context,
                                                             const char* source_path,
                                                             RocalImageColor rocal_color_format,
                                                             unsigned internal_shard_count,
@@ -479,7 +479,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegTFRecordSource(RocalContext cont
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegTFRecordSourceSingleShard(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegTFRecordSourceSingleShard(RocalContext context,
                                                                         const char* source_path,
                                                                         RocalImageColor rocal_color_format,
                                                                         unsigned shard_id,
@@ -501,7 +501,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegTFRecordSourceSingleShard(RocalC
 /// \param out_height The output height of raw image
 /// \return
 
-extern "C"  RocalImage  ROCAL_API_CALL rocalRawTFRecordSource(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalRawTFRecordSource(RocalContext p_context,
                                                            const char* source_path,
                                                            const char* user_key_for_raw,
                                                            const char* user_key_for_filename,
@@ -524,7 +524,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalRawTFRecordSource(RocalContext p_con
 /// \param out_height The output height of raw image
 /// \param record_name_prefix : if nonempty reader will only read records with certain prefix
 /// \return
-extern "C"  RocalImage  ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalContext p_context,
                                                                       const char* source_path,
                                                                       RocalImageColor rocal_color_format,
                                                                       unsigned shard_id,
@@ -678,7 +678,7 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalVideoFileResizeSingleShard(RocalCon
 /// \param out_height ; output_height
 /// \param filename_prefix ; if set loader will only load files with the given prefix name
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalRawCIFAR10Source(RocalContext context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalRawCIFAR10Source(RocalContext context,
                                                         const char* source_path,
                                                         RocalImageColor color_format,
                                                         bool is_output ,
@@ -706,7 +706,7 @@ extern "C"  RocalStatus  ROCAL_API_CALL rocalResetLoaders(RocalContext context);
 /// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourcePartialSingleShard(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourcePartialSingleShard(RocalContext p_context,
                                                             const char* source_path,
                                                             RocalImageColor rocal_color_format,
                                                             unsigned shard_id,
@@ -733,7 +733,7 @@ extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourcePartialSing
 /// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
 /// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
 /// \return Reference to the output image
-extern "C"  RocalImage  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourcePartialSingleShard(RocalContext p_context,
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourcePartialSingleShard(RocalContext p_context,
                                                             const char* source_path,
                                                             RocalImageColor rocal_color_format,
                                                             unsigned shard_id,

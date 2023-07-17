@@ -93,7 +93,7 @@ void VideoLoaderSharded::initialize(ReaderConfig reader_cfg, DecoderConfig decod
     // Initialize loader modules
     for (size_t idx = 0; idx < _shard_count; idx++)
     {
-        _loaders[idx]->set_output_image(_output_image);
+        _loaders[idx]->set_output(_output_tensor);
         reader_cfg.set_shard_count(_shard_count);
         reader_cfg.set_shard_id(idx);
         _loaders[idx]->initialize(reader_cfg, decoder_cfg, mem_type, batch_size, keep_orig_size);
@@ -130,9 +130,9 @@ void VideoLoaderSharded::shut_down()
 
 }
 
-void VideoLoaderSharded::set_output_image(Image *output_image)
+void VideoLoaderSharded::set_output(Tensor *output_tensor)
 {
-    _output_image = output_image;
+    _output_tensor = output_tensor;
 }
 
 size_t VideoLoaderSharded::remaining_count()

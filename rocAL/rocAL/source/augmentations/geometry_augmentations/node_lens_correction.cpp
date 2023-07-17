@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 
-LensCorrectionNode::LensCorrectionNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+LensCorrectionNode::LensCorrectionNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _strength(STRENGTH_RANGE[0], STRENGTH_RANGE[1]),
         _zoom(ZOOM_RANGE[0], ZOOM_RANGE[1])
@@ -41,7 +41,7 @@ void LensCorrectionNode::create_node()
 
     _strength.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
     _zoom.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _node = vxExtrppNode_LensCorrectionbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _strength.default_array(), _zoom.default_array(), _batch_size);
+    // _node = vxExtrppNode_LensCorrectionbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _strength.default_array(), _zoom.default_array(), _batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)

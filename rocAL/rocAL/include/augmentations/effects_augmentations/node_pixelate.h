@@ -30,7 +30,7 @@ THE SOFTWARE.
 class PixelateNode : public Node
 {
 public:
-    PixelateNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    PixelateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     PixelateNode() = delete;
 protected:
     void create_node() override;

@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "node_resize_crop_mirror.h"
 #include "exception.h"
 
-ResizeCropMirrorNode::ResizeCropMirrorNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+ResizeCropMirrorNode::ResizeCropMirrorNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
          Node(inputs, outputs),
         _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1])
 {
@@ -39,8 +39,8 @@ void ResizeCropMirrorNode::create_node()
 
     _crop_param->create_array(_graph);
 
-    std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().width());
-    std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().height_single());
+    std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().max_shape()[0]);
+    std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
 
     _dst_roi_width = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
     _dst_roi_height = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
@@ -52,8 +52,8 @@ void ResizeCropMirrorNode::create_node()
     if(width_status != 0 || height_status != 0)
         THROW(" vxAddArrayItems failed in the crop resize node (vxExtrppNode_ResizeCropbatchPD    )  node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
     _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
-    _node = vxExtrppNode_ResizeCropMirrorPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width,
-                                           _dst_roi_height, _crop_param->x1_arr, _crop_param->x2_arr, _crop_param->y1_arr, _crop_param->y2_arr,  _mirror.default_array(),_batch_size);
+    // _node = vxExtrppNode_ResizeCropMirrorPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width,
+                                        //    _dst_roi_height, _crop_param->x1_arr, _crop_param->x2_arr, _crop_param->y1_arr, _crop_param->y2_arr,  _mirror.default_array(),_batch_size);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
@@ -62,7 +62,7 @@ void ResizeCropMirrorNode::create_node()
 
 void ResizeCropMirrorNode::update_node()
 {
-    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi_width_vec(), _inputs[0]->info().get_roi_height_vec());
+    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
 }
 

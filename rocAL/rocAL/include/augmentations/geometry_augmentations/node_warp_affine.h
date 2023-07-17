@@ -29,7 +29,7 @@ THE SOFTWARE.
 class WarpAffineNode : public Node
 {
 public:
-    WarpAffineNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    WarpAffineNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     WarpAffineNode() = delete;
     void init(float x0, float x1, float y0, float y1, float o0, float o1);
     void init(FloatParam* x0, FloatParam* x1, FloatParam* y0, FloatParam* y1, FloatParam* o0, FloatParam* o1);

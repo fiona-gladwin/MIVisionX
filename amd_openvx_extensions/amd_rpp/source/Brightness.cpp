@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "internal_publishKernels.h"
 
 struct BrightnessLocalData {
-    RPPCommonHandle * handle;
+    vxRppHandle * handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
@@ -177,7 +177,7 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
     data->alpha = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     data->beta = (vx_float32 *)malloc(sizeof(vx_float32) * data->srcDescPtr->n);
     refreshBrightness(node, parameters, num, data);
-    STATUS_ERROR_CHECK(createGraphHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
+    STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->srcDescPtr->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
 }
@@ -185,7 +185,7 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
 static vx_status VX_CALLBACK uninitializeBrightness(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     BrightnessLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    STATUS_ERROR_CHECK(releaseGraphHandle(node, data->handle, data->deviceType));
+    STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
     free(data->alpha);
     free(data->beta);
     delete (data);

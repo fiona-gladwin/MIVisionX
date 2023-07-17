@@ -29,7 +29,7 @@ THE SOFTWARE.
 class ColorTemperatureNode : public Node
 {
 public:
-    ColorTemperatureNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs);
+    ColorTemperatureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
 
     ColorTemperatureNode() = delete;
     void init(int adjustment);

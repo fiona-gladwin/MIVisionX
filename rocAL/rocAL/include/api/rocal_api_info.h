@@ -23,6 +23,7 @@ THE SOFTWARE.
 #ifndef MIVISIONX_ROCAL_API_INFO_H
 #define MIVISIONX_ROCAL_API_INFO_H
 #include "rocal_api_types.h"
+
 ///
 /// \param image
 /// \return The width of the ROCAL's output image in pixels
@@ -46,18 +47,18 @@ extern "C"  size_t  ROCAL_API_CALL rocalGetRemainingImages(RocalContext rocal_co
 /// Returned value valid only after rocalVerify is called
 /// \param image
 /// \return Width of the graph output image
-extern "C" size_t ROCAL_API_CALL rocalGetImageWidth(RocalImage image);
+extern "C" size_t ROCAL_API_CALL rocalGetImageWidth(RocalTensor image);
 
 /// Returned value valid only after rocalVerify is called
 /// \param image
 /// \return Height of the pipeline output image, includes all images in the batch
-extern "C" size_t ROCAL_API_CALL rocalGetImageHeight(RocalImage image);
+extern "C" size_t ROCAL_API_CALL rocalGetImageHeight(RocalTensor image);
 
 
 /// Returned value valid only after rocalVerify is called
 /// \param image
 /// \return Color format of the pipeline output image,
-extern "C" size_t ROCAL_API_CALL rocalGetImagePlanes(RocalImage image);
+extern "C" size_t ROCAL_API_CALL rocalGetImagePlanes(RocalTensor image);
 
 /// Returned value valid only after rocalVerify is called
 /// \param rocal_context

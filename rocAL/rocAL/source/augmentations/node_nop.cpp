@@ -24,7 +24,7 @@ THE SOFTWARE.
 #include "node_nop.h"
 #include "exception.h"
 
-NopNode::NopNode(const std::vector<Image *> &inputs, const std::vector<Image *> &outputs) :
+NopNode::NopNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs)
 {
 }
@@ -35,7 +35,7 @@ void NopNode::create_node()
         return;
 
 
-    _node = vxExtrppNode_NopbatchPD(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle());
+    // _node = vxExtrppNode_NopbatchPD(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle());
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
