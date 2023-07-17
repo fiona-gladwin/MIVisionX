@@ -103,7 +103,10 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalCropResize(RocalContext context, Ro
                                                     RocalFloatParam area = NULL,
                                                     RocalFloatParam aspect_ratio = NULL,
                                                     RocalFloatParam x_center_drift = NULL,
-                                                    RocalFloatParam y_center_drift = NULL);
+                                                    RocalFloatParam y_center_drift = NULL,
+                                                    RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                    RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
 /// Accepts U8 and RGB24 input. Crops the input image to a new area and same aspect ratio.
 /// \param context
 /// \param input
@@ -116,7 +119,10 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalCropResize(RocalContext context, Ro
 /// \return
 extern "C"  RocalTensor  ROCAL_API_CALL rocalCropResizeFixed(RocalContext context, RocalTensor input, unsigned dest_width,
                                                             unsigned dest_height, bool is_output, float area, float aspect_ratio,
-                                                            float x_center_drift, float y_center_drift);
+                                                            float x_center_drift, float y_center_drift,
+                                                            RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                            RocalTensorOutputType rocal_tensor_output_datatype = ROCAL_UINT8);
+
 /// Accepts U8 and RGB24 input. The output image dimension can be set to new values allowing the rotated image to fit,
 /// otherwise; the image is cropped to fit the result.
 /// \param context Rocal context
