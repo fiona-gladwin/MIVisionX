@@ -41,7 +41,7 @@ void SequenceRearrangeNode::create_node() {
     
     int input_layout = (int)_inputs[0]->info().layout();
     vx_scalar in_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
-    _node = vxExtrppNode_SequenceRearrange(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle(), sequence_array, in_layout_vx);
+    _node = vxRppSequenceRearrange(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle(), sequence_array, in_layout_vx);
     
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the sequence rearrange (vxExtrppNode_SequenceRearrange) node failed: "+ TOSTR(status))

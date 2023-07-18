@@ -2194,6 +2194,7 @@ VX_API_ENTRY vx_node VX_API_CALL vxRppResizeMirrorNormalize(vx_graph graph, vx_t
             (vx_reference)deviceType};
         node = createNode(graph, VX_KERNEL_RPP_RESIZEMIRRORNORMALIZE, params, 13);
     }
+    return node;
 }
 
 vx_node VX_API_CALL vxRppResizeCrop(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi,vx_tensor pCropTensor, vx_tensor pDst, vx_array pDstBatchWidth, vx_array pDstBatchHeight, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType)

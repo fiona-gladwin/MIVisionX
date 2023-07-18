@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "internal_publishKernels.h"
 
 struct NopLocalData {
-    vxRppHandle *handle;
+    vxRppHandle handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
