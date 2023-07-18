@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "internal_publishKernels.h"
 
 struct CopyLocalData {
-    vxRppHandle handle;
+    vxRppHandle *handle;
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
