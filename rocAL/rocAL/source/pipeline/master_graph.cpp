@@ -1085,6 +1085,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _meta_data_graph = create_meta_data_graph(config);
     _meta_data_reader = create_meta_data_reader(config, _augmented_meta_data);
     _meta_data_reader->read_all(source_path);
+    auto max_img_size = _meta_data_reader->get_max_size();
     if(!ltrb_bbox)  _augmented_meta_data->set_xywh_bbox();
     std::vector<size_t> dims;
     size_t max_objects = static_cast<size_t>(is_box_encoder ? MAX_NUM_ANCHORS : MAX_OBJECTS);
@@ -1107,6 +1108,13 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         default_mask_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_mask_info.data_size());
     }
+    if (metadata_type == MetaDataType::PixelwiseMask)
+    {
+        dims = { max_img_size.first, max_img_size.second }; 
+        default_mask_info  = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32);
+        default_mask_info.set_metadata();
+        _meta_data_buffer_size.emplace_back(_user_batch_size * default_mask_info.data_size());
+    }
 
     for(unsigned i = 0; i < _user_batch_size; i++) // Create rocALTensorList for each metadata
     {
@@ -1114,7 +1122,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         auto bbox_info = default_bbox_info;
         _labels_tensor_list.push_back(new Tensor(labels_info));
         _bbox_tensor_list.push_back(new Tensor(bbox_info));
-        if(metadata_type == MetaDataType::PolygonMask)
+        if(metadata_type == MetaDataType::PolygonMask || metadata_type == MetaDataType::PixelwiseMask)
         {
             auto mask_info = default_mask_info;
             _mask_tensor_list.push_back(new Tensor(mask_info));
@@ -1123,7 +1131,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
     _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
     _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
-    if(metadata_type == MetaDataType::PolygonMask)
+    if(metadata_type == MetaDataType::PolygonMask || metadata_type == MetaDataType::PixelwiseMask)
         _metadata_output_tensor_list.emplace_back(&_mask_tensor_list);
 
     return _metadata_output_tensor_list;
@@ -1493,6 +1501,23 @@ TensorList * MasterGraph::mask_meta_data()
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get mask buffer from ring buffer
     auto mask_cords = _ring_buffer.get_meta_data().second->get_mask_cords_batch();
+    for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
+    {
+        _mask_tensor_list[i]->set_dims({mask_cords[i].size(), 1});
+        _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
+        meta_data_buffers += _mask_tensor_list[i]->info().data_size();
+    }
+
+    return &_mask_tensor_list;
+}
+
+TensorList * MasterGraph::pixelwise_meta_data()
+{
+    if(_ring_buffer.level() == 0)
+        THROW("No meta data has been loaded")
+    auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get mask buffer from ring buffer
+    auto mask_cords = _ring_buffer.get_meta_data().second->get_pixelwise_labels_batch();
+
     for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
     {
         _mask_tensor_list[i]->set_dims({mask_cords[i].size(), 1});

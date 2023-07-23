@@ -77,12 +77,15 @@ ROCAL_API_CALL rocalCreateVideoLabelReader(RocalContext p_context, const char* s
 }
 
 RocalMetaData
-ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool mask, bool ltrb, bool is_box_encoder) {
+ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool _is_polygon_mask, bool is_pixelwise_mask, bool ltrb, bool is_box_encoder) {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalCreateCOCOReader")
     auto context = static_cast<Context*>(p_context);
-    if(mask) {
+    if(_is_polygon_mask) {
         return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask, ltrb, is_box_encoder);
+    }
+    if (is_pixelwise_mask) {
+        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PixelwiseMask, ltrb, is_box_encoder);
     }
     return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox, ltrb, is_box_encoder);
 }
@@ -363,6 +366,21 @@ ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int *bufcount)
         }
     }
     return context->master_graph->mask_meta_data();
+}
+
+RocalTensorList
+ROCAL_API_CALL rocalGetPixelwiseLabels(RocalContext p_context)
+{
+    if (p_context == nullptr)
+        THROW("Invalid rocal context passed to rocalGetPixelwiseLabels")
+    auto context = static_cast<Context *>(p_context);
+    auto meta_data = context->master_graph->meta_data();
+    size_t meta_data_batch_size = meta_data.second->get_mask_cords_batch().size();
+    if (context->user_batch_size() != meta_data_batch_size)
+        THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != " + TOSTR(context->user_batch_size()))
+    if (!meta_data.second)
+        THROW("No mask has been loaded for this output image")
+    return context->master_graph->pixelwise_meta_data();
 }
 
 void

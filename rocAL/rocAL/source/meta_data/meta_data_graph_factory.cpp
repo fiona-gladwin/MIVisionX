@@ -42,6 +42,10 @@ std::shared_ptr<MetaDataGraph> create_meta_data_graph(const MetaDataConfig& conf
         {
             return std::make_shared<BoundingBoxGraph>();
         }
+        case MetaDataType::PixelwiseMask:
+        {
+            return std::make_shared<BoundingBoxGraph>();
+        }
         case MetaDataType::KeyPoints:
         {
             return std::make_shared<BoundingBoxGraph>();
