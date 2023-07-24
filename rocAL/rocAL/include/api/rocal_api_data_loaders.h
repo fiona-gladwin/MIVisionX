@@ -122,6 +122,45 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalCont
                                                                        unsigned step = 0,
                                                                        unsigned stride = 0);
 
+/// Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems.
+/// \param context Rocal context
+/// \param source_path A NULL terminated char string pointing to the location on the disk.
+/// source_path can be a video file, folder containing videos or a text file
+/// \param internal_shard_count Defines the parallelism level by internally sharding the input dataset and load/decode using multiple decoder/loader instances.
+/// \param is_output Determines if the user wants the loaded sequence of frames to be part of the output or not.
+/// \param shuffle: to shuffle sequences.
+/// \param loop: repeat data loading.
+/// \param decode_size_policy
+/// \return
+extern "C"  RocalTensor  ROCAL_API_CALL rocalNumpyFileSource(
+                 RocalContext p_context,
+                 const char* source_path,
+                 unsigned internal_shard_count,
+                 bool is_output = false,
+                 bool shuffle = false,
+                 bool loop = false,
+                 RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MAX_SIZE);
+
+/// Creates JPEG image reader and decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It accepts external sharding information to load a singe shard. only
+/// \param rocal_context Rocal context
+/// \param source_path A NULL terminated char string pointing to the location on the disk
+/// \param is_output Determines if the user wants the loaded images to be part of the output or not.
+/// \param shuffle: to shuffle sequences.
+/// \param loop: repeat data loading.
+/// \param decode_size_policy
+/// \param shard_id Shard id for this loader
+/// \param shard_count Total shard count
+/// \return
+extern "C"  RocalTensor  rocalNumpyFileSourceSingleShard(
+                 RocalContext p_context,
+                 const char* source_path,
+                 bool is_output = false,
+                 bool shuffle = false,
+                 bool loop = false,
+                 RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MAX_SIZE,
+                 unsigned shard_id = 0,
+                 unsigned shard_count = 1);
+
 /// Creates JPEG image reader and decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants.
 /// If images are not Jpeg compressed they will be ignored.
 /// \param rocal_context Rocal context

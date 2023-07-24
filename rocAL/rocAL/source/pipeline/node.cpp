@@ -42,7 +42,7 @@ Node::create(std::shared_ptr<Graph> graph)
     {
         vx_size num_of_dims = 2;
         vx_size stride[num_of_dims];
-        std::vector<size_t> roi_dims = {_batch_size, 4};
+        std::vector<size_t> roi_dims = {_batch_size, 2 * _inputs[0]->info().roi().no_of_dims()};
         if(_inputs[0]->info().layout() == RocalTensorlayout::NFCHW || _inputs[0]->info().layout() == RocalTensorlayout::NFHWC)
             roi_dims = {_inputs[0]->info().dims()[0] * _inputs[0]->info().dims()[1], 4}; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions        stride[0] = sizeof(vx_uint32);
         stride[0] = sizeof(vx_uint32);
@@ -52,9 +52,9 @@ Node::create(std::shared_ptr<Graph> graph)
             mem_type = VX_MEMORY_TYPE_HIP;
             
         _src_tensor_roi = vxCreateTensorFromHandle(vxGetContext((vx_reference) _graph->get()), num_of_dims, roi_dims.data(), VX_TYPE_UINT32, 0, 
-                                                                 stride, (void *)_inputs[0]->info().get_roi(), mem_type);
+                                                                 stride, (void *)_inputs[0]->info().roi().get_ptr(), mem_type);
         _dst_tensor_roi = vxCreateTensorFromHandle(vxGetContext((vx_reference) _graph->get()), num_of_dims, roi_dims.data(), VX_TYPE_UINT32, 0,
-                                                                 stride, (void *)_outputs[0]->info().get_roi(), mem_type);
+                                                                 stride, (void *)_outputs[0]->info().roi().get_ptr(), mem_type);
         vx_status status;
         if ((status = vxGetStatus((vx_reference)_src_tensor_roi)) != VX_SUCCESS)
             THROW("Error: vxCreateTensorFromHandle(src tensor roi: failed " + TOSTR(status))
