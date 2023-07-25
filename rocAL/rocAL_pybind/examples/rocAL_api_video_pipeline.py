@@ -127,9 +127,8 @@ def main():
                     tensor_layout=tensor_format, tensor_dtype=tensor_dtype, output_memory_type=types.CPU_MEMORY if _rocal_cpu else types.GPU_MEMORY)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
-        images = fn.readers.video(device="gpu", file_root=video_path, sequence_length=user_sequence_length,
-                              normalized=False, random_shuffle=False, image_type=types.RGB,
-                              dtype=types.FLOAT, initial_fill=16, pad_last_batch=True, name="Reader")
+        images = fn.readers.video(file_root=video_path, sequence_length=user_sequence_length,
+                              random_shuffle=False, image_type=types.RGB)
         crop_size = (512,960)
         output_images = fn.crop_mirror_normalize(images,
                                             rocal_tensor_output_layout=tensor_format,
