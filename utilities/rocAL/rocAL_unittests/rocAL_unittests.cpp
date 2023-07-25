@@ -656,7 +656,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalWarpAffineFixed" << std::endl;
-        image1 = rocalWarpAffineFixed(handle, input1, 1, 1, 0.5, 0.5, 7, 7, true, 480, 640, (RocalResizeInterpolationType) 0 , tensorLayout, tensorOutputType);
+        image1 = rocalWarpAffineFixed(handle, input1, 1, 1, 0.5, 0.5, 7, 7, true, 480, 640, RocalResizeInterpolationType::ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
 
     }
     break;
