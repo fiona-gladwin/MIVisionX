@@ -39,7 +39,7 @@ void ColorTwistNode::create_node() {
     _beta.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
     _hue.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
     _sat.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
-    _node = vxRppColorTwist(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), _hue.default_array(), _sat.default_array(), _input_layout, _roi_type);
+    _node = vxRppColorTwist(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), _hue.default_array(), _sat.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
