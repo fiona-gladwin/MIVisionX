@@ -27,12 +27,12 @@ struct ResizeCropLocalData {
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    vx_uint32 *pDstBatchWidth;
-    vx_uint32 *pDstBatchHeight;
-    vx_uint32 *pX1;
-    vx_uint32 *pY1;
-    vx_uint32 *pX2;
-    vx_uint32 *pY2;
+    Rpp32u *pDstBatchWidth;
+    Rpp32u *pDstBatchHeight;
+    Rpp32u *pX1;
+    Rpp32u *pY1;
+    Rpp32u *pX2;
+    Rpp32u *pY2;
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
     RpptROI *pSrcRoi;
@@ -42,27 +42,18 @@ struct ResizeCropLocalData {
     vxTensorLayout outputLayout;
     size_t inputTensorDims[RPP_MAX_TENSOR_DIMS];
     size_t ouputTensorDims[RPP_MAX_TENSOR_DIMS];
-    RppiSize *srcDimensions; // TBR : Not present in tensor
-    RppiSize maxSrcDimensions;  // TBR : Not present in tensor
-    Rpp32u *srcBatch_width; // TBR : Not present in tensor
-    Rpp32u *srcBatch_height;    // TBR : Not present in tensor
-    RppiSize *dstDimensions;    // TBR : Not present in tensor
-    RppiSize maxDstDimensions;  // TBR : Not present in tensor
+    RppiSize *pSrcDimensions;
+    RppiSize maxSrcDimensions;
+    RppiSize *pDstDimensions;
+    RppiSize maxDstDimensions;
 };
 
 static vx_status VX_CALLBACK refreshResizeCrop(vx_node node, const vx_reference *parameters, vx_uint32 num, ResizeCropLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pDstBatchWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pDstBatchHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    for (int i = 0; i < data->inputTensorDims[0]; i++)
-        {
-            data->srcDimensions[i].width =data->pSrcDesc->w;
-            data->srcDimensions[i].height = data->pSrcDesc->h;
-            data->dstDimensions[i].width = data->pDstBatchWidth[i];
-            data->dstDimensions[i].height = data->pDstBatchHeight[i];
-        }
-        void *roi_tensor_ptr;
-        void *crop_roi_tensor_ptr;
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pDstBatchWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pDstBatchHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+
+    void *roi_tensor_ptr, *crop_roi_tensor_ptr;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL
         return VX_ERROR_NOT_IMPLEMENTED;
@@ -80,25 +71,27 @@ static vx_status VX_CALLBACK refreshResizeCrop(vx_node node, const vx_reference 
     }
     data->pSrcRoi = reinterpret_cast<RpptROI *>(roi_tensor_ptr);
     data->pCropRoi = reinterpret_cast<RpptROI *>(crop_roi_tensor_ptr);
-    for (int i = 0; i < data->inputTensorDims[0]; i++)
-        {
-            data->pX1[i] = data->pCropRoi[i].xywhROI.xy.x;
-            data->pY1[i] = data->pCropRoi[i].xywhROI.xy.y;
-            data->pX2[i] = data->pCropRoi[i].xywhROI.xy.x + data->pCropRoi[i].xywhROI.roiWidth;
-            data->pY2[i] = data->pCropRoi[i].xywhROI.xy.y + data->pCropRoi[i].xywhROI.roiHeight;
-        }
-    if((data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW)) {
+    for (unsigned i = 0; i < data->inputTensorDims[0]; i++) {
+        data->pX1[i] = data->pCropRoi[i].xywhROI.xy.x;
+        data->pY1[i] = data->pCropRoi[i].xywhROI.xy.y;
+        data->pX2[i] = data->pCropRoi[i].xywhROI.xy.x + data->pCropRoi[i].xywhROI.roiWidth;
+        data->pY2[i] = data->pCropRoi[i].xywhROI.xy.y + data->pCropRoi[i].xywhROI.roiHeight;
+        data->pSrcDimensions[i].width = data->pSrcRoi[i].xywhROI.roiWidth;
+        data->pSrcDimensions[i].height = data->pSrcRoi[i].xywhROI.roiHeight;
+        data->pDstDimensions[i].width = data->pDstBatchWidth[i];
+        data->pDstDimensions[i].height = data->pDstBatchHeight[i];
+    }
+    if (data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW) {
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for(int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
+        for (unsigned n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
-            for(int f = 0; f < num_of_frames; f++) {
-                data->pDstBatchWidth[index + f] = data->pDstBatchWidth[n];
-                data->pDstBatchHeight[index + f] = data->pDstBatchHeight[n];
+            for (unsigned f = 0; f < num_of_frames; f++) {
                 data->pX1[index + f] = data->pX1[n];
                 data->pY1[index + f] = data->pY1[n];
                 data->pX2[index + f] = data->pX2[n];
                 data->pY2[index + f] = data->pY2[n];
-                data->pSrcRoi[index + f].xywhROI = data->pSrcRoi[n].xywhROI;
+                data->pSrcDimensions[index + f] = data->pSrcDimensions[n];
+                data->pDstDimensions[index + f] = data->pDstDimensions[n];
             }
         }
     }
@@ -110,34 +103,35 @@ static vx_status VX_CALLBACK validateResizeCrop(vx_node node, const vx_reference
     vx_enum scalar_type;
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[6], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_INT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #6 type=%d (must be size)\n", scalar_type);
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #6 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[7], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_INT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #7 type=%d (must be size)\n", scalar_type);
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #7 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[8], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_INT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #8 type=%d (must be size)\n", scalar_type);
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #8 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[9], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_UINT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #9 type=%d (must be size)\n", scalar_type);
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #9 type=%d (must be size)\n", scalar_type);
 
     // Check for input parameters
     size_t num_tensor_dims;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_NUMBER_OF_DIMS, &num_tensor_dims, sizeof(num_tensor_dims)));
-    if(num_tensor_dims < 4)
+    if (num_tensor_dims < 4)
         return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: ResizeCrop: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", num_tensor_dims);
+
     // Check for output parameters
     vx_uint8 tensor_fixed_point_position;
     size_t tensor_dims[RPP_MAX_TENSOR_DIMS];
-    vx_enum tensor_type;
+    vx_enum tensor_dtype;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_NUMBER_OF_DIMS, &num_tensor_dims, sizeof(num_tensor_dims)));
-    if(num_tensor_dims < 4) return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: ResizeCrop: tensor: #2 dimensions=%lu (must be greater than or equal to 4)\n", num_tensor_dims);
+    if (num_tensor_dims < 4) return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: ResizeCrop: tensor: #2 dimensions=%lu (must be greater than or equal to 4)\n", num_tensor_dims);
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_DIMS, &tensor_dims, sizeof(tensor_dims)));
-    STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_DATA_TYPE, &tensor_type, sizeof(tensor_type)));
+    STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_DATA_TYPE, &tensor_dtype, sizeof(tensor_dtype)));
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_FIXED_POINT_POSITION, &tensor_fixed_point_position, sizeof(tensor_fixed_point_position)));
     STATUS_ERROR_CHECK(vxSetMetaFormatAttribute(metas[3], VX_TENSOR_NUMBER_OF_DIMS, &num_tensor_dims, sizeof(num_tensor_dims)));
     STATUS_ERROR_CHECK(vxSetMetaFormatAttribute(metas[3], VX_TENSOR_DIMS, &tensor_dims, sizeof(tensor_dims)));
-    STATUS_ERROR_CHECK(vxSetMetaFormatAttribute(metas[3], VX_TENSOR_DATA_TYPE, &tensor_type, sizeof(tensor_type)));
+    STATUS_ERROR_CHECK(vxSetMetaFormatAttribute(metas[3], VX_TENSOR_DATA_TYPE, &tensor_dtype, sizeof(tensor_dtype)));
     STATUS_ERROR_CHECK(vxSetMetaFormatAttribute(metas[3], VX_TENSOR_FIXED_POINT_POSITION, &tensor_fixed_point_position, sizeof(tensor_fixed_point_position)));
     return status;
 
@@ -155,17 +149,19 @@ static vx_status VX_CALLBACK processResizeCrop(vx_node node, const vx_reference 
 #if ENABLE_OPENCL
         return_status = VX_ERROR_NOT_IMPLEMENTED;
 #elif ENABLE_HIP
-        if(data->pDstDesc->c==1 ) 
-            rpp_status = rppi_resize_crop_u8_pln1_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->dstDimensions, data->maxDstDimensions, data->pX1, data->pX2, data->pY1, data->pY2, output_format_toggle, data->pSrcDesc->n, data->handle->rppHandle);
-        else 
-            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_gpu((void *)data->pSrc, data->srcDimensions, data->maxSrcDimensions, (void *)data->pDst, data->dstDimensions, data->maxDstDimensions, data->pX1, data->pX2, data->pY1, data->pY2, output_format_toggle, data->pSrcDesc->n, data->handle->rppHandle);
+        if (data->pSrcDesc->c == 1) {
+            rpp_status = rppi_resize_crop_u8_pln1_batchPD_gpu(data->pSrc, data->pSrcDimensions, data->maxSrcDimensions, data->pDst, data->pDstDimensions, data->maxDstDimensions, data->pX1, data->pX2, data->pY1, data->pY2, output_format_toggle, data->pSrcDesc->n, data->handle->rppHandle);
+        } else {
+            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_gpu(data->pSrc, data->pSrcDimensions, data->maxSrcDimensions, data->pDst, data->pDstDimensions, data->maxDstDimensions, data->pX1, data->pX2, data->pY1, data->pY2, output_format_toggle, data->pSrcDesc->n, data->handle->rppHandle);
+        }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        if(data->pDstDesc->c==1 ) 
-            rpp_status = rppi_resize_crop_u8_pln1_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->pX1, data->pX2, data->pY1, data->pY2, output_format_toggle, data->pSrcDesc->n, data->handle->rppHandle);
-        else 
-            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->dstDimensions, data->maxDstDimensions, data->pX1, data->pX2, data->pY1, data->pY2, output_format_toggle, data->pSrcDesc->n, data->handle->rppHandle);
+        if (data->pSrcDesc->c == 1) {
+            rpp_status = rppi_resize_crop_u8_pln1_batchPD_host(data->pSrc, data->pSrcDimensions, data->maxSrcDimensions, data->pDst, data->pDstDimensions, data->maxDstDimensions, data->pX1, data->pX2, data->pY1, data->pY2, output_format_toggle, data->pSrcDesc->n, data->handle->rppHandle);
+        } else {
+            rpp_status = rppi_resize_crop_u8_pkd3_batchPD_host(data->pSrc, data->pSrcDimensions, data->maxSrcDimensions, data->pDst, data->pDstDimensions, data->maxDstDimensions, data->pX1, data->pX2, data->pY1, data->pY2, output_format_toggle, data->pSrcDesc->n, data->handle->rppHandle);
+        }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -174,7 +170,8 @@ static vx_status VX_CALLBACK processResizeCrop(vx_node node, const vx_reference 
 static vx_status VX_CALLBACK initializeResizeCrop(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ResizeCropLocalData *data = new ResizeCropLocalData;
     memset(data, 0, sizeof(ResizeCropLocalData));
-    vx_enum input_tensor_type, output_tensor_type;
+
+    vx_enum input_tensor_dtype, output_tensor_dtype;
     int roi_type, input_layout, output_layout;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -188,8 +185,8 @@ static vx_status VX_CALLBACK initializeResizeCrop(vx_node node, const vx_referen
     data->pSrcDesc = new RpptDesc;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_NUMBER_OF_DIMS, &data->pSrcDesc->numDims, sizeof(data->pSrcDesc->numDims)));
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_DIMS, &data->inputTensorDims, sizeof(vx_size) * data->pSrcDesc->numDims));
-    STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_DATA_TYPE, &input_tensor_type, sizeof(input_tensor_type)));
-    data->pSrcDesc->dataType = getRpptDataType(input_tensor_type);
+    STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_DATA_TYPE, &input_tensor_dtype, sizeof(input_tensor_dtype)));
+    data->pSrcDesc->dataType = getRpptDataType(input_tensor_dtype);
     data->pSrcDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pSrcDesc, data->inputLayout, data->inputTensorDims);
 
@@ -197,26 +194,23 @@ static vx_status VX_CALLBACK initializeResizeCrop(vx_node node, const vx_referen
     data->pDstDesc = new RpptDesc;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_NUMBER_OF_DIMS, &data->pDstDesc->numDims, sizeof(data->pDstDesc->numDims)));
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_DIMS, &data->ouputTensorDims, sizeof(vx_size) * data->pDstDesc->numDims));
-    STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_DATA_TYPE, &output_tensor_type, sizeof(output_tensor_type)));
-    data->pDstDesc->dataType = getRpptDataType(output_tensor_type);
+    STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_DATA_TYPE, &output_tensor_dtype, sizeof(output_tensor_dtype)));
+    data->pDstDesc->dataType = getRpptDataType(output_tensor_dtype);
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pDstBatchWidth = static_cast<vx_uint32 *>(malloc(sizeof(vx_uint32) * data->pSrcDesc->n));
-    data->pDstBatchHeight = static_cast<vx_uint32 *>(malloc(sizeof(vx_uint32) * data->pSrcDesc->n));
-    data->srcDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
-    data->dstDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
-
-    data->pX1 = static_cast<vx_uint32 *>(malloc(sizeof(vx_uint32) * data->pSrcDesc->n));
-    data->pY1 = static_cast<vx_uint32 *>(malloc(sizeof(vx_uint32) * data->pSrcDesc->n));
-    data->pX2 = static_cast<vx_uint32 *>(malloc(sizeof(vx_uint32) * data->pSrcDesc->n));
-    data->pY2 = static_cast<vx_uint32 *>(malloc(sizeof(vx_uint32) * data->pSrcDesc->n));
-
+    data->pDstBatchWidth = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pDstBatchHeight = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pSrcDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
+    data->pDstDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
+    data->pX1 = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pY1 = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pX2 = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pY2 = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
     data->maxSrcDimensions.height = data->pSrcDesc->h;
     data->maxSrcDimensions.width = data->pSrcDesc->w;
     data->maxDstDimensions.height = data->pDstDesc->h;
     data->maxDstDimensions.width = data->pDstDesc->w;
-
     refreshResizeCrop(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -226,18 +220,23 @@ static vx_status VX_CALLBACK initializeResizeCrop(vx_node node, const vx_referen
 static vx_status VX_CALLBACK uninitializeResizeCrop(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ResizeCropLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if(data-> pDstBatchWidth != nullptr)  free(data->pDstBatchWidth);
-    if(data-> pDstBatchHeight != nullptr) free(data->pDstBatchHeight);
+    if (data->pDstBatchWidth != nullptr)  free(data->pDstBatchWidth);
+    if (data->pDstBatchHeight != nullptr) free(data->pDstBatchHeight);
+    if (data->pSrcDimensions != nullptr) free(data->pSrcDimensions);
+    if (data->pDstDimensions != nullptr) free(data->pDstDimensions);
+    if (data->pX1 != nullptr) free(data->pX1);
+    if (data->pY1 != nullptr) free(data->pY1);
+    if (data->pX2 != nullptr) free(data->pX2);
+    if (data->pY2 != nullptr) free(data->pY2);
     delete(data->pSrcDesc);
     delete(data->pDstDesc);
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    free(data->srcDimensions);
-    delete (data);
+    delete(data);
     return VX_SUCCESS;
 }
 
 //! \brief The kernel target support callback.
-// TODO::currently the node is setting the same affinity as context. This needs to change when we have hubrid modes in the same graph
+// TODO::currently the node is setting the same affinity as context. This needs to change when we have hybrid modes in the same graph
 static vx_status VX_CALLBACK query_target_support(vx_graph graph, vx_node node,
                                                   vx_bool use_opencl_1_2,              // [input]  false: OpenCL driver is 2.0+; true: OpenCL driver is 1.2
                                                   vx_uint32 &supported_target_affinity // [output] must be set to AGO_TARGET_AFFINITY_CPU or AGO_TARGET_AFFINITY_GPU or (AGO_TARGET_AFFINITY_CPU | AGO_TARGET_AFFINITY_GPU)
@@ -266,7 +265,6 @@ vx_status ResizeCrop_Register(vx_context context) {
     AgoTargetAffinityInfo affinity;
     vxQueryContext(context, VX_CONTEXT_ATTRIBUTE_AMD_AFFINITY, &affinity, sizeof(affinity));
 #if ENABLE_HIP
-    // enable OpenCL buffer access since the kernel_f callback uses OpenCL buffers instead of host accessible buffers
     vx_bool enableBufferAccess = vx_true_e;
     if (affinity.device_type == AGO_TARGET_AFFINITY_GPU)
         STATUS_ERROR_CHECK(vxSetKernelAttribute(kernel, VX_KERNEL_ATTRIBUTE_AMD_GPU_BUFFER_ACCESS_ENABLE, &enableBufferAccess, sizeof(enableBufferAccess)));

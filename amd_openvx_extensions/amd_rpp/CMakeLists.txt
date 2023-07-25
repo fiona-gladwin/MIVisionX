@@ -108,13 +108,14 @@ list(APPEND SOURCES
         source/image/RandomShadowbatchPD.cpp
         source/image/Remap.cpp
         source/image/ResizebatchPD.cpp
-        source/image/Resizetensor.cpp
         source/image/ResizeCropbatchPD.cpp
         source/image/ResizeCropMirrorPD.cpp
         source/image/ResizeMirrorNormalizeTensor.cpp
+        source/image/Resizetensor.cpp
         source/image/RotatebatchPD.cpp
         source/image/SaturationbatchPD.cpp
         source/image/ScalebatchPD.cpp
+        source/image/SequenceRearrangebatchPD.cpp
         source/image/SnowbatchPD.cpp
         source/image/SobelbatchPD.cpp
         source/image/SubtractbatchPD.cpp
