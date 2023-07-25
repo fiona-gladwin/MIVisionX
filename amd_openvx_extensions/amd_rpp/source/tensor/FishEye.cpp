@@ -133,7 +133,6 @@ static vx_status VX_CALLBACK processFishEye(vx_node node, const vx_reference *pa
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        std::cerr<<"\n data->pDstDesc.c "<<data->pDstDesc->c;
         if(data->pDstDesc->c==1 )
             rpp_status = rppi_fisheye_u8_pln1_batchPD_host(data->pSrc, data->srcDimensions, data->maxSrcDimensions, data->pDst, data->pSrcDesc->n, data->handle->rppHandle);
         else 
