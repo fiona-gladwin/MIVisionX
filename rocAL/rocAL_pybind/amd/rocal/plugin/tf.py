@@ -150,7 +150,7 @@ class ROCALGenericIteratorDetection(object):
             else:
                 self.labels = self.loader.getImageLabels()
 
-            return self.output_tensor_list, self.labels
+            return self.output_list, self.labels
 
     def reset(self):
         b.rocalResetLoaders(self.loader._handle)
