@@ -110,7 +110,7 @@ static vx_status VX_CALLBACK validateVignette(vx_node node, const vx_reference p
 
 static vx_status VX_CALLBACK processVignette(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     RppStatus rpp_status = RPP_SUCCESS;
-    vx_status return_status = VX_SUCCESS;
+    vx_status return_status = VX_ERROR_NOT_IMPLEMENTED;
     VignetteLocalData *data = NULL;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     refreshVignette(node, parameters, num, data);
