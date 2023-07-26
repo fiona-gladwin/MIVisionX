@@ -159,6 +159,10 @@ public:
         _batch_size *= sequence_length;
     }
     size_t get_channels() const { return _channels; }
+    void copy_roi(void *roi_buffer) {
+        if(_roi != nullptr && roi_buffer != nullptr)
+            memcpy((void *)roi_buffer, (const void *)_roi.get(), _batch_size * sizeof(RocalROI));
+    }
     unsigned num_of_dims() const { return _num_of_dims; }
     unsigned batch_size() const { return _batch_size; }
     uint64_t data_size() const { return _data_size; }
@@ -180,6 +184,7 @@ public:
     bool is_metadata() const { return _is_metadata; }
     const std::vector<uint32_t>& get_orig_roi_width_vec() const { return *_orig_roi_width; }
     const std::vector<uint32_t>& get_orig_roi_height_vec() const { return *_orig_roi_height; }
+    void swap_roi_ptr(std::shared_ptr<unsigned> &ptr) { _roi.swap(ptr); };
 
 private:
     Type _type = Type::UNKNOWN;  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor
@@ -236,12 +241,14 @@ public:
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
     void update_tensor_orig_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
+    void swap_tensor_roi(std::shared_ptr<unsigned> &roi_ptr) { _info.swap_roi_ptr(roi_ptr); }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
     int create_from_handle(vx_context context);
     int create_virtual(vx_context context, vx_graph graph);
     bool is_handle_set() { return (_vx_handle != 0); }
     void set_dims(std::vector<size_t>& dims) { _info.set_dims(dims); }
+    void copy_roi(void *roi_buffer) { _info.copy_roi(roi_buffer); }
 
 private:
     vx_tensor _vx_handle = nullptr;  //!< The OpenVX tensor
