@@ -57,20 +57,14 @@ void RingBuffer:: block_if_full()
         _wait_for_unload.wait(lock);
     }
 }
-std::vector<void*> RingBuffer::get_read_buffers()
-{
-    block_if_empty();
-    if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
-        return _dev_sub_buffer[_read_ptr];
-    return _host_sub_buffers[_read_ptr];
-}
 
-std::vector<unsigned*> RingBuffer::get_read_roi_buffers()
+std::pair<std::vector<void*>, std::vector<unsigned*>> RingBuffer::get_read_buffers()
 {
     block_if_empty();
     if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
-        return _dev_roi_buffers[_read_ptr];
-    return _host_roi_buffers[_read_ptr];
+        return std::make_pair(_dev_sub_buffer[_read_ptr], _dev_roi_buffers[_read_ptr]);
+
+    return std::make_pair(_host_sub_buffers[_read_ptr], _host_roi_buffers[_read_ptr]);
 }
 
 std::pair<void*, void*> RingBuffer::get_box_encode_read_buffers()
@@ -81,22 +75,13 @@ std::pair<void*, void*> RingBuffer::get_box_encode_read_buffers()
     return std::make_pair(_host_meta_data_buffers[_read_ptr][1], _host_meta_data_buffers[_read_ptr][0]);
 }
 
-std::vector<void*> RingBuffer::get_write_buffers()
+std::pair<std::vector<void*>, std::vector<unsigned*>> RingBuffer::get_write_buffers()
 {
     block_if_full();
     if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
-        return _dev_sub_buffer[_write_ptr];
+        return std::make_pair(_dev_sub_buffer[_write_ptr], _dev_roi_buffers[_write_ptr]);
 
-    return _host_sub_buffers[_write_ptr];
-}
-
-std::vector<unsigned*> RingBuffer::get_write_roi_buffers()
-{
-    block_if_full();
-    if((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP))
-        return _dev_roi_buffers[_write_ptr];
-
-    return _host_roi_buffers[_write_ptr];
+    return std::make_pair(_host_sub_buffers[_write_ptr], _host_roi_buffers[_write_ptr]);
 }
 
 std::pair<void*, void*> RingBuffer::get_box_encode_write_buffers()

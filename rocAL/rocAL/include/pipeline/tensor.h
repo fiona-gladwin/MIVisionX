@@ -218,7 +218,10 @@ public:
     bool is_image() const { return _is_image; }
     void set_metadata() { _is_metadata = true; }
     bool is_metadata() const { return _is_metadata; }
-    void swap_roi_ptr(std::shared_ptr<unsigned> &ptr) { _roi.swap(ptr); }
+    void set_roi_ptr(unsigned *roi_ptr) { 
+        auto deleter = [&](unsigned *ptr) {};   // Empty destructor used, since memory is handled by the pipeline
+        _roi.reset(roi_ptr, deleter); 
+    }
     void copy_roi(void *roi_buffer) {
         if(_roi != nullptr && roi_buffer != nullptr)
             memcpy((void *)roi_buffer, (const void *)_roi.get(), _batch_size * sizeof(RocalROI));
@@ -278,6 +281,7 @@ public:
     void create_roi_tensor_from_handle(void **handle);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
+    void set_roi(unsigned *roi_ptr) { _info.set_roi_ptr(roi_ptr); }
     void copy_roi(void *roi_buffer) { _info.copy_roi(roi_buffer); }
     vx_tensor get_roi_tensor() { return _vx_roi_handle; }
     // create_from_handle() no internal memory allocation is done here since
