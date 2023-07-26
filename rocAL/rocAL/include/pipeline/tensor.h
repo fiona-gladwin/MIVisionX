@@ -184,8 +184,10 @@ public:
     bool is_metadata() const { return _is_metadata; }
     const std::vector<uint32_t>& get_orig_roi_width_vec() const { return *_orig_roi_width; }
     const std::vector<uint32_t>& get_orig_roi_height_vec() const { return *_orig_roi_height; }
-    void swap_roi_ptr(std::shared_ptr<unsigned> &ptr) { _roi.swap(ptr); };
-
+    void set_roi_ptr(unsigned *roi_ptr) { 
+        auto deleter = [&](unsigned *ptr) {};   // Empty destructor used, since memory is handled by the pipeline
+        _roi.reset(roi_ptr, deleter); 
+    }
 private:
     Type _type = Type::UNKNOWN;  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor
     unsigned _num_of_dims;  //!< denotes the number of dimensions in the tensor
@@ -241,7 +243,7 @@ public:
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
     void update_tensor_orig_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
-    void swap_tensor_roi(std::shared_ptr<unsigned> &roi_ptr) { _info.swap_roi_ptr(roi_ptr); }
+    void set_roi(unsigned *roi_ptr) { _info.set_roi_ptr(roi_ptr); }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
     int create_from_handle(vx_context context);
