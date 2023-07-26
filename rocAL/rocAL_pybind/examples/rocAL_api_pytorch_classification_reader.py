@@ -39,7 +39,7 @@ def draw_patches(img, idx, layout="nchw", dtype="fp32", device="cpu"):
     if dtype == "fp16":
         image = image.astype('uint8')
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    cv2.imwrite("OUTPUT_IMAGES_PYTHON/FILE_READER/" + str(idx)+"_"+"train"+".png", image * 255)
+    cv2.imwrite("OUTPUT_IMAGES_PYTHON/FILE_READER/" + str(idx)+"_"+"train"+".png", image )
 
 def main():
     if  len(sys.argv) < 3:
@@ -75,8 +75,8 @@ def main():
                                         rocal_tensor_output_datatype = types.FLOAT,
                                         crop=(224, 224),
                                         mirror=flip_coin,
-                                        mean=[0.485 * 255,0.456 * 255,0.406 * 255],
-                                        std=[0.229 * 255,0.224 * 255,0.225 * 255])
+                                        mean=[0,0,0],
+                                        std=[1,1,1])
         image_classification_train_pipeline.setOutputs(cmnp)
 
     image_classification_train_pipeline.build()

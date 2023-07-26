@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from amd.rocal.plugin.generic import ROCAL_iterator
+from amd.rocal.plugin.generic import ROCALClassificationIterator
 from amd.rocal.pipeline import Pipeline
 import amd.rocal.fn as fn
 import amd.rocal.types as types
@@ -37,11 +37,11 @@ def HybridTrainPipe(batch_size, num_threads, device_id, data_dir, rocal_cpu = Tr
     # Create Pipeline instance
     pipe = Pipeline(batch_size = batch_size, num_threads = num_threads, device_id = device_id, rocal_cpu = rocal_cpu)
     with pipe:
-        jpegs, _ = fn.readers.file(file_root = data_dir, shard_id = local_rank, num_shards = world_size, random_shuffle = True)
-        images = fn.decoders.image(jpegs, file_root = data_dir, device = decoder_device, output_type = types.RGB, shard_id = local_rank, num_shards = world_size, random_shuffle = True)
-        images = fn.resize(images, device = rocal_device, resize_x = resize_width, resize_y = resize_height)
+        jpegs, _ = fn.readers.file(file_root = data_dir)
+        images = fn.decoders.image(jpegs, file_root = data_dir, output_type = types.RGB, shard_id = local_rank, num_shards = world_size, random_shuffle = True)
+        images = fn.resize(images, resize_width = resize_width, resize_height = resize_height)
         output = fn.rain(images, rain = 0.5)
-        pipe.set_outputs(output)
+        pipe.setOutputs(output)
         
     return pipe
 
@@ -60,7 +60,7 @@ def main():
 	_device_id = 0
 	pipe = HybridTrainPipe(batch_size = _batch_size, num_threads = _num_threads, device_id = _device_id,  data_dir = _image_path, rocal_cpu =_rocal_cpu, prefetch_queue_depth = _prefetch_queue_depth)
 	pipe.build()
-	imageIterator = ROCAL_iterator(pipe)
+	imageIterator = ROCALClassificationIterator(pipe)
 	start = datetime.datetime.now()
 	for _ in range(0, 10):
 		for _, (image_batch, image_tensor) in enumerate(imageIterator, 0):
