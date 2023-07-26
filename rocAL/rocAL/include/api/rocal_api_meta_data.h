@@ -146,7 +146,7 @@ extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p
 ///
 /// \param rocal_context
 /// \return The tensorlist with the pixelwise coordinates
-extern "C" RocalTensorList ROCAL_API_CALL rocalGetPixelwiseLabels(RocalContext p_context);
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetPixelwiseMaskLabels(RocalContext p_context);
 
 ///
 /// \param rocal_context

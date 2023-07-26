@@ -209,16 +209,6 @@ public:
         _polygon_count = std::move(polygon_count);
         _vertices_count = std::move(vertices_count);
     }
-    PixelwiseMask(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count, std::vector<int> pixelwise_label)
-    {
-        _bb_cords = std::move(bb_cords);
-        _label_ids = std::move(bb_label_ids);
-        _info.img_size = std::move(img_size);
-        _mask_cords = std::move(mask_cords);
-        _polygon_count = std::move(polygon_count);
-        _vertices_count = std::move(vertices_count);
-        _pixelwise_label = std::move(pixelwise_label);
-    }
     std::vector<int>& get_pixelwise_label() override { return _pixelwise_label; }
     void set_pixelwise_label(std::vector<int> pixelwise_label) override { _pixelwise_label = std::move(pixelwise_label); }
 protected:

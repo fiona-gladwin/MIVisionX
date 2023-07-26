@@ -38,7 +38,7 @@ public:
     void release() override;
     void print_map_contents();
     bool set_timestamp_mode() override { return false; }
-    std::pair<uint32_t,uint32_t> get_max_size() override { return std::make_pair(_max_height,_max_width); }
+    std::pair<uint32_t,uint32_t> get_max_size() override { return std::make_pair(_max_height, _max_width); }
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content;}
     COCOMetaDataReader();
 private:
@@ -46,9 +46,9 @@ private:
     std::string _path;
     int meta_data_reader_type;
     void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, uint image_id = 0);
-    void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count, MetaDataType meta_data_type); // To add Mask coordinates to Metadata struct
+    void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count); // To add Mask coordinates to Metadata struct
     bool exists(const std::string &image_name) override;
-    void generate_pixelwise_mask(std::string filename, RLE* R);
+    void generate_pixelwise_mask(std::string filename, RLE* rle_in);
     std::map<std::string, std::shared_ptr<MetaData>> _map_content;
     std::map<std::string, std::shared_ptr<MetaData>>::iterator _itr;
     std::map<std::string, ImgSize> _map_img_sizes;
@@ -62,8 +62,8 @@ private:
     {62,57},{63,58},{64,59},{65,60},{67,61},{70,62},{72,63},{73,64},{74,65},{75,66}, \
     {76,67},{77,68},{78,69},{79,70},{80,71},{81,72},{82,73},{84,74},{85,75},{86,76}, \
     {87,77},{88,78},{89,79},{90,80}};
-    uint32_t _max_width;
-    uint32_t _max_height;
+    uint32_t _max_width = 0;
+    uint32_t _max_height = 0;
     std::map<int, int> ::iterator _it_label;
     TimingDBG _coco_metadata_read_time;
 };
