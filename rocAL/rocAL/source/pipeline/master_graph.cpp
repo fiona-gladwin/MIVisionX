@@ -288,9 +288,9 @@ MasterGraph::build()
         THROW("No output tensors are there, cannot create the pipeline")
 
 #if ENABLE_HIP || ENABLE_OPENCL
-    _ring_buffer.init(_mem_type, (void *)_device.resources(), _internal_tensor_list.data_size());
+    _ring_buffer.init(_mem_type, (void *)_device.resources(), _internal_tensor_list.data_size(), _user_batch_size * sizeof(RocalROI));
 #else
-    _ring_buffer.init(_mem_type, nullptr, _internal_tensor_list.data_size());
+    _ring_buffer.init(_mem_type, nullptr, _internal_tensor_list.data_size(), _user_batch_size * sizeof(RocalROI));
 #endif
     if (_is_box_encoder) _ring_buffer.initBoxEncoderMetaData(_mem_type, _user_batch_size*_num_anchors*4*sizeof(float), _user_batch_size*_num_anchors*sizeof(int));
     create_single_graph();
@@ -947,9 +947,16 @@ TensorList *
 MasterGraph::get_output_tensors()
 {
     auto output_ptr = _ring_buffer.get_read_buffers();
+    std::vector<unsigned* > roi_ptr = _ring_buffer.get_read_roi_buffers();
+    // TODO - check here if size of internal tensor and ring buffer is same?
+    auto deleter=[&](unsigned* ptr){ };
     for(unsigned i = 0; i < _internal_tensor_list.size(); i++)
+    {
+        std::shared_ptr<unsigned> roi_ptr_sh;
+        roi_ptr_sh.reset(roi_ptr[i], deleter);
         _output_tensor_list[i]->set_mem_handle(output_ptr[i]);
-    
+        _output_tensor_list[i]->swap_tensor_roi(roi_ptr_sh);
+    }
     return &_output_tensor_list;
 }
 
@@ -972,6 +979,7 @@ void MasterGraph::output_routine()
             _rb_block_if_full_time.start();
             // _ring_buffer.get_write_buffers() is blocking and blocks here until user uses processed image by calling run() and frees space in the ring_buffer
             auto write_buffers = _ring_buffer.get_write_buffers();
+            auto tensor_roi_buffer = _ring_buffer.get_write_roi_buffers();
             _rb_block_if_full_time.end();
 
             // Swap handles on the input tensor, so that new tensor is loaded to be processed
@@ -1030,6 +1038,8 @@ void MasterGraph::output_routine()
             _process_time.start();
             _graph->process();
             _process_time.end();
+            for (size_t idx = 0; idx < _internal_tensor_list.size(); idx++)
+                _internal_tensor_list[idx]->copy_roi(tensor_roi_buffer[idx]);
             _bencode_time.start();
             if(_is_box_encoder )
             {

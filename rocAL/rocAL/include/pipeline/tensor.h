@@ -218,6 +218,11 @@ public:
     bool is_image() const { return _is_image; }
     void set_metadata() { _is_metadata = true; }
     bool is_metadata() const { return _is_metadata; }
+    void swap_roi_ptr(std::shared_ptr<unsigned> &ptr) { _roi.swap(ptr); }
+    void copy_roi(void *roi_buffer) {
+        if(_roi != nullptr && roi_buffer != nullptr)
+            memcpy((void *)roi_buffer, (const void *)_roi.get(), _batch_size * sizeof(RocalROI));
+    }
 
 private:
     Type _type = Type::UNKNOWN;  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor
@@ -273,6 +278,7 @@ public:
     void create_roi_tensor_from_handle(void **handle);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
+    void copy_roi(void *roi_buffer) { _info.copy_roi(roi_buffer); }
     vx_tensor get_roi_tensor() { return _vx_roi_handle; }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
