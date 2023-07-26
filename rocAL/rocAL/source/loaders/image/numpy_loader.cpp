@@ -109,7 +109,7 @@ NumpyLoader::load_next()
     return update_output_image();
 }
 
-void NumpyLoader::set_output (rocalTensor* output_tensor)
+void NumpyLoader::set_output (Tensor* output_tensor)
 {
     _output_tensor = output_tensor;
     _output_mem_size = ((_output_tensor->info().data_size()/ 8) * 8 + 8);

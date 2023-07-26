@@ -2121,7 +2121,7 @@ rocalNumpyFileSource(
         dims[0] = context->user_batch_size();
         for(int i = 0; i < max_dimensions.size(); i++) 
             dims[i+1] = max_dimensions[i];
-        auto info  = rocalTensorInfo(std::vector<size_t>(std::move(dims)),
+        auto info  = TensorInfo(std::vector<size_t>(std::move(dims)),
                                 context->master_graph->mem_type(),
                                 tensor_data_type);
         info.set_tensor_layout(tensor_format);
@@ -2194,7 +2194,7 @@ rocalNumpyFileSourceSingleShard(
         dims[0] = context->user_batch_size();
         for(int i = 0; i < max_dimensions.size(); i++) 
             dims[i+1] = max_dimensions[i];
-        auto info  = rocalTensorInfo(std::vector<size_t>(std::move(dims)),
+        auto info  = TensorInfo(std::vector<size_t>(std::move(dims)),
                                 context->master_graph->mem_type(),
                                 tensor_data_type);
         info.set_tensor_layout(tensor_format);

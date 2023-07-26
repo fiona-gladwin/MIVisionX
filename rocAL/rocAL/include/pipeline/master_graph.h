@@ -377,7 +377,7 @@ template<> inline std::shared_ptr<VideoLoaderSingleShardNode> MasterGraph::add_n
     return node;
 }
 
-template<> inline std::shared_ptr<NumpyLoaderNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<NumpyLoaderNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")
@@ -395,7 +395,7 @@ template<> inline std::shared_ptr<NumpyLoaderNode> MasterGraph::add_node(const s
     return node;
 }
 
-template<> inline std::shared_ptr<NumpyLoaderSingleShardNode> MasterGraph::add_node(const std::vector<rocalTensor*>& inputs, const std::vector<rocalTensor*>& outputs)
+template<> inline std::shared_ptr<NumpyLoaderSingleShardNode> MasterGraph::add_node(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs)
 {
     if(_loader_module)
         THROW("A loader already exists, cannot have more than one loader")

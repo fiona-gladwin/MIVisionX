@@ -107,7 +107,7 @@ bool operator==(const TensorInfo &rhs, const TensorInfo &lhs) {
 }
 
 
-void rocalTensorInfo::reset_tensor_roi_buffers() {
+void TensorInfo::reset_tensor_roi_buffers() {
     unsigned *roi_buf;
     allocate_host_or_pinned_mem((void **)&roi_buf, _batch_size * (_is_image ? 4 : (_num_of_dims - 1) * 2) * sizeof(unsigned), _mem_type);
     _roi.set_ptr(roi_buf, _mem_type, _num_of_dims - 1);

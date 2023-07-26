@@ -138,7 +138,7 @@ void NumpyLoaderSharded::shut_down()
         _loaders[i]->shut_down();
 }
 
-void NumpyLoaderSharded::set_output (rocalTensor* output_tensor)
+void NumpyLoaderSharded::set_output (Tensor* output_tensor)
 {
     _output_tensor = output_tensor;
 }

@@ -91,7 +91,7 @@ private:
 };
 
 /*! \brief Holds the information about a rocalTensor */
-class rocalTensorInfo {
+class TensorInfo {
 public:
     friend class Tensor;
     enum class Type {
