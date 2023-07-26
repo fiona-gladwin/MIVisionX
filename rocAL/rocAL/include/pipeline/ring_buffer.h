@@ -49,10 +49,8 @@ public:
     void initBoxEncoderMetaData(RocalMemType mem_type, size_t encoded_bbox_size, size_t encoded_labels_size);
     void init_metadata(RocalMemType mem_type, std::vector<size_t> &sub_buffer_size);
     void release_gpu_res();
-    std::vector<void*> get_read_buffers();
-    std::vector<void*> get_write_buffers();
-    std::vector<unsigned*> get_read_roi_buffers();
-    std::vector<unsigned*> get_write_roi_buffers();
+    std::pair<std::vector<void *>, std::vector<unsigned *>> get_read_buffers();
+    std::pair<std::vector<void *>, std::vector<unsigned *>> get_write_buffers();
     std::pair<void*, void*> get_box_encode_write_buffers();
     std::pair<void*, void*> get_box_encode_read_buffers();
     MetaDataNamePair& get_meta_data();
