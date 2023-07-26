@@ -51,7 +51,7 @@ static vx_status VX_CALLBACK validateCopy(vx_node node, const vx_reference param
     if (scalar_type != VX_TYPE_UINT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #2 type=%d (must be size)\n", scalar_type);
 
-    // Check for output parameters
+    // Check for output tensor
     vx_uint8 tensor_fixed_point_position;
     size_t tensor_dims[RPP_MAX_TENSOR_DIMS];
     size_t num_tensor_dims;

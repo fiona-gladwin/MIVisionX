@@ -44,7 +44,6 @@ struct SequenceRearrangebatchPDLocalData
 
 static vx_status VX_CALLBACK validateSequenceRearrangebatchPD(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[])
 {
-    // check scalar alpha and beta type
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[3], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));

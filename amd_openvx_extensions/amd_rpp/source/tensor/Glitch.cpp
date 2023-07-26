@@ -101,13 +101,13 @@ static vx_status VX_CALLBACK validateGlitch(vx_node node, const vx_reference par
     if (scalar_type != VX_TYPE_UINT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #12 type=%d (must be size)\n", scalar_type);
 
-    // Check for input parameters
+    // Check for input tensor
     size_t num_tensor_dims;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_NUMBER_OF_DIMS, &num_tensor_dims, sizeof(num_tensor_dims)));
     if (num_tensor_dims < 4)
         return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: Glitch: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", num_tensor_dims);
 
-    // Check for output parameters
+    // Check for output tensor
     vx_uint8 tensor_fixed_point_position;
     size_t tensor_dims[RPP_MAX_TENSOR_DIMS];
     vx_enum tensor_dtype;
