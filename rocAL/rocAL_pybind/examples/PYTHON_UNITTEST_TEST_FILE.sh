@@ -123,7 +123,7 @@ do
         # coco detection
         python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$coco_detection_path" --reader-type coco --json-path "$coco_json_path" --augmentation-name gamma_correction --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Gamma_${rgb_name[$rgb]}_${device_name}"
         python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$coco_detection_path" --reader-type coco --json-path "$coco_json_path" --augmentation-name contrast --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Contrast_${rgb_name[$rgb]}_${device_name}"
-        # python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$coco_detection_path" --reader-type coco --json-path "$coco_json_path" --augmentation-name vignette --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Vignette_${rgb_name[$rgb]}_${device_name}"
+        python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$coco_detection_path" --reader-type coco --json-path "$coco_json_path" --augmentation-name vignette --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Vignette_${rgb_name[$rgb]}_${device_name}"
 
         # tf classification
         python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$tf_classification_path" --reader-type "tf_classification" --augmentation-name blend --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Blend_${rgb_name[$rgb]}_${device_name}"        
@@ -152,12 +152,12 @@ do
 
         # caffe2 detection
         python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$caffe2_detection_path" --reader-type "caffe2_detection" --augmentation-name fish_eye --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}FishEye_${rgb_name[$rgb]}_${device_name}"        
-        # python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$caffe2_detection_path" --reader-type "caffe2_detection" --augmentation-name pixelate --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Pixelate_${rgb_name[$rgb]}_${device_name}"
-        # python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$caffe2_detection_path" --reader-type "caffe2_detection" --augmentation-name center_crop --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}CropCenter_${rgb_name[$rgb]}_${device_name}_cmn"
+        python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$caffe2_detection_path" --reader-type "caffe2_detection" --augmentation-name pixelate --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Pixelate_${rgb_name[$rgb]}_${device_name}"
+        python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$caffe2_detection_path" --reader-type "caffe2_detection" --augmentation-name center_crop --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}CropCenter_${rgb_name[$rgb]}_${device_name}_cmn"
 
         # mxnet
         python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$mxnet_path" --reader-type "mxnet" --augmentation-name jitter --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Jitter_${rgb_name[$rgb]}_${device_name}"        
-        # python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$mxnet_path" --reader-type "mxnet" --augmentation-name pixelate --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Pixelate_${rgb_name[$rgb]}_${device_name}"
+        python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$mxnet_path" --reader-type "mxnet" --augmentation-name pixelate --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Pixelate_${rgb_name[$rgb]}_${device_name}"
         python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$mxnet_path" --reader-type "mxnet" --augmentation-name crop_mirror_normalize --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}CropMirrorNormalize_${rgb_name[$rgb]}_${device_name}_mxnet"
 
         # CMN 

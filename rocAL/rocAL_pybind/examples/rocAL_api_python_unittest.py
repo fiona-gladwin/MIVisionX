@@ -27,6 +27,7 @@ import amd.rocal.fn as fn
 import amd.rocal.types as types
 from parse_config import parse_args
 import os
+import sys
 import cv2
 import cupy as cp
 
@@ -64,7 +65,7 @@ def draw_patches(img, idx, device):
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     else:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    cv2.imwrite(args.file_name + ".png", img, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+    cv2.imwrite(args.output_file_name + ".png", img, [cv2.IMWRITE_PNG_COMPRESSION, 9])
 
 
 def main():
@@ -93,6 +94,7 @@ def main():
         interpolation_type = types.LINEAR_INTERPOLATION
     if augmentation_name in ["hue", "saturation", "color_twist"] and color_format == types.GRAY:
         print("Not a valid option! Exiting!")
+        sys.exit(0)
 
     try:
         path = "OUTPUT_IMAGES_PYTHON/NEW_API/FILE_READER/" + args.augmentation_name
@@ -325,11 +327,11 @@ def main():
         elif augmentation_name == "blur":
             output = fn.blur(
                 images,
-                s_dev=5,
+                kernel_size=5,
                 rocal_tensor_output_layout=tensor_layout,
                 rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "warp_affine":
-            output = fn.warp_affine(images, dest_height=480, dest_width=640, x0=1.0, x1=1.0, y0=0.5, y1=0.5, o0=7.0, o1=7.0,
+            output = fn.warp_affine(images, dest_height=480, dest_width=640, transform_matrix=[1.0, 1.0, 0.5, 0.5, 7.0, 7.0],
                                     rocal_tensor_output_layout=tensor_layout, rocal_tensor_output_datatype=tensor_dtype, interpolation_type=types.NEAREST_NEIGHBOR_INTERPOLATION)
         elif augmentation_name == "fish_eye":
             output = fn.fish_eye(images,
@@ -422,17 +424,23 @@ def main():
                                               crop=(224, 224),
                                               crop_pos_x=0.0,
                                               crop_pos_y=0.0,
-                                              mean=[0, 0, 0],
-                                              std=[1, 1, 1],
-                                              mirror=0)
+                                              mean=[128, 128, 128],
+                                              std=[1.2, 1.2, 1.2])
         elif augmentation_name == "resize_mirror_normalize":
-            output = fn.resize_mirror_normalize(images,
-                                                rocal_tensor_output_layout=tensor_layout,
-                                                rocal_tensor_output_datatype=tensor_dtype,
-                                                resize_min=1344,
-                                                resize_max=1344,
-                                                mean=[0, 0, 0],
-                                                std=[1, 1, 1])
+            resize_w = 400
+            resize_h = 400
+            if (scaling_mode == types.SCALING_MODE_STRETCH):
+                resize_h = 480
+            output = fn.resize_mirror_normalize(
+                images,
+                resize_width=resize_w,
+                resize_height=resize_h,
+                rocal_tensor_output_layout=tensor_layout,
+                rocal_tensor_output_datatype=tensor_dtype,
+                scaling_mode=scaling_mode,
+                interpolation_type=interpolation_type,
+                mean=[0, 0, 0],
+                std=[1, 1, 1])
         elif augmentation_name == "nop":
             output = fn.nop(
                 images,

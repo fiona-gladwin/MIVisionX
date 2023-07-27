@@ -34,13 +34,12 @@ void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaData
     {
         _batch_size = input_meta_data->size();
     }
+    auto input_roi = _node->get_src_roi();
     _src_width = _node->get_src_width();
     _src_height = _node->get_src_height();
     _dst_width = _node->get_dst_width();
     _dst_height = _node->get_dst_height();
     _angle = _node->get_angle();
-    vxCopyArrayRange((vx_array)_src_width, 0, _batch_size, sizeof(uint),_src_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_src_height, 0, _batch_size, sizeof(uint),_src_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_angle, 0, _batch_size, sizeof(float),_angle_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     BoundingBoxCord temp_box = {0, 0, 1, 1};
     for(int i = 0; i < _batch_size; i++)
@@ -54,6 +53,7 @@ void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaData
         dest_image.l = dest_image.t = 0;
         dest_image.r = _dst_width;
         dest_image.b = _dst_height;
+        std::cerr<<"dest_image.l "<<dest_image.l<<"  "<<dest_image.t<<" "<<dest_image.r<<" "<<dest_image.b;
         for(uint j = 0; j < bb_count; j++)
         {
             BoundingBoxCord box;
@@ -65,8 +65,10 @@ void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaData
             rotate[0] = rotate[3] = cos(radian);
             rotate[1] = sin(radian);
             rotate[2] = -1 * rotate[1];
-            dest_cx = _dst_width / 2;
-            dest_cy = _dst_height / 2;
+            dest_cx = (_dst_width / 2);
+            dest_cy = (_dst_height / 2);
+            // dest_cx = static_cast<float> (output_roi[i].x2) / 2;
+            // dest_cy = static_cast<float> (output_roi[i].y2) / 2;
             src_cx = _src_width_val[i]/2;
             src_cy = _src_height_val[i]/2;
             src_bb_x = coords_buf[j].l;

@@ -751,8 +751,8 @@ ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context,
         output->reset_tensor_roi();
         std::shared_ptr<ResizeMirrorNormalizeNode> rmn_node = context->master_graph->add_node<ResizeMirrorNormalizeNode>({input}, {output});
         rmn_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type, mean, std_dev, mirror);
-        // if (context->master_graph->meta_data_graph())
-        //     context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode,ResizeMirrorNormalizeNode>(rmn_node);
+        if (context->master_graph->meta_data_graph())
+            context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode,ResizeMirrorNormalizeNode>(rmn_node);
     }
     catch(const std::exception& e)
     {
@@ -1365,7 +1365,12 @@ rocalFlipFixed(
         output_info.set_tensor_layout(op_tensor_layout);
         output_info.set_data_type(op_tensor_datatype);
         output = context->master_graph->create_tensor(output_info, is_output);
-        context->master_graph->add_node<FlipNode>({input}, {output})->init(horizontal_flag, vertical_flag);
+        // context->master_graph->add_node<FlipNode>({input}, {output})->init(horizontal_flag, vertical_flag);
+        std::shared_ptr<FlipNode> flip_node =  context->master_graph->add_node<FlipNode>({input}, {output});
+        flip_node->init(horizontal_flag, vertical_flag);
+        if (context->master_graph->meta_data_graph())
+        context->master_graph->meta_add_node<FlipMetaNode,FlipNode>(flip_node);
+
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
