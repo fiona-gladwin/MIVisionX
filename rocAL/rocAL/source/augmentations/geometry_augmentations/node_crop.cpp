@@ -54,22 +54,12 @@ void CropNode::create_node()
 
 void CropNode::update_node()
 {
-    _crop_param->set_image_dimensions((Rocal2DROI *)_inputs[0]->info().roi().get_ptr());
+    _crop_param->set_image_dimensions((ROI2DCords *)_inputs[0]->info().roi().get_ptr());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
-    
-    // Obtain the crop coordinates and update the roi
-    auto x1 = _crop_param->get_x1_arr_val();
-    auto y1 = _crop_param->get_y1_arr_val();
-    Rocal2DROI *src_roi = (Rocal2DROI *)_crop_coordinates;
-    for(unsigned i = 0; i < _batch_size; i++) {
-        src_roi[i].x1 = x1[i];
-        src_roi[i].y1 = y1[i];
-        src_roi[i].x2 = crop_w_dims[i];
-        src_roi[i].y2 = crop_h_dims[i];
-    }
+    ROI2DCords *src_roi = (ROI2DCords *)_crop_coordinates;
 }
 
 void CropNode::init(unsigned int crop_h, unsigned int crop_w, float x_drift_, float y_drift_)

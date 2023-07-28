@@ -50,7 +50,7 @@ public:
         x_drift_factor     = default_x_drift_factor();
         y_drift_factor     = default_y_drift_factor();
     }
-    void set_image_dimensions(Rocal2DROI *roi)
+    void set_image_dimensions(ROI2DCords *roi)
     {
         if(roi == nullptr)
             THROW("Empty ROI ptr passed to be set to parameter_crop")
@@ -60,7 +60,7 @@ public:
     void set_fixed_crop(float anchor_x, float anchor_y) { _is_fixed_crop = true; _random = false; _crop_anchor[0] = anchor_x; _crop_anchor[1] = anchor_y;}
     void set_x_drift_factor(Parameter<float>* x_drift);
     void set_y_drift_factor(Parameter<float>* y_drift);
-    const Rocal2DROI * in_roi;
+    const ROI2DCords *in_roi;
     unsigned int  x1, y1, x2, y2;
     const unsigned int batch_size;
     void set_batch_size(unsigned int batch_size);
