@@ -439,6 +439,7 @@ def main():
                 rocal_tensor_output_datatype=tensor_dtype,
                 scaling_mode=scaling_mode,
                 interpolation_type=interpolation_type,
+                mirror=0,
                 mean=[0, 0, 0],
                 std=[1, 1, 1])
         elif augmentation_name == "nop":

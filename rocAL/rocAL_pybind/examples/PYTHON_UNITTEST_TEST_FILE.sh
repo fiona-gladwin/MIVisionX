@@ -157,7 +157,7 @@ do
 
         # mxnet
         python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$mxnet_path" --reader-type "mxnet" --augmentation-name jitter --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Jitter_${rgb_name[$rgb]}_${device_name}"        
-        python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$mxnet_path" --reader-type "mxnet" --augmentation-name pixelate --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}Pixelate_${rgb_name[$rgb]}_${device_name}"
+        python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$mxnet_path" --reader-type "mxnet" --augmentation-name resize_mirror_normalize --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}ResizeMirrorNormalize_${rgb_name[$rgb]}_${device_name}"
         python"$ver" rocAL_api_python_unittest.py --image-dataset-path "$mxnet_path" --reader-type "mxnet" --augmentation-name crop_mirror_normalize --batch-size $batch_size  --max-width $width --max-height $height --color-format $rgb  --$backend_arg -f "${output_path}CropMirrorNormalize_${rgb_name[$rgb]}_${device_name}_mxnet"
 
         # CMN 

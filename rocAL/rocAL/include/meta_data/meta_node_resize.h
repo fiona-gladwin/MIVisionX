@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2019 - 2020 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,23 @@ THE SOFTWARE.
 */
 
 #pragma once
-
-#include "meta_node_crop_mirror_normalize.h"
-#include "meta_node_crop_resize.h"
-#include "meta_node_crop.h"
-#include "meta_node_resize_crop_mirror.h"
-#include "meta_node_rotate.h"
-#include "meta_node_ssd_random_crop.h"
-#include "meta_node_flip.h"
-#include "meta_node_resize_mirror_normalize.h"
-#include "meta_node_resize.h"
-
+#include <set>
+#include <memory>
+#include "bounding_box_graph.h"
+#include "meta_data.h"
+#include "node.h"
+#include "node_resize.h"
+#include "parameter_vx.h"
+class ResizeMetaNode:public MetaNode
+{
+    public:
+        ResizeMetaNode() {};
+        void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
+        std::shared_ptr<ResizeNode> _node = nullptr;
+    private:
+        void initialize();
+        vx_array _src_width, _src_height,_dst_width, _dst_height;
+        std::vector<uint> _src_width_val, _src_height_val, _dst_width_val, _dst_height_val;
+        // unsigned int _dst_width, _dst_height;
+        float _dst_to_src_width_ratio, _dst_to_src_height_ratio;
+};

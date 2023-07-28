@@ -40,7 +40,9 @@ public:
     // unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     vx_array get_dst_width() { return _dst_roi_width; }
     vx_array get_dst_height() { return _dst_roi_height;}
-    RocalROI *get_src_roi() { return _outputs[0]->info().get_roi();}
+    RocalROI *get_src_roi() { return _inputs[0]->info().get_roi();}
+    RocalROI *get_dst_roi() { return _outputs[0]->info().get_roi();}
+
 
     std::shared_ptr<RocalCropParam> get_crop_param() { return _crop_param; }
     vx_array get_mirror() { return _mirror.default_array(); }
