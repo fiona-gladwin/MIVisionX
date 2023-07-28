@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "commons.h"
 #include "circular_buffer.h"
 #include "image_read_and_decode.h"
-#include "numpy_data_reader.h"
+// #include "numpy_data_reader.h"
 //
 // NumpyLoader runs an internal thread for loading an decoding of numpy arrays asynchronously
 // it uses a circular buffer to store decoded numpy arrays for the user
@@ -38,7 +38,7 @@ public:
     ~NumpyLoader() override;
     LoaderModuleStatus load_next() override;
     void initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool keep_orig_size=false) override;
-    void set_output (rocalTensor* output_image) override;
+    void set_output(Tensor* output_image) override;
     void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) override;
     size_t remaining_count() override; // returns number of remaining items to be loaded
     void reset() override; // Resets the loader to load from the beginning of the media
