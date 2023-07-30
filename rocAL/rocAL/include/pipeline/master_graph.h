@@ -112,8 +112,7 @@ public:
     const std::pair<ImageNameBatch,pMetaDataBatch>& meta_data();
     TensorList * labels_meta_data();
     TensorList * bbox_meta_data();
-    TensorList * mask_meta_data();
-    TensorList * pixelwise_meta_data();
+    TensorList * mask_meta_data(bool is_polygon_mask);
     void set_loop(bool val) { _loop = val; }
     void set_output(Tensor* output_tensor);
     size_t calculate_cpu_num_threads(size_t shard_count);

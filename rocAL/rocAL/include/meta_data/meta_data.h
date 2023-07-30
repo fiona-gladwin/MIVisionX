@@ -119,7 +119,7 @@ public:
     virtual void set_polygon_counts(std::vector<int> polygon_count) = 0;
     virtual void set_vertices_counts(std::vector<std::vector<int>> vertices_count) = 0;
     virtual std::vector<int>& get_pixelwise_label() = 0;
-    virtual void set_pixelwise_label(std::vector<int> pixelwise_label) = 0;
+    virtual void set_pixelwise_label(std::vector<int>& pixelwise_label) = 0;
     virtual JointsData& get_joints_data() = 0;
     virtual void set_joints_data(JointsData *joints_data) = 0;
     ImgSize& get_img_size() { return _info.img_size; }
@@ -149,7 +149,7 @@ public:
     void set_polygon_counts(std::vector<int> polygon_count) override { THROW("Not Implemented") }
     void set_vertices_counts(std::vector<std::vector<int>> vertices_count) override { THROW("Not Implemented") }
     std::vector<int>& get_pixelwise_label() override { THROW("Not Implemented") };
-    void set_pixelwise_label(std::vector<int> pixelwise_label) override { THROW("Not Implemented") }
+    void set_pixelwise_label(std::vector<int>& pixelwise_label) override { THROW("Not Implemented") }
     JointsData& get_joints_data() override { THROW("Not Implemented") }
     void set_joints_data(JointsData *joints_data) override { THROW("Not Implemented") }
 protected:
@@ -210,7 +210,7 @@ public:
         _vertices_count = std::move(vertices_count);
     }
     std::vector<int>& get_pixelwise_label() override { return _pixelwise_label; }
-    void set_pixelwise_label(std::vector<int> pixelwise_label) override { _pixelwise_label = std::move(pixelwise_label); }
+    void set_pixelwise_label(std::vector<int>& pixelwise_label) override { _pixelwise_label = std::move(pixelwise_label); }
 protected:
     std::vector<int> _pixelwise_label = {};
 };

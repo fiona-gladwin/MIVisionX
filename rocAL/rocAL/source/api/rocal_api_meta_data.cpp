@@ -366,7 +366,7 @@ ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int *bufcount)
             }
         }
     }
-    return context->master_graph->mask_meta_data();
+    return context->master_graph->mask_meta_data(true);
 }
 
 RocalTensorList
@@ -375,13 +375,7 @@ ROCAL_API_CALL rocalGetPixelwiseMaskLabels(RocalContext p_context)
     if (p_context == nullptr)
         THROW("Invalid rocal context passed to rocalGetPixelwiseMaskLabels")
     auto context = static_cast<Context *>(p_context);
-    auto meta_data = context->master_graph->meta_data();
-    size_t meta_data_batch_size = meta_data.second->get_mask_cords_batch().size();
-    if (context->user_batch_size() != meta_data_batch_size)
-        THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != " + TOSTR(context->user_batch_size()))
-    if (!meta_data.second)
-        THROW("No mask has been loaded for this output image")
-    return context->master_graph->pixelwise_meta_data();
+    return context->master_graph->mask_meta_data(false);
 }
 
 void

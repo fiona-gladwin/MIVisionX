@@ -207,7 +207,6 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_
         rleInit(&r_out[label], rle->h, rle->w, rle->m, rle->cnts);
     }
 
-    uint lab_cnt = 0;
     for (const auto &rles : FromPoly)
         rleMerge(rles.second.data(), &r_out[rles.first], rles.second.size(), 0);
 
@@ -318,8 +317,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
     std::string rle_str;
     std::vector<uint32_t> rle_uints;
     uint32_t max_width = 0, max_height = 0;
-    RLE *R = (RLE*) malloc(sizeof(RLE));
-    int push_count = 0;
+    RLE *R = new RLE();
     std::ifstream f;
     f.open (path, std::ifstream::in|std::ios::binary);
     if (f.fail()) THROW("ERROR: Given annotations file not present " + path);
@@ -591,7 +589,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
             }
         }
     }
-    free(R);
+    delete(R);
     _max_width = max_width;
     _max_height = max_height;
     _coco_metadata_read_time.end(); // Debug timing
