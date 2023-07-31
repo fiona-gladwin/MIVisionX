@@ -29,12 +29,13 @@ class GammaNode : public Node {
 public:
     GammaNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     GammaNode() = delete;
-    void init(float shift);
-    void init(FloatParam *shift);
+    void init(float gamma);
+    void init(FloatParam *gamma_param);
+
 protected:
     void create_node() override;
     void update_node() override;
 private:
-    ParameterVX<float> _shift;
-    constexpr static float SHIFT_RANGE [2] = {0.3, 7.00};
+    ParameterVX<float> _gamma;
+    constexpr static float GAMMA_RANGE[2] = {0.3, 7.00};
 };

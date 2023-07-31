@@ -48,7 +48,7 @@ void SSDRandomCropNode::create_node()
 
     _crop_param->create_array(_graph);
     create_crop_tensor(_crop_tensor, &_crop_coordinates);
-    _node = vxRppCrop(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _input_layout, _output_layout, _roi_type);
+    _node = vxExtRppCrop(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
@@ -82,7 +82,7 @@ void SSDRandomCropNode::update_node()
 {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
-    RocalROI *crop_dims = (RocalROI *)_crop_coordinates;  // ROI to be cropped from source
+    RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);  // ROI to be cropped from source
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, 6);
@@ -189,7 +189,7 @@ void SSDRandomCropNode::update_node()
         } else if(_inputs[0]->info().roi_type() == RocalROIType::LTRB) {
             crop_dims[i].x2 =  (crop_box.r) * input_roi[i].x2;
             crop_dims[i].y2 =  (crop_box.b) * input_roi[i].y2;
-        }
+    }
     }
     _outputs[0]->update_tensor_roi(_crop_width_val, _crop_height_val);
 }

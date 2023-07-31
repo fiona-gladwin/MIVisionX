@@ -27,9 +27,7 @@ THE SOFTWARE.
 FlipNode::FlipNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _horizontal(HORIZONTAL_RANGE[0], HORIZONTAL_RANGE[1]),
-        _vertical(VERTICAL_RANGE[0], VERTICAL_RANGE[1])
-{
-}
+        _vertical(VERTICAL_RANGE[0], VERTICAL_RANGE[1]) {}
 
 void FlipNode::create_node() {
     if(_node)
@@ -37,11 +35,12 @@ void FlipNode::create_node() {
 
     _horizontal.create_array(_graph, VX_TYPE_UINT32, _batch_size);
     _vertical.create_array(_graph, VX_TYPE_UINT32, _batch_size);
-    _node = vxRppFlip(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(),  _horizontal.default_array(), _vertical.default_array(), _input_layout, _output_layout, _roi_type);
+    _node = vxExtRppFlip(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(),
+                         _horizontal.default_array(), _vertical.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the flip (vxRppFlip) node failed: "+ TOSTR(status))
+        THROW("Adding the flip (vxExtRppFlip) node failed: " + TOSTR(status))
 }
 
 void FlipNode::init(int h_flag, int v_flag) {

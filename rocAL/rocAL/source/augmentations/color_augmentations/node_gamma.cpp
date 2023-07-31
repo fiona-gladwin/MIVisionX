@@ -26,7 +26,7 @@ THE SOFTWARE.
 
 GammaNode::GammaNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _shift(SHIFT_RANGE[0], SHIFT_RANGE[1]) { }
+        _gamma(GAMMA_RANGE[0], GAMMA_RANGE[1]) {}
 
 void GammaNode::create_node() {
     if(_node)
@@ -35,22 +35,22 @@ void GammaNode::create_node() {
     if(_outputs.empty() || _inputs.empty())
         THROW("Uninitialized input/output arguments")
 
-    _shift.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _node = vxRppGammaCorrection(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _shift.default_array(), _input_layout, _output_layout, _roi_type);
+    _gamma.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtRppGammaCorrection(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _gamma.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the gamma (vxRppGamma) node failed: "+ TOSTR(status))
+        THROW("Adding the gamma (vxExtRppGammaCorrection) node failed: " + TOSTR(status))
 }
 
-void GammaNode::init(float shift) {
-    _shift.set_param(shift);
+void GammaNode::init(float gamma) {
+    _gamma.set_param(gamma);
 }
 
-void GammaNode::init(FloatParam *shift) {
-    _shift.set_param(core(shift));
+void GammaNode::init(FloatParam *gamma_param) {
+    _gamma.set_param(core(gamma_param));
 }
 
 void GammaNode::update_node() {
-    _shift.update_array();
+    _gamma.update_array();
 }

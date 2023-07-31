@@ -27,18 +27,18 @@ THE SOFTWARE.
 
 HueNode::HueNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _hue(HUE_RANGE[0], HUE_RANGE[1]) { }
+        _hue(HUE_RANGE[0], HUE_RANGE[1]) {}
 
 void HueNode::create_node() {
     if(_node)
         return;
 
     _hue.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
-    _node = vxRppHue(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _hue.default_array(), _input_layout, _output_layout, _roi_type);
+    _node = vxExtRppHue(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _hue.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the hue (vxRppGamma) node failed: "+ TOSTR(status))
+        THROW("Adding the hue (vxExtRppHue) node failed: " + TOSTR(status))
 }
 
 void HueNode::init(float hue) {

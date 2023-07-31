@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 ResizeNode::ResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) { }
+        Node(inputs, outputs) {}
 
 void ResizeNode::create_node() {
     if(_node)
@@ -42,15 +42,15 @@ void ResizeNode::create_node() {
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
      if(width_status != 0 || height_status != 0)
-        THROW(" vxAddArrayItems failed in the resize (vxRppResize) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status));
+        THROW("vxAddArrayItems failed in the resize (vxExtRppResize) node: " + TOSTR(width_status) + "  " + TOSTR(height_status));
 
     vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_INT32,&_interpolation_type);
-   _node = vxRppResize(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _dst_roi_width, 
-                               _dst_roi_height, interpolation_vx, _input_layout, _output_layout, _roi_type);
+   _node = vxExtRppResize(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _dst_roi_width, 
+                          _dst_roi_height, interpolation_vx, _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the resize (vxRppResize) node failed: "+ TOSTR(status))
+        THROW("Adding the resize (vxExtRppResize) node failed: " + TOSTR(status))
 }
 
 void ResizeNode::update_node() {

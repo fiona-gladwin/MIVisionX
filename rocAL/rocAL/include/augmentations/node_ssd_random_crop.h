@@ -59,8 +59,7 @@ private:
     int _batch_size;
 };
 
-class SSDRandomCropNode : public Node
-{
+class SSDRandomCropNode : public Node {
 public:
     SSDRandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SSDRandomCropNode() = delete;

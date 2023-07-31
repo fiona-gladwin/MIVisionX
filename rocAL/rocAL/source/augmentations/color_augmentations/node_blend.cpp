@@ -26,7 +26,7 @@ THE SOFTWARE.
 
 BlendNode::BlendNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _ratio(RATIO_RANGE[0], RATIO_RANGE[1]) { }
+        _ratio(RATIO_RANGE[0], RATIO_RANGE[1]) {}
 
 void BlendNode::create_node() {
     if(_node)
@@ -35,12 +35,12 @@ void BlendNode::create_node() {
     if(_inputs.size() < 2)
         THROW("Blend node needs two input images")
 
-    _ratio.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _node = vxRppBlend(_graph->get(), _inputs[0]->handle(), _inputs[1]->handle(), _src_tensor_roi, _outputs[0]->handle(), _ratio.default_array(), _input_layout, _output_layout, _roi_type);
+    _ratio.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtRppBlend(_graph->get(), _inputs[0]->handle(), _inputs[1]->handle(), _src_tensor_roi, _outputs[0]->handle(), _ratio.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the Blend (vxRppBlend) node failed: "+ TOSTR(status))
+        THROW("Adding the Blend (vxExtRppBlend) node failed: " + TOSTR(status))
 }
 
 void BlendNode::init(float ratio) {

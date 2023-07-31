@@ -24,7 +24,6 @@ THE SOFTWARE.
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"
-#include "graph.h"
 
 class ColorTwistNode : public Node {
 public:
@@ -36,7 +35,10 @@ protected:
     void create_node() override;
     void update_node() override;
 private:
-    ParameterVX<float> _alpha, _beta, _hue, _sat;
+    ParameterVX<float> _alpha;
+    ParameterVX<float> _beta;
+    ParameterVX<float> _hue;
+    ParameterVX<float> _sat;
     constexpr static float ALPHA_RANGE[2] = {0.1, 1.95};
     constexpr static float BETA_RANGE[2] = {0.1, 25.0};
     constexpr static float HUE_RANGE[2] = {5.0, 170.0};

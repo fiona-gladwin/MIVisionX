@@ -30,13 +30,13 @@ class ContrastNode : public Node {
 public:
     ContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ContrastNode() = delete;
-    void init(float min, float max);
-    void init(FloatParam *min, FloatParam *max);
+    void init(float contrast_factor, float contrast_center);
+    void init(FloatParam *contrast_factor_param, FloatParam *contrast_center_param);
 protected:
     void create_node() override;
     void update_node() override;
 private:
-    ParameterVX<float> _min, _max;
-    constexpr static float CONTRAST_MIN_RANGE[2] = {0, 30};
-    constexpr static float CONTRAST_MAX_RANGE[2] = {60, 90};
+    ParameterVX<float> _factor, _center;
+    constexpr static float CONTRAST_FACTOR_RANGE[2] = {0.1, 1.95};
+    constexpr static float CONTRAST_CENTER_RANGE[2] = {60, 90};
 };

@@ -32,7 +32,7 @@ WarpAffineNode::WarpAffineNode(const std::vector<Tensor *> &inputs, const std::v
         _y0(COEFFICIENT_RANGE_0[0], COEFFICIENT_RANGE_0[1]),
         _y1(COEFFICIENT_RANGE_1[0], COEFFICIENT_RANGE_1[1]),
         _o0(COEFFICIENT_RANGE_OFFSET[0], COEFFICIENT_RANGE_OFFSET[1]),
-        _o1(COEFFICIENT_RANGE_OFFSET[0], COEFFICIENT_RANGE_OFFSET[1]) { }
+        _o1(COEFFICIENT_RANGE_OFFSET[0], COEFFICIENT_RANGE_OFFSET[1]) {}
 
 void WarpAffineNode::create_node() {
     if(_node)
@@ -50,10 +50,11 @@ void WarpAffineNode::create_node() {
     vx_status status;
     _affine_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 6);
     status = vxAddArrayItems(_affine_array,_batch_size * 6, _affine.data(), sizeof(vx_float32));
-    vx_scalar interpolation = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_INT32, &_interpolation_type);
-    _node = vxRppWarpAffine (_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _affine_array, interpolation, _input_layout, _output_layout, _roi_type);
+    vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()),VX_TYPE_UINT32,&_interpolation_type);
+    _node = vxExtRppWarpAffine(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _affine_array,
+                               interpolation_vx, _input_layout, _output_layout, _roi_type);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the warp affine (vxRppWarpAffine) node failed: "+ TOSTR(status))
+        THROW("Adding the warp affine (vxExtRppWarpAffine) node failed: " + TOSTR(status))
 }
 
 void WarpAffineNode::update_affine_array() {
@@ -68,7 +69,7 @@ void WarpAffineNode::update_affine_array() {
     vx_status affine_status;
     affine_status = vxCopyArrayRange((vx_array)_affine_array, 0, _batch_size * 6, sizeof(vx_float32), _affine.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST); //vxAddArrayItems(_width_array,_batch_size, _width, sizeof(vx_uint32));
     if(affine_status != 0)
-        THROW(" vxCopyArrayRange failed in the WarpAffine(vxRppWarpAffinePD) node: "+ TOSTR(affine_status))
+        THROW(" vxCopyArrayRange failed in the WarpAffine(vxExtRppWarpAffinePD) node: "+ TOSTR(affine_status))
 }
 
 void WarpAffineNode::init(float x0, float x1, float y0, float y1, float o0, float o1, int interpolation_type) {

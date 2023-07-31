@@ -37,12 +37,11 @@ void RandomCropNode::create_node()
 
     _crop_param->create_array(_graph);
     create_crop_tensor(_crop_tensor, &_crop_coordinates);
-    
-    _node = vxRppCrop(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(),
-                              _input_layout, _output_layout, _roi_type);
+    _node = vxExtRppCrop(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(),
+                         _input_layout, _output_layout, _roi_type);
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Error adding the random crop node (vxRppCrop) failed: " + TOSTR(status))
+        THROW("Error adding the random crop node (vxExtRppCrop) failed: " + TOSTR(status))
 }
 
 void RandomCropNode::update_node()
@@ -56,16 +55,14 @@ void RandomCropNode::update_node()
     // Obtain the crop coordinates and update the roi
     auto x1 = _crop_param->get_x1_arr_val();
     auto y1 = _crop_param->get_y1_arr_val();
-    RocalROI *src_roi = (RocalROI *)_crop_coordinates;
+    RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);
     for(unsigned i = 0; i < _batch_size; i++) {
-        src_roi[i].x1 = x1[i];
-        src_roi[i].y1 = y1[i];
-        src_roi[i].x2 = crop_w_dims[i];
-        src_roi[i].y2 = crop_h_dims[i];
+        crop_dims[i].x1 = x1[i];
+        crop_dims[i].y1 = y1[i];
+        crop_dims[i].x2 = crop_w_dims[i];
+        crop_dims[i].y2 = crop_h_dims[i];
     }
 }
-
-void RandomCropNode::init(float crop_area_factor, float crop_aspect_ratio, float x_drift, float y_drift) { }    // Is this required?
 
 void RandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts) {
     _crop_param->set_x_drift_factor(core(x_drift));

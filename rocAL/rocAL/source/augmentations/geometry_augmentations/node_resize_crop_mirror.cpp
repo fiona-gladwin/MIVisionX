@@ -43,25 +43,25 @@ void ResizeCropMirrorNode::create_node() {
     _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
     
 
-    std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().max_shape()[0]);
+    std::vector<uint32_t> dst_roi_width(_batch_size, _outputs[0]->info().max_shape()[0]);
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
-
     _dst_roi_width = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
     _dst_roi_height = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
 
     vx_status width_status, height_status;
-
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
     if(width_status != 0 || height_status != 0)
-        THROW(" vxAddArrayItems failed in the crop resize node (vxRppResizeCropMirror)  node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
-    _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
+        THROW(" vxAddArrayItems failed in the crop resize node (vxExtRppResizeCropMirror)  node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
+    _mirror.create_array(_graph, VX_TYPE_UINT32, _batch_size);
     create_crop_tensor(_crop_tensor, &_crop_coordinates);
     vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &_interpolation_type);
-   _node = vxRppResizeCropMirror(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _dst_roi_width, 
-                                         _dst_roi_height, _mirror.default_array(), interpolation_vx, _input_layout, _output_layout, _roi_type);
+    _node = vxExtRppResizeCropMirror(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _dst_roi_width, 
+                                     _dst_roi_height, _mirror.default_array(), interpolation_vx, _input_layout, _output_layout, _roi_type);
+
+    vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Error adding the resize crop mirror node (vxRppResizeCropMirror) failed: " + TOSTR(status))
+        THROW("Error adding the resize crop mirror node (vxExtRppResizeCropMirror) failed: " + TOSTR(status))
 }
 
 void ResizeCropMirrorNode::update_node() {
@@ -75,12 +75,12 @@ void ResizeCropMirrorNode::update_node() {
     // Obtain the crop coordinates and update the roi
     auto x1 = _crop_param->get_x1_arr_val();
     auto y1 = _crop_param->get_y1_arr_val();
-    RocalROI *src_roi = (RocalROI *)_crop_coordinates;
+    RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);
     for(unsigned i = 0; i < _batch_size; i++) {
-        src_roi[i].x1 = x1[i];
-        src_roi[i].y1 = y1[i];
-        src_roi[i].x2 = crop_w_dims[i];
-        src_roi[i].y2 = crop_h_dims[i];
+        crop_dims[i].x1 = x1[i];
+        crop_dims[i].y1 = y1[i];
+        crop_dims[i].x2 = crop_w_dims[i];
+        crop_dims[i].y2 = crop_h_dims[i];
     }
 }
 
@@ -94,7 +94,7 @@ void ResizeCropMirrorNode::init(unsigned int crop_h, unsigned int crop_w, IntPar
     _interpolation_type = static_cast<int>(interpolation_type);
 }
 
-void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam  *crop_w_factor, IntParam *mirror, RocalResizeInterpolationType interpolation_type) {
+void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam *crop_w_factor, IntParam *mirror, RocalResizeInterpolationType interpolation_type) {
     _crop_param->set_crop_height_factor(core(crop_h_factor));
     _crop_param->set_crop_width_factor(core(crop_w_factor));
     _crop_param->set_random();

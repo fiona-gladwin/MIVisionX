@@ -31,7 +31,7 @@ public:
     WarpAffineNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     WarpAffineNode() = delete;
     void init(float x0, float x1, float y0, float y1, float o0, float o1, int interpolation_type);
-    void init(FloatParam* x0, FloatParam* x1, FloatParam* y0, FloatParam* y1, FloatParam* o0, FloatParam* o1, int interpolation_type);
+    void init(FloatParam *x0, FloatParam *x1, FloatParam *y0, FloatParam *y1, FloatParam *o0, FloatParam *o1, int interpolation_type);
 protected:
     void create_node() override;
     void update_node() override;
@@ -44,9 +44,9 @@ private:
     ParameterVX<float> _o1;
     std::vector<float> _affine;
     vx_array _affine_array;
-    constexpr static float COEFFICIENT_RANGE_0 [2] = {-0.35, 0.35};
-    constexpr static float COEFFICIENT_RANGE_1 [2] = {0.65, 1.35};
-    constexpr static float COEFFICIENT_RANGE_OFFSET [2] = {-10.0, 10.0};
+    constexpr static float COEFFICIENT_RANGE_0[2] = {-0.35, 0.35};
+    constexpr static float COEFFICIENT_RANGE_1[2] = {0.65, 1.35};
+    constexpr static float COEFFICIENT_RANGE_OFFSET[2] = {-10.0, 10.0};
     void update_affine_array();
     int _interpolation_type;
 };

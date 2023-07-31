@@ -25,13 +25,12 @@ THE SOFTWARE.
 #include "parameter_vx.h"
 #include "parameter_factory.h"
 
-class FlipNode : public Node
-{
+class FlipNode : public Node {
 public:
     FlipNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     FlipNode() = delete;
-    void init( int h_flag, int v_flag);
-    void init( IntParam *h_flag_param, IntParam *v_flag_param);
+    void init(int h_flag, int v_flag);
+    void init(IntParam *h_flag_param, IntParam *v_flag_param);
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     vx_array get_src_width() { return _src_roi_width; }
@@ -44,6 +43,6 @@ protected:
     void update_node() override;
 private:
     ParameterVX<int> _horizontal, _vertical;
-    constexpr static int HORIZONTAL_RANGE [2] = {0, 2};
-    constexpr static int VERTICAL_RANGE [2] = {0, 2};
+    constexpr static int HORIZONTAL_RANGE[2] = {0, 1};
+    constexpr static int VERTICAL_RANGE[2] = {0, 1};
 };

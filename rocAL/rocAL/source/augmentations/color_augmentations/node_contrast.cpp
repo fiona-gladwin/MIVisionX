@@ -26,33 +26,33 @@ THE SOFTWARE.
 
 ContrastNode::ContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _min(CONTRAST_MIN_RANGE[0], CONTRAST_MIN_RANGE[1]),
-        _max(CONTRAST_MAX_RANGE[0], CONTRAST_MAX_RANGE[1]) { }
+        _factor(CONTRAST_FACTOR_RANGE[0], CONTRAST_FACTOR_RANGE[1]),
+        _center(CONTRAST_CENTER_RANGE[0], CONTRAST_CENTER_RANGE[1]) {}
 
 void ContrastNode::create_node() {
     if(_node)
         return;
 
-    _min.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
-    _max.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
-    _node = vxRppContrast(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _min.default_array(), _max.default_array(), _input_layout, _output_layout, _roi_type);
+    _factor.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
+    _center.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtRppContrast(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _factor.default_array(), _center.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the contrast (vxRppContrast) node failed: "+ TOSTR(status))
+        THROW("Adding the contrast (vxExtRppContrast) node failed: " + TOSTR(status))
 }
 
-void ContrastNode::init(float min, float max) {
-    _min.set_param(min);
-    _max.set_param(max);
+void ContrastNode::init(float contrast_factor, float contrast_center) {
+    _factor.set_param(contrast_factor);
+    _center.set_param(contrast_center);
 }
 
-void ContrastNode::init(FloatParam* min, FloatParam* max) {
-    _min.set_param(core(min));
-    _max.set_param(core(max));
+void ContrastNode::init(FloatParam *contrast_factor_param, FloatParam *contrast_center_param) {
+    _factor.set_param(core(contrast_factor_param));
+    _center.set_param(core(contrast_center_param));
 }
 
 void ContrastNode::update_node() {
-    _min.update_array();
-    _max.update_array();
+    _factor.update_array();
+    _center.update_array();
 }

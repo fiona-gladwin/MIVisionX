@@ -35,6 +35,6 @@ protected:
     void create_node() override;
     void update_node() override;
 private:
-    ParameterVX<float> _sat;
-    constexpr static float SAT_RANGE [2] = {-0.5, 0.5};
+    ParameterVX<float> _saturation;
+    constexpr static float SAT_RANGE[2] = {-0.5, 0.5};
 };

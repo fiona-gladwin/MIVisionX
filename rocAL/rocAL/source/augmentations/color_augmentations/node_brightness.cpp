@@ -27,19 +27,19 @@ THE SOFTWARE.
 BrightnessNode::BrightnessNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
         _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
-        _beta (BETA_RANGE[0], BETA_RANGE[1]) { }
+        _beta (BETA_RANGE[0], BETA_RANGE[1]) {}
 
 void BrightnessNode::create_node() {
     if(_node)
         return;
 
-    _alpha.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _beta.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _alpha.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
+    _beta.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
     _node = vxExtRppBrightness(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness (vxRppBrightness) node failed: "+ TOSTR(status))
+        THROW("Adding the brightness (vxExtRppBrightness) node failed: " + TOSTR(status))
 }
 
 void BrightnessNode::init(float alpha, float beta) {

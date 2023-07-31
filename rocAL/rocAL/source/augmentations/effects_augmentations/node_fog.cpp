@@ -26,20 +26,18 @@ THE SOFTWARE.
 
 FogNode::FogNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _fog_param(FOG_VALUE_RANGE[0], FOG_VALUE_RANGE[1])
-{
-}
+        _fog_param(FOG_VALUE_RANGE[0], FOG_VALUE_RANGE[1]) {}
 
 void FogNode::create_node() {
     if(_node)
         return;
 
-    _fog_param.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _node = vxRppFog(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _fog_param.default_array(), _input_layout, _output_layout, _roi_type);
+    _fog_param.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
+    _node = vxExtRppFog(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _fog_param.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the fog (vxRppFog) node failed: "+ TOSTR(status))
+        THROW("Adding the fog (vxExtRppFog) node failed: " + TOSTR(status))
 }
 
 void FogNode::init(float fog_param) {
