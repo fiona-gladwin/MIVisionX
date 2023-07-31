@@ -598,6 +598,8 @@ rocalResize(
 
         std::shared_ptr<ResizeNode> resize_node = context->master_graph->add_node<ResizeNode>({input}, {output});
         resize_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type);
+        if (context->master_graph->meta_data_graph())
+            context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -700,8 +702,8 @@ ROCAL_API_CALL rocalResizeMirrorNormalize(
         output->reset_tensor_roi();
         std::shared_ptr<ResizeMirrorNormalizeNode> rmn_node = context->master_graph->add_node<ResizeMirrorNormalizeNode>({input}, {output});
         rmn_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type, mean, std_dev, mirror);
-        // if (context->master_graph->meta_data_graph())
-        //     context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode,ResizeMirrorNormalizeNode>(rmn_node);
+        if (context->master_graph->meta_data_graph())
+            context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode,ResizeMirrorNormalizeNode>(rmn_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what());
