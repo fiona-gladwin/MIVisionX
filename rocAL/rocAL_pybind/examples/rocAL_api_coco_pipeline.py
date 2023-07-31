@@ -150,57 +150,19 @@ class ROCALCOCOIterator(object):
         else:
             for i in range(len(self.output_tensor_list)):
                 self.output_tensor_list[i].copy_data(ctypes.c_void_p(self.output_list[i].data_ptr()), self.output_memory_type)
-        print("nxt check2 ")
-        # self.lis = []  # Empty list for bboxes
-        # self.lis_lab = []  # Empty list of labels
-
-        # self.loader.copyToExternalTensor(
-        #     self.out, self.multiplier, self.offset, self.reverse_channels, self.tensor_format, self.tensor_dtype)
-
-        # # Image id of a batch of images
-        # self.loader.GetImageId(self.image_id)
-        # # Image sizes of a batch
-        # self.loader.GetImgSizes(self.img_size)
-        # # Count of labels/ bboxes in a batch
-        # self.count_batch = self.loader.GetBoundingBoxCount(
-        #     self.bboxes_label_count)
-        # 1D labels & bboxes array
-        # if self.device == "cpu":
-        #   self.encoded_bboxes = np.zeros((self.count_batch*4), dtype="float32")
-        #   self.encoded_labels = np.zeros(self.count_batch, dtype="int32")
-        #   self.loader.copyEncodedBoxesAndLables(self.encoded_bboxes, self.encoded_labels)
-        #   encoded_bboxes_tensor = torch.tensor(self.encoded_bboxes).view(self.bs, -1, 4).contiguous()
-        #   encodded_labels_tensor = torch.tensor(self.encoded_labels).long().view(self.bs, -1)
-        # else:
-        #   torch_gpu_device = torch.device('cuda', self.device_id)
-        #   boxes_array, labels_array = self.loader.getEncodedBoxesAndLables(self.bs, int(self.num_anchors))
-        #   self.encoded_bboxes = torch.as_tensor(boxes_array, dtype=torch.float32, device=torch_gpu_device)
-        #   self.encoded_labels = torch.as_tensor(labels_array, dtype=torch.int32, device=torch_gpu_device)
-        #   encoded_bboxes_tensor = self.encoded_bboxes.cpu()
-        #   encodded_labels_tensor = self.encoded_labels.cpu()
         self.labels = self.loader.getBoundingBoxLabels()
-            # 1D bboxes array in a batch
+        # 1D bboxes array in a batch
         self.bboxes = self.loader.getBoundingBoxCords()
         image_id_tensor = torch.tensor(self.image_id)
         image_size_tensor = torch.tensor(self.img_size).view(-1, self.bs, 2)
         self.loader.getImageId(self.image_id)
 
         for i in range(self.bs):
-        #     index_list = []
-        #     actual_bboxes = []
-        #     actual_labels = []
-        #     for idx, x in enumerate(encodded_labels_tensor[i]):
-        #         if x != 0:
-        #             index_list.append(idx)
-        #             actual_bboxes.append(encoded_bboxes_tensor[i][idx].tolist())
-        #             actual_labels.append(encodded_labels_tensor[i][idx].tolist())
-
             if self.display:
                 img = self.output
                 print("draw_path ",i)
                 draw_patches(img[i], self.image_id[i],
                              self.bboxes[i], self.device)
-
         return (self.output), self.bboxes, self.labels, image_id_tensor, image_size_tensor
 
     def reset(self):
@@ -229,10 +191,6 @@ def draw_patches(img, idx, bboxes, device):
     bboxes = np.reshape(bboxes, (-1, 4))
 
     for (l,t,r,b) in bboxes:
-        # l = xc 
-        # t = yc 
-        # r = xc 
-        # b = yc
         loc_ = [l, t, r, b]
         color = (255, 0, 0)
         thickness = 2
@@ -336,32 +294,22 @@ def main():
         #                                          annotations_file=annotation_path, random_shuffle=False, seed=random_seed, num_shards=world_size, shard_id=local_rank)
         images_decoded = fn.decoders.image(jpegs, output_type = types.RGB, file_root=image_path, annotations_file=annotation_path, random_shuffle=False,shard_id=local_rank, num_shards=world_size)
         res_images = fn.resize(images_decoded, resize_width=640, resize_height=480)
-        # saturation = fn.uniform(rng_range=[0.5, 1.5])
-        # contrast = fn.uniform(rng_range=[0.5, 1.5])
-        # brightness = fn.uniform(rng_range=[0.875, 1.125])
-        # hue = fn.uniform(rng_range=[-0.5, 0.5])
-        # ct_images = fn.color_twist(
-        #     res_images, saturation=saturation, contrast=contrast, brightness=brightness, hue=hue)
-        # flip_coin = fn.random.coin_flip(probability=0.5)
+        saturation = fn.uniform(rng_range=[0.1, 0.4])
+        contrast = fn.uniform(rng_range=[0.1, 25.0])
+        brightness = fn.uniform(rng_range=[0.875, 1.125])
+        hue = fn.uniform(rng_range=[5.0, 170.0])
+        ct_images = fn.color_twist(
+            res_images, saturation=saturation, contrast=contrast, brightness=brightness, hue=hue)
+        flip_coin = fn.random.coin_flip(probability=0.5)
         # # bboxes = fn.bb_flip(bboxes, ltrb=True, horizontal=flip_coin)
-        # cmn_images = fn.crop_mirror_normalize(ct_images,
-        #                                           crop=(300, 300),
-        #                                           mean=[0, 0, 0],
-        #                                           std=[1, 1, 1],
-        #                                           mirror=flip_coin,
-        #                                           rocal_tensor_output_datatype=types.UINT8,
-        #                                           rocal_tensor_output_layout=types.NHWC)
-        # if args.display:
-        #     _, _ = fn.box_encoder(bboxes, labels,
-        #                           criteria=0.5,
-        #                           anchors=default_boxes)
-        # else:
-        #     _, _ = fn.box_encoder(bboxes, labels,
-        #                           criteria=0.5,
-        #                           anchors=default_boxes,
-        #                           offset=True, stds=[0.1, 0.1, 0.2, 0.2], scale=300)
-
-        pipe.setOutputs(res_images)
+        cmn_images = fn.crop_mirror_normalize(ct_images,
+                                                  crop=(300, 300),
+                                                  mean=[0, 0, 0],
+                                                  std=[1, 1, 1],
+                                                  mirror=flip_coin,
+                                                  rocal_tensor_output_datatype=types.UINT8,
+                                                  rocal_tensor_output_layout=types.NHWC)
+        pipe.setOutputs(cmn_images)
     # Build the pipeline
     pipe.build()
     # Dataloader

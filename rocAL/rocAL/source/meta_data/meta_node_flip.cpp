@@ -30,7 +30,6 @@ void FlipMetaNode::initialize()
 }
 void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
-    std::cerr<<"check flip.cpp\n ";
     initialize();
     if(_batch_size != input_meta_data->size())
     {
@@ -51,33 +50,17 @@ void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBa
         {
             if(_h_flag_val[i])
             {
-                // float l = _src_width_val[i] - coords_buf[j].r;
-                // coords_buf[j].r = _src_width_val[i] - coords_buf[j].l;
-                // coords_buf[j].l = l; 
-                // std::cerr<<"coords_buf[j].l "<<coords_buf[j].l<<" "<<coords_buf[j].r<<"  "<<_src_width_val[i]<<"\n ";
                 auto l = coords_buf[j].l;
                 auto r = coords_buf[j].r;
                 coords_buf[j].l = input_roi[i].x2 - r;
                 coords_buf[j].r = input_roi[i].x2 - l;    
-                // std::cerr<<"\n after coords_buf[j].l "<<coords_buf[j].l<<" "<<coords_buf[j].r<<" \n";
-
             }
             if(_v_flag_val[i])
             {
-                // float t = 1 - coords_buf[j].b;
-                // coords_buf[j].b = 1 - coords_buf[j].t;
-                // coords_buf[j].t = t;
-                // float t = input_roi[i].y2 - coords_buf[j].b;
-                // coords_buf[j].b = input_roi[i].y2 - coords_buf[j].t;
-                // coords_buf[j].t = t;
-                std::cerr<<"coords_buf[j].l "<<coords_buf[j].t<<" "<<coords_buf[j].b<<"  "<<_src_width_val[i]<<"\n ";
-
                 auto t = coords_buf[j].t;
                 auto b = coords_buf[j].b;
                 coords_buf[j].t = input_roi[i].y2 - b;
                 coords_buf[j].b = input_roi[i].y2 - t; 
-                std::cerr<<"after coords_buf[j].l "<<coords_buf[j].t<<" "<<coords_buf[j].b<<"  "<<_src_width_val[i]<<"\n ";
-
             }
             
             bb_coords.push_back(coords_buf[j]);
