@@ -38,10 +38,8 @@ void ResizeCropMirrorNode::create_node() {
     if(_crop_param->crop_h == 0 || _crop_param->crop_w == 0)
         THROW("Uninitialized destination dimension - Invalid Crop Sizes")
     
-    vx_status status = VX_SUCCESS;
     _crop_param->create_array(_graph);
     _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
-    
 
     std::vector<uint32_t> dst_roi_width(_batch_size, _outputs[0]->info().max_shape()[0]);
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
@@ -53,7 +51,7 @@ void ResizeCropMirrorNode::create_node() {
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
     if(width_status != 0 || height_status != 0)
         THROW(" vxAddArrayItems failed in the crop resize node (vxExtRppResizeCropMirror)  node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
-    _mirror.create_array(_graph, VX_TYPE_UINT32, _batch_size);
+
     create_crop_tensor(_crop_tensor, &_crop_coordinates);
     vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &_interpolation_type);
     _node = vxExtRppResizeCropMirror(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _dst_roi_width, 
