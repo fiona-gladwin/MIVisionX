@@ -99,25 +99,23 @@ class ROCALGenericIteratorDetection(object):
             self.num_bboxes_list = []
             # Count of labels/ bboxes in a batch
             self.count_batch = self.loader.getBoundingBoxCount()
-            self.num_bboxes_list = self.bboxes_label_count.tolist()
             # 1D labels array in a batch
             self.labels = self.loader.getBoundingBoxLabels()
             # 1D bboxes array in a batch
             self.bboxes = self.loader.getBoundingBoxCords()
             # 1D Image sizes array of image in a batch
             self.img_size = np.zeros((self.bs * 2), dtype="int32")
+            self.num_bboxes_list = [len(box) for box in self.bboxes]
             self.loader.getImgSizes(self.img_size)
             count = 0  # number of bboxes per image
             sum_count = 0  # sum of the no. of the bboxes
             for i in range(self.bs):
-                count = self.count_batch[i]
                 self.label_2d_numpy = self.labels[i]
                 self.label_2d_numpy = np.reshape(self.label_2d_numpy, (-1, 1)).tolist()
                 self.bb_2d_numpy = (self.bboxes[i])
                 self.bb_2d_numpy = np.reshape(self.bb_2d_numpy, (-1, 4)).tolist()
                 self.label_list.append(self.label_2d_numpy)
                 self.bbox_list.append(self.bb_2d_numpy)
-                sum_count = sum_count + count
 
             self.target = self.bbox_list
             self.target1 = self.label_list
@@ -141,7 +139,7 @@ class ROCALGenericIteratorDetection(object):
             self.l = np.reshape(labarr, (-1, max_rows, max_cols))
             self.num_bboxes_arr = np.array(self.num_bboxes_list)
 
-            return self.output_tensor_list, self.res, self.l, self.num_bboxes_arr
+            return self.output_list, self.res, self.l, self.num_bboxes_arr
         elif (self.loader._name == "TFRecordReaderClassification"):
             if (self.loader._one_hot_encoding == True):
                 self.labels = np.zeros((self.bs)*(self.loader._num_classes), dtype="int32")
@@ -150,7 +148,7 @@ class ROCALGenericIteratorDetection(object):
             else:
                 self.labels = self.loader.getImageLabels()
 
-            return self.output_tensor_list, self.labels
+            return self.output_list, self.labels
 
     def reset(self):
         b.rocalResetLoaders(self.loader._handle)

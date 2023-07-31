@@ -35,7 +35,7 @@ def draw_patches(img, idx):
         image = img.cpu().numpy()
     else:
         image = img.detach().numpy()
-    image = image.transpose([1, 2, 0])
+    # image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if args.classification:
             cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE2_READER/CLASSIFICATION/"+str(idx)+"_"+"train"+".png", image)
@@ -72,22 +72,22 @@ def main():
     with pipe:
         if _rocal_bbox:
             jpegs, labels, bboxes = fn.readers.caffe2(
-                path=image_path, bbox=_rocal_bbox, random_shuffle=True)
+                path=image_path, bbox=_rocal_bbox)
         else:
             jpegs, labels = fn.readers.caffe2(
-                path=image_path, bbox=_rocal_bbox, random_shuffle=True)
+                path=image_path, bbox=_rocal_bbox)
         images = fn.decoders.image(jpegs, output_type=types.RGB, path=image_path, random_shuffle=True)
-        images = fn.resize(images, resize_x=224, resize_y=224)
-        pipe.set_outputs(images)
+        images = fn.resize(images, resize_width=224, resize_height=224)
+        pipe.setOutputs(images)
     pipe.build()
-    data_loader = ROCALClassificationIterator(pipe , display=display, device=device)
+    data_loader = ROCALClassificationIterator(pipe , display=0, device=device)
 
     # Training loop
     cnt = 0
     for epoch in range(1):  # loop over the dataset multiple times
         print("epoch:: ", epoch)
         if not _rocal_bbox:
-            for i, (image_batch, labels) in enumerate(data_loader, 0):  # Classification
+            for i, ([image_batch], labels) in enumerate(data_loader, 0):  # Classification
                 if args.print_tensor:
                     sys.stdout.write("\r Mini-batch " + str(i))
                     print("Images", image_batch)
@@ -97,7 +97,7 @@ def main():
                     draw_patches(image_batch[element],cnt)
             data_loader.reset()
         else:
-            for i, (image_batch, bboxes, labels) in enumerate(data_loader, 0):  # Detection
+            for i, ([image_batch], bboxes, labels) in enumerate(data_loader, 0):  # Detection
                 if i == 0:
                     if args.print_tensor:
                         sys.stdout.write("\r Mini-batch " + str(i))

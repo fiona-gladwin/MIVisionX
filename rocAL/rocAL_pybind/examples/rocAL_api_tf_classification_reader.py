@@ -40,7 +40,7 @@ def main():
     imagePath = args.image_dataset_path
     rocalCPU = False if args.rocal_gpu else True
     batch_size = args.batch_size
-    oneHotLabel = 1
+    oneHotLabel = 0
     num_threads = args.num_threads
     TFRecordReaderType = 0
     featureKeyMap = {
@@ -59,7 +59,7 @@ def main():
     pipe = Pipeline(batch_size=batch_size, num_threads=num_threads,device_id=args.local_rank, seed=2, rocal_cpu=rocalCPU)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
-        inputs = fn.readers.tfrecord(path=imagePath, index_path = "", reader_type=TFRecordReaderType, user_feature_key_map=featureKeyMap,
+        inputs = fn.readers.tfrecord(path=imagePath,  reader_type=TFRecordReaderType, user_feature_key_map=featureKeyMap,
             features={
                 'image/encoded':tf.io.FixedLenFeature((), tf.string, ""),
                 'image/class/label':tf.io.FixedLenFeature([1], tf.int64,  -1),
@@ -68,19 +68,18 @@ def main():
         )
         jpegs = inputs["image/encoded"]
         images = fn.decoders.image(jpegs, user_feature_key_map=featureKeyMap, output_type=types.RGB, path=imagePath)
-        resized = fn.resize(images, resize_x=300, resize_y=300)
+        resized = fn.resize(images, resize_width=300, resize_height=300)
         if(oneHotLabel == 1):
             labels = inputs["image/class/label"]
             _ = fn.one_hot(labels, num_classes=1000)
-        pipe.set_outputs(resized)
+        pipe.setOutputs(resized)
     # Build the pipeline
     pipe.build()
     # Dataloader
     imageIterator = ROCALIterator(pipe)
     cnt = 0
     # Enumerate over the Dataloader
-    for i, (images_array, labels_array) in enumerate(imageIterator, 0):
-        images_array = np.transpose(images_array, [0, 2, 3, 1])
+    for i, ([images_array], labels_array) in enumerate(imageIterator, 0):
         if args.print_tensor:
             print("\n",i)
             print("lables_array",labels_array)

@@ -186,65 +186,24 @@ def main():
         pipe = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=args.local_rank, seed=random_seed, rocal_cpu=rocal_cpu, tensor_layout=tensor_format, tensor_dtype=tensor_dtype)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
-        # jpegs, bboxes, labels = fn.readers.coco(
-        #     file_root=image_path, annotations_file=annotation_path, random_shuffle=False, seed=random_seed)
-        jpegs, bboxes, labels = fn.readers.coco(#file_root=image_path,
-                                                 annotations_file=annotation_path,
-                                                #  masks=True,
-                                                 is_box_encoder=False,
-                                                 is_box_iou_matcher=False)
-        # crop_begin, crop_size, bboxes, labels = fn.random_bbox_crop(bboxes, labels,
-        #                                                             device="cpu",
-        #                                                             aspect_ratio=[
-        #                                                                 0.5, 2.0],
-        #                                                             thresholds=[
-        #                                                                 0, 0.1, 0.3, 0.5, 0.7, 0.9],
-        #                                                             scaling=[
-        #                                                                 0.3, 1.0],
-        #                                                             bbox_layout="xyXY",
-        #                                                             allow_no_crop=True,
-        #                                                             num_attempts=50)
-        # images_decoded = fn.decoders.image_slice(jpegs, crop_begin, crop_size, device="mixed", output_type=types.RGB, file_root=image_path,
-        #                                          annotations_file=annotation_path, random_shuffle=False, seed=random_seed, num_shards=world_size, shard_id=local_rank)
-        images_decoded = fn.decoders.image(jpegs, output_type = types.RGB, file_root=image_path, annotations_file=annotation_path, random_shuffle=False,shard_id=local_rank, num_shards=world_size, max_decoded_height=640, max_decoded_width=640)
-        # res_images = fn.resize(images_decoded, resize_width=640, resize_height=480)
-        # saturation = fn.uniform(rng_range=[0.5, 1.5])
-        # contrast = fn.uniform(rng_range=[0.5, 1.5])
-        # brightness = fn.uniform(rng_range=[0.875, 1.125])
-        # hue = fn.uniform(rng_range=[-0.5, 0.5])
-        # ct_images = fn.color_twist(
-        #     res_images, saturation=saturation, contrast=contrast, brightness=brightness, hue=hue)
+        jpegs, bboxes, labels = fn.readers.coco(annotations_file=annotation_path)
+        images_decoded = fn.decoders.image(jpegs, output_type = types.RGB, file_root=image_path, annotations_file=annotation_path, random_shuffle=False,shard_id=local_rank, num_shards=world_size)
+        res_images = fn.resize(images_decoded, resize_width=640, resize_height=480)
+        saturation = fn.uniform(rng_range=[0.1, 0.4])
+        contrast = fn.uniform(rng_range=[0.1, 25.0])
+        brightness = fn.uniform(rng_range=[0.875, 1.125])
+        hue = fn.uniform(rng_range=[5.0, 170.0])
+        ct_images = fn.color_twist(
+            res_images, saturation=saturation, contrast=contrast, brightness=brightness, hue=hue)
         flip_coin = fn.random.coin_flip(probability=0.5)
-        # bboxes = fn.bb_flip(bboxes, ltrb=True, horizontal=flip_coin)
-        rmn_images = fn.resize_mirror_normalize(images_decoded,
-                                            rocal_tensor_output_datatype=types.UINT8,
-                                            rocal_tensor_output_layout=types.NHWC,
-                                            resize_height=1344,
-                                            resize_width=1344,
-                                            scaling_mode=types.SCALING_MODE_MIN_MAX,
-                                            resize_longer=800,
-                                            resize_shorter=1344,
-                                            mirror=1,
-                                            mean= [0., 0., 0.],
-                                            std = [1. , 1., 1.])
-        # cmn_images = fn.crop_mirror_normalize(images_decoded,
-        #                                           crop=(300, 300),
-        #                                           mean=[0, 0, 0],
-        #                                           std=[1, 1, 1],
-        #                                           mirror=flip_coin,
-        #                                           rocal_tensor_output_datatype=types.UINT8,
-        #                                           rocal_tensor_output_layout=types.NHWC)
-        # if args.display:
-        #     _, _ = fn.box_encoder(bboxes, labels,
-        #                           criteria=0.5,
-        #                           anchors=default_boxes)
-        # else:
-        #     _, _ = fn.box_encoder(bboxes, labels,
-        #                           criteria=0.5,
-        #                           anchors=default_boxes,
-        #                           offset=True, stds=[0.1, 0.1, 0.2, 0.2], scale=300)
-
-        pipe.setOutputs(rmn_images)
+        cmn_images = fn.crop_mirror_normalize(ct_images,
+                                                  crop=(300, 300),
+                                                  mean=[0, 0, 0],
+                                                  std=[1, 1, 1],
+                                                  mirror=flip_coin,
+                                                  rocal_tensor_output_datatype=types.UINT8,
+                                                  rocal_tensor_output_layout=types.NHWC)
+        pipe.setOutputs(cmn_images)
     # Build the pipeline
     pipe.build()
     # Dataloader

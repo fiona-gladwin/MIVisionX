@@ -39,7 +39,7 @@ def draw_patches(img, idx, layout="nchw", dtype="fp32", device="cpu"):
     if dtype == "fp16":
         image = image.astype('uint8')
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    cv2.imwrite("OUTPUT_IMAGES_PYTHON/FILE_READER/" + str(idx)+"_"+"train"+".png", image * 255)
+    cv2.imwrite("OUTPUT_IMAGES_PYTHON/FILE_READER/" + str(idx)+"_"+"train"+".png", image )
 
 def main():
     if  len(sys.argv) < 3:
@@ -68,29 +68,27 @@ def main():
         jpegs, labels = fn.readers.file(file_root=data_path)
         decode = fn.decoders.image_slice(jpegs, output_type=types.RGB,
                                         file_root=data_path, shard_id=local_rank, num_shards=world_size, random_shuffle=True)
-        res = fn.resize(decode, resize_width=224, resize_height=224, output_layout = types.NCHW, output_dtype = types.UINT8)
+        res = fn.resize(decode, resize_width=224, resize_height=224, rocal_tensor_output_layout = types.NCHW, rocal_tensor_output_datatype = types.UINT8)
         flip_coin = fn.random.coin_flip(probability=0.5)
         cmnp = fn.crop_mirror_normalize(res, 
-                                        output_layout = types.NHWC,
-                                        output_dtype = types.FLOAT16,
+                                        rocal_tensor_output_layout = types.NHWC,
+                                        rocal_tensor_output_datatype = types.FLOAT,
                                         crop=(224, 224),
                                         mirror=flip_coin,
-                                        image_type=types.RGB,
-                                        mean=[0.485 * 255,0.456 * 255,0.406 * 255],
-                                        std=[0.229 * 255,0.224 * 255,0.225 * 255])
-        image_classification_train_pipeline.set_outputs(cmnp)
+                                        mean=[0,0,0],
+                                        std=[1,1,1])
+        image_classification_train_pipeline.setOutputs(cmnp)
 
     image_classification_train_pipeline.build()
     imageIteratorPipeline = ROCALClassificationIterator(image_classification_train_pipeline)
     cnt = 0
     for epoch in range(3):
         print("+++++++++++++++++++++++++++++EPOCH+++++++++++++++++++++++++++++++++++++",epoch)
-        for i, it in enumerate(imageIteratorPipeline):
-            print(it)
+        for i, ([image],labels) in enumerate(imageIteratorPipeline):
             print("************************************** i *************************************",i)
-            for img in it[0]:
+            for img in image:
                 cnt = cnt + 1
-                draw_patches(img, cnt, layout="nhwc", dtype="fp16", device=_rali_cpu) 
+                draw_patches(img, cnt, layout="nhwc", dtype="fp32", device=_rali_cpu) 
         imageIteratorPipeline.reset()
     print("*********************************************************************")
 
