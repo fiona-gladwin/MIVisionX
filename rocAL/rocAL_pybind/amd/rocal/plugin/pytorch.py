@@ -40,6 +40,8 @@ class ROCALGenericIterator(object):
         self.output_memory_type = self.loader._output_memory_type
         self.len = b.getRemainingImages(self.loader._handle)
         self.display = display
+        if self.loader._name is None:
+            self.loader._name = self.loader._reader
 
     def next(self):
         return self.__next__()
@@ -74,25 +76,19 @@ class ROCALGenericIterator(object):
             self.bbox_list = []  # Empty list for bboxes
             self.labels_list = []  # Empty list of labels
 
-            # Count of labels/ bboxes in a batch
-            self.bboxes_label_count = np.zeros(self.bs, dtype="int32")
-            self.loader.rocalGetBoundingBoxCount(self.bboxes_label_count)
             # 1D labels array in a batch
-            self.labels = self.loader.rocalGetBoundingBoxLabels()
+            self.labels = self.loader.getBoundingBoxLabels()
             # 1D bboxes array in a batch
             self.bboxes = self.loader.rocalGetBoundingBoxCords()
             # Image sizes of a batch
-            self.img_size = np.zeros((self.bs * 2), dtype="int32")
+            self.img_size = np.zeros((self.batch_size * 2), dtype="int32")
             self.loader.getImgSizes(self.img_size)
 
-            count = 0
-            sum_count = 0
-            for i in range(self.bs):
-                count = self.bboxes_label_count[i]
+            for i in range(self.batch_size):
 
-                self.label_2d_numpy = (self.labels[sum_count : sum_count + count])
+                self.label_2d_numpy = (self.labels[i])
                 self.label_2d_numpy = np.reshape(self.label_2d_numpy, (-1, 1)).tolist()
-                self.bb_2d_numpy = (self.bboxes[sum_count * 4 : (sum_count + count) * 4])
+                self.bb_2d_numpy = (self.bboxes[i])
                 self.bb_2d_numpy = np.reshape(self.bb_2d_numpy, (-1, 4)).tolist()
 
                 self.labels_list.append(self.label_2d_numpy)
@@ -103,7 +99,6 @@ class ROCALGenericIterator(object):
                         img = (output)
                         draw_patches(img[i], i, self.bb_2d_numpy)
 
-                sum_count = sum_count + count
 
             max_cols = max([len(row) for batch in self.bbox_list for row in batch])
             max_rows = max([len(batch) for batch in self.bbox_list])
@@ -125,7 +120,7 @@ class ROCALGenericIterator(object):
                 self.labels_tensor = self.labels_tensor.reshape(-1, self.batch_size, self.loader._num_classes)
             else:
                 if self.display:
-                    for i in range(self.bs):
+                    for i in range(self.batch_size):
                         img = (self.output)
                         draw_patches(img[i], i, 0)
                 self.labels = self.loader.getImageLabels()

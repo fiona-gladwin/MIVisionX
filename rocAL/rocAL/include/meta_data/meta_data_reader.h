@@ -57,16 +57,18 @@ private:
     unsigned _frame_stride;
     unsigned _out_img_width;
     unsigned _out_img_height;
+    bool _avoid_class_remapping;
 
 public:
-    MetaDataConfig(const MetaDataType& type, const MetaDataReaderType& reader_type, const std::string& path, const std::map<std::string, std::string> &feature_key_map=std::map<std::string, std::string>(), const std::string file_prefix=std::string(), const unsigned& sequence_length = 3, const unsigned& frame_step = 3, const unsigned& frame_stride = 1)
-                    :_type(type), _reader_type(reader_type),  _path(path), _feature_key_map(feature_key_map), _file_prefix(file_prefix), _sequence_length(sequence_length), _frame_step(frame_step), _frame_stride(frame_stride){}
+    MetaDataConfig(const MetaDataType& type, const MetaDataReaderType& reader_type, const std::string& path, const std::map<std::string, std::string> &feature_key_map=std::map<std::string, std::string>(), const std::string file_prefix=std::string(), const unsigned& sequence_length = 3, const unsigned& frame_step = 3, const unsigned& frame_stride = 1, bool avoid_class_remapping = false)
+                    :_type(type), _reader_type(reader_type),  _path(path), _feature_key_map(feature_key_map), _file_prefix(file_prefix), _sequence_length(sequence_length), _frame_step(frame_step), _frame_stride(frame_stride), _avoid_class_remapping(avoid_class_remapping){}
     MetaDataConfig() = delete;
     MetaDataType type() const { return _type; }
     MetaDataReaderType reader_type() const { return _reader_type; }
     std::string path() const { return  _path; }
     std::map<std::string, std::string> feature_key_map() const {return _feature_key_map; }
     std::string file_prefix() const { return  _file_prefix; }
+    bool class_remapping() const { return _avoid_class_remapping; }
     unsigned sequence_length() const { return _sequence_length; }
     unsigned frame_step() const { return _frame_step; }
     unsigned frame_stride() const { return _frame_stride; }
@@ -88,6 +90,7 @@ public:
     virtual void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) = 0;
     virtual void read_all(const std::string& path) = 0;// Reads all the meta data information
     virtual void lookup(const std::vector<std::string>& image_names) = 0;// finds meta_data info associated with given names and fills the output
+    virtual ImgSize lookup_image_size(const std::string& image_name)  { return {}; };
     virtual void release() = 0; // Deletes the loaded information
     virtual const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content()=0;
     virtual bool exists(const std::string &image_name) = 0;

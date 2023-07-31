@@ -238,6 +238,12 @@ class Pipeline(object):
     def getBoundingBoxCords(self):
         return b.getBoundingBoxCords(self._handle)
 
+    def getMaskCount(self, array):
+        return b.getMaskCount(self._handle, array)
+
+    def getMaskCoordinates(self, array_count, array):
+        return b.getMaskCoordinates(self._handle, array_count, array)
+
     def getImageLabels(self):
         return b.getImageLabels(self._handle)
 
@@ -249,6 +255,9 @@ class Pipeline(object):
 
     def getImgSizes(self, array):
         return b.getImgSizes(self._handle, array)
+
+    def getROIImgSizes(self, array):
+        return b.getROIImgSizes(self._handle, array)
 
     def getImageNameLength(self, idx):
         return b.getImageNameLen(self._handle, idx)

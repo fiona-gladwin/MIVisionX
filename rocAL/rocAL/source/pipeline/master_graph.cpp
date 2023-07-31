@@ -1008,7 +1008,23 @@ void MasterGraph::output_routine()
                     {
                         _meta_data_graph->update_random_bbox_meta_data(_augmented_meta_data, output_meta_data, decode_image_info, crop_image_info);
                     }
+                    else
+                    {
+                        _meta_data_graph->update_meta_data(_augmented_meta_data, decode_image_info);
+                    }
                     _meta_data_graph->process(_augmented_meta_data, output_meta_data);
+                }
+            }
+            if(output_meta_data)
+            {
+                // get roi width and height of output image
+                auto& roi_sizes_batch = output_meta_data->get_img_roi_sizes_batch();
+                for (unsigned int i = 0; i < roi_sizes_batch.size(); i++)
+                {
+                    ImgSize img_roi_size;
+                    img_roi_size.w = _output_tensor_list[0]->info().get_roi()[i].x2;
+                    img_roi_size.h = _output_tensor_list[0]->info().get_roi()[i].y2;
+                    roi_sizes_batch[i] = img_roi_size;                
                 }
             }
             _process_time.start();
