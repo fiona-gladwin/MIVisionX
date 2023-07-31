@@ -77,14 +77,14 @@ ROCAL_API_CALL rocalCreateVideoLabelReader(RocalContext p_context, const char* s
 }
 
 RocalMetaData
-ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool mask, bool ltrb, bool is_box_encoder) {
+ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool mask, bool ltrb, bool is_box_encoder, bool avoid_class_remapping) {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalCreateCOCOReader")
     auto context = static_cast<Context*>(p_context);
     if(mask) {
-        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask, ltrb, is_box_encoder);
+        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask, ltrb, is_box_encoder, avoid_class_remapping);
     }
-    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox, ltrb, is_box_encoder);
+    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox, ltrb, is_box_encoder, avoid_class_remapping);
 }
 
 RocalMetaData
@@ -384,6 +384,37 @@ ROCAL_API_CALL rocalGetImageSizes(RocalContext p_context, int* buf)
     {
         memcpy(buf, &(meta_data.second->get_img_sizes_batch()[i]), sizeof(ImgSize));
         buf += 2;
+    }
+}
+
+void
+ROCAL_API_CALL rocalGetROIImageSizes(RocalContext p_context, int* buf)
+{
+    if (!p_context)
+    {
+        ERR("Invalid rocal context passed to rocalGetROIImageSizes")
+        return;
+    }
+    auto context = static_cast<Context*>(p_context);
+    try
+    {
+        auto meta_data = context->master_graph->meta_data();
+        size_t meta_data_batch_size = meta_data.second->get_img_roi_sizes_batch().size();
+
+        if(!meta_data.second) {
+            WRN("No label has been loaded for this output image")
+            return;
+        }
+        for(unsigned i = 0; i < meta_data_batch_size; i++)
+        {
+            memcpy(buf, &(meta_data.second->get_img_roi_sizes_batch()[i]), sizeof(ImgSize));
+            buf += 2;
+        }
+    }
+    catch(const std::exception& e)
+    {
+        context->capture_error(e.what());
+        std::cerr << e.what() << '\n';
     }
 }
 

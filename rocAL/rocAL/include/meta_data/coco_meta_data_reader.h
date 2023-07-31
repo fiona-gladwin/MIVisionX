@@ -32,6 +32,7 @@ class COCOMetaDataReader: public MetaDataReader
 public:
     void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
+    ImgSize lookup_image_size(const std::string& image_name) override;
     void read_all(const std::string& path) override;
     void release(std::string image_name);
     void release() override;
@@ -44,6 +45,7 @@ private:
     pMetaDataBatch _output;
     std::string _path;
     int meta_data_reader_type;
+    bool _avoid_class_remapping;
     void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, int image_id = 0);
     void add(std::string image_name, BoundingBoxCords bbox, Labels labels, ImgSize image_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count); // To add Mask coordinates to Metadata struct
     bool exists(const std::string &image_name) override;

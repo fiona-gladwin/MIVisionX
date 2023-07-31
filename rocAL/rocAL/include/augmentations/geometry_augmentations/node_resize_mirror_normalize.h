@@ -45,13 +45,17 @@ protected:
     void create_node() override;
     void update_node() override;
 private:
-    vx_array _mean_vx_array, _std_dev_vx_array, _mirror_vx_array, _dst_roi_width , _dst_roi_height;
-    std::vector<float> _mean, _std_dev;
+    vx_array _dst_roi_width, _dst_roi_height;
+    vx_array _src_roi_width, _src_roi_height;
+    std::vector<uint> _dest_width_val, _dest_height_val;
+    vx_array _mean_array, _std_dev_array, _mean_vx_array, _std_dev_vx_array, _mirror_vx_array;
+    std::vector<float> _mean;
+    std::vector<float> _std_dev;
     int _interpolation_type;
     ParameterVX<int> _mirror;
     constexpr static int _mirror_range[2] = {0, 1};
     RocalResizeScalingMode _scaling_mode;
     unsigned _src_width, _src_height, _dst_width, _dst_height, _out_width, _out_height;
     unsigned _max_width = 0, _max_height = 0;
-    std::vector<unsigned> _dst_roi_width_vec, _dst_roi_height_vec;
+    std::vector<unsigned> _dst_roi_width_vec, _dst_roi_height_vec, _src_roi_width_vec, _src_roi_height_vec;
 };

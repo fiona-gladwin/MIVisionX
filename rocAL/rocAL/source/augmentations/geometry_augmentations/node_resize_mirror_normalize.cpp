@@ -35,6 +35,17 @@ void ResizeMirrorNormalizeNode::create_node()
 {
     if(_node)
         return;
+    std::vector<uint32_t> roi_width(_batch_size, _inputs[0]->info().max_shape()[0]);
+    std::vector<uint32_t> roi_height(_batch_size, _inputs[0]->info().max_shape()[1]);
+    _src_roi_width = vxCreateArray(vxGetContext((vx_reference) _graph->get()), VX_TYPE_UINT32, _batch_size);
+    _src_roi_height = vxCreateArray(vxGetContext((vx_reference) _graph->get()), VX_TYPE_UINT32, _batch_size);
+    
+    vx_status width_status, height_status;
+    width_status = vxAddArrayItems(_src_roi_width, _batch_size, roi_width.data(), sizeof(vx_uint32));
+    height_status = vxAddArrayItems(_src_roi_height, _batch_size, roi_height.data(), sizeof(vx_uint32));
+    if(width_status != 0 || height_status != 0)
+        THROW(" vxAddArrayItems failed in the resize (vxExtrppNode_ResizeTensor) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status));
+    
     std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().max_shape()[0]);
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
     
@@ -71,7 +82,6 @@ void ResizeMirrorNormalizeNode::create_node()
     if(status != 0)
         THROW(" vxAddArrayItems failed in the resize_mirror_normalize node (vxRppCropMirrorNormalize)  node: "+ TOSTR(status) + "  "+ TOSTR(status))
 
-    vx_status width_status, height_status;
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
     if(width_status != 0 || height_status != 0)
@@ -95,17 +105,26 @@ void ResizeMirrorNormalizeNode::update_node()
         _dst_width = _out_width;
         _dst_height = _out_height;
         adjust_out_roi_size();
+        _src_roi_width_vec.push_back(_src_width);
+        _src_roi_height_vec.push_back(_src_height);
         _dst_width = std::min(_dst_width, (unsigned)_outputs[0]->info().max_shape()[0]);
         _dst_height = std::min(_dst_height, (unsigned)_outputs[0]->info().max_shape()[1]);
         _dst_roi_width_vec.push_back(_dst_width);
         _dst_roi_height_vec.push_back(_dst_height);
     }
     vx_status width_status, height_status;
+    width_status = vxCopyArrayRange((vx_array)_src_roi_width, 0, _batch_size, sizeof(vx_uint32), _src_roi_width_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+    height_status = vxCopyArrayRange((vx_array)_src_roi_height, 0, _batch_size, sizeof(vx_uint32), _src_roi_height_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+    if(width_status != 0 || height_status != 0)
+        WRN("ERROR: vxCopyArrayRange _src_roi_width or _src_roi_height failed " + TOSTR(width_status) + "  " + TOSTR(height_status));
+    
     width_status = vxCopyArrayRange((vx_array)_dst_roi_width, 0, _batch_size, sizeof(vx_uint32), _dst_roi_width_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     height_status = vxCopyArrayRange((vx_array)_dst_roi_height, 0, _batch_size, sizeof(vx_uint32), _dst_roi_height_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     if(width_status != 0 || height_status != 0)
         WRN("ERROR: vxCopyArrayRange _dst_roi_width or _dst_roi_height failed " + TOSTR(width_status) + "  " + TOSTR(height_status));
-_outputs[0]->update_tensor_roi(_dst_roi_width_vec, _dst_roi_height_vec);
+    _outputs[0]->update_tensor_roi(_dst_roi_width_vec, _dst_roi_height_vec);
+    _src_roi_width_vec.clear();
+    _src_roi_height_vec.clear();
     _dst_roi_width_vec.clear();
     _dst_roi_height_vec.clear();
     _mirror.update_array();

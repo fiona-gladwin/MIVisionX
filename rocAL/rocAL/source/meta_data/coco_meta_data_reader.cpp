@@ -32,6 +32,7 @@ using namespace std;
 void COCOMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
 {
     _path = cfg.path();
+    _avoid_class_remapping = cfg.class_remapping();
     _output = meta_data_batch;
     _output->set_metadata_type(cfg.type());
 }
@@ -39,6 +40,14 @@ void COCOMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_dat
 bool COCOMetaDataReader::exists(const std::string &image_name)
 {
     return _map_content.find(image_name) != _map_content.end();
+}
+
+ImgSize COCOMetaDataReader::lookup_image_size(const std::string& image_name)
+{
+    auto it = _map_content.find(image_name);
+    if (_map_content.end() == it)
+        THROW("ERROR: Given name not present in the map " + image_name)
+    return it->second->get_img_size();
 }
 
 void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
@@ -369,10 +378,14 @@ void COCOMetaDataReader::read_all(const std::string &path)
         bb_coords = elem.second->get_bb_cords();
         bb_labels = elem.second->get_labels();
         Labels continuous_label_id;
+        int cnt_idx;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
             auto _it_label = _label_info.find(bb_labels[i]);
-            int cnt_idx = _it_label->second;
+            if (_avoid_class_remapping)
+                cnt_idx = _it_label->first;
+            else
+                cnt_idx = _it_label->second;
             continuous_label_id.push_back(cnt_idx);
         }
         elem.second->set_labels(continuous_label_id);
