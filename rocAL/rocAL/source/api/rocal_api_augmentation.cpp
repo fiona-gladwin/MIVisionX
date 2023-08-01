@@ -567,6 +567,8 @@ rocalResize(
 
         std::shared_ptr<ResizeNode> resize_node = context->master_graph->add_node<ResizeNode>({input}, {output});
         resize_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type);
+        if (context->master_graph->meta_data_graph())
+            context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -601,16 +603,21 @@ ROCAL_API_CALL rocalResizeMirrorNormalize(
     try {
         if((dest_width | dest_height | resize_longer | resize_shorter) == 0)
             THROW("Atleast one size 'dest_width' or 'dest_height' or 'resize_shorter' or 'resize_longer' must be specified")
-        if((dest_width | dest_height) && (resize_longer | resize_shorter))
+        if((dest_width | dest_height) && (resize_longer | resize_shorter) && (scaling_mode != RocalResizeScalingMode::ROCAL_SCALING_MODE_MIN_MAX))
             THROW("Only one method of specifying size can be used \ndest_width and/or dest_height\nresize_shorter\nresize_longer")
-        if(resize_longer && resize_shorter)
-            THROW("'resize_longer' and 'resize_shorter' cannot be passed together. They are mutually exclusive.")
+        if(resize_longer && resize_shorter && scaling_mode != RocalResizeScalingMode::ROCAL_SCALING_MODE_MIN_MAX)
+            THROW("'resize_longer' and 'resize_shorter' can only be passed together for min max scaling mode")
 
         unsigned out_width, out_height;
         RocalResizeScalingMode resize_scaling_mode;
 
         // Change the scaling mode if resize_shorter or resize_longer is specified
-        if(resize_shorter) {
+        if(scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_MIN_MAX) {
+            resize_scaling_mode = scaling_mode;
+            out_width = dest_width;
+            out_height = dest_height;
+        }
+        else if(resize_shorter) {
             resize_scaling_mode = RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_SMALLER;
             out_width = out_height = resize_shorter;
         } else if(resize_longer) {
@@ -656,25 +663,31 @@ ROCAL_API_CALL rocalResizeMirrorNormalize(
                 max_out_height = maximum_size[1] ? maximum_size[1] : max_out_height;
             }
         }
-
+        if(scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_MIN_MAX) {
+            maximum_size = {resize_shorter, resize_longer};
+        }
+        
         RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
         RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
         TensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensor_layout);
         output_info.set_data_type(op_tensor_datatype);
         std::vector<size_t> out_dims = output_info.dims();
-        modify_dims_width_and_height(op_tensor_layout, out_dims, max_out_width, max_out_height);
+        modify_dims_width_and_height(op_tensor_layout, out_dims, dest_width, dest_height);
         output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
         std::shared_ptr<ResizeMirrorNormalizeNode> rmn_node = context->master_graph->add_node<ResizeMirrorNormalizeNode>({input}, {output});
         rmn_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type, mean, std_dev, mirror);
-        // if (context->master_graph->meta_data_graph())
-        //     context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode,ResizeMirrorNormalizeNode>(rmn_node);
-    } catch(const std::exception& e) {
-        context->capture_error(e.what());
-        ERR(e.what())
+        if (context->master_graph->meta_data_graph())
+            context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode,ResizeMirrorNormalizeNode>(rmn_node);
     }
+    catch(const std::exception& e)
+    {
+        context->capture_error(e.what());
+        ERR(e.what());
+    }
+
     return output;
 }
 
