@@ -21,29 +21,22 @@ THE SOFTWARE.
 */
 
 #include <vx_ext_rpp.h>
-#include <node_pixelate.h>
-#include <graph.h>
+#include "node_pixelate.h"
 #include "exception.h"
 
 PixelateNode::PixelateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs)
-{
-}
+        Node(inputs, outputs) {}
 
-void PixelateNode::create_node()
-{
+void PixelateNode::create_node() {
     if(_node)
         return;
 
-    // _node = vxExtrppNode_PixelatebatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _batch_size);
+    _node = vxExtRppPixelate(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the pixelate (vxExtrppNode_Pixelate) node failed: "+ TOSTR(status))
-
+        THROW("Adding the pixelate (vxExtRppPixelate) node failed: " + TOSTR(status))
 }
 
-void PixelateNode::update_node()
-{
-}
+void PixelateNode::update_node() {}
 

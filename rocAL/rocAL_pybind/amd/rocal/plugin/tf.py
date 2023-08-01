@@ -19,6 +19,7 @@
 # THE SOFTWARE.
 
 import numpy as np
+import cupy as cp
 import rocal_pybind as b
 import amd.rocal.types as types
 
@@ -60,18 +61,20 @@ class ROCALGenericImageIterator(object):
 
 
 class ROCALGenericIteratorDetection(object):
-    def __init__(self, pipeline, tensor_layout=types.NCHW, reverse_channels=False, multiplier=[1.0, 1.0, 1.0], offset=[0.0, 0.0, 0.0], tensor_dtype=types.FLOAT):
+    def __init__(self, pipeline, tensor_layout=types.NCHW, reverse_channels=False, multiplier=None, offset=None, tensor_dtype=types.FLOAT, device=None, device_id=0):
         self.loader = pipeline
-        self.tensor_format = tensor_layout
-        self.multiplier = multiplier
-        self.offset = offset
+        self.tensor_format =tensor_layout
+        self.multiplier = multiplier or [1.0, 1.0, 1.0]
+        self.offset = offset or [0.0, 0.0, 0.0]
+        self.device = device
+        self.device_id = device_id
         self.reverse_channels = reverse_channels
         self.tensor_dtype = tensor_dtype
         self.bs = pipeline._batch_size
         self.output_list = self.dimensions = self.dtype = None
         if self.loader._name is None:
             self.loader._name = self.loader._reader
-
+    
     def next(self):
         return self.__next__()
 
@@ -86,8 +89,12 @@ class ROCALGenericIteratorDetection(object):
             for i in range(len(self.output_tensor_list)):
                 self.dimensions = self.output_tensor_list[i].dimensions()
                 self.dtype = self.output_tensor_list[i].dtype()
-                self.output = np.empty(self.dimensions, dtype = self.dtype)
-                self.output_tensor_list[i].copy_data_numpy(self.output)
+                if self.device == "cpu":
+                    self.output = np.empty(self.dimensions, dtype = self.dtype)
+                    self.output_tensor_list[i].copy_data_numpy(self.output)
+                else:
+                    self.output = cp.empty(self.dimensions, dtype = self.dtype)
+                    self.output_tensor_list[i].copy_data_cupy(self.output.data.ptr) 
                 self.output_list.append(self.output)
         else:
             for i in range(len(self.output_tensor_list)):
@@ -142,9 +149,14 @@ class ROCALGenericIteratorDetection(object):
             return self.output_list, self.res, self.l, self.num_bboxes_arr
         elif (self.loader._name == "TFRecordReaderClassification"):
             if (self.loader._one_hot_encoding == True):
-                self.labels = np.zeros((self.bs)*(self.loader._num_classes), dtype="int32")
-                self.loader.getOneHotEncodedLabels(self.labels, device="cpu")
-                self.labels = np.reshape(self.labels, (-1, self.bs, self.loader._num_classes))
+                if self.device == "cpu":
+                    self.labels = np.zeros((self.bs)*(self.loader._num_classes), dtype="int32")
+                    self.loader.getOneHotEncodedLabels(self.labels, device="cpu")
+                    self.labels = np.reshape(self.labels, (-1, self.bs, self.loader._num_classes))
+                else:
+                    self.labels = cp.zeros((self.bs)*(self.loader._num_classes), dtype="int32")
+                    self.loader.getOneHotEncodedLabels(self.labels, device="gpu")
+                    self.labels = cp.reshape(self.labels, (-1, self.bs, self.loader._num_classes))
             else:
                 self.labels = self.loader.getImageLabels()
 
@@ -179,10 +191,13 @@ class ROCALIterator(ROCALGenericIteratorDetection):
                  auto_reset=False,
                  fill_last_batch=True,
                  dynamic_shape=False,
-                 last_batch_padded=False):
+                 last_batch_padded=False,
+                 device="cpu",
+                 device_id=0):
         pipe = pipelines
         super(ROCALIterator, self).__init__(pipe, tensor_layout=pipe._tensor_layout, tensor_dtype=pipe._tensor_dtype,
-                                            multiplier=pipe._multiplier, offset=pipe._offset)
+                                                            multiplier=pipe._multiplier, offset=pipe._offset, device=device, device_id=device_id)
+
 
 
 class ROCAL_iterator(ROCALGenericImageIterator):

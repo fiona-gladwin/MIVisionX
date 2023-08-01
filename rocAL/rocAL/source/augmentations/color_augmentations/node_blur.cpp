@@ -26,35 +26,28 @@ THE SOFTWARE.
 
 BlurNode::BlurNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _sdev(SDEV_RANGE[0], SDEV_RANGE[1])
-{
-}
+        _kernel_size(KERNEL_SIZE_RANGE[0], KERNEL_SIZE_RANGE[1]) {}
 
-void BlurNode::create_node()
-{
+void BlurNode::create_node() {
     if(_node)
         return;
 
-    _sdev.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
-    // _node = vxExtrppNode_BlurbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width,_src_roi_height, _outputs[0]->handle(), _sdev.default_array(), _batch_size);
+    _kernel_size.create_array(_graph, VX_TYPE_UINT32, _batch_size);
+    _node = vxExtRppBlur(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _kernel_size.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the blur (vxExtrppNode_blur) node failed: "+ TOSTR(status))
-
+        THROW("Adding the blur (vxExtRppBlur) node failed: " + TOSTR(status))
 }
 
-void BlurNode::init(int sdev)
-{
-    _sdev.set_param(sdev);
+void BlurNode::init(int kernel_size) {
+    _kernel_size.set_param(kernel_size);
 }
 
-void BlurNode::init(IntParam* sdev)
-{
-    _sdev.set_param(core(sdev));
+void BlurNode::init(IntParam *kernel_size_param) {
+    _kernel_size.set_param(core(kernel_size_param));
 }
 
-void BlurNode::update_node()
-{
-    _sdev.update_array();
+void BlurNode::update_node() {
+    _kernel_size.update_array();
 }

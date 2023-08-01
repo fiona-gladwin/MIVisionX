@@ -30,7 +30,7 @@ SSDRandomCropNode::SSDRandomCropNode(const std::vector<Tensor *> &inputs, const 
                                                                                                           _dest_height(_outputs[0]->info().max_shape()[1])
 {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
-    _is_ssd     = true;
+    _is_ssd = true;
 }
 
 void SSDRandomCropNode::create_node()
@@ -39,8 +39,6 @@ void SSDRandomCropNode::create_node()
     _crop_height_val.resize(_batch_size);
     _x1_val.resize(_batch_size);
     _y1_val.resize(_batch_size);
-    _x2_val.resize(_batch_size);
-    _y2_val.resize(_batch_size);
     _iou_range.resize(_batch_size);
     if (_node)
         return;
@@ -49,12 +47,12 @@ void SSDRandomCropNode::create_node()
         THROW("Uninitialized destination dimension")
 
     _crop_param->create_array(_graph);
-    // _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
-                                // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
+    create_crop_tensor(_crop_tensor, &_crop_coordinates);
+    _node = vxExtRppCrop(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Error adding the crop resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: " + TOSTR(status))
+        THROW("Error adding the crop resize node (vxExtrppNode_ResizeCropbatchPD) failed: " + TOSTR(status))
 }
 
 inline double ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const BoundingBoxCord &box2, bool is_iou = false)
@@ -84,7 +82,7 @@ void SSDRandomCropNode::update_node()
 {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
-    // std::cerr<<"\n batch_size:: "<<_batch_size<<"\n meta array size:: "<<_meta_data_info->size();
+    RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);  // ROI to be cropped from source
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, 6);
@@ -94,11 +92,10 @@ void SSDRandomCropNode::update_node()
     std::pair<float, float> iou;
     float min_iou, max_iou;
     float w_factor = 0.0f, h_factor = 0.0f;
-    // in_width = _crop_param->in_width; TODO - Commenting for now to be replaced with ROI
-    // in_height = _crop_param->in_height;
+    auto input_roi = _crop_param->in_roi;
     bool invalid_bboxes = true;
     _entire_iou = true;
-    BoundingBoxCord crop_box, jth_box;
+    BoundingBoxCord crop_box;
     _x1_val = _crop_param->get_x1_arr_val();
     _y1_val = _crop_param->get_y1_arr_val();
     _crop_width_val = _crop_param->get_cropw_arr_val();
@@ -108,10 +105,8 @@ void SSDRandomCropNode::update_node()
     for (uint i = 0; i < _batch_size; i++)
     {
         int bb_count = _meta_data_info->get_labels_batch()[i].size();
-        std::vector<int> labels_buf(bb_count);
-        memcpy(labels_buf.data(), _meta_data_info->get_labels_batch()[i].data(), sizeof(int) * bb_count);
-        std::vector<float> coords_buf(bb_count * 4);
-        memcpy(coords_buf.data(), _meta_data_info->get_bb_cords_batch()[i].data(), _meta_data_info->get_bb_cords_batch()[i].size() * sizeof(BoundingBoxCord));
+        std::vector<int> labels_buf = _meta_data_info->get_labels_batch()[i];
+        BoundingBoxCords coords_buf = _meta_data_info->get_bb_cords_batch()[i];
 
         crop_box.b = _y1_val[i] + _crop_height_val[i];
         crop_box.r = _x1_val[i] + _crop_width_val[i];
@@ -163,12 +158,7 @@ void SSDRandomCropNode::update_node()
 
             for (int j = 0; j < bb_count; j++)
             {
-                int m = j * 4;
-                jth_box.l = coords_buf[m];
-                jth_box.t = coords_buf[m + 1];
-                jth_box.r = coords_buf[m + 2];
-                jth_box.b = coords_buf[m + 3];
-                float bb_iou = ssd_BBoxIntersectionOverUnion(jth_box, crop_box, _entire_iou);
+                float bb_iou = ssd_BBoxIntersectionOverUnion(coords_buf[j], crop_box, _entire_iou);
                 if (bb_iou < min_iou || bb_iou > max_iou )
                 {
                     invalid_bboxes = true;
@@ -182,9 +172,8 @@ void SSDRandomCropNode::update_node()
             auto left = crop_box.l, top = crop_box.t, right = crop_box.r, bottom = crop_box.b;
             for (int j = 0; j < bb_count; j++)
             {
-                int m = j * 4;
-                auto x_c = 0.5f * (2 * coords_buf[m] + coords_buf[m + 2]);
-                auto y_c = 0.5f * (2 * coords_buf[m + 1] + coords_buf[m + 3]);
+                auto x_c = 0.5f * (2 * coords_buf[j].l + coords_buf[j].r);
+                auto y_c = 0.5f * (2 * coords_buf[j].t + coords_buf[j].b);
                 if ((x_c >= left) && (x_c <= right) && (y_c >= top) && (y_c <= bottom))
                     valid_bbox_count++;
             }
@@ -192,18 +181,16 @@ void SSDRandomCropNode::update_node()
                 continue;
             break;
         } // while loop
-        _x1_val[i] = (crop_box.l) * in_width[i];
-        _y1_val[i] = (crop_box.t) * in_height[i];
-        _crop_width_val[i] = (crop_box.r - crop_box.l) * in_width[i];
-        _crop_height_val[i] = (crop_box.b - crop_box.t) * in_height[i];
-        _x2_val[i] =  (crop_box.r) * in_width[i];
-        _y2_val[i] =  (crop_box.b) * in_height[i];
-
+        crop_dims[i].x1 = (crop_box.l) * input_roi[i].x2;
+        crop_dims[i].y1 = (crop_box.t) * input_roi[i].y2;
+        if(_inputs[0]->info().roi_type() == RocalROIType::XYWH) {
+            crop_dims[i].x2 = (crop_box.r - crop_box.l) * input_roi[i].x2;
+            crop_dims[i].y2 = (crop_box.b - crop_box.t) * input_roi[i].y2;
+        } else if(_inputs[0]->info().roi_type() == RocalROIType::LTRB) {
+            crop_dims[i].x2 =  (crop_box.r) * input_roi[i].x2;
+            crop_dims[i].y2 =  (crop_box.b) * input_roi[i].y2;
     }
-    vxCopyArrayRange((vx_array)_crop_param->cropw_arr, 0, _batch_size, sizeof(uint), _crop_width_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_crop_param->croph_arr, 0, _batch_size, sizeof(uint), _crop_height_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_crop_param->x1_arr, 0, _batch_size, sizeof(uint), _x1_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_crop_param->y1_arr, 0, _batch_size, sizeof(uint), _y1_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+    }
     _outputs[0]->update_tensor_roi(_crop_width_val, _crop_height_val);
 }
 
@@ -214,4 +201,17 @@ void SSDRandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspe
     _crop_param->set_area_factor(core(crop_area_factor));
     _crop_param->set_aspect_ratio(core(crop_aspect_ratio));
     _num_of_attempts = num_of_attempts;
+}
+
+SSDRandomCropNode::~SSDRandomCropNode() {
+    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
+#if ENABLE_HIP
+        hipError_t err = hipHostFree(_crop_coordinates);
+        if(err != hipSuccess)
+            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
+#endif
+    } else {
+        free(_crop_coordinates);
+    }
+    vxReleaseTensor(&_crop_tensor);
 }

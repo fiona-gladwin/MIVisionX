@@ -25,24 +25,16 @@ THE SOFTWARE.
 #include "exception.h"
 
 FisheyeNode::FisheyeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs)
-{
-}
+        Node(inputs, outputs) {}
 
-void FisheyeNode::create_node()
-{
+void FisheyeNode::create_node() {
     if(_node)
         return;
-    
-    // _node = vxExtrppNode_FisheyebatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _batch_size);
+    _node = vxExtRppFishEye(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the fish eye (vxExtrppNode_FisheyebatchPD) node failed: "+ TOSTR(status))
-
-
+        THROW("Adding the FishEye (vxExtRppFishEye) node failed: " + TOSTR(status))
 }
 
-void FisheyeNode::update_node()
-{
-}
+void FisheyeNode::update_node() {}
