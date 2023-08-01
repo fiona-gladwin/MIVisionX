@@ -32,7 +32,7 @@ public:
     SnPNoiseNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SnPNoiseNode() = delete;
     void init(float noise_prob, float salt_prob, float salt_value, float pepper_value, int seed);
-    void init(FloatParam *noise_prob_param, FloatParam *salt_prob_param,  FloatParam *salt_value_param, FloatParam *pepper_value_param, int seed);
+    void init(FloatParam *noise_prob_param, FloatParam *salt_prob_param, FloatParam *salt_value_param, FloatParam *pepper_value_param, int seed);
 protected:
     void create_node() override;
     void update_node() override;

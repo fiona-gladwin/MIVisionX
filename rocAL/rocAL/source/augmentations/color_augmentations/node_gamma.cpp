@@ -25,8 +25,8 @@ THE SOFTWARE.
 #include "exception.h"
 
 GammaNode::GammaNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _gamma(GAMMA_RANGE[0], GAMMA_RANGE[1]) {}
+    Node(inputs, outputs),
+    _gamma(GAMMA_RANGE[0], GAMMA_RANGE[1]) {}
 
 void GammaNode::create_node() {
     if(_node)

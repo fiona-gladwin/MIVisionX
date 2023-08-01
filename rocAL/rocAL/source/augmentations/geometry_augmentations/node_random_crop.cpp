@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {
+    Node(inputs, outputs) {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
 

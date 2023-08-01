@@ -37,5 +37,5 @@ protected:
     void update_node() override;
 private:
     ParameterVX<float> _snow_value;
-    constexpr static float SNOW_VALUE_RANGE [2] = {0.1, 0.8};
+    constexpr static float SNOW_VALUE_RANGE[2] = {0.1, 0.8};
 };

@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 PixelateNode::PixelateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {}
+    Node(inputs, outputs) {}
 
 void PixelateNode::create_node() {
     if(_node)

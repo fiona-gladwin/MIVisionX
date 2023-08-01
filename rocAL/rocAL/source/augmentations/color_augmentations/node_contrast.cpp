@@ -25,9 +25,9 @@ THE SOFTWARE.
 #include "exception.h"
 
 ContrastNode::ContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _factor(CONTRAST_FACTOR_RANGE[0], CONTRAST_FACTOR_RANGE[1]),
-        _center(CONTRAST_CENTER_RANGE[0], CONTRAST_CENTER_RANGE[1]) {}
+    Node(inputs, outputs),
+    _factor(CONTRAST_FACTOR_RANGE[0], CONTRAST_FACTOR_RANGE[1]),
+    _center(CONTRAST_CENTER_RANGE[0], CONTRAST_CENTER_RANGE[1]) {}
 
 void ContrastNode::create_node() {
     if(_node)

@@ -25,9 +25,10 @@ THE SOFTWARE.
 #include "node_ssd_random_crop.h"
 #include "exception.h"
 
-SSDRandomCropNode::SSDRandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
-                                                                                                          _dest_width(_outputs[0]->info().max_shape()[0]),
-                                                                                                          _dest_height(_outputs[0]->info().max_shape()[1])
+SSDRandomCropNode::SSDRandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : 
+    Node(inputs, outputs),
+    _dest_width(_outputs[0]->info().max_shape()[0]),
+    _dest_height(_outputs[0]->info().max_shape()[1])
 {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
     _is_ssd = true;
@@ -86,8 +87,7 @@ void SSDRandomCropNode::update_node()
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, 6);
-    const std::vector<std::pair<float, float>> IOU = {std::make_pair(0.0f, 1.0f), std::make_pair(0.1f, 1.0f), std::make_pair(0.3f, 1.0f),
-                                            std::make_pair(0.5f, 1.0f), std::make_pair(0.45f, 1.0f), std::make_pair(0.35f, 1.0f), std::make_pair(0.0f, 1.0f) };
+    const std::vector<std::pair<float, float>> IOU = {std::make_pair(0.0f, 1.0f), std::make_pair(0.1f, 1.0f), std::make_pair(0.3f, 1.0f), std::make_pair(0.5f, 1.0f), std::make_pair(0.45f, 1.0f), std::make_pair(0.35f, 1.0f), std::make_pair(0.0f, 1.0f) };
     int sample_option;
     std::pair<float, float> iou;
     float min_iou, max_iou;
@@ -142,7 +142,6 @@ void SSDRandomCropNode::update_node()
             }
             if ((aspect_ratio < 0.5) || (aspect_ratio > 2.))
                 continue;
-
 
             // Setting width factor btw 0 and 1 - width_factor and height factor btw 0 and 1 - height_factor
             std::uniform_real_distribution<float> l_dis(0.0, 1.0 - w_factor), t_dis(0.0, 1.0-h_factor);

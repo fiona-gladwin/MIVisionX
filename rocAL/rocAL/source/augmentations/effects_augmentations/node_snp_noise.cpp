@@ -24,13 +24,12 @@ THE SOFTWARE.
 #include "node_snp_noise.h"
 #include "exception.h"
 
-
 SnPNoiseNode::SnPNoiseNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _noise_prob(NOISE_PROB_RANGE[0], NOISE_PROB_RANGE[1]),
-        _salt_prob (SALT_PROB_RANGE[0], SALT_PROB_RANGE[1]),
-        _salt_value(SALT_RANGE[0], SALT_RANGE[1]),
-        _pepper_value(PEPPER_RANGE[0], PEPPER_RANGE[1]) {}
+    Node(inputs, outputs),
+    _noise_prob(NOISE_PROB_RANGE[0], NOISE_PROB_RANGE[1]),
+    _salt_prob (SALT_PROB_RANGE[0], SALT_PROB_RANGE[1]),
+    _salt_value(SALT_RANGE[0], SALT_RANGE[1]),
+    _pepper_value(PEPPER_RANGE[0], PEPPER_RANGE[1]) {}
 
 void SnPNoiseNode::create_node() {
     if(_node)

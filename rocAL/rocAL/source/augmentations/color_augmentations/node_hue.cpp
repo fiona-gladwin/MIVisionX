@@ -26,8 +26,8 @@ THE SOFTWARE.
 
 
 HueNode::HueNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _hue(HUE_RANGE[0], HUE_RANGE[1]) {}
+    Node(inputs, outputs),
+    _hue(HUE_RANGE[0], HUE_RANGE[1]) {}
 
 void HueNode::create_node() {
     if(_node)

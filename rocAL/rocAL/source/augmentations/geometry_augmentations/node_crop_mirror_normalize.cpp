@@ -25,12 +25,10 @@ THE SOFTWARE.
 #include "node_crop_mirror_normalize.h"
 #include "exception.h"
 
-
-CropMirrorNormalizeNode::CropMirrorNormalizeNode(const std::vector<Tensor *> &inputs,
-                                                 const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1]) {
-        _crop_param = std::make_shared<RocalCropParam>(_batch_size);
+CropMirrorNormalizeNode::CropMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
+    Node(inputs, outputs),
+    _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1]) {
+    _crop_param = std::make_shared<RocalCropParam>(_batch_size);
 }
 
 void CropMirrorNormalizeNode::create_node() {
@@ -51,7 +49,7 @@ void CropMirrorNormalizeNode::create_node() {
         THROW("Standard deviation value cannot be 0");
     multiplier_vec.resize(multiplier_offset_array_size, -(_mean[0] / _std_dev[0]));
     offset_vec.resize(multiplier_offset_array_size, (1 / _std_dev[0]));
-    
+
     if(_inputs[0]->info().get_channels() == 3) {
         if(!(_std_dev[0] && _std_dev[1] && _std_dev[2]))
             THROW("Standard deviation value cannot be 0");
@@ -79,7 +77,7 @@ void CropMirrorNormalizeNode::create_node() {
     if(status != 0)
         THROW(" vxAddArrayItems failed in the crop_mirror_normalize node (vxExtRppCropMirrorNormalize)  node: " + TOSTR(status) + "  " + TOSTR(status))   
     create_crop_tensor(_crop_tensor, &_crop_coordinates);
-    
+
     _node = vxExtRppCropMirrorNormalize(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(),
                                         _multiplier_vx_array, _offset_vx_array, _mirror.default_array(), _input_layout, _output_layout, _roi_type);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
@@ -93,7 +91,7 @@ void CropMirrorNormalizeNode::update_node() {
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
     _mirror.update_array();
-    
+
     // Obtain the crop coordinates and update the roi
     auto x1 = _crop_param->get_x1_arr_val();
     auto y1 = _crop_param->get_y1_arr_val();

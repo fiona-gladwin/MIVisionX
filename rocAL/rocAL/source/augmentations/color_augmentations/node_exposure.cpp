@@ -25,8 +25,8 @@ THE SOFTWARE.
 #include "exception.h"
 
 ExposureNode::ExposureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _exposure_factor(EXPOSURE_FACTOR_RANGE[0], EXPOSURE_FACTOR_RANGE[1]) {}
+    Node(inputs, outputs),
+    _exposure_factor(EXPOSURE_FACTOR_RANGE[0], EXPOSURE_FACTOR_RANGE[1]) {}
 
 void ExposureNode::create_node() {
     if(_node)

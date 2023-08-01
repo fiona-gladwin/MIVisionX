@@ -25,9 +25,9 @@ THE SOFTWARE.
 #include "exception.h"
 
 FlipNode::FlipNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _horizontal(HORIZONTAL_RANGE[0], HORIZONTAL_RANGE[1]),
-        _vertical(VERTICAL_RANGE[0], VERTICAL_RANGE[1]) {}
+    Node(inputs, outputs),
+    _horizontal(HORIZONTAL_RANGE[0], HORIZONTAL_RANGE[1]),
+    _vertical(VERTICAL_RANGE[0], VERTICAL_RANGE[1]) {}
 
 void FlipNode::create_node() {
     if(_node)

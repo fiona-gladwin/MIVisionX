@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 
 SequenceRearrangeNode::SequenceRearrangeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {}
+    Node(inputs, outputs) {}
 
 void SequenceRearrangeNode::create_node() {
     if(_node)

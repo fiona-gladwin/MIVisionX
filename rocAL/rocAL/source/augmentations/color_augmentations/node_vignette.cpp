@@ -25,8 +25,8 @@ THE SOFTWARE.
 #include "exception.h"
 
 VignetteNode::VignetteNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _sdev(SDEV_RANGE[0], SDEV_RANGE[1]) {}
+    Node(inputs, outputs),
+    _sdev(SDEV_RANGE[0], SDEV_RANGE[1]) {}
 
 void VignetteNode::create_node() {
     if(_node)

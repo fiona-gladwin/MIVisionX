@@ -34,7 +34,7 @@ public:
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     std::shared_ptr<RocalRandomCropParam> get_crop_param() { return _crop_param; }
-    int get_num_of_attempts(){return _num_of_attempts;}
+    int get_num_of_attempts(){ return _num_of_attempts; }
 
 protected:
     void create_node() override;

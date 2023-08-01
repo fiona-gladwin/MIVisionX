@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 ResizeMirrorNormalizeNode::ResizeMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs), _mirror(_mirror_range[0], _mirror_range[1]) {}
+    Node(inputs, outputs), _mirror(_mirror_range[0], _mirror_range[1]) {}
 
 void ResizeMirrorNormalizeNode::create_node()
 {
@@ -57,7 +57,7 @@ void ResizeMirrorNormalizeNode::create_node()
             std_dev_vec[j + 2] = _std_dev[2];
         }
     }
-    
+
     _mean_vx_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, mean_std_array_size);
     _std_dev_vx_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, mean_std_array_size);
     vx_status mean_status = VX_SUCCESS;

@@ -26,8 +26,7 @@ THE SOFTWARE.
 #include "parameter_factory.h"
 #include "parameter_vx.h"
 
-class RainNode : public Node
-{
+class RainNode : public Node {
 public:
     RainNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     RainNode() = delete;
@@ -41,8 +40,8 @@ private:
     ParameterVX<int> _rain_width;
     ParameterVX<int> _rain_height;
     ParameterVX<float> _rain_transparency;
-    constexpr static float RAIN_VALUE_RANGE [2] = {0.15, 0.95};
-    constexpr static int RAIN_WIDTH_RANGE [2] = {1, 2};
-    constexpr static int RAIN_HEIGHT_RANGE [2] = {15, 17};
-    constexpr static float RAIN_TRANSPARENCY_RANGE [2] = {0.2, 0.3};
+    constexpr static float RAIN_VALUE_RANGE[2] = {0.15, 0.95};
+    constexpr static int RAIN_WIDTH_RANGE[2] = {1, 2};
+    constexpr static int RAIN_HEIGHT_RANGE[2] = {15, 17};
+    constexpr static float RAIN_TRANSPARENCY_RANGE[2] = {0.2, 0.3};
 };

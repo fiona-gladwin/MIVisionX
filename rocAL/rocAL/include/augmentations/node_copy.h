@@ -24,13 +24,11 @@ THE SOFTWARE.
 #include "node.h"
 #include "graph.h"
 
-class CopyNode : public Node
-{
+class CopyNode : public Node {
 public:
     CopyNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     CopyNode() = delete;
-
 protected:
     void create_node() override;
-    void update_node() override {};
+    void update_node() override;
 };

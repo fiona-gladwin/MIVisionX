@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 FisheyeNode::FisheyeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {}
+    Node(inputs, outputs) {}
 
 void FisheyeNode::create_node() {
     if(_node)

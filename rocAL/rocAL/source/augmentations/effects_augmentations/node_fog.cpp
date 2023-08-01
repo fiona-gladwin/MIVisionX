@@ -25,8 +25,8 @@ THE SOFTWARE.
 #include "exception.h"
 
 FogNode::FogNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _fog_param(FOG_VALUE_RANGE[0], FOG_VALUE_RANGE[1]) {}
+    Node(inputs, outputs),
+    _fog_param(FOG_VALUE_RANGE[0], FOG_VALUE_RANGE[1]) {}
 
 void FogNode::create_node() {
     if(_node)
@@ -47,7 +47,6 @@ void FogNode::init(float fog_param) {
 void FogNode::init(FloatParam* fog_param) {
     _fog_param.set_param(core(fog_param));
 }
-
 
 void FogNode::update_node() {
     _fog_param.update_array();

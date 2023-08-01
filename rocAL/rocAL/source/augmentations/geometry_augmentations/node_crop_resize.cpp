@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 CropResizeNode::CropResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {
+    Node(inputs, outputs) {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
 
@@ -61,7 +61,7 @@ void CropResizeNode::update_node() {
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
-    
+
     // Obtain the crop coordinates and update the roi
     auto x1 = _crop_param->get_x1_arr_val();
     auto y1 = _crop_param->get_y1_arr_val();

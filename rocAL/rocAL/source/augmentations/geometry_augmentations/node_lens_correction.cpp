@@ -24,11 +24,10 @@ THE SOFTWARE.
 #include "node_lens_correction.h"
 #include "exception.h"
 
-
 LensCorrectionNode::LensCorrectionNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _strength(STRENGTH_RANGE[0], STRENGTH_RANGE[1]),
-        _zoom(ZOOM_RANGE[0], ZOOM_RANGE[1]) {}
+    Node(inputs, outputs),
+    _strength(STRENGTH_RANGE[0], STRENGTH_RANGE[1]),
+    _zoom(ZOOM_RANGE[0], ZOOM_RANGE[1]) {}
 
 void LensCorrectionNode::create_node() {
     if(_node)

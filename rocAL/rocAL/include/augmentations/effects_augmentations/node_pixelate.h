@@ -27,8 +27,7 @@ THE SOFTWARE.
 #include "graph.h"
 
 
-class PixelateNode : public Node
-{
+class PixelateNode : public Node {
 public:
     PixelateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     PixelateNode() = delete;

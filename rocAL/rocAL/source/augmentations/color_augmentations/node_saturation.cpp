@@ -26,8 +26,8 @@ THE SOFTWARE.
 
 
 SaturationNode::SaturationNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _saturation(SAT_RANGE[0], SAT_RANGE[1]) {}
+    Node(inputs, outputs),
+    _saturation(SAT_RANGE[0], SAT_RANGE[1]) {}
 
 void SaturationNode::create_node() {
     if(_node)

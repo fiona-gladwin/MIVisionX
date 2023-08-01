@@ -24,10 +24,9 @@ THE SOFTWARE.
 #include "node_snow.h"
 #include "exception.h"
 
-
 SnowNode::SnowNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _snow_value(SNOW_VALUE_RANGE[0], SNOW_VALUE_RANGE[1]) {}
+    Node(inputs, outputs),
+    _snow_value(SNOW_VALUE_RANGE[0], SNOW_VALUE_RANGE[1]) {}
 
 void SnowNode::create_node() {
     if(_node)
@@ -48,7 +47,6 @@ void SnowNode::init( float snow_value) {
 void SnowNode::init( FloatParam *snow_value_param) {
     _snow_value.set_param(core(snow_value_param));
 }
-
 
 void SnowNode::update_node() {
     _snow_value.update_array();

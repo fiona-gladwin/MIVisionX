@@ -25,11 +25,11 @@ THE SOFTWARE.
 #include "exception.h"
 
 RainNode::RainNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _rain_value(RAIN_VALUE_RANGE[0], RAIN_VALUE_RANGE[1]),
-        _rain_width(RAIN_WIDTH_RANGE[0],RAIN_WIDTH_RANGE[1]),
-        _rain_height(RAIN_HEIGHT_RANGE[0],RAIN_HEIGHT_RANGE[0]),
-        _rain_transparency(RAIN_TRANSPARENCY_RANGE[0], RAIN_TRANSPARENCY_RANGE[1]) {}
+    Node(inputs, outputs),
+    _rain_value(RAIN_VALUE_RANGE[0], RAIN_VALUE_RANGE[1]),
+    _rain_width(RAIN_WIDTH_RANGE[0],RAIN_WIDTH_RANGE[1]),
+    _rain_height(RAIN_HEIGHT_RANGE[0],RAIN_HEIGHT_RANGE[0]),
+    _rain_transparency(RAIN_TRANSPARENCY_RANGE[0], RAIN_TRANSPARENCY_RANGE[1]) {}
 
 void RainNode::create_node() {
     if(_node)
