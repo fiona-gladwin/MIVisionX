@@ -1099,13 +1099,17 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _meta_data_buffer_size.emplace_back(_user_batch_size * default_bbox_info.data_size());
 
     TensorInfo default_matches_info;
-    TensorInfo default_mask_info;
+    TensorInfo default_mask_info, default_select_mask_polygon_info;
     if(metadata_type == MetaDataType::PolygonMask)
     {
         dims = { MAX_MASK_BUFFER, 1 };
         default_mask_info  = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP32);   // Create default mask Info
         default_mask_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_mask_info.data_size());
+        dims = { MAX_MASK_BUFFER, 1 };
+        default_select_mask_polygon_info  = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP32);
+        default_select_mask_polygon_info.set_metadata();
+        _meta_data_buffer_size.emplace_back(_user_batch_size * default_select_mask_polygon_info.data_size());
     } else if (metadata_type == MetaDataType::PixelwiseMask) {
         auto max_img_size = _meta_data_reader->get_max_size();
         dims = { max_img_size.first, max_img_size.second }; 
@@ -1124,6 +1128,10 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         {
             auto mask_info = default_mask_info;
             _mask_tensor_list.push_back(new Tensor(mask_info));
+            if (metadata_type == MetaDataType::PolygonMask) {
+                auto select_mask_polygon_info = default_select_mask_polygon_info;
+                _select_mask_polygon_list.push_back(new Tensor(select_mask_polygon_info));
+            }
         }
     }
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
@@ -1131,6 +1139,8 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
     if(metadata_type == MetaDataType::PolygonMask || metadata_type == MetaDataType::PixelwiseMask)
         _metadata_output_tensor_list.emplace_back(&_mask_tensor_list);
+    if(metadata_type == MetaDataType::PolygonMask)
+        _metadata_output_tensor_list.emplace_back(&_select_mask_polygon_list);
 
     return _metadata_output_tensor_list;
 }
@@ -1519,6 +1529,54 @@ TensorList * MasterGraph::mask_meta_data(bool is_polygon_mask)
     }
 
     return &_mask_tensor_list;
+}
+
+TensorList*  MasterGraph::get_select_mask_polygon(rocalTensorList* mask_data,
+                                                        std::vector<std::vector<int>> polygon_counts,
+                                                        std::vector<std::vector<std::vector<int>>> vertices_counts,
+                                                        std::vector<int> mask_ids,
+                                                        std::vector<std::vector<int>> &sel_vertices_counts,
+                                                        std::vector<std::vector<int>> &sel_mask_ids,
+                                                        bool reindex_mask)
+{
+    output_select_mask_polygon.resize(_user_batch_size);
+    sel_vertices_counts.resize(_user_batch_size);
+    sel_mask_ids.resize(_user_batch_size);
+    for(unsigned i = 0; i < _user_batch_size; i++)
+    {
+        float* mask_buffer = (float*) mask_data->at(i)->buffer();
+        for (unsigned j = 0; j < mask_ids.size(); j++) {
+            unsigned vc = 0;
+            unsigned pc = 0;
+            bool fc = false;
+            for (unsigned k = 0; k < polygon_counts[i].size(); k++) {
+                for (unsigned l = 0; l < vertices_counts[i][k].size(); l++) {
+                        if (pc == mask_ids[j]) {
+                            for (unsigned m = vc; m < vc+vertices_counts[i][k][l]; m++) {
+                                output_select_mask_polygon[i].push_back(mask_buffer[m]);
+                            }
+                            sel_vertices_counts[i].push_back(vertices_counts[i][k][l]);
+                            if (reindex_mask == true)
+                                sel_mask_ids[i].push_back(j);
+                            else
+                                sel_mask_ids[i].push_back(mask_ids[j]);
+                            fc = true;
+                            break;
+                        }
+                        pc += 1;
+                        vc += vertices_counts[i][k][l];
+                }
+                if (fc == true) break;
+            }
+        }
+    }
+    for(unsigned i = 0; i < _user_batch_size; i++)
+    {
+        auto select_mask_buffers = (float*)output_select_mask_polygon[i].data();
+        _select_mask_polygon_list[i]->set_dims({output_select_mask_polygon[i].size(),1});
+        _select_mask_polygon_list[i]->set_mem_handle((void *)select_mask_buffers);
+    }
+    return &_select_mask_polygon_list;
 }
 
 void MasterGraph::notify_user_thread()
