@@ -30,7 +30,7 @@ public:
     SaturationNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SaturationNode() = delete;
     void init(float sat);
-    void init(FloatParam *sat);
+    void init(FloatParam *sat_param);
 protected:
     void create_node() override;
     void update_node() override;

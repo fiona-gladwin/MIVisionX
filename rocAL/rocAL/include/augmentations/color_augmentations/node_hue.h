@@ -30,7 +30,7 @@ public:
     HueNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     HueNode() = delete;
     void init(float hue);
-    void init(FloatParam *hue);
+    void init(FloatParam *hue_param);
 protected:
     void create_node() override;
     void update_node() override;

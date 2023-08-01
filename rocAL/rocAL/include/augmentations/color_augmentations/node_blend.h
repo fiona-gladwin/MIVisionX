@@ -31,7 +31,7 @@ public:
     explicit BlendNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     BlendNode() = delete;
     void init(float ratio);
-    void init(FloatParam* ratio);
+    void init(FloatParam *ratio_param);
 protected:
     void update_node() override;
     void create_node() override;

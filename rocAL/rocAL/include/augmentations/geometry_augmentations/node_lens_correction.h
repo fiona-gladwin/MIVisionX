@@ -30,7 +30,7 @@ public:
     LensCorrectionNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     LensCorrectionNode() = delete;
     void init(float strength, float zoom);
-    void init(FloatParam *strength, FloatParam *zoom);
+    void init(FloatParam *strength_param, FloatParam *zoom_param);
 protected:
     void create_node() override;
     void update_node() override;

@@ -31,7 +31,7 @@ public:
     ColorTemperatureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ColorTemperatureNode() = delete;
     void init(int adjustment);
-    void init(IntParam *adjustment);
+    void init(IntParam *adjustment_param);
 protected:
     void create_node() override;
     void update_node() override;

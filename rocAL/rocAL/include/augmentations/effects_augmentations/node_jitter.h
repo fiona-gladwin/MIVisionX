@@ -30,7 +30,7 @@ public:
     JitterNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     JitterNode() = delete;
     void init(int kernel_size, int seed);
-    void init(IntParam *kernel_size, int seed);
+    void init(IntParam *kernel_size_param, int seed);
 protected:
     void create_node() override;
     void update_node() override;

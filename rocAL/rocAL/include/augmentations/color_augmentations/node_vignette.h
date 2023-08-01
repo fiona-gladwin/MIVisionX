@@ -31,7 +31,7 @@ public:
     VignetteNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     VignetteNode () = delete;
     void init(float sdev);
-    void init(FloatParam *sdev);
+    void init(FloatParam *sdev_param);
 protected:
     void create_node() override;
     void update_node() override;
