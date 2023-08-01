@@ -183,8 +183,10 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_
     if (rle_in) {
         for (unsigned int i = 0; i < bb_coords.size(); i++) {
             bb_labels[i] = _label_info.find(bb_labels[i])->second;
+            std::cout << bb_labels[i] << std::endl;
         }
     }
+    exit(0);
     
     // Generate FromPoly for all polygons in image
     int count = 0;
@@ -410,7 +412,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
         {
             RAPIDJSON_ASSERT(parser.PeekType() == kArrayType);
             parser.EnterArray();
-            int id = 1;
+            int id = 1;//continuous_idx = 1;;
             while (parser.NextArrayValue())
             {
                 if (parser.PeekType() != kObjectType)
@@ -429,6 +431,8 @@ void COCOMetaDataReader::read_all(const std::string &path)
                         parser.SkipValue();
                     }
                 }
+                //_label_info.insert(std::make_pair(id, continuous_idx));
+                //continuous_idx++;
             }
         }
         else if (0 == std::strcmp(key, "annotations"))
@@ -574,6 +578,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     bb_labels.clear();
                 }
                 if (rle_flag && _output->get_metadata_type() == MetaDataType::PixelwiseMask) {
+                    std::cout << "Gen2\n";
                     generate_pixelwise_mask(file_name, R);
                     rleFree(R);
                     rle_flag = false;
@@ -601,7 +606,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
         if (_output->get_metadata_type() == MetaDataType::PixelwiseMask) {
             std::vector<int>& pixelwise_label = elem.second->get_pixelwise_label();
             if (pixelwise_label.size() == 0) {
-                std::cout << "Calls fom here" << std::endl;
+                std::cout << "Gen1" << std::endl;
                 generate_pixelwise_mask(elem.first, NULL);
             }
         }
