@@ -26,7 +26,10 @@ caffe2_classification_path=${ROCAL_DATA_PATH}/rocal_data/caffe2/classification/
 caffe2_detection_path=${ROCAL_DATA_PATH}/rocal_data/caffe2/detection/
 mxnet_path=${ROCAL_DATA_PATH}/rocal_data/mxnet/
 output_path=../rocal_unittest_output_folder_$(date +%Y-%m-%d_%H-%M-%S)/
-golden_output_path=${ROCAL_DATA_PATH}/rocal_data/GoldenOutputs/
+golden_output_path=${ROCAL_DATA_PATH}/rocal_data/complete_tensor_golden_output/
+# golden_output_path=${ROCAL_DATA_PATH}/rocal_data/CMN_output/
+# CMN_output
+# golden_output_path=${ROCAL_DATA_PATH}/rocal_data/GoldenOutputsTensor/
 
 display=0
 device=0
@@ -79,7 +82,7 @@ do
     fi
     for ((rgb=rgb_start;rgb<=rgb_end;rgb++))
     do 
-        # FileSource Reader
+ # FileSource Reader
         ./rocAL_unittests 0 "$image_path" "${output_path}LensCorrection_${rgb_name[$rgb]}_${device_name}" $width $height 45 $device $rgb 0 $display
         ./rocAL_unittests 0 "$image_path" "${output_path}Exposure_${rgb_name[$rgb]}_${device_name}" $width $height 46 $device $rgb 0 $display
         ./rocAL_unittests 0 "$image_path" "${output_path}Flip_${rgb_name[$rgb]}_${device_name}" $width $height 47 $device $rgb 0 $display
@@ -121,7 +124,7 @@ do
 
         # mxnet 
         ./rocAL_unittests 11 "$mxnet_path" "${output_path}Jitter_${rgb_name[$rgb]}_${device_name}" $width $height 39 $device $rgb 0 $display
-        ./rocAL_unittests 11 "$mxnet_path" "${output_path}Pixelate_${rgb_name[$rgb]}_${device_name}" $width $height 19 $device $rgb 0 $display
+        ./rocAL_unittests 11 "$mxnet_path" "${output_path}ResizeMirrorNormalize_${rgb_name[$rgb]}_${device_name}" $width $height 56 $device $rgb 0 $display
         ./rocAL_unittests 11 "$mxnet_path" "${output_path}CropMirrorNormalize_${rgb_name[$rgb]}_${device_name}_mxnet" $width $height 25 $device $rgb 0 $display
 
         # CMN 
@@ -157,7 +160,6 @@ do
         ./rocAL_unittests 8 "$caffe2_classification_path" "${output_path}Resize_${rgb_name[$rgb]}_${device_name}_lanczos_default_caffe2Classification" $width $height 0 $device $rgb 0 $display 3 0
         ./rocAL_unittests 9 "$caffe2_detection_path" "${output_path}Resize_${rgb_name[$rgb]}_${device_name}_triangular_default_caffe2Detection" $width $height 0 $device $rgb 0 $display 5 0
         ./rocAL_unittests 11 "$mxnet_path" "${output_path}Resize_${rgb_name[$rgb]}_${device_name}_gaussian_default_mxnet" $width $height 0 $device $rgb 0 $display 4 0 
-
     done
 done
 

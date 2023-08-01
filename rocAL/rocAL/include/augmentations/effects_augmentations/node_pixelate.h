@@ -21,11 +21,9 @@ THE SOFTWARE.
 */
 
 #pragma once
-
 #include "node.h"
 #include "parameter_factory.h"
 #include "graph.h"
-
 
 class PixelateNode : public Node
 {

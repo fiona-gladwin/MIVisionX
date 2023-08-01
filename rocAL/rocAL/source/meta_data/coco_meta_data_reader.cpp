@@ -65,6 +65,7 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
         _output->get_labels_batch()[i] = it->second->get_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
+        _output->get_image_id_batch()[i] = it->second->get_image_id();
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
         {
             auto mask_cords = it->second->get_mask_cords();
@@ -100,7 +101,7 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
     }
 }
 
-void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, uint image_id)
+void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, int image_id)
 {
     if (exists(image_name))
     {
@@ -528,10 +529,10 @@ void COCOMetaDataReader::read_all(const std::string &path)
                 ImgSize image_size = it->second; //Normalizing the co-ordinates & convert to "ltrb" format
                 if ((_output->get_metadata_type() == MetaDataType::PolygonMask || _output->get_metadata_type() == MetaDataType::PixelwiseMask) && iscrowd == 0)
                 {
-                    box.l = bbox[0] / static_cast<double>(image_size.w);
-                    box.t = bbox[1] / static_cast<double>(image_size.h);
-                    box.r = (bbox[0] + bbox[2] - 1) / static_cast<double>(image_size.w);
-                    box.b = (bbox[1] + bbox[3] - 1) / static_cast<double>(image_size.h);
+                    box.l = bbox[0];
+                    box.t = bbox[1];
+                    box.r = (bbox[0] + bbox[2] - 1);
+                    box.b = (bbox[1] + bbox[3] - 1);
                     bb_coords.push_back(box);
                     bb_labels.push_back(label);
                     polygon_count.push_back(polygon_size);
@@ -547,10 +548,10 @@ void COCOMetaDataReader::read_all(const std::string &path)
                 }
                 else if (!(_output->get_metadata_type() == MetaDataType::PolygonMask || _output->get_metadata_type() == MetaDataType::PixelwiseMask))
                 {
-                    box.l = bbox[0] / static_cast<double>(image_size.w);
-                    box.t = bbox[1] / static_cast<double>(image_size.h);
-                    box.r = (bbox[0] + bbox[2]) / static_cast<double>(image_size.w);
-                    box.b = (bbox[1] + bbox[3]) / static_cast<double>(image_size.h);
+                    box.l = bbox[0];
+                    box.t = bbox[1];
+                    box.r = (bbox[0] + bbox[2]);
+                    box.b = (bbox[1] + bbox[3]);
                     bb_coords.push_back(box);
                     bb_labels.push_back(label);
                     add(file_name, bb_coords, bb_labels, image_size, id);

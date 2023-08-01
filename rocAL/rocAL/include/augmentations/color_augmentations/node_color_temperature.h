@@ -26,19 +26,16 @@ THE SOFTWARE.
 #include "parameter_vx.h"
 #include "graph.h"
 
-class ColorTemperatureNode : public Node
-{
+class ColorTemperatureNode : public Node {
 public:
     ColorTemperatureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
-
     ColorTemperatureNode() = delete;
     void init(int adjustment);
     void init(IntParam *adjustment);
-
 protected:
     void create_node() override ;
     void update_node() override;
 private:
     ParameterVX<int> _adj_value_param;
-    constexpr static int ADJUSTMENT_RANGE [2] = {-99, 99};
+    constexpr static int ADJUSTMENT_RANGE[2] = {-99, 99};
 };

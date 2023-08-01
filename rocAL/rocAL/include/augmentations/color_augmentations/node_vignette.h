@@ -26,11 +26,10 @@ THE SOFTWARE.
 #include "parameter_vx.h"
 #include "graph.h"
 
-class VignetteNode : public Node
-{
+class VignetteNode : public Node {
 public:
     VignetteNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
-    VignetteNode () = delete;
+    VignetteNode() = delete;
     void init(float sdev);
     void init(FloatParam *sdev);
 protected:
@@ -38,5 +37,5 @@ protected:
     void update_node() override;
 private:
     ParameterVX<float> _sdev;
-    constexpr static float SDEV_RANGE [2] = {40 , 60};
+    constexpr static float SDEV_RANGE[2] = {40 , 60};
 };

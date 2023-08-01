@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 
 #pragma once
-
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"
