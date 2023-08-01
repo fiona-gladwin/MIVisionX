@@ -64,13 +64,6 @@ void CropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBa
 
         for(uint j = 0; j < bb_count; j++)
         {
-            std::cerr<<"\n box_coords_buf[j].l"<<box_coords_buf[j].l<<" "<<box_coords_buf[j].t<<" "<<box_coords_buf[j].r<<" "<<box_coords_buf[j].b;
-
-            // box_coords_buf[j].l /= static_cast<float> (input_roi[i].x2);
-            // box_coords_buf[j].t /= static_cast<float> (input_roi[i].y2);
-            // box_coords_buf[j].r /= static_cast<float> (input_roi[i].x2);
-            // box_coords_buf[j].b /= static_cast<float> (input_roi[i].y2);
-
             if (BBoxIntersectionOverUnion(box_coords_buf[j], crop_box) >= _iou_threshold)
             {
                 float xA = std::max(crop_box.l, box_coords_buf[j].l);

@@ -380,14 +380,14 @@ void MasterGraph::release()
 
     if(_graph != nullptr)
         _graph->release();
-    if(_context && (status = vxReleaseContext(&_context)) != VX_SUCCESS)
-        LOG ("Failed to call vxReleaseContext " + TOSTR(status))
     if(_meta_data_reader != nullptr)
         _meta_data_reader->release();
 
     _augmented_meta_data = nullptr;
     _meta_data_graph = nullptr;
     _meta_data_reader = nullptr;
+    if(_context && (status = vxReleaseContext(&_context)) != VX_SUCCESS)
+        LOG ("Failed to call vxReleaseContext " + TOSTR(status))
 }
 
 MasterGraph::Status
