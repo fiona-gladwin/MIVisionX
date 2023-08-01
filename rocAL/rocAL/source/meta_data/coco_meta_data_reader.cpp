@@ -116,20 +116,20 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
 
 void COCOMetaDataReader::print_map_contents()
 {
-    BoundingBoxCords bb_coords;
-    Labels bb_labels;
-    ImgSize img_size;
-    MaskCords mask_cords;
-    std::vector<int> polygon_size;
-    std::vector<std::vector<int>> vertices_count;
+    // BoundingBoxCords bb_coords;
+    // Labels bb_labels;
+    // ImgSize img_size;
+    // MaskCords mask_cords;
+    // std::vector<int> polygon_size;
+    // std::vector<std::vector<int>> vertices_count;
 
     std::cout << "\nBBox Annotations List: \n";
     for (auto &elem : _map_content)
     {
         std::cout << "\nName :\t " << elem.first;
-        bb_coords = elem.second->get_bb_cords();
-        bb_labels = elem.second->get_labels();
-        img_size = elem.second->get_img_size();
+        auto bb_coords = elem.second->get_bb_cords();
+        auto bb_labels = elem.second->get_labels();
+        auto img_size = elem.second->get_img_size();
         std::cout << "<wxh, num of bboxes>: " << img_size.w << " X " << img_size.h << " , " << bb_coords.size() << std::endl;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
@@ -138,9 +138,9 @@ void COCOMetaDataReader::print_map_contents()
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
         {
             int count = 0;
-            mask_cords = elem.second->get_mask_cords();
-            polygon_size = elem.second->get_polygon_count();
-            vertices_count = elem.second->get_vertices_count();
+            auto mask_cords = elem.second->get_mask_cords();
+            auto polygon_size = elem.second->get_polygon_count();
+            auto vertices_count = elem.second->get_vertices_count();
             std::cout << "\nNumber of objects : " << bb_coords.size() << std::endl;
             for (unsigned int i = 0; i < bb_coords.size(); i++)
             {
@@ -157,24 +157,35 @@ void COCOMetaDataReader::print_map_contents()
 }
 
 void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_in) {
+    std::cout  << "generate_pixelwise_mask" << std::endl;
+    Labels bb_labels;
+    ImgSize img_size;
+    MaskCords mask_cords;
+    std::vector<int> polygon_size;
+    std::vector<std::vector<int>> vertices_count;
     std::map<int, std::vector<RLE> > FromPoly;
     auto it = _map_content.find(filename);
     BoundingBoxCords bb_coords = it->second->get_bb_cords();
-    Labels bb_labels = it->second->get_labels();
-    ImgSize img_size = it->second->get_img_size();
-    MaskCords mask_cords = it->second->get_mask_cords();
-    std::vector<int> polygon_size = it->second->get_polygon_count();
-    std::vector<std::vector<int>> vertices_count = it->second->get_vertices_count();
-    ImgSize imgsize = it->second->get_img_size();
     auto &pixelwise_labels = it->second->get_pixelwise_label();
-    int h = imgsize.h;
-    int w = imgsize.w;
-    pixelwise_labels.resize(h * w);
+    bb_labels = it->second->get_labels();
+    img_size = it->second->get_img_size();
+    mask_cords = it->second->get_mask_cords();
+    polygon_size = it->second->get_polygon_count();
+    vertices_count = it->second->get_vertices_count();
+    int h = img_size.h;
+    int w = img_size.w;
+    pixelwise_labels.resize(h*w);
+    std::cout << "Labels\n";
+    for (auto a : bb_labels)
+        std::cout << a << "\t";
+    std::cout << "\n";
+
     if (rle_in) {
         for (unsigned int i = 0; i < bb_coords.size(); i++) {
             bb_labels[i] = _label_info.find(bb_labels[i])->second;
         }
     }
+    
     // Generate FromPoly for all polygons in image
     int count = 0;
     for (unsigned int i = 0; i < bb_coords.size(); i++)
@@ -187,7 +198,9 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_
             }
             auto label = bb_labels[i];
             RLE M;
+            std::cout << "Facing error 1" << std::endl;
             rleInit(&M, 0, 0, 0, 0);
+            
             rleFrPoly(&M, in.data(), in.size() / 2, img_size.h, img_size.w);
             FromPoly[label].push_back(M);
         }
@@ -205,6 +218,7 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_
         const auto &rle = rle_in;
         auto mask_idx = bb_labels.size();
         int label = bb_labels[mask_idx];
+        std::cout << "first error 2" << std::endl;
         rleInit(&r_out[label], rle->h, rle->w, rle->m, rle->cnts);
     }
 
@@ -490,6 +504,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                                 }
                             }
                             if (!rle_str.empty()) {
+                                std::cout << "first error 3" << std::endl;
                                 rleInit(R, h, w, rle_uints.size(), const_cast<uint*>(rle_uints.data()));
                             } else if (!rle_uints.empty()) {
                                 rleFrString(R, const_cast<char*>(rle_str.c_str()), h, w);
@@ -586,6 +601,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
         if (_output->get_metadata_type() == MetaDataType::PixelwiseMask) {
             std::vector<int>& pixelwise_label = elem.second->get_pixelwise_label();
             if (pixelwise_label.size() == 0) {
+                std::cout << "Calls fom here" << std::endl;
                 generate_pixelwise_mask(elem.first, NULL);
             }
         }

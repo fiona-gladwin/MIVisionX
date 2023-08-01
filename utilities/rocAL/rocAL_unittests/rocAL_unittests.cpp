@@ -157,7 +157,7 @@ int main(int argc, const char **argv)
 int test(int test_case, int reader_type, const char *path, const char *outName, int rgb, int gpu, int width, int height, int num_of_classes, int display_all, int resize_interpolation_type, int resize_scaling_mode)
 {
     size_t num_threads = 1;
-    unsigned int inputBatchSize = 2;
+    unsigned int inputBatchSize = 4;
     int decode_max_width = width;
     int decode_max_height = height;
     int pipeline_type = -1;
@@ -339,6 +339,24 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             pipeline_type = 1;
             rocalCreateMXNetReader(handle, path, true);
             input1 = rocalMXNetRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+        }
+        break;
+        case 12: // coco detection segmentation + pixelwise
+        {
+            std::cout << ">>>>>>> Running COCO READER" << std::endl;
+            pipeline_type = 4;
+            if (strcmp(rocal_data_path.c_str(), "") == 0)
+            {
+                std::cout << "\n ROCAL_DATA_PATH env variable has not been set. ";
+                exit(0);
+            }
+            // setting the default json path to ROCAL_DATA_PATH coco sample train annotation
+            std::string json_path = rocal_data_path + "MIVisionX-data/mini_coco_dataset/coco_test_10/annotations/instances_val2017_small.json";
+            rocalCreateCOCOReader(handle, json_path.c_str(), true, false, true);
+            if (decode_max_height <= 0 || decode_max_width <= 0)
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
+            else
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         default:
@@ -964,6 +982,37 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 }
             }
             break;
+            case 4: // detection + segmentation + pixelwise pipeline
+            {
+                RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
+                RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
+                RocalTensorList mask_data = rocalGetPixelwiseMaskLabels(handle);
+                std::cout << "\n>>>>> PIXELWISE LABELS : ";
+                for (int i = 0; i < bbox_labels->size(); i++)
+                {
+                    int *mask_buffer = (int *)(mask_data->at(i)->buffer());
+                    int mask_size = mask_data->at(i)->dims().at(0) * mask_data->at(i)->dims().at(1);
+                    for (int j = 0; j < mask_size; j++)
+                    {
+                        std::cout << mask_buffer[j] << "\t";
+                    }
+                    std::cout << std::endl;
+                }
+                for (int i = 0; i < bbox_labels->size(); i++)
+                {
+                    int *labels_buffer = (int *)(bbox_labels->at(i)->buffer());
+                    float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
+
+                    std::cout << "\n>>>>> BBOX LABELS : ";
+                    for (int j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
+                        std::cout << labels_buffer[j] << " ";
+                    std::cout << "\n>>>>> BBOXX : " << bbox_coords->at(i)->dims().at(0) << " : \n";
+                    for (int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
+                        std::cout << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
+                }
+            }
+            break;
+        
             default:
             {
                 std::cout << "Not a valid pipeline type ! Exiting!\n";
