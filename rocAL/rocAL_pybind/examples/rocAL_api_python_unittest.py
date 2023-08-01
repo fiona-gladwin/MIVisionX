@@ -332,7 +332,7 @@ def main():
                 rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "warp_affine":
             output = fn.warp_affine(images, dest_height=480, dest_width=640, transform_matrix=[1.0, 1.0, 0.5, 0.5, 7.0, 7.0],
-                                    rocal_tensor_output_layout=tensor_layout, rocal_tensor_output_datatype=tensor_dtype, interpolation_type=types.NEAREST_NEIGHBOR_INTERPOLATION)
+                                    rocal_tensor_output_layout=tensor_layout, rocal_tensor_output_datatype=tensor_dtype, interpolation_type=types.LINEAR_INTERPOLATION)
         elif augmentation_name == "fish_eye":
             output = fn.fish_eye(images,
                                  rocal_tensor_output_layout=tensor_layout,
