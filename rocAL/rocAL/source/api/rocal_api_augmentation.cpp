@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-
-
 #include "augmentations_nodes.h"
 #include "augmentations_meta_nodes.h"
 #include "commons.h"
@@ -29,8 +27,7 @@ THE SOFTWARE.
 #include "rocal_api.h"
 #include "image_source_evaluator.h"
 
-auto modify_dims_width_and_height = [](RocalTensorlayout tensor_layout, std::vector<size_t> &dims, 
-                                    size_t width, size_t height) {
+auto modify_dims_width_and_height = [](RocalTensorlayout tensor_layout, std::vector<size_t> &dims, size_t width, size_t height) {
     switch(tensor_layout) {
         case RocalTensorlayout::NHWC: {
             dims[1] = height;
