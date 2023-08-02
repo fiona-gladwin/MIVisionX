@@ -35,6 +35,7 @@ THE SOFTWARE.
 #include "meta_data_graph_factory.h"
 #include "randombboxcrop_meta_data_reader_factory.h"
 #include "node_copy.h"
+#include "seedRNG.h"
 
 using half_float::half;
 
@@ -1099,7 +1100,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _meta_data_buffer_size.emplace_back(_user_batch_size * default_bbox_info.data_size());
 
     TensorInfo default_matches_info;
-    TensorInfo default_mask_info;
+    TensorInfo default_mask_info, default_random_mask_pixel_info;
     if(metadata_type == MetaDataType::PolygonMask)
     {
         dims = { MAX_MASK_BUFFER, 1 };
@@ -1112,6 +1113,10 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         default_mask_info  = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32);
         default_mask_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_mask_info.data_size());
+        dims = {2};
+        default_random_mask_pixel_info  = rocalTensorInfo(dims, _mem_type, RocalTensorDataType::INT32);
+        default_random_mask_pixel_info.set_metadata();
+        _meta_data_buffer_size.emplace_back(_user_batch_size * default_random_mask_pixel_info.data_size());
     }
 
     for(unsigned i = 0; i < _user_batch_size; i++) // Create rocALTensorList for each metadata
@@ -1124,6 +1129,10 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         {
             auto mask_info = default_mask_info;
             _mask_tensor_list.push_back(new Tensor(mask_info));
+            if (metadata_type == MetaDataType::PixelwiseMask) {
+                auto random_mask_pixel_info = default_random_mask_pixel_info;
+                _random_mask_pixel_list.push_back(new Tensor(random_mask_pixel_info));
+            }
         }
     }
     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
@@ -1131,8 +1140,132 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
     if(metadata_type == MetaDataType::PolygonMask || metadata_type == MetaDataType::PixelwiseMask)
         _metadata_output_tensor_list.emplace_back(&_mask_tensor_list);
-
+    if (metadata_type == MetaDataType::PixelwiseMask)
+        _metadata_output_tensor_list.emplace_back(&_random_mask_pixel_list);
     return _metadata_output_tensor_list;
+}
+
+void  MasterGraph::set_random_mask_pixel_config(bool is_foreground, unsigned int value, bool is_threshold) {
+    _random_mask_pixel_value = value;
+    _is_random_mask_pixel_foreground = is_foreground;
+    _is_random_mask_pixel_threshold = is_threshold;
+}
+
+rocalTensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
+{
+    SeededRNG<std::mt19937, 4> rngs(_user_batch_size);
+    //std::vector<std::vector<int>> output;
+    auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get bbox buffer from ring buffer
+    auto mask_tensor_dims = _ring_buffer.get_meta_data_info().mask_cords_dims();
+    for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
+    {
+        _mask_tensor_list[i]->set_dims(mask_tensor_dims[i]);
+        _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
+        meta_data_buffers += _mask_tensor_list[i]->info().data_size();
+    }
+    output_random_mask_pixel.reserve(_user_batch_size* 2);
+    if (_is_random_mask_pixel_foreground == false) {
+        #pragma omp parallel for num_threads(_user_batch_size)
+        for (int i = 0; i < _user_batch_size; i++) {
+            auto rng = rngs[i];
+            int *mask_buffer = (int *)(input->at(i)->buffer());
+            std::vector<unsigned long> dims = {input->at(i)->info().dims().at(0),1};
+            for (int j = 0; j < dims.size(); j++) {
+                output_random_mask_pixel[i*2+j] = std::uniform_int_distribution<int64_t>(0, dims[j]-1)(rng);
+            }
+        }
+    }
+    else
+    {
+        if (_is_random_mask_pixel_threshold) {
+            #pragma omp parallel for num_threads(_user_batch_size)
+            for (int i = 0; i < _user_batch_size; i++) {
+                std::vector<int> start;
+                std::vector<int> foreground_count;
+                int id = 0;
+                int count = 0;
+                auto rng = rngs[i];
+                int *mask_buffer = (int *)(input->at(i)->buffer());
+                std::vector<unsigned long> dims = {input->at(i)->info().dims().at(0),1};
+                auto buffer_size = input->at(i)->info().dims().at(0) * input->at(i)->info().dims().at(1);
+                while (id < buffer_size) {
+                    if (mask_buffer[id] <= _random_mask_pixel_value) {
+                        id++;
+                    } else {
+                        start.push_back(id++);
+                        foreground_count.push_back(count++);
+                        while(mask_buffer[id] > _random_mask_pixel_value) {
+                            id++;
+                            count++;
+                        }
+                    }
+                }
+                if (count != 0) {
+                    auto dist = std::uniform_int_distribution<int64_t>(0, count - 1);
+                    auto flat_idx = find_pixel(start,foreground_count,dist(rng),count);
+                    int j = 0;
+                    for (auto d: dims) {
+                        output_random_mask_pixel[i*2+j] = (flat_idx / d);
+                        flat_idx = flat_idx % d;
+                        j++;
+                    }
+                } else {
+                    for (int j = 0; j < dims.size(); j++) {
+                        output_random_mask_pixel[i*2+j] = (std::uniform_int_distribution<int64_t>(0, dims[j]-1)(rng));
+                    }
+                }
+            }
+        } else {
+            #pragma omp parallel for num_threads(_user_batch_size)
+            for (int i = 0; i < _user_batch_size; i++) {
+                std::vector<int> start;
+                std::vector<int> foreground_count;
+                int id = 0;
+                int count = 0;
+                auto rng = rngs[i];
+                int *mask_buffer = (int *)(input->at(i)->buffer());
+                std::vector<unsigned long> dims = {input->at(i)->info().dims().at(0),1};
+                auto buffer_size = input->at(i)->info().dims().at(0) * input->at(i)->info().dims().at(1);
+                while (id < buffer_size) {
+                    if (mask_buffer[id] != _random_mask_pixel_value) {
+                        id++;
+                    } else {
+                        start.push_back(id++);
+                        foreground_count.push_back(count++);
+                        while(mask_buffer[id] == _random_mask_pixel_value) {
+                            id++;
+                            count++;
+                        }
+                    }
+                }
+                if (count != 0) {
+                    auto dist = std::uniform_int_distribution<int64_t>(0, count - 1);
+                    auto flat_idx = find_pixel(start,foreground_count,dist(rng),count);
+                    int j = 0;
+                    for (auto d: dims) {
+                        output_random_mask_pixel[i*2+j] = flat_idx / d;
+                        flat_idx = flat_idx % d;
+                        j++;
+                    }
+                } else {
+                    for (int j = 0; j < dims.size(); j++) {
+                        output_random_mask_pixel[i*2+j] = (std::uniform_int_distribution<int64_t>(0, dims[j]-1)(rng));
+                    }
+                }
+            }
+        }
+    }
+
+    auto random_data_buffers = (unsigned int *)output_random_mask_pixel.data(); // Get bbox buffer from ring buffer
+    auto random_tensor_dims = {(size_t)2};
+    for(unsigned i = 0; i < _user_batch_size; i++)
+    {
+        _random_mask_pixel_list[i]->set_dims(random_tensor_dims);
+        _random_mask_pixel_list[i]->set_mem_handle((void *)random_data_buffers);
+        random_data_buffers += 2;
+    }
+
+    return &_random_mask_pixel_list;
 }
 
 std::vector<rocalTensorList *> MasterGraph::create_tf_record_meta_data_reader(const char *source_path, MetaDataReaderType reader_type , MetaDataType label_type, std::map<std::string, std::string> feature_key_map)

@@ -110,6 +110,8 @@ public:
     void box_encoder(std::vector<float> &anchors, float criteria, const std::vector<float> &means, const std::vector<float> &stds, bool offset, float scale);
     void create_randombboxcrop_reader(RandomBBoxCrop_MetaDataReaderType reader_type, RandomBBoxCrop_MetaDataType label_type, bool all_boxes_overlap, bool no_crop, FloatParam* aspect_ratio, bool has_shape, int crop_width, int crop_height, int num_attempts, FloatParam* scaling, int total_num_attempts, int64_t seed=0);
     const std::pair<ImageNameBatch,pMetaDataBatch>& meta_data();
+    void set_random_mask_pixel_config(bool is_foreground, unsigned int value, bool is_threshold);
+    TensorList * get_random_mask_pixel(rocalTensorList* input);
     TensorList * labels_meta_data();
     TensorList * bbox_meta_data();
     TensorList * mask_meta_data(bool is_polygon_mask);
@@ -158,6 +160,7 @@ private:
     TensorList _labels_tensor_list;
     TensorList _bbox_tensor_list;
     TensorList _mask_tensor_list;
+    TensorList _random_mask_pixel_list;
     std::vector<size_t> _meta_data_buffer_size;
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU
@@ -198,6 +201,9 @@ private:
     bool _offset; // Returns normalized offsets ((encoded_bboxes*scale - anchors*scale) - mean) / stds in EncodedBBoxes that use std and the mean and scale arguments if offset="True"
     std::vector<float> _means, _stds; //_means:  [x y w h] mean values for normalization _stds: [x y w h] standard deviations for offset normalization.
     bool _augmentation_metanode = false;
+    unsigned int _random_mask_pixel_value = 0;
+    bool _is_random_mask_pixel_threshold = false;
+    bool _is_random_mask_pixel_foreground = false;
 #if ENABLE_HIP
     BoxEncoderGpu *_box_encoder_gpu = nullptr;
 #endif
