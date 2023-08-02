@@ -31,7 +31,7 @@ public:
     /// \param device_resources shard count from user
 
     /// internal_shard_count number of loader/decoders are created and each shard is loaded and decoded using separate and independent resources increasing the parallelism and performance.
-    NumpyLoaderNode(rocalTensor *output, void *device_resources);
+    NumpyLoaderNode(Tensor *output, void *device_resources);
     ~NumpyLoaderNode() override;
     NumpyLoaderNode() = delete;
     ///

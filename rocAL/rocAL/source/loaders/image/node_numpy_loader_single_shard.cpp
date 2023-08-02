@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "node_numpy_loader_single_shard.h"
 #include "exception.h"
 
-NumpyLoaderSingleShardNode::NumpyLoaderSingleShardNode(rocalTensor *output, void *device_resources):
+NumpyLoaderSingleShardNode::NumpyLoaderSingleShardNode(Tensor *output, void *device_resources):
         Node({}, {output})
 {
     _loader_module = std::make_shared<NumpyLoader>(device_resources);
