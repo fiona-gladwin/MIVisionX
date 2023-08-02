@@ -190,3 +190,15 @@ def box_iou_matcher(*inputs, anchors, criteria=0.5, high_threshold=0.5, low_thre
     box_iou_matcher = b.BoxIOUMatcher(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
     Pipeline._current_pipeline._BoxIOUMatcher = True
     return (box_iou_matcher , []) # check what should be the return type 
+
+def external_source(*inputs, source, device=None, color_format=types.RGB, random_shuffle=False,mode=types.EXTSOURCE_FNAME, max_width=2000, max_height=2000):
+    # pybind call arguments
+    Pipeline._current_pipeline._external_source_operator = True
+    Pipeline._current_pipeline._external_source = iter(source)
+    Pipeline._current_pipeline._external_source_mode = mode
+    Pipeline._current_pipeline._external_source_user_given_width = max_width
+    Pipeline._current_pipeline._external_source_user_given_height = max_height
+    kwargs_pybind = {"source_path" : source.images_dir, "rocal_color_format" : color_format, "is_output" : False, "shuffle" : random_shuffle, "loop" : False, "decode_size_policy" : types.USER_GIVEN_SIZE,
+            "max_width" : max_width, "max_height" : max_height, "dec_type" : types.DECODER_TJPEG, "external_source_mode" : mode}
+    external_source_operator = b.ExternalFileSource(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    return (external_source_operator, []) # Labels is Empty

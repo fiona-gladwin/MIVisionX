@@ -59,4 +59,23 @@ extern "C"  RocalTensorList ROCAL_API_CALL rocalGetOutputTensors(RocalContext p_
 /// \param output_images The buffer that will be filled with output images with set_output = True
 extern "C" void ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalTensor> &output_images);
 
+/// Creates ExternalSourceFeedInput for data transfer
+/// \param rocal_context Rocal context
+/// \param input_images Strings pointing to the location on the disk
+/// \param labels Labels whose values is passed by the user using an external source
+/// \param input_buffer Compressed or uncompressed input buffer
+/// \param roi_width The roi width of the images
+/// \param roi_height The roi height of the images
+/// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
+/// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
+/// \param channels The number of channels for the image
+/// \param mode Determines the mode of the source passed from the user - file_names / uncompressed data / compressed data
+/// \param layout Determines the layout of the images - NCHW / NHWC
+/// \return Reference to the output image
+extern "C" RocalStatus ROCAL_API_CALL rocalExternalSourceFeedInput(RocalContext p_context, std::vector<std::string> input_images_names,
+                                                                   std::vector<int> labels, std::vector<unsigned char *> input_buffer,
+                                                                   std::vector<unsigned> roi_width, std::vector<unsigned> roi_height,
+                                                                   unsigned int max_width, unsigned int max_height, int channels,
+                                                                   RocalExtSourceMode mode, RocalTensorLayout layout, bool eos);
+
 #endif //MIVISIONX_ROCAL_API_DATA_TRANSFER_H

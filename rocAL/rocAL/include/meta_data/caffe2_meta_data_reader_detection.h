@@ -43,6 +43,7 @@ public :
     std::map<std::string, std::shared_ptr<MetaData>> &get_map_content() override{ return _map_content;}
     bool set_timestamp_mode() override { return false; }
     MetaDataBatch * get_output() override { return _output; }
+    void add_labels(std::vector<std::string> image_name, std::vector<int> label) override { };
     Caffe2MetaDataReaderDetection();
     ~Caffe2MetaDataReaderDetection() override { delete _output; }
 private:

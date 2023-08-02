@@ -45,6 +45,7 @@ public :
     bool set_timestamp_mode() override { return false; }
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content;}
     MetaDataBatch * get_output() override { return _output; }
+    void add_labels(std::vector<std::string> image_name, std::vector<int> label) override { };
     MXNetMetaDataReader();
     ~MXNetMetaDataReader() override { delete _output; }
 private:

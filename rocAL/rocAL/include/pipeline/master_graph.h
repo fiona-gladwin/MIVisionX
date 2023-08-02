@@ -105,6 +105,10 @@ public:
     bool is_sequence_reader_output() {return _is_sequence_reader_output; }
     void set_sequence_reader_output() { _is_sequence_reader_output = true; }
     void set_sequence_batch_size(size_t sequence_length) { _sequence_batch_size = _user_batch_size * sequence_length; }
+    void feed_external_input(std::vector<std::string> input_images_names, std::vector<int> labels, std::vector<unsigned char *>input_buffer,
+                             std::vector<unsigned> roi_width, std::vector<unsigned> roi_height, unsigned int max_width,
+                             unsigned int max_height, int channels, ExternalFileMode mode, RocalTensorlayout layout, bool eos);
+    void set_external_source_reader_flag() { _external_source_reader = true; }
     std::vector<rocalTensorList *> get_bbox_encoded_buffers(size_t num_encoded_boxes);
     size_t bounding_box_batch_count(int* buf, pMetaDataBatch meta_data_batch);
 #if ENABLE_OPENCL
@@ -182,6 +186,8 @@ private:
     float _scale; // Rescales the box and anchor values before the offset is calculated (for example, to return to the absolute values).
     bool _offset; // Returns normalized offsets ((encoded_bboxes*scale - anchors*scale) - mean) / stds in EncodedBBoxes that use std and the mean and scale arguments if offset="True"
     std::vector<float> _means, _stds; //_means:  [x y w h] mean values for normalization _stds: [x y w h] standard deviations for offset normalization.
+    bool _external_source_eos = false; //If last batch, _external_source_eos will true
+    bool _external_source_reader = false; //Set to true if external source reader on
     float _high_threshold = 0.5;
     float _low_threshold = 0.4;
     bool _allow_low_quality_matches = true;

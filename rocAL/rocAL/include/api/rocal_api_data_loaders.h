@@ -692,4 +692,28 @@ extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourcePartialSi
                                                             RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
                                                             unsigned max_width = 0, unsigned max_height = 0);
 
+/// Creates JPEG external source image reader
+/// \param rocal_context Rocal context
+/// \param source_path A NULL terminated char string pointing to the location on the disk
+/// \param rocal_color_format The color format the images will be decoded to.
+/// \param is_output Determines if the user wants the loaded images to be part of the output or not.
+/// \param shuffle Determines if the user wants to shuffle the dataset or not.
+/// \param loop Determines if the user wants to indefinitely loops through images or not.
+/// \param decode_size_policy is the RocalImageSizeEvaluationPolicy for decoding
+/// \param max_width The maximum width of the decoded images, larger or smaller will be resized to closest
+/// \param max_height The maximum height of the decoded images, larger or smaller will be resized to closest
+/// \param rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
+/// \param external_source_mode Determines the mode of the source passed from the user - file_names / uncompressed data / compressed data
+/// \return Reference to the output image
+extern "C"  RocalTensor  ROCAL_API_CALL rocalJpegExternalFileSource(RocalContext p_context,
+                                                                    const char* source_path,
+                                                                    RocalImageColor rocal_color_format,
+                                                                    bool is_output = false,
+                                                                    bool shuffle = false,
+                                                                    bool loop = false,
+                                                                    RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
+                                                                    unsigned max_width = 0, unsigned max_height = 0,
+                                                                    RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG,
+                                                                    RocalExtSourceMode external_source_mode = RocalExtSourceMode::ROCAL_EXTSOURCE_FNAME);
+
 #endif //MIVISIONX_ROCAL_API_DATA_LOADERS_H

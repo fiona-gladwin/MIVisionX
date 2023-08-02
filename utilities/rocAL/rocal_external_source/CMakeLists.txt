@@ -25,7 +25,7 @@
 ################################################################################
 cmake_minimum_required(VERSION 3.0)
 
-project (rocAL_external_source)
+project (rocal_external_source)
 set(CMAKE_CXX_STANDARD 14)
 
 # ROCm Path

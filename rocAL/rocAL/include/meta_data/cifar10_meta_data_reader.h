@@ -39,6 +39,7 @@ public :
     bool set_timestamp_mode() override { return false; }
     MetaDataBatch * get_output() override { return _output; }
     std::map<std::string, std::shared_ptr<MetaData>> &get_map_content() override { return _map_content;}
+    void add_labels(std::vector<std::string> image_name, std::vector<int> label) override { };
     Cifar10MetaDataReader();
     ~Cifar10MetaDataReader() override { delete _output; }
 private:

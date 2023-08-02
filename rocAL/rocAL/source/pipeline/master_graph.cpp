@@ -440,6 +440,8 @@ MasterGraph::reset()
 size_t
 MasterGraph::remaining_count()
 {
+    if(!_external_source_eos && _external_source_reader)
+        return _user_batch_size;
     return (_remaining_count >= 0) ? _remaining_count:0;
 }
 
@@ -495,8 +497,10 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
     const size_t single_output_image_size = _output_tensor_list[0]->info().data_size();
 
 #if ENABLE_HIP
+    std::cerr << "\n Comes to if #ENABLE_HIP";
     if(_output_tensor_list[0]->info().mem_type() == RocalMemType::HIP)
     {
+        std::cerr << "\n Comes to if #ENABLE_HIP";
         unsigned int fp16 = (output_data_type == RocalTensorDataType::FP16);
 
         auto output_buffers =_ring_buffer.get_read_buffers().first;
@@ -559,6 +563,8 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
     // }   
     if(_output_tensor_list[0]->info().mem_type() == RocalMemType::HOST)
     {
+        std::cerr << "rocalMemType::HOST";
+        
         float multiplier[3] = {multiplier0, multiplier1, multiplier2 };
         float offset[3] = {offset0, offset1, offset2 };
         size_t dest_buf_offset_start = 0;
@@ -1522,4 +1528,27 @@ MasterGraph::get_bbox_encoded_buffers(size_t num_encoded_boxes)
         bbox_encoded_output.emplace_back(&_bbox_tensor_list);
     }
     return bbox_encoded_output;
+}
+
+void MasterGraph::feed_external_input(std::vector<std::string> input_images_names, std::vector<int> labels, std::vector<unsigned char *>input_buffer,
+                            std::vector<unsigned> roi_width, std::vector<unsigned> roi_height, unsigned int max_width, unsigned int max_height, int channels,
+                            ExternalFileMode mode, RocalTensorlayout layout, bool eos)
+{
+    _external_source_eos = eos;
+    _loader_module->feed_external_input(input_images_names, labels, input_buffer, roi_width, roi_height, max_width, max_height, channels, mode, eos);
+    //Commeneting out the meta_data reader
+    // if(!labels.empty() && !_meta_data_reader)
+    // {
+    //     MetaDataConfig config(MetaDataType::Label, MetaDataReaderType::EXTERNAL_SOURCE_LABEL_READER);
+    //     _meta_data_reader = create_meta_data_reader(config);
+    //     _meta_data_reader->add_labels(input_images_names, labels);
+    //     if (_augmented_meta_data)
+    //         THROW("Metadata can only have a single output")
+    //     else
+    //         _augmented_meta_data = _meta_data_reader->get_output();
+    // }
+    // else if(!labels.empty() && _meta_data_reader)
+    // {
+    //     _meta_data_reader->add_labels(input_images_names, labels);
+    // }
 }
