@@ -2308,6 +2308,26 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppNoise(vx_graph graph, vx_tensor pSrc, v
     return node;
 }
 
+VX_API_ENTRY vx_node VX_API_CALL vxExtRppOpticalFlow(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType) {
+    vx_node node = NULL;
+    vx_context context = vxGetContext((vx_reference)graph);
+    if (vxGetStatus((vx_reference)context) == VX_SUCCESS) {
+        vx_uint32 devType = getGraphAffinity(graph);
+        vx_scalar deviceType = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &devType);
+        vx_reference params[] = {
+            (vx_reference)pSrc,
+            (vx_reference)pSrcRoi,
+            (vx_reference)pDst,
+            (vx_reference)inputLayout,
+            (vx_reference)outputLayout,
+            (vx_reference)roiType,
+            (vx_reference)deviceType};
+        node = createNode(graph, VX_KERNEL_RPP_OPTICALFLOW, params, 7);
+    }
+    return node;
+}
+
+
 VX_API_ENTRY vx_node VX_API_CALL vxExtRppPixelate(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType) {
     vx_node node = NULL;
     vx_context context = vxGetContext((vx_reference)graph);
@@ -2600,6 +2620,41 @@ void fillDescriptionPtrfromDims(RpptDescPtr &descPtr, vxTensorLayout layout, siz
             descPtr->strides.cStride = descPtr->w * descPtr->h;
             descPtr->strides.hStride = descPtr->w;
             descPtr->strides.wStride = 1;
+            descPtr->layout = RpptLayout::NCHW;
+            break;
+        }
+        default: {
+            throw std::runtime_error("Invalid layout value in fillDescriptionPtrfromDims.");
+        }
+    }
+}
+
+void fillGenericDescriptionPtrfromDims(RpptGenericDescPtr &descPtr, vxTensorLayout layout, size_t *tensorDims) {
+    switch(layout) {
+        case vxTensorLayout::VX_NHWC: {
+            descPtr->numDims = 4;
+            descPtr->dims[0] = tensorDims[0];
+            descPtr->dims[1] = tensorDims[1];
+            descPtr->dims[2] = tensorDims[2];
+            descPtr->dims[3] = tensorDims[3];
+            
+            descPtr->strides[3] = 1;
+            descPtr->strides[2] = descPtr->strides[3] * descPtr->dims[3];
+            descPtr->strides[1] = descPtr->strides[2] * descPtr->dims[2];
+            descPtr->strides[0] = descPtr->strides[1] * descPtr->dims[1];
+            descPtr->layout = RpptLayout::NHWC;
+            break; 
+        }
+        case vxTensorLayout::VX_NCHW: {
+            descPtr->numDims = 4;
+            descPtr->dims[0] = tensorDims[0];
+            descPtr->dims[1] = tensorDims[1];
+            descPtr->dims[2] = tensorDims[2];
+            descPtr->dims[3] = tensorDims[3];
+            descPtr->strides[3] = 1;
+            descPtr->strides[2] = descPtr->strides[3] * descPtr->dims[3];
+            descPtr->strides[1] = descPtr->strides[2] * descPtr->dims[2];
+            descPtr->strides[0] = descPtr->strides[1] * descPtr->dims[1];
             descPtr->layout = RpptLayout::NCHW;
             break;
         }

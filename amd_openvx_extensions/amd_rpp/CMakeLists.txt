@@ -148,6 +148,7 @@ list(APPEND SOURCES
         source/tensor/LensCorrection.cpp
         source/tensor/Noise.cpp
         source/tensor/Nop.cpp
+        source/tensor/OpticalFlow.cpp
         source/tensor/Rotate.cpp
         source/tensor/Pixelate.cpp
         source/tensor/Rain.cpp

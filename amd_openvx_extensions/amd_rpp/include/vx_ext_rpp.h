@@ -1561,6 +1561,13 @@ extern "C"
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppWarpAffine(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAffineArray, vx_scalar interpolationType, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
 
+	/*!
+	 * \brief [Graph] Creates a RPP Optical Flow function node.
+	 * \ingroup group_amd_rpp
+	 * @note - TBD
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppOpticalFlow(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+
 #ifdef __cplusplus
 }
 #endif
