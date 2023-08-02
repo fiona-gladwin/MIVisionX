@@ -107,7 +107,7 @@ bool operator==(const TensorInfo &rhs, const TensorInfo &lhs) {
 }
 
 
-void rocalTensorInfo::reset_tensor_roi_buffers() {
+void TensorInfo::reset_tensor_roi_buffers() {
     size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
     allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
     if (_mem_type == RocalMemType::HIP) {

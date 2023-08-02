@@ -921,7 +921,7 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
     else {
 #endif
         // get_read_buffer is blocking if _ring_buffer is empty, and blocks this thread till internal processing thread process a new batch and store in the _ring_buffer
-        auto output_buffer = _ring_buffer.get_read_buffers()[0];
+        auto output_buffer = _ring_buffer.get_read_buffers().first[0];
         memcpy(out_ptr, output_buffer, size);
 #if ENABLE_OPENCL || ENABLE_HIP
     }
@@ -933,7 +933,7 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
 TensorList *
 MasterGraph::get_output_tensors()
 {
-    auto read_buffers = _ring_buffer.get_read_buffers().first;
+    auto read_buffers = _ring_buffer.get_read_buffers();
     auto output_ptr = read_buffers.first;
     auto roi_ptr = read_buffers.second;
     for(unsigned i = 0; i < _internal_tensor_list.size(); i++) {
