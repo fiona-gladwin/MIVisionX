@@ -44,6 +44,7 @@ private:
 
     size_t _dest_width;
     size_t _dest_height;
+    void * _crop_coordinates;
     std::shared_ptr<RocalCropParam> _crop_param;
 };
 

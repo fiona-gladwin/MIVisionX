@@ -411,32 +411,6 @@ namespace rocal{
                 R"code(
                 Returns a rocal tensor at given position `idx` in the rocalTensorlist.
                 )code",
-                py::keep_alive<0, 1>())
-                .def(
-                "as_array",
-                [](rocalTensor &output_tensor)
-                {
-                    std::vector<size_t> tensor_dims = output_tensor.info().dims();
-                    std::vector<size_t> stride(tensor_dims.size());
-                    stride[0] = sizeof(unsigned char);
-                    for(int d = 1; d < tensor_dims.size(); d++)
-                        stride[d] = stride[d - 1] * tensor_dims[tensor_dims.size() - d];
-                    std::reverse(stride.begin(), stride.end());
-                    
-                    if (output_tensor.info().data_type() == RocalTensorDataType::UINT8)
-                    {
-                        return py::array(py::buffer_info(
-                            ((unsigned char *)(output_tensor.buffer())),
-                            sizeof(unsigned char),
-                            py::format_descriptor<unsigned char>::format(),
-                            output_tensor.info().num_of_dims(),
-                            tensor_dims,
-                            stride));
-                    }
-                },
-                R"code(
-                Returns a rocAL tensor at given position `i` in the rocalTensorlist.
-                )code",
                 py::keep_alive<0, 1>());
         py::class_<rocalTensorList>(m, "rocalTensorList")
             .def(
@@ -721,25 +695,11 @@ namespace rocal{
         m.def("FusedDecoderCropShard",&rocalFusedJpegCropSingleShard,"Reads file from the source and decodes them partially to output random crops",
             py::return_value_policy::reference);
         m.def("TF_ImageDecoderRaw",&rocalRawTFRecordSource,"Reads file from the source given and decodes it according to the policy only for TFRecords",
+            py::return_value_policy::reference);
         m.def("NumpyReaderSource", &rocalNumpyFileSource, "Reads file from the source given and decodes it according to the policy",
-              py::return_value_policy::reference,
-              py::arg("context"),
-              py::arg("source_path"),
-              py::arg("internal_shard_count"),
-              py::arg("is_output") = false,
-              py::arg("shuffle") = false,
-              py::arg("loop") = false,
-              py::arg("decode_size_policy") = ROCAL_USE_MAX_SIZE);
+              py::return_value_policy::reference);
         m.def("NumpyReaderSourceShard", &rocalNumpyFileSourceSingleShard, "Reads file from the source given and decodes it according to the shard id and number of shards",
-              py::return_value_policy::reference,
-              py::arg("context"),
-              py::arg("source_path"),
-              py::arg("is_output") = false,
-              py::arg("shuffle") = false,
-              py::arg("loop") = false,
-              py::arg("decode_size_policy") = ROCAL_USE_MAX_SIZE,
-              py::arg("shard_id") = 0,
-              py::arg("shard_count") = 1);
+              py::return_value_policy::reference);
         m.def("Resize",&rocalResize, "Resizes the image ",py::return_value_policy::reference);
         m.def("ColorTwist",&rocalColorTwist, py::return_value_policy::reference);
         m.def("rocalResetLoaders", &rocalResetLoaders);

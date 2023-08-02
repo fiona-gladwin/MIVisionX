@@ -113,8 +113,6 @@ void TensorInfo::reset_tensor_roi_buffers() {
     allocate_host_or_pinned_mem((void **)&roi_buf, _batch_size * roi_dims * 2 * sizeof(unsigned), _mem_type);
     _roi.set_ptr(roi_buf, _mem_type, roi_dims);
     if (_is_image) {
-        _orig_roi_height = std::make_shared<std::vector<uint32_t>>(_batch_size);    // TODO - Check if this needs to be reallocated every time
-        _orig_roi_width = std::make_shared<std::vector<uint32_t>>(_batch_size);
         ROI2DCords * roi = (ROI2DCords *)_roi.get_ptr();
         
         for (unsigned i = 0; i < _batch_size; i++) {
@@ -172,7 +170,7 @@ TensorInfo::TensorInfo(const TensorInfo &other) {
     _channels = other._channels;
     if(!other.is_metadata()) {  // For Metadata ROI buffer is not required
         allocate_host_or_pinned_mem(&_roi_buf, _batch_size * 4 * sizeof(unsigned), _mem_type);
-        memcpy((void *)_roi_buf, (const void *)other.get_roi(), _batch_size * 4 * sizeof(unsigned));
+        memcpy((void *)_roi_buf, (const void *)other.roi().get_ptr(), _batch_size * 4 * sizeof(unsigned));
     }
 }
 
@@ -224,7 +222,7 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
     }
 }
 
-void rocalTensor::update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape) {
+void Tensor::update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape) {
     auto max_shape = _info.max_shape();
     if (shape.size() != info().batch_size())
         THROW("The batch size of actual Tensor shape different from Tensor batch size " + TOSTR(shape.size()) + " != " + TOSTR(info().batch_size()))
@@ -245,23 +243,7 @@ void rocalTensor::update_tensor_roi(const std::vector<std::vector<uint32_t>> &sh
     }
 }
 
-void rocalTensor::update_tensor_orig_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height)
-{
-    if(width.size() != height.size())
-        THROW("Batch size of image height and width info does not match")
-
-    if(width.size() != info().batch_size())
-        THROW("The batch size of actual image height and width different from image batch size "+ TOSTR(width.size())+ " != " +  TOSTR(info().batch_size()))
-    if(! _info._orig_roi_width || !_info._orig_roi_height)
-        THROW("ROI width or ROI height vector not created")
-    for(unsigned i = 0; i < info().batch_size(); i++)
-    {
-        _info._orig_roi_width->at(i) = width[i];
-        _info._orig_roi_height->at(i)= height[i];
-    }
-}
-
-rocalTensor::~rocalTensor() {
+Tensor::~Tensor() {
     _mem_handle = nullptr;
     if (_vx_handle) vxReleaseTensor(&_vx_handle);
 }

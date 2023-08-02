@@ -62,7 +62,7 @@ void ResizeCropMirrorNode::create_node()
 
 void ResizeCropMirrorNode::update_node()
 {
-    _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
+    _crop_param->set_image_dimensions((ROI2DCords *)_inputs[0]->info().roi().get_ptr());
     _crop_param->update_array();
 }
 

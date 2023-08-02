@@ -204,7 +204,7 @@ public:
     RocalROIType roi_type() const { return _roi_type; }
     RocalTensorDataType data_type() const { return _data_type; }
     RocalTensorlayout layout() const { return _layout; }
-    RocalROI *get_roi() const { return (RocalROI *)_roi_buf; }
+    // RocalROI *get_roi() const { return (RocalROI *)_roi_buf; }
     ROI roi() const { return _roi; }
     RocalColorFormat color_format() const { return _color_format; }
     Type type() const { return _type; }
@@ -269,7 +269,6 @@ public:
     int create(vx_context context);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
     void update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape);
-    void update_tensor_orig_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage

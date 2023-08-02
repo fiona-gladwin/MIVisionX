@@ -85,7 +85,7 @@ void ResizeMirrorNormalizeNode::create_node()
 
 void ResizeMirrorNormalizeNode::update_node()
 {
-    RocalROI* src_roi = _inputs[0]->info().get_roi();   // Check if it needs to be similar to resize
+    ROI2DCords *src_roi = (ROI2DCords *)_inputs[0]->info().roi().get_ptr();   // Check if it needs to be similar to resize
     for(uint i = 0; i < _batch_size; i++)
     {
         // Min size and max size used for MLPerf MaskRCNN resize augmentation
