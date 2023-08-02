@@ -767,27 +767,22 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalCropMirrorNormalizeFixed_center crop" << std::endl;
-        std::vector<float> mean = {0, 0, 0};
-        std::vector<float> std_dev = {1, 1, 1};
-        RocalIntParam mirror = rocalCreateIntParameter(0);
+        std::vector<float> mean = {128, 128, 128};
+        std::vector<float> std_dev = {1.2, 1.2, 1.2};
+        RocalIntParam mirror = rocalCreateIntParameter(1);
         output = rocalCropMirrorNormalize(handle, input, 224, 224, 0.5, 0.5, mean, std_dev, true, mirror);
     }
     break;
     case 56:
     {
-        std::vector<float> mean{0, 0, 0};
-        std::vector<float> sdev{1, 1, 1};
+        std::vector<float> mean = {128, 128, 128};
+        std::vector<float> std_dev = {1.2, 1.2, 1.2};
+        RocalIntParam mirror = rocalCreateIntParameter(1);
         std::cout << ">>>>>>> Running "
                   << " Resize Mirror Normalize " << std::endl;
-        output = rocalResizeMirrorNormalize(handle, input, 400 , 400, mean, sdev, true, ROCAL_SCALING_MODE_DEFAULT,
-                                            {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, NULL);
+        output = rocalResizeMirrorNormalize(handle, input, 400 , 400, mean, std_dev, true, ROCAL_SCALING_MODE_DEFAULT,
+                                            {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, mirror);
         break;
-    }
-    case 57:
-    {
-        std::cout << ">>>>>>> Running "
-                  << "rocalSSDRandomCrop" << std::endl;
-        output = rocalRandomCrop(handle, input, true, NULL, NULL, NULL, NULL, 20);
     }
     break;
 

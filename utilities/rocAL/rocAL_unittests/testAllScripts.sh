@@ -26,7 +26,7 @@ caffe2_classification_path=${ROCAL_DATA_PATH}/rocal_data/caffe2/classification/
 caffe2_detection_path=${ROCAL_DATA_PATH}/rocal_data/caffe2/detection/
 mxnet_path=${ROCAL_DATA_PATH}/rocal_data/mxnet/
 output_path=../rocal_unittest_output_folder_$(date +%Y-%m-%d_%H-%M-%S)/
-golden_output_path=${ROCAL_DATA_PATH}/rocal_data/complete_tensor_golden_output/
+golden_output_path=${ROCAL_DATA_PATH}/rocal_data/GoldenOutputsTensor/
 
 display=0
 device=0
@@ -79,11 +79,6 @@ do
     fi
     for ((rgb=rgb_start;rgb<=rgb_end;rgb++))
     do 
-        # FileSource Reader - Tensor
-        ./rocAL_unittests 0 "$image_path" "${output_path}Brightness_${rgb_name[$rgb]}_${device_name}" $width $height 32 $device $rgb 0 $display
-        ./rocAL_unittests 0 "$image_path" "${output_path}CropMirrorNormalize_${rgb_name[$rgb]}_${device_name}_FileReader" $width $height 25 $device $rgb 0 $display
-        
-        ################ COMMENTED BLOCK - Will be enabled once all augmentations support is added ################
         # # FileSource Reader
         ./rocAL_unittests 0 "$image_path" "${output_path}LensCorrection_${rgb_name[$rgb]}_${device_name}" $width $height 45 $device $rgb 0 $display
         ./rocAL_unittests 0 "$image_path" "${output_path}Exposure_${rgb_name[$rgb]}_${device_name}" $width $height 46 $device $rgb 0 $display
@@ -122,7 +117,7 @@ do
         # caffe2 detection
         ./rocAL_unittests 0 "$image_path" "${output_path}FishEye_${rgb_name[$rgb]}_${device_name}" $width $height 10 $device $rgb 0 $display
         ./rocAL_unittests 0 "$image_path" "${output_path}Pixelate_${rgb_name[$rgb]}_${device_name}" $width $height 19 $device $rgb 0 $display
-        ./rocAL_unittests 0 "$image_path" "${output_path}CropCenter_${rgb_name[$rgb]}_${device_name}_cmn" $width $height 55 $device $rgb 0 $display
+        ./rocAL_unittests 0 "$image_path" "${output_path}CropCenterCMN_${rgb_name[$rgb]}_${device_name}" $width $height 55 $device $rgb 0 $display
 
         # mxnet 
         ./rocAL_unittests 0 "$image_path" "${output_path}Jitter_${rgb_name[$rgb]}_${device_name}" $width $height 39 $device $rgb 0 $display
