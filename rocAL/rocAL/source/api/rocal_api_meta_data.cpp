@@ -390,7 +390,7 @@ ROCAL_API_CALL rocalRandomMaskPixel(RocalContext p_context)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != " + TOSTR(context->user_batch_size()))
     if (!meta_data.second)
         THROW("No mask has been loaded for this output image")
-    return context->master_graph->get_random_mask_pixel(context->master_graph->mask_meta_data());
+    return context->master_graph->get_random_mask_pixel(context->master_graph->mask_meta_data(false));
 }
 
 void ROCAL_API_CALL rocalSetRandomPixelMaskConfig(RocalContext p_context, bool is_foreground, unsigned int value, bool is_threshold)

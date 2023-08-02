@@ -1114,7 +1114,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         default_mask_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_mask_info.data_size());
         dims = {2};
-        default_random_mask_pixel_info  = rocalTensorInfo(dims, _mem_type, RocalTensorDataType::INT32);
+        default_random_mask_pixel_info  = TensorInfo(dims, _mem_type, RocalTensorDataType::INT32);
         default_random_mask_pixel_info.set_metadata();
         _meta_data_buffer_size.emplace_back(_user_batch_size * default_random_mask_pixel_info.data_size());
     }
@@ -1151,15 +1151,32 @@ void  MasterGraph::set_random_mask_pixel_config(bool is_foreground, unsigned int
     _is_random_mask_pixel_threshold = is_threshold;
 }
 
-rocalTensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
+int64_t MasterGraph::find_pixel(std::vector<int> start, std::vector<int> foreground_count, int64_t val, int count) {
+    if (val < 0 || val >= count) {
+      return -1;
+    }
+    int id = 0;
+    while (id < start.size()) {
+        if (foreground_count[id] > val) {
+            break;
+        } else {
+            id++;
+        }
+    }
+    id = id - 1;
+    return start[id] + (val - foreground_count[id]);
+}
+
+TensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
 {
     SeededRNG<std::mt19937, 4> rngs(_user_batch_size);
     //std::vector<std::vector<int>> output;
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get bbox buffer from ring buffer
-    auto mask_tensor_dims = _ring_buffer.get_meta_data_info().mask_cords_dims();
+    auto img_sizes = _ring_buffer.get_meta_data().second->get_img_sizes_batch();
+            
     for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
     {
-        _mask_tensor_list[i]->set_dims(mask_tensor_dims[i]);
+        _mask_tensor_list[i]->set_dims({(long unsigned int)img_sizes[i].w, (long unsigned int)img_sizes[i].h});
         _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
         meta_data_buffers += _mask_tensor_list[i]->info().data_size();
     }
@@ -1169,7 +1186,7 @@ rocalTensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
         for (int i = 0; i < _user_batch_size; i++) {
             auto rng = rngs[i];
             int *mask_buffer = (int *)(input->at(i)->buffer());
-            std::vector<unsigned long> dims = {input->at(i)->info().dims().at(0),1};
+            std::vector<unsigned long> dims{input->at(i)->dims().at(0),1};
             for (int j = 0; j < dims.size(); j++) {
                 output_random_mask_pixel[i*2+j] = std::uniform_int_distribution<int64_t>(0, dims[j]-1)(rng);
             }
@@ -1186,8 +1203,8 @@ rocalTensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
                 int count = 0;
                 auto rng = rngs[i];
                 int *mask_buffer = (int *)(input->at(i)->buffer());
-                std::vector<unsigned long> dims = {input->at(i)->info().dims().at(0),1};
-                auto buffer_size = input->at(i)->info().dims().at(0) * input->at(i)->info().dims().at(1);
+                std::vector<unsigned long> dims = {input->at(i)->dims().at(0),1};
+                auto buffer_size = input->at(i)->dims().at(0) * input->at(i)->dims().at(1);
                 while (id < buffer_size) {
                     if (mask_buffer[id] <= _random_mask_pixel_value) {
                         id++;
@@ -1224,8 +1241,8 @@ rocalTensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
                 int count = 0;
                 auto rng = rngs[i];
                 int *mask_buffer = (int *)(input->at(i)->buffer());
-                std::vector<unsigned long> dims = {input->at(i)->info().dims().at(0),1};
-                auto buffer_size = input->at(i)->info().dims().at(0) * input->at(i)->info().dims().at(1);
+                std::vector<unsigned long> dims = {input->at(i)->dims().at(0),1};
+                auto buffer_size = input->at(i)->dims().at(0) * input->at(i)->dims().at(1);
                 while (id < buffer_size) {
                     if (mask_buffer[id] != _random_mask_pixel_value) {
                         id++;

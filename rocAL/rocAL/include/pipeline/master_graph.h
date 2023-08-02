@@ -142,6 +142,7 @@ private:
     void notify_user_thread();
     /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed tensors
     bool no_more_processed_data();
+    int64_t find_pixel(std::vector<int> start, std::vector<int> foreground_count, int64_t val, int count);
     RingBuffer _ring_buffer;//!< The queue that keeps the tensors that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
     pMetaDataBatch _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
     std::shared_ptr<CropCordBatch> _random_bbox_crop_cords_data = nullptr;
@@ -204,6 +205,7 @@ private:
     unsigned int _random_mask_pixel_value = 0;
     bool _is_random_mask_pixel_threshold = false;
     bool _is_random_mask_pixel_foreground = false;
+    std::vector<unsigned> output_random_mask_pixel;
 #if ENABLE_HIP
     BoxEncoderGpu *_box_encoder_gpu = nullptr;
 #endif
