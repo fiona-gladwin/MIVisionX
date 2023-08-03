@@ -78,7 +78,7 @@ def main():
                 path=image_path, bbox=_rocal_bbox)
         images = fn.decoders.image(jpegs, output_type=types.RGB, path=image_path, random_shuffle=True)
         images = fn.resize(images, resize_width=224, resize_height=224)
-        pipe.setOutputs(images)
+        pipe.set_outputs(images)
     pipe.build()
     data_loader = ROCALClassificationIterator(pipe , display=0, device=device)
 

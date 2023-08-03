@@ -35,7 +35,6 @@ def draw_patches(img, idx):
         image = img.cpu().numpy()
     else:
         image = img.detach().numpy()
-    # image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if args.classification:
         cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/CLASSIFICATION/"+str(idx)+"_"+"train"+".png", image)
@@ -90,7 +89,7 @@ def main():
             images = fn.decoders.image(jpegs, path=image_path, shard_id=local_rank, random_shuffle=True)
 
         images = fn.resize(images, resize_width=crop_size_resize, resize_height=crop_size_resize)
-        pipe.setOutputs(images)
+        pipe.set_outputs(images)
     # Build the pipeline
     pipe.build()
     # Dataloader

@@ -117,6 +117,7 @@ def draw_frames(img, batch_idx, iter_idx, layout):
 
 def main():
     # Args
+    print("check 1")
     args = parse_args()
     video_path = args.video_path
     _rocal_cpu = False if args.rocal_gpu else True
@@ -128,24 +129,35 @@ def main():
     tensor_format = types.NFHWC if args.NHWC else types.NFCHW
     tensor_dtype = types.FLOAT16 if args.fp16 else types.FLOAT
     # Create Pipeline instance
+    print("check 2")
+
     pipe = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=args.local_rank, seed=random_seed, rocal_cpu=_rocal_cpu,
                     tensor_layout=tensor_format, tensor_dtype=tensor_dtype, output_memory_type=types.CPU_MEMORY if _rocal_cpu else types.GPU_MEMORY)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
+    print("check 3")
+
     with pipe:
         images = fn.readers.video(file_root=video_path, sequence_length=user_sequence_length,
                               random_shuffle=False, image_type=types.RGB)
-        crop_size = (512,960)
-        output_images = fn.crop_mirror_normalize(images,
-                                                 rocal_tensor_output_layout=tensor_format,
-                                                 rocal_tensor_output_datatype=tensor_dtype,
-                                                 crop=crop_size,
-                                                 mean=[0, 0, 0],
-                                                 std=[1, 1, 1])
-        pipe.set_outputs(output_images)
+        # crop_size = (512,960)
+        # resized_image=fn.resize(images, resize_width=960, resize_height=512,rocal_tensor_output_layout=tensor_format, rocal_tensor_output_datatype=tensor_dtype)
+        # resized_image=fn.brightness(images)
+        # output_images = fn.crop_mirror_normalize(images,
+        #                                          rocal_tensor_output_layout=tensor_format,
+        #                                          rocal_tensor_output_datatype=tensor_dtype,
+        #                                          crop=crop_size,
+        #                                          mean=[0, 0, 0],
+        #                                          std=[1, 1, 1])
+        pipe.set_outputs(images)
     # Build the pipeline
+    print("check 4")
     pipe.build()
     # Dataloader
+    print("check 5")
+
     data_loader = ROCALVideoIterator(pipe, multiplier=pipe._multiplier, offset=pipe._offset, display=display, sequence_length=user_sequence_length)
+    print("check 6")
+
     import timeit
     start = timeit.default_timer()
     # Enumerate over the Dataloader

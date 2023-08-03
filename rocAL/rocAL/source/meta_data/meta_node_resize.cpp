@@ -31,7 +31,6 @@ void ResizeMetaNode::initialize()
 void ResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     initialize();
-    std::cerr<<"\n check metanode update parameters ";
     if(_batch_size != input_meta_data->size())
     {
         _batch_size = input_meta_data->size();

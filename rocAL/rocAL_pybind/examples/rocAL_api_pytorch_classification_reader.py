@@ -77,7 +77,7 @@ def main():
                                         mirror=flip_coin,
                                         mean=[0,0,0],
                                         std=[1,1,1])
-        image_classification_train_pipeline.setOutputs(cmnp)
+        image_classification_train_pipeline.set_outputs(cmnp)
 
     image_classification_train_pipeline.build()
     imageIteratorPipeline = ROCALClassificationIterator(image_classification_train_pipeline)

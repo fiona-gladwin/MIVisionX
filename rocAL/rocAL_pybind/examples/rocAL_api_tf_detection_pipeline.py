@@ -46,10 +46,10 @@ def get_weights(num_bboxes):
         np.put(weights_array, pos, 1)
     return weights_array
 
-def draw_patches(img, idx, bboxes, device_type):
+def draw_patches(img, idx, bboxes):
+    #image is expected as a tensor, bboxes as numpy
     import cv2
-    if device_type == "gpu":
-        img = cp.asnumpy(img)
+    # image = img.detach().numpy()
     image = img.transpose([0, 1, 2])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     image = cv2.normalize(image, None, alpha = 0, beta = 255, norm_type = cv2.NORM_MINMAX, dtype = cv2.CV_32F)
@@ -69,7 +69,6 @@ def main():
     image_path = args.image_dataset_path
     num_classes = 91
     rocal_cpu = False if args.rocal_gpu else True
-    device = "cpu" if rocal_cpu else "gpu"
     batch_size = args.batch_size
     num_threads = args.num_threads
     tf_record_reader_type = 1
@@ -85,8 +84,8 @@ def main():
     }
     try:
         path= "OUTPUT_IMAGES_PYTHON/NEW_API/TF_READER/DETECTION"
-        is_exist = os.path.exists(path)
-        if not is_exist:
+        isExist = os.path.exists(path)
+        if not isExist:
             os.makedirs(path)
     except OSError as error:
         print(error)
@@ -113,12 +112,14 @@ def main():
                                                       random_area=[0.1, 1.0],
                                                       num_attempts=100,path = image_path)
         resized = fn.resize(decoded_images, resize_width=300, resize_height=300)
-        pipe.setOutputs(resized)
+        pipe.set_outputs(resized)
     pipe.build()
-    image_iterator = ROCALIterator(pipe, device=device)
+    imageIterator = ROCALIterator(pipe)
 
     cnt = 0
-    for i, (images_array, bboxes_array, labels_array, num_bboxes_array) in enumerate(image_iterator, 0):
+    for i, ([images_array], bboxes_array, labels_array, num_bboxes_array) in enumerate(imageIterator, 0):
+        print(images_array.shape)
+        # images_array = np.transpose(images_array, [0, 2, 3, 1])
         print("ROCAL augmentation pipeline - Processing batch %d....." % i)
 
         for element in list(range(batch_size)):
@@ -138,10 +139,10 @@ def main():
             processed_tensors = (features_dict, labels_dict)
             if args.print_tensor:
                 print("\nPROCESSED_TENSORS:\n", processed_tensors)
-            draw_patches(images_array[element], cnt, bboxes_array[element], device)
+            draw_patches(images_array[element],cnt,bboxes_array[element])
         print("\n\nPrinted first batch with", (batch_size), "images!")
         break
-    image_iterator.reset()
+    imageIterator.reset()
 
     print("###############################################    TF DETECTION    ###############################################")
     print("###############################################    SUCCESS         ###############################################")

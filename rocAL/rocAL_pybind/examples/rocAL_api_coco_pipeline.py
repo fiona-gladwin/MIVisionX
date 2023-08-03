@@ -80,10 +80,10 @@ class ROCALCOCOIterator(object):
         return self.__next__()
 
     def __next__(self):
-        if self.loader.rocalRun() != 0:
+        if self.loader.rocal_run() != 0:
             raise StopIteration
         else:
-            self.output_tensor_list = self.loader.getOutputTensors()
+            self.output_tensor_list = self.loader.get_output_tensors()
 
         print("check nxt ")
         if self.output_list is None:
@@ -104,12 +104,12 @@ class ROCALCOCOIterator(object):
             for i in range(len(self.output_tensor_list)):
                 self.output_tensor_list[i].copy_data(ctypes.c_void_p(self.output_list[i].data_ptr()), self.output_memory_type)
         
-        self.labels = self.loader.getBoundingBoxLabels()
+        self.labels = self.loader.get_bounding_box_labels()
             # 1D bboxes array in a batch
-        self.bboxes = self.loader.getBoundingBoxCords()
+        self.bboxes = self.loader.get_bounding_box_cords()
         image_id_tensor = torch.tensor(self.image_id)
         image_size_tensor = torch.tensor(self.img_size).view(-1, self.bs, 2)
-        self.loader.getImageId(self.image_id)
+        self.loader.get_image_id(self.image_id)
 
         for i in range(self.bs):
             if self.display:
@@ -121,7 +121,7 @@ class ROCALCOCOIterator(object):
         return (self.output), self.bboxes, self.labels, image_id_tensor, image_size_tensor
 
     def reset(self):
-        self.loader.rocalResetLoaders()
+        self.loader.rocal_reset_loaders()
 
     def __iter__(self):
         return self
@@ -203,7 +203,7 @@ def main():
                                                   mirror=flip_coin,
                                                   rocal_tensor_output_datatype=types.UINT8,
                                                   rocal_tensor_output_layout=types.NHWC)
-        pipe.setOutputs(cmn_images)
+        pipe.set_outputs(cmn_images)
     # Build the pipeline
     pipe.build()
     # Dataloader
