@@ -76,7 +76,7 @@ struct ROI {
             _roi_ptr.reset(_roi_buf, free);
         }
     }
-    RocalROICords& operator[](const int i) {
+    ROICords& operator[](const int i) {
         _roi_coords.begin = (_roi_buf + (i * _stride));
         _roi_coords.shape = (_roi_buf + (i * _stride) + _dims);
         return _roi_coords;
@@ -87,7 +87,7 @@ private:
     std::shared_ptr<unsigned> _roi_ptr;
     unsigned _dims = 0;
     unsigned _stride = 0;
-    RocalROICords _roi_coords;
+    ROICords _roi_coords;
 };
 
 /*! \brief Holds the information about a rocalTensor */
@@ -204,7 +204,7 @@ public:
     RocalROIType roi_type() const { return _roi_type; }
     RocalTensorDataType data_type() const { return _data_type; }
     RocalTensorlayout layout() const { return _layout; }
-    RocalROI *get_roi() const { return (RocalROI *)_roi_buf; }
+    // RocalROI *get_roi() const { return (RocalROI *)_roi_buf; }
     ROI roi() const { return _roi; }
     RocalColorFormat color_format() const { return _color_format; }
     Type type() const { return _type; }
@@ -269,7 +269,6 @@ public:
     int create(vx_context context);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
     void update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape);
-    void update_tensor_orig_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
@@ -285,18 +284,29 @@ public:
     RocalTensorOutputType data_type() override { return (RocalTensorOutputType)_info.data_type(); }
     size_t data_size() override { return _info.data_size(); }
     RocalROICordsType roi_type() override { return (RocalROICordsType)_info.roi_type(); }
-    RocalROICords *get_roi() override { return (RocalROICords *)_info.get_roi(); }
     std::vector<size_t> shape() override { return _info.max_shape(); }
     RocalImageColor color_format() const { return (RocalImageColor)_info.color_format(); }
     RocalTensorBackend backend() override { 
         return (_info.mem_type() == RocalMemType::HOST ? ROCAL_CPU : ROCAL_GPU);
     }
-    
+    RocalROI2DCords *get_roi_2D() override {
+        if(_info.roi().no_of_dims() != 2)
+            ERR("The tensor ROI is multidimensional not 2D")
+        return (RocalROI2DCords *)_info.roi().get_ptr();
+    }
+    std::vector<RocalROICords>& get_roi() override {
+        for (unsigned idx = 0; idx < _info.batch_size(); idx++) {
+            _roi_cords_batch[idx].begin = _info.roi()[idx].begin;
+            _roi_cords_batch[idx].end = _info.roi()[idx].shape;
+        }
+        return _roi_cords_batch; 
+    }
 private:
     vx_tensor _vx_handle = nullptr;  //!< The OpenVX tensor
     void* _mem_handle = nullptr;  //!< Pointer to the tensor's internal buffer (opencl or host)
     TensorInfo _info;  //!< The structure holding the info related to the stored OpenVX tensor
     vx_context _context = nullptr;
+    std::vector<RocalROICords> _roi_cords_batch;
 };
 
 /*! \brief Contains a list of rocalTensors */

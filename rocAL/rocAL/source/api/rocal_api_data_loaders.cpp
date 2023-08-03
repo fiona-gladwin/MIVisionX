@@ -2094,7 +2094,7 @@ rocalNumpyFileSource(
                  bool loop,
                  RocalImageSizeEvaluationPolicy decode_size_policy)
 {
-    rocalTensor* output = nullptr;
+    Tensor* output = nullptr;
     auto context = static_cast<Context*>(p_context);
     try
     {
@@ -2161,7 +2161,7 @@ rocalNumpyFileSourceSingleShard(
                  unsigned shard_id,
                  unsigned shard_count)
 {
-    rocalTensor* output = nullptr;
+    Tensor* output = nullptr;
     auto context = static_cast<Context*>(p_context);
     try
     {

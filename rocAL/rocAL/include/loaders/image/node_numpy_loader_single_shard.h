@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 class NumpyLoaderSingleShardNode : public Node {
 public:
-    NumpyLoaderSingleShardNode(rocalTensor *output, void *device_resources);
+    NumpyLoaderSingleShardNode(Tensor *output, void *device_resources);
     ~NumpyLoaderSingleShardNode() override;
 
     /// \param user_shard_count shard count from user

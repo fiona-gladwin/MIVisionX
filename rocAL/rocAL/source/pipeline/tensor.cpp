@@ -109,18 +109,19 @@ bool operator==(const TensorInfo &rhs, const TensorInfo &lhs) {
 
 void TensorInfo::reset_tensor_roi_buffers() {
     unsigned *roi_buf;
-    allocate_host_or_pinned_mem((void **)&roi_buf, _batch_size * (_is_image ? 4 : (_num_of_dims - 1) * 2) * sizeof(unsigned), _mem_type);
-    _roi.set_ptr(roi_buf, _mem_type, _num_of_dims - 1);
+    auto roi_dims = _is_image ? 2 : (_num_of_dims - 1);
+    allocate_host_or_pinned_mem((void **)&roi_buf, _batch_size * roi_dims * 2 * sizeof(unsigned), _mem_type);
+    _roi.set_ptr(roi_buf, _mem_type, roi_dims);
     if (_is_image) {
-        _orig_roi_height = std::make_shared<std::vector<uint32_t>>(_batch_size);    // TODO - Check if this needs to be reallocated every time
-        _orig_roi_width = std::make_shared<std::vector<uint32_t>>(_batch_size);
-        Rocal2DROI * roi = (Rocal2DROI *)_roi.get_ptr();
+        ROI2DCords * roi = (ROI2DCords *)_roi.get_ptr();
+        
         for (unsigned i = 0; i < _batch_size; i++) {
             roi[i].x2 = _max_shape.at(0);
             roi[i].y2 = _max_shape.at(1);
         }
     } else {
         // TODO - For other tensor types
+        // ROI for numpy?
     }
 }
 
@@ -169,7 +170,7 @@ TensorInfo::TensorInfo(const TensorInfo &other) {
     _channels = other._channels;
     if(!other.is_metadata()) {  // For Metadata ROI buffer is not required
         allocate_host_or_pinned_mem(&_roi_buf, _batch_size * 4 * sizeof(unsigned), _mem_type);
-        memcpy((void *)_roi_buf, (const void *)other.get_roi(), _batch_size * 4 * sizeof(unsigned));
+        memcpy((void *)_roi_buf, (const void *)other.roi().get_ptr(), _batch_size * 4 * sizeof(unsigned));
     }
 }
 
@@ -196,7 +197,8 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
         auto max_shape = _info.max_shape();
         unsigned max_width = max_shape.at(0);
         unsigned max_height = max_shape.at(1);
-        Rocal2DROI *roi = (Rocal2DROI *)_info.roi().get_ptr();
+        ROI2DCords *roi = (ROI2DCords *)_info.roi().get_ptr();
+        
         if (width.size() != height.size())
             THROW("Batch size of Tensor height and width info does not match")
 
@@ -220,7 +222,7 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
     }
 }
 
-void rocalTensor::update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape) {
+void Tensor::update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape) {
     auto max_shape = _info.max_shape();
     if (shape.size() != info().batch_size())
         THROW("The batch size of actual Tensor shape different from Tensor batch size " + TOSTR(shape.size()) + " != " + TOSTR(info().batch_size()))
@@ -241,23 +243,7 @@ void rocalTensor::update_tensor_roi(const std::vector<std::vector<uint32_t>> &sh
     }
 }
 
-void rocalTensor::update_tensor_orig_roi(const std::vector<uint32_t> &width, const std::vector<uint32_t> &height)
-{
-    if(width.size() != height.size())
-        THROW("Batch size of image height and width info does not match")
-
-    if(width.size() != info().batch_size())
-        THROW("The batch size of actual image height and width different from image batch size "+ TOSTR(width.size())+ " != " +  TOSTR(info().batch_size()))
-    if(! _info._orig_roi_width || !_info._orig_roi_height)
-        THROW("ROI width or ROI height vector not created")
-    for(unsigned i = 0; i < info().batch_size(); i++)
-    {
-        _info._orig_roi_width->at(i) = width[i];
-        _info._orig_roi_height->at(i)= height[i];
-    }
-}
-
-rocalTensor::~rocalTensor() {
+Tensor::~Tensor() {
     _mem_handle = nullptr;
     if (_vx_handle) vxReleaseTensor(&_vx_handle);
 }
@@ -266,6 +252,7 @@ Tensor::Tensor(const TensorInfo &tensor_info)
     : _info(tensor_info) {
     _info._type = TensorInfo::Type::UNKNOWN;
     _mem_handle = nullptr;
+    _roi_cords_batch.resize(tensor_info.batch_size());
 }
 
 int Tensor::create_virtual(vx_context context, vx_graph graph) {
