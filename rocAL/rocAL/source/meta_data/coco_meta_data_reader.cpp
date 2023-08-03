@@ -156,7 +156,7 @@ void COCOMetaDataReader::print_map_contents()
 }
 
 void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_in) {
-    std::map<int, std::vector<RLE> > FromPoly;
+    std::map<int, std::vector<RLE>> FromPoly;
     auto it = _map_content.find(filename);
     BoundingBoxCords bb_coords = it->second->get_bb_cords();
     Labels bb_labels = it->second->get_labels();
@@ -176,10 +176,8 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_
     }
     // Generate FromPoly for all polygons in image
     int count = 0;
-    for (unsigned int i = 0; i < bb_coords.size(); i++)
-    {
-        for (int j = 0; j < polygon_size[i]; j++)
-        {
+    for (unsigned int i = 0; i < bb_coords.size(); i++) {
+        for (int j = 0; j < polygon_size[i]; j++) {
             std::vector<double> in;
             for (int k = 0; k < vertices_count[i][j]; k++, count++) {
                 in.push_back(mask_cords[count]);

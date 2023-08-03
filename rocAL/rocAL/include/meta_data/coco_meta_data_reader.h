@@ -38,7 +38,7 @@ public:
     void release() override;
     void print_map_contents();
     bool set_timestamp_mode() override { return false; }
-    std::pair<uint32_t,uint32_t> get_max_size() override { return std::make_pair(_max_height, _max_width); }
+    std::pair<uint32_t, uint32_t> get_max_size() override { return std::make_pair(_max_height, _max_width); }
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content;}
     COCOMetaDataReader();
 private:

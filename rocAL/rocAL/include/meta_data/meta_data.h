@@ -531,10 +531,10 @@ public:
         _bb_cords.insert(_bb_cords.end(), other.get_bb_cords_batch().begin(), other.get_bb_cords_batch().end());
         _label_ids.insert(_label_ids.end(), other.get_labels_batch().begin(), other.get_labels_batch().end());
         _info_batch.insert(other.get_info_batch());
-        _mask_cords.insert(_mask_cords.end(),other.get_mask_cords_batch().begin(), other.get_mask_cords_batch().end());
-        _polygon_counts.insert(_polygon_counts.end(),other.get_mask_polygons_count_batch().begin(), other.get_mask_polygons_count_batch().end());
-        _vertices_counts.insert(_vertices_counts.end(),other.get_mask_vertices_count_batch().begin(), other.get_mask_vertices_count_batch().end());
-        _pixelwise_labels.insert(_pixelwise_labels.end(),other.get_pixelwise_labels_batch().begin(), other.get_pixelwise_labels_batch().end());
+        _mask_cords.insert(_mask_cords.end(), other.get_mask_cords_batch().begin(), other.get_mask_cords_batch().end());
+        _polygon_counts.insert(_polygon_counts.end(), other.get_mask_polygons_count_batch().begin(), other.get_mask_polygons_count_batch().end());
+        _vertices_counts.insert(_vertices_counts.end(), other.get_mask_vertices_count_batch().begin(), other.get_mask_vertices_count_batch().end());
+        _pixelwise_labels.insert(_pixelwise_labels.end(), other.get_pixelwise_labels_batch().begin(), other.get_pixelwise_labels_batch().end());
         return *this;
     }
     void resize(int batch_size) override
