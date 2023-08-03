@@ -21,42 +21,38 @@ THE SOFTWARE.
 */
 
 #include <vx_ext_rpp.h>
-#include <graph.h>
 #include "node_jitter.h"
 #include "exception.h"
 
 
 JitterNode::JitterNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
         Node(inputs, outputs),
-        _kernel_size(KERNEL_SIZE[0], KERNEL_SIZE[1])
-{
-}
+        _kernel_size(KERNEL_SIZE[0], KERNEL_SIZE[1]) {}
 
-void JitterNode::create_node()
-{
+void JitterNode::create_node() {
     if(_node)
         return;
 
-    _kernel_size.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
-    // _node = vxExtrppNode_JitterbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _kernel_size.default_array(), _batch_size);
+    _kernel_size.create_array(_graph, VX_TYPE_UINT32, _batch_size);
+    vx_scalar seed = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, &_seed);
+    _node = vxExtRppJitter(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _kernel_size.default_array(), seed, _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the jitter (vxExtrppNode_Jitter) node failed: "+ TOSTR(status))
+        THROW("Adding the jitter (vxExtRppJitter) node failed: " + TOSTR(status))
 }
 
-void JitterNode::init(int kernel_size)
-{
+void JitterNode::init(int kernel_size, int seed) {
     _kernel_size.set_param(kernel_size);
+    _seed = seed;
 }
 
-void JitterNode::init(IntParam *kernel_size)
-{
+void JitterNode::init(IntParam *kernel_size, int seed) {
     _kernel_size.set_param(core(kernel_size));
+    _seed = seed;
 }
 
-void JitterNode::update_node()
-{
+void JitterNode::update_node() {
     _kernel_size.update_array();
 }
 

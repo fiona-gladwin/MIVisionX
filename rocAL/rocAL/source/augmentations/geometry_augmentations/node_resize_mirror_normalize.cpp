@@ -27,108 +27,166 @@ THE SOFTWARE.
 #include "exception.h"
 
 ResizeMirrorNormalizeNode::ResizeMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs), _mirror(_mirror_range[0], _mirror_range[1])
-{
-}
+        Node(inputs, outputs), _mirror(_mirror_range[0], _mirror_range[1]) {}
 
 void ResizeMirrorNormalizeNode::create_node()
 {
     if(_node)
         return;
 
-    std::vector<vx_float32> mean_vx, std_dev_vx;
-    _dest_width_val.resize(_batch_size);
-    _dest_height_val.resize(_batch_size);
-    mean_vx.resize(_batch_size * 3);
-    std_dev_vx.resize(_batch_size * 3);
-    for (uint i = 0; i < _batch_size; i++) {
-        mean_vx[3 * i] = _mean[0];
-        mean_vx[3 * i + 1] = _mean[1];
-        mean_vx[3 * i + 2] = _mean[2];
+    if(_mean.size() == 0 || _std_dev.size() == 0)
+        THROW("Mean or std dev array is empty")
 
-        std_dev_vx[3 * i] = _std_dev[0];
-        std_dev_vx[3 * i + 1] = _std_dev[1];
-        std_dev_vx[3 * i + 2] = _std_dev[2];
+    int mean_std_array_size = _batch_size * _inputs[0]->info().get_channels();
+    std::vector<float> mean_vec, std_dev_vec;
+    if(!_std_dev[0])
+        THROW("Standard deviation value cannot be 0");
+    mean_vec.resize(mean_std_array_size, _mean[0]);
+    std_dev_vec.resize(mean_std_array_size, _std_dev[0]);
+
+    if(_inputs[0]->info().get_channels() == 3) {
+        if(!(_std_dev[0] && _std_dev[1] && _std_dev[2]))
+            THROW("Standard deviation value cannot be 0");
+        for (uint i = 0, j = 0; i < _batch_size; i++, j += 3 ) {
+            mean_vec[j] = _mean[0];
+            mean_vec[j + 1] = _mean[1];
+            mean_vec[j + 2] = _mean[2];
+
+            std_dev_vec[j] = _std_dev[0];
+            std_dev_vec[j + 1] = _std_dev[1];
+            std_dev_vec[j + 2] = _std_dev[2];
+        }
     }
-    _mean_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 3);
-    _std_dev_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 3);
-    vx_status mean_status = VX_SUCCESS;
-    mean_status |= vxAddArrayItems(_mean_array,_batch_size * 3, mean_vx.data(), sizeof(vx_float32));
-    mean_status |= vxAddArrayItems(_std_dev_array,_batch_size * 3, std_dev_vx.data(), sizeof(vx_float32));
-    _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
-    if(mean_status != 0)
-        THROW(" vxAddArrayItems failed in the resize mirror normalize node (vxExtrppNode_ResizeMirrorNormalizeCropbatchPD    )  node: "+ TOSTR(mean_status) + "  "+ TOSTR(mean_status))
     
-    unsigned int chnShift = 0;
-    vx_scalar chnToggle = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, &chnShift);
+    _mean_vx_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, mean_std_array_size);
+    _std_dev_vx_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, mean_std_array_size);
+    vx_status mean_status = VX_SUCCESS;
+    mean_status |= vxAddArrayItems(_mean_vx_array, mean_std_array_size, mean_vec.data(), sizeof(vx_float32));
+    mean_status |= vxAddArrayItems(_std_dev_vx_array, mean_std_array_size, std_dev_vec.data(), sizeof(vx_float32));
+    _mirror.create_array(_graph, VX_TYPE_UINT32, _batch_size);
+    if(mean_status != 0)
+        THROW(" vxAddArrayItems failed in the resize_mirror_normalize node (vxExtRppResizeMirrorNormalize)  node: " + TOSTR(mean_status) + "  " + TOSTR(mean_status))
 
     std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().max_shape()[0]);
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
-
     _dst_roi_width = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
     _dst_roi_height = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
-    vx_status width_status, height_status;
 
+    vx_status width_status, height_status, status;
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
-     if(width_status != 0 || height_status != 0)
-        THROW(" vxAddArrayItems failed in the resize mirror normalize node (vxExtrppNode_ResizeMirrorNormalizeCropbatchPD ) node: " + TOSTR(width_status) + "  " + TOSTR(height_status))
+    if(width_status != 0 || height_status != 0)
+        THROW(" vxAddArrayItems failed in the resize mirror normalize (vxExtRppResizeMirrorNormalize) node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status));
 
-   // _node = vxExtrppNode_ResizeMirrorNormalizeTensor(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(),
-                                                    // _dst_roi_width, _dst_roi_height, _mean_array, _std_dev_array,
-                                                    // _mirror.default_array(), chnToggle, _batch_size);
-
-    vx_status status;
+    vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &_interpolation_type);
+   _node = vxExtRppResizeMirrorNormalize(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(),
+                                         _dst_roi_width, _dst_roi_height, interpolation_vx, _mean_vx_array, _std_dev_vx_array,
+                                         _mirror.default_array(), _input_layout, _output_layout, _roi_type);
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the resize mirror normalize node (vxExtrppNode_ResizeMirrorNormalizeCropbatchPD) node failed: "+ TOSTR(status))
+        THROW("Adding the resize_mirror_normalize (vxExtRppResizeMirrorNormalize) node failed: " + TOSTR(status))
 }
 
 void ResizeMirrorNormalizeNode::update_node()
 {
     RocalROI* src_roi = _inputs[0]->info().get_roi();   // Check if it needs to be similar to resize
-    for(uint i = 0; i < _batch_size; i++)
-    {
-        // Min size and max size used for MLPerf MaskRCNN resize augmentation
-        // TODO: Get the min_size and max_size as user arguments from python
-        int min_size = 800;
-        int max_size = 1333;
-        int src_width = src_roi[i].x2;
-        int src_height = src_roi[i].y2;
-        int size = min_size;
-        int output_width, output_height;
+    for (unsigned i = 0; i < _batch_size; i++) {
+        _src_width = src_roi[i].x2;
+        _src_height = src_roi[i].y2;
+        _dst_width = _out_width;
+        _dst_height = _out_height;
+        adjust_out_roi_size();
+        _dst_width = std::min(_dst_width, static_cast<unsigned>(_outputs[0]->info().max_shape()[0]));
+        _dst_height = std::min(_dst_height, static_cast<unsigned>(_outputs[0]->info().max_shape()[1]));
+        _dst_roi_width_vec.push_back(_dst_width);
+        _dst_roi_height_vec.push_back(_dst_height);
+    }
+    vx_status width_status, height_status;
+    width_status = vxCopyArrayRange((vx_array)_dst_roi_width, 0, _batch_size, sizeof(vx_uint32), _dst_roi_width_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+    height_status = vxCopyArrayRange((vx_array)_dst_roi_height, 0, _batch_size, sizeof(vx_uint32), _dst_roi_height_vec.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
+    if(width_status != 0 || height_status != 0)
+        WRN("ERROR: vxCopyArrayRange _dst_roi_width or _dst_roi_height failed " + TOSTR(width_status) + "  " + TOSTR(height_status));
+    _outputs[0]->update_tensor_roi(_dst_roi_width_vec, _dst_roi_height_vec);
+    _dst_roi_width_vec.clear();
+    _dst_roi_height_vec.clear();
+    _mirror.update_array();
+}
+void ResizeMirrorNormalizeNode::init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode, std::vector<unsigned> max_size,
+                                     RocalResizeInterpolationType interpolation_type, std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror) {
+    _interpolation_type = static_cast<int>(interpolation_type);
+    _scaling_mode = scaling_mode;
+    _out_width = dest_width;
+    _out_height = dest_height;
+    if(max_size.size() > 0) {
+        _max_width = max_size[0];
+        _max_height = max_size[1];
+    }
+    _mean = mean;
+    _std_dev = std_dev;
+    _mirror.set_param(core(mirror));
+}
 
-        float min_original_size = static_cast<float>(std::min(src_width, src_height));
-        float max_original_size = static_cast<float>(std::max(src_width, src_height));
+void ResizeMirrorNormalizeNode::adjust_out_roi_size() {
+    bool has_max_size = (_max_width | _max_height) > 0;
+
+    if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_MIN_MAX) {
+        // Min size and max size used for MLPerf MaskRCNN resize augmentation
+        unsigned min_size = _max_width;
+        unsigned max_size = _max_height;
+        unsigned size = min_size;
+
+        float min_original_size = static_cast<float>(std::min(_src_width, _src_height));
+        float max_original_size = static_cast<float>(std::max(_src_width, _src_height));
         if(max_original_size / min_original_size * size > max_size)
             size = static_cast<size_t>(round(max_size * min_original_size / max_original_size));
 
-        if (((src_width <= src_height) && (src_width == size)) || ((src_height <= src_width) && (src_height == size)))
+        if (((_src_width <= _src_height) && (_src_width == size)) || ((_src_height <= _src_width) && (_src_height == size)))
         {
-            _dest_height_val[i] = src_height;
-            _dest_width_val[i] = src_width;
-            continue;
+            _dst_height = _src_height;
+            _dst_width = _src_width;
         }
 
-        if(src_width < src_height) {
-            output_width = size;
-            output_height = static_cast<size_t>(size * src_height / src_width);	
+        if(_src_width < _src_height) {
+            _dst_width = size;
+            _dst_height = static_cast<size_t>(size * _src_height / _src_width);	
         } else {
-            output_height = size;
-            output_width = static_cast<size_t>(size * src_width / src_height);
+            _dst_height = size;
+            _dst_width = static_cast<size_t>(size * _src_width / _src_height);
         }
-	_dest_height_val[i] = output_height;
-	_dest_width_val[i] = output_width;
+    } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_STRETCH) {
+        if (_dst_width == 0) _dst_width = _src_width;
+        if (_dst_height == 0) _dst_height = _src_height;
+
+        if (has_max_size) {
+            if (_max_width != 0) _dst_width = std::min(_dst_width, _max_width);
+            if (_max_height != 0) _dst_height = std::min(_dst_height, _max_height);
+        }
+    } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_DEFAULT) {
+        if (_dst_width == 0 && _dst_height != 0) {  // Only height is passed
+            _dst_width = std::lround(_src_width * (static_cast<float>(_dst_height) / _src_height));
+        } else if (_dst_height == 0 && _dst_width != 0) {  // Only width is passed
+            _dst_height = std::lround(_src_height * (static_cast<float>(_dst_width) / _src_width));
+        }
+
+        if (has_max_size) {
+            if (_max_width != 0) _dst_width = std::min(_dst_width, _max_width);
+            if (_max_height != 0) _dst_height = std::min(_dst_height, _max_height);
+        }
+    } else {
+        float scale = 1.0f;
+        float scale_w = static_cast<float>(_dst_width) / _src_width;
+        float scale_h = static_cast<float>(_dst_height) / _src_height;
+        if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_SMALLER) {
+            scale = std::max(scale_w, scale_h);
+        } else if (_scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_NOT_LARGER) {
+            scale = (scale_w > 0 && scale_h > 0) ? std::min(scale_w, scale_h) : ((scale_w > 0) ? scale_w : scale_h);
+        }
+
+        if (has_max_size) {
+            if (_max_width != 0) scale = std::min(scale, static_cast<float>(_max_width) / _src_width);
+            if (_max_height != 0) scale = std::min(scale, static_cast<float>(_max_height) / _src_height);
+        }
+
+        if ((scale_w != scale) || (_dst_width == 0)) _dst_width = std::lround(_src_width * scale);
+        if ((scale_h != scale) || (_dst_height == 0)) _dst_height = std::lround(_src_height * scale);
     }
-    vxCopyArrayRange((vx_array)_dst_roi_width, 0, _batch_size, sizeof(uint), _dest_width_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_dst_roi_height, 0, _batch_size, sizeof(uint), _dest_height_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
-
-    _outputs[0]->update_tensor_roi(_dest_width_val, _dest_height_val);
-    _mirror.update_array();
-}
-
-void ResizeMirrorNormalizeNode::init(std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror)
-{
-    _mean   = mean;
-    _std_dev = std_dev;
-    _mirror.set_param(core(mirror));
 }

@@ -44,12 +44,8 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
     _x2 = _meta_crop_param->x2_arr;
     _y2 = _meta_crop_param->y2_arr;
     auto input_roi = _meta_crop_param->in_roi;
-    // _dst_width = _node->get_dst_width();
-    // _dst_height = _node->get_dst_height();
     auto output_roi = _node->get_dst_roi();
 
-    // vxCopyArrayRange((vx_array)_dst_width, 0, _batch_size, sizeof(uint), _dst_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    // vxCopyArrayRange((vx_array)_dst_height, 0, _batch_size, sizeof(uint), _dst_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint),_x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint),_y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_x2, 0, _batch_size, sizeof(uint),_x2_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
@@ -58,13 +54,8 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
 
     for(int i = 0; i < _batch_size; i++)
     {
-        // _dst_to_src_width_ratio = _dst_width_val[i] / float(input_roi[i].x2);
-        // _dst_to_src_height_ratio = _dst_height_val[i] / float(input_roi[i].y2);
         _dst_to_src_width_ratio =float(output_roi[i].x2) / float(input_roi[i].x2);
         _dst_to_src_height_ratio =float(output_roi[i].y2) / float(input_roi[i].y2);
-        std::cerr<<"_dst_width_val[i] / float(input_roi[i].x2 "<<float(output_roi[i].x2) <<"  "<< float(input_roi[i].x2)<<"  "<<_dst_to_src_width_ratio;
-        std::cerr<<"_dst_width_val[i] / float(output_roi[i].x2 "<<float(output_roi[i].y2) <<"  "<< float(input_roi[i].y2)<<"  "<<_dst_to_src_height_ratio;
-
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
@@ -73,10 +64,6 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
         BoundingBoxCord crop_box;
         _crop_w = _x2_val[i] - _x1_val[i];
         _crop_h = _y2_val[i] - _y1_val[i];
-        // float _dst_to_src_width_ratio = _crop_w / float(input_roi[i].x2);
-        // float _dst_to_src_height_ratio = _crop_h / float(input_roi[i].y2);
-        // std::cerr<<"\ninput_roi[i].x2 "<<input_roi[i].x2<<"  "<<input_roi[i].y2<<"  "<<_crop_w<<"  "<<_crop_h;
-        // std::cerr<<"\n _x1_val[i] "<<_x1_val[i]<<" "<<_y1_val[i]<<"   "<<_x2_val[i]<<"   "<<_y2_val[i]<<"\n";
         //TBD
         crop_box.l = (_x1_val[i]);
         crop_box.t = (_y1_val[i]);
@@ -87,12 +74,6 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
         for(uint j = 0; j < bb_count; j++)
         {
             BoundingBoxCord box = coords_buf[j];
-            // box.l /= static_cast<float> (input_roi[i].x2);
-            // box.t /= static_cast<float> (input_roi[i].y2);
-            // box.r /= static_cast<float> (input_roi[i].x2);
-            // box.b /= static_cast<float> (input_roi[i].y2);
-                std::cerr<<"\n before box.l"<<box.l<<" "<<box.t<<" "<<box.r<<" "<<box.b<<"  "<<_crop_w<<"  "<<_crop_h;
-
             if (BBoxIntersectionOverUnion(box, crop_box) >= _iou_threshold)
             {
                 float xA = std::max(crop_box.l, box.l);
@@ -103,13 +84,10 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
                 box.t = (yA - crop_box.t);
                 box.r = (xB - crop_box.l);
                 box.b = (yB - crop_box.t);
-                std::cerr<<"\n box.l"<<box.l<<" "<<box.t<<" "<<box.r<<" "<<box.b<<"  "<<_crop_w<<"  "<<_crop_h;
                 box.l *= _dst_to_src_width_ratio;
                 box.t *= _dst_to_src_height_ratio;
                 box.r *= _dst_to_src_width_ratio;
                 box.b *= _dst_to_src_height_ratio;
-                std::cerr<<"\n after box.l"<<box.l<<" "<<box.t<<" "<<box.r<<" "<<box.b<<"  "<<_crop_w<<"  "<<_crop_h;
-
                 bb_coords.push_back(box);
                 bb_labels.push_back(labels_buf[j]);
             }

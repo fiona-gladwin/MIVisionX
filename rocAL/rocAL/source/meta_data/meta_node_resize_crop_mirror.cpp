@@ -90,10 +90,6 @@ void ResizeCropMirrorMetaNode::update_parameters(pMetaDataBatch input_meta_data,
                     box_coords_buf[j].l = _crop_w - r;
                     box_coords_buf[j].r = _crop_w - l;
                 }
-                // box_coords_buf[j].l *= _dst_to_src_width_ratio;
-                // box_coords_buf[j].t *= _dst_to_src_height_ratio;
-                // box_coords_buf[j].r *= _dst_to_src_width_ratio;
-                // box_coords_buf[j].b *= _dst_to_src_height_ratio;            
                 bb_coords.push_back(box_coords_buf[j]);
                 bb_labels.push_back(labels_buf[j]);
             }
