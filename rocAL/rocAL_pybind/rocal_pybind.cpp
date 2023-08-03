@@ -594,13 +594,11 @@ namespace rocal{
             int* ptr = static_cast<int *>(buf.ptr);
             rocalGetImageSizes(context, ptr);
         });
-        m.def("getROIImgSizes", [](RocalContext context, py::array_t<int> array)
-        {
+        m.def("getROIImgSizes", [](RocalContext context, py::array_t<int> array) {
             auto buf = array.request();
-            int* ptr = (int*) buf.ptr;
+            int* ptr = static_cast<int *>(buf.ptr);
             rocalGetROIImageSizes(context,ptr);
-        }
-        );
+        });
         // rocal_api_parameter.h
         m.def("setSeed", &rocalSetSeed);
         m.def("getSeed", &rocalGetSeed);
@@ -672,19 +670,14 @@ namespace rocal{
             }
             return boxes_list;
         });
-        m.def(
-            "getMaskCount", [](RocalContext context, py::array_t<int> array)
-    {
-        auto buf = array.mutable_data();
-        unsigned count = rocalGetMaskCount(context, buf); //total number of polygons in complete batch
-        return count;
-    }
-            );
-        m.def(
-            "getMaskCoordinates", [](RocalContext context, py::array_t<int> polygon_size, py::array_t<int> mask_count)
-    {
+        m.def("getMaskCount", [](RocalContext context, py::array_t<int> array) {
+            auto buf = array.mutable_data();
+            unsigned count = rocalGetMaskCount(context, buf); //total number of polygons in complete batch
+            return count;
+        });
+        m.def("getMaskCoordinates", [](RocalContext context, py::array_t<int> polygon_size, py::array_t<int> mask_count) {
             auto buf = polygon_size.request();
-            int* polygon_size_ptr = (int*) buf.ptr;
+            int* polygon_size_ptr = static_cast<int *>(buf.ptr);
             // call pure C++ function
             rocalTensorList * mask_data = rocalGetMaskCoordinates(context, polygon_size_ptr);
             rocalTensorList * bbox_labels = rocalGetBoundingBoxLabel(context);
@@ -692,10 +685,10 @@ namespace rocal{
             int poly_cnt = 0;
             int prev_object_cnt = 0;
             auto mask_count_buf = mask_count.request();
-            int* mask_count_ptr = (int*) mask_count_buf.ptr;
+            int* mask_count_ptr = static_cast<int *>(mask_count_buf.ptr);
             for(int i = 0; i < bbox_labels->size(); i++) // nbatchSize
             {
-                float *mask_buffer = (float *)(mask_data->at(i)->buffer());
+                float *mask_buffer = static_cast<float *>(mask_data->at(i)->buffer());
                 py::list poly_batch_list;
                 for(unsigned j = prev_object_cnt; j < bbox_labels->at(i)->dims().at(0) + prev_object_cnt; j++)
                 {
@@ -714,8 +707,7 @@ namespace rocal{
                 complete_list.append(poly_batch_list);
             }
             return complete_list;
-    }
-            );
+        });
         // Will be enabled when IOU matcher changes are introduced in C++
         // m.def("getMatchedIndices", [](RocalContext context) {
         //     rocalTensorList *matches = rocalGetMatchedIndices(context);
@@ -748,8 +740,7 @@ namespace rocal{
                             {batch_size * num_anchors * 4},
                             {sizeof(float)}));
                 return std::make_pair(labels_array, bboxes_array);
-        }
-        );
+        });
         // rocal_api_data_loaders.h
         m.def("COCO_ImageDecoderSlice", &rocalJpegCOCOFileSourcePartial,"Reads file from the source given and decodes it according to the policy",
             py::return_value_policy::reference);
