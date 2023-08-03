@@ -31,7 +31,7 @@ THE SOFTWARE.
  * \ingroup group_rocal_augmentations
  * \note: Accepts U8 and RGB24 input.
  * \param context context for the pipeline.
- * \param input Input Rocal Image
+ * \param input Input Rocal Tensor
  * \param new_order represents the new order of the frames in the sequence
  * \param is_output True: the output image is needed by user and will be copied to output buffers using the data
  * transfer API calls. False: the output image is just an intermediate image, user is not interested in
@@ -45,7 +45,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSequenceRearrange(RocalContext p_cont
 /*! \brief Accepts U8 and RGB24 input.
  * \ingroup group_rocal_augmentations
  * \param context context for the pipeline.
- * \param input Input Rocal Image
+ * \param input Input Rocal Tensor
  * \param dest_width output width
  * \param dest_height ouput Height
  * \param is_output True: the output image is needed by user and will be copied to output buffers using the data
@@ -74,7 +74,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResize(RocalContext context, RocalTen
 /*! \brief Accepts U8 and RGB24 input.
  * \ingroup group_rocal_augmentations
  * \param context Rocal context
- * \param input Input Rocal Image
+ * \param input Input Rocal Tensor
  * \param dest_width output width
  * \param dest_height output height
  * \param mean The channel mean values
@@ -104,8 +104,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_
                                                                  RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
- * \param input Input Rocal Image
+ * \param input Input Rocal Tensor
  * \param dest_width output width
  * \param dest_height output height
  * \param is_output True: the output image is needed by user and will be copied to output buffers using the data
@@ -129,8 +130,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalCropResize(RocalContext context, Roca
                                                       RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
- * \param input Input Rocal Image
+ * \param input Input Rocal tensor
  * \param dest_width output width
  * \param dest_height output height
  * \param is_output True: the output image is needed by user and will be copied to output buffers using the data
@@ -153,8 +155,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalCropResizeFixed(RocalContext context,
 
 /*! \brief Accepts U8 and RGB24 input. The output image dimension can be set to new values allowing the rotated image to fit,
  * otherwise; the image is cropped to fit the result.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
- * \param input Input Rocal Image
+ * \param input Input Rocal Tensor
  * \param is_output True: the output image is needed by user and will be copied to output buffers using the data
  * transfer API calls. False: the output image is just an intermediate image, user is not interested in
  * using it directly. This option allows certain optimizations to be achieved.
@@ -174,8 +177,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRotate(RocalContext context, RocalTen
 
 /*! \brief Accepts U8 and RGB24 input. The output image dimension can be set to new values allowing the rotated image to fit,
  * otherwise; the image is cropped to fit the result.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
- * \param input Input Rocal Image
+ * \param input Input Rocal Tensor
  * \param dest_width output width
  * \param dest_height output height
  * \param is_output Is the output image part of the graph output
@@ -191,6 +195,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRotateFixed(RocalContext context, Roc
                                                        RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -206,6 +211,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalBrightness(RocalContext context, Roca
                                                       RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -222,6 +228,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalBrightnessFixed(RocalContext context,
                                                            RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -237,6 +244,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalGamma(RocalContext context, RocalTens
                                                  RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -252,11 +260,12 @@ extern "C" RocalTensor ROCAL_API_CALL rocalGammaFixed(RocalContext context, Roca
                                                       RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
  /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
- * \param contrast_factor  parameter representing the contrast factor for the contrast operation
- * \param contrast_center  parameter representing the contrast center for the contrast operation
+ * \param contrast_factor parameter representing the contrast factor for the contrast operation
+ * \param contrast_center parameter representing the contrast center for the contrast operation
  * \param output_layout the layout of the output tensor
  * \param output_datatype the data type of the output tensor
  * \return
@@ -268,6 +277,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalContrast(RocalContext context, RocalT
                                                     RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -284,6 +294,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalContrastFixed(RocalContext context, R
                                                          RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -299,6 +310,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFlip(RocalContext context, RocalTenso
                                                 RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -314,6 +326,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFlipFixed(RocalContext context, Rocal
                                                      RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -329,6 +342,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalBlur(RocalContext context, RocalTenso
                                                 RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -343,6 +357,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalBlurFixed(RocalContext context, Rocal
                                                      RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Blends two input images given the ratio: output = input1*ratio + input2*(1-ratio)
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input1 Input1 Rocal tensor
  * \param input2 Input2 Rocal tensor
@@ -359,6 +374,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalBlend(RocalContext context, RocalTens
                                                  RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Blends two input images given the ratio: output = input1*ratio + input2*(1-ratio)
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input1 Input1 Rocal tensor
  * \param input2 Input2 Rocal tensor
@@ -374,6 +390,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalBlendFixed(RocalContext context, Roca
                                                       RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -399,6 +416,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalWarpAffine(RocalContext context, Roca
                                                       RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -422,6 +440,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalWarpAffineFixed(RocalContext context,
                                                            RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -434,6 +453,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFishEye(RocalContext context, RocalTe
                                                    RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -448,6 +468,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVignette(RocalContext context, RocalT
                                                     RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -462,6 +483,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVignetteFixed(RocalContext context, R
                                                          RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -479,6 +501,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJitter(RocalContext context, RocalTen
                                                   RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -494,6 +517,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJitterFixed(RocalContext context, Roc
                                                        RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -516,6 +540,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSnPNoise(RocalContext context, RocalT
                                                     RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -537,6 +562,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSnPNoiseFixed(RocalContext context, R
                                                          RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -552,6 +578,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSnow(RocalContext context, RocalTenso
                                                 RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param snow Float param representing the intensity of snow effect
@@ -566,6 +593,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSnowFixed(RocalContext context, Rocal
                                                      RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -587,6 +615,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRain(RocalContext context, RocalTenso
                                                 RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -608,6 +637,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRainFixed(RocalContext context, Rocal
                                                      RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -623,6 +653,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalColorTemp(RocalContext context, Rocal
                                                      RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param adjustment color temperature adjustment value
@@ -637,6 +668,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalColorTempFixed(RocalContext context, 
                                                           RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -652,6 +684,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFog(RocalContext context, RocalTensor
                                                RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param fog_value parameter representing the intensity of fog effect
@@ -666,6 +699,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFogFixed(RocalContext context, RocalT
                                                     RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -682,6 +716,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalLensCorrection(RocalContext context, 
                                                           RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param strength parameter representing the strength of the lens correction.
@@ -697,6 +732,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalLensCorrectionFixed(RocalContext cont
                                                                RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -711,6 +747,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalPixelate(RocalContext context, RocalT
 
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -726,6 +763,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalExposure(RocalContext context, RocalT
                                                     RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -740,6 +778,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalExposureFixed(RocalContext context, R
                                                          RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -754,7 +793,8 @@ extern "C" RocalTensor ROCAL_API_CALL rocalHue(RocalContext context, RocalTensor
                                                RocalTensorLayout output_layout = ROCAL_NONE,
                                                RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
-/*! \brief Accepts U8 and RGB24 input.
+/*! \brief Accepts RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -769,7 +809,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalHueFixed(RocalContext context, RocalT
                                                     RocalTensorLayout output_layout = ROCAL_NONE,
                                                     RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
-/*! \brief Accepts U8 and RGB24 inputs.
+/*! \brief Accepts RGB24 inputs
+ * \ingroup group_rocal_augmentations
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -785,6 +827,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSaturation(RocalContext context, Roca
                                                       RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -799,6 +842,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSaturationFixed(RocalContext context,
                                                            RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -807,6 +851,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSaturationFixed(RocalContext context,
 extern "C" RocalTensor ROCAL_API_CALL rocalCopy(RocalContext context, RocalTensor input, bool is_output);
 
 /*! \brief Accepts U8 and RGB24 input.
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -814,7 +859,8 @@ extern "C" RocalTensor ROCAL_API_CALL rocalCopy(RocalContext context, RocalTenso
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalNop(RocalContext context, RocalTensor input, bool is_output);
 
-/*! \brief Accepts U8 and RGB24 inputs
+/*! \brief Accepts RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param is_output is the output tensor part of the graph output
@@ -836,6 +882,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalColorTwist(RocalContext context, Roca
                                                       RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param alpha parameter that controls the brightness of an image
@@ -857,6 +904,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalColorTwistFixed(RocalContext context,
                                                            RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
 /*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
  * \param crop_height crop width of the image
@@ -883,6 +931,21 @@ extern "C" RocalTensor ROCAL_API_CALL rocalCropMirrorNormalize(RocalContext cont
                                                                RocalTensorLayout output_layout = ROCAL_NONE,
                                                                RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
+/*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
+ * \param context Rocal context
+ * \param input Input Rocal tensor
+ * \param crop_height crop width of the image
+ * \param crop_width crop height of the image
+ * \param crop_depth crop depth of the image
+ * \param crop_pox_x x-coordinate, start of the input image to be cropped
+ * \param crop_pox_y y-coordinate, start of the input image to be cropped
+ * \param crop_pox_z z-coordinate, start of the input image to be cropped
+ * \param is_output is the output tensor part of the graph output
+ * \param output_layout the layout of the output tensor
+ * \param output_type the data type of the output tensor
+ * \return
+ */
 extern "C" RocalTensor ROCAL_API_CALL rocalCrop(RocalContext context, RocalTensor input, bool is_output,
                                                 RocalFloatParam crop_width = NULL,
                                                 RocalFloatParam crop_height = NULL,
@@ -893,6 +956,21 @@ extern "C" RocalTensor ROCAL_API_CALL rocalCrop(RocalContext context, RocalTenso
                                                 RocalTensorLayout output_layout = ROCAL_NONE,
                                                 RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
+/*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
+ * \param context Rocal context
+ * \param input Input Rocal tensor
+ * \param crop_height crop width of the image
+ * \param crop_width crop height of the image
+ * \param crop_depth crop depth of the image
+ * \param crop_pox_x x-coordinate, start of the input image to be cropped
+ * \param crop_pox_y y-coordinate, start of the input image to be cropped
+ * \param crop_pox_z z-coordinate, start of the input image to be cropped
+ * \param is_output is the output tensor part of the graph output
+ * \param output_layout the layout of the output tensor
+ * \param output_type the data type of the output tensor
+ * \return
+ */
 extern "C" RocalTensor ROCAL_API_CALL rocalCropFixed(RocalContext context, RocalTensor  input,
                                                      unsigned crop_width,
                                                      unsigned crop_height,
@@ -904,14 +982,40 @@ extern "C" RocalTensor ROCAL_API_CALL rocalCropFixed(RocalContext context, Rocal
                                                      RocalTensorLayout output_layout = ROCAL_NONE,
                                                      RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
+/*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
+ * \param context Rocal context
+ * \param input Input Rocal tensor
+ * \param crop_height crop width of the image
+ * \param crop_width crop height of the image
+ * \param crop_depth crop depth of the image
+ * \param is_output is the output tensor part of the graph output
+ * \param output_layout the layout of the output tensor
+ * \param output_type the data type of the output tensor
+ * \return
+ */
 extern "C" RocalTensor ROCAL_API_CALL rocalCropCenterFixed(RocalContext context, RocalTensor input,
                                                            unsigned crop_width,
                                                            unsigned crop_height,
                                                            unsigned crop_depth,
-                                                           bool output,
+                                                           bool is_output,
                                                            RocalTensorLayout output_layout = ROCAL_NONE,
                                                            RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
+/*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
+ * \param context Rocal context
+ * \param input Input Rocal tensor
+ * \param dest_height output height
+ * \param dest_width output width
+ * \param crop_h crop width of the image
+ * \param crop_w crop height of the image
+ * \param is_output is the output tensor part of the graph output
+ * \param mirror controls horizontal flip of the image
+ * \param output_layout the layout of the output tensor
+ * \param output_type the data type of the output tensor
+ * \return
+ */
 extern "C" RocalTensor ROCAL_API_CALL rocalResizeCropMirrorFixed(RocalContext context, RocalTensor input,
                                                                  unsigned dest_width, unsigned dest_height,
                                                                  bool is_output,
@@ -920,7 +1024,21 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResizeCropMirrorFixed(RocalContext co
                                                                  RocalIntParam mirror,
                                                                  RocalTensorLayout output_layout = ROCAL_NONE,
                                                                  RocalTensorOutputType output_datatype = ROCAL_UINT8);
-        
+
+/*! \brief Accepts U8 and RGB24 inputs
+ * \ingroup group_rocal_augmentations
+ * \param context Rocal context
+ * \param input Input Rocal tensor
+ * \param dest_height output height
+ * \param dest_width output width
+ * \param crop_height crop width of the image
+ * \param crop_width crop height of the image
+ * \param is_output is the output tensor part of the graph output
+ * \param mirror controls horizontal flip of the image
+ * \param output_layout the layout of the output tensor
+ * \param output_type the data type of the output tensor
+ * \return
+ */
 extern "C" RocalTensor ROCAL_API_CALL rocalResizeCropMirror(RocalContext context, RocalTensor input,
                                                             unsigned dest_width, unsigned dest_height,
                                                             bool is_output, RocalFloatParam crop_height = NULL,
@@ -928,10 +1046,12 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResizeCropMirror(RocalContext context
                                                             RocalTensorLayout output_layout = ROCAL_NONE,
                                                             RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
-/*! \brief Accepts U8 and RGB24 inputs and Ouptus Cropped Images, valid bounding boxes and labels
+/*! \brief Accepts U8 and RGB24 inputs and Outputs Cropped Images, valid bounding boxes and labels
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
- * \param num_of_attmpts maximum number of attempts the function will make to find a valid crop
+ * \param is_output is the output tensor part of the graph output
+ * \param num_of_attempts maximum number of attempts the function will make to find a valid crop
  * \param crop_area_factor specifies the proportion of the input image to be included in the cropped region
  * \param crop_aspect_ratio specifies the aspect ratio of the cropped region
  * \param crop_pos_x specifies a specific horizontal position for the crop
@@ -950,11 +1070,12 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRandomCrop(RocalContext context, Roca
                                                       RocalTensorLayout output_layout = ROCAL_NONE,
                                                       RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
-/*! \brief Accepts U8 and RGB24 inputs and Ouptus Cropped Images, valid bounding boxes and labels
+/*! \brief Accepts U8 and RGB24 inputs and Outputs Cropped Images, valid bounding boxes and labels
+ * \ingroup group_rocal_augmentations
  * \param context Rocal context
  * \param input Input Rocal tensor
- * \param IOU_threshold treshold value for the intersection over union (IOU)
- * \param num_of_attmpts he maximum number of attempts the function will make to find a valid crop
+ * \param is_output is the output tensor part of the graph output
+ * \param num_of_attempts he maximum number of attempts the function will make to find a valid crop
  * \param crop_area_factor specifies the proportion of the input image to be included in the cropped region
  * \param crop_aspect_ratio specifies the aspect ratio of the cropped region
  * \param crop_pos_x specifies a specific horizontal position for the crop
@@ -973,17 +1094,5 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSSDRandomCrop(RocalContext context, R
                                                          int num_of_attempts = 20,
                                                          RocalTensorLayout output_layout = ROCAL_NONE,
                                                          RocalTensorOutputType output_datatype = ROCAL_UINT8);
-
-// * Accepts U8 and RGB24 input. The output image dimension can be set to new values allowing the rotated image to fit,
-// * otherwise; the image is cropped to fit the result.
-// * \param context Rocal context
-// * \param input Input Rocal Image
-// * \param is_output True: the output image is needed by user and will be copied to output buffers using the data
-// * transfer API calls. False: the output image is just an intermediate image, user is not interested in
-// * using it directly. This option allows certain optimizations to be achieved.
-// * \param angle Rocal parameter defining the rotation angle value in degrees.
-// * \param dest_width output width
-// * \param dest_height output height
-// * \return Returns a new image that keeps the result.
 
 #endif //MIVISIONX_ROCAL_API_AUGMENTATION_H
