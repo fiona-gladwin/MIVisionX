@@ -147,7 +147,7 @@ class Pipeline(object):
         self._current_pipeline = None
         self._reader = None
         self._define_graph_set = False
-        self.setSeed(self._seed)
+        self.set_seed(self._seed)
 
     def build(self):
         """Build the pipeline using rocalVerify call
@@ -158,23 +158,23 @@ class Pipeline(object):
             exit(0)
         return self
 
-    def rocalRun(self):
+    def rocal_run(self):
         """ Run the pipeline using rocalRun call
         """
         status = b.rocalRun(self._handle)
         return status
 
-    def defineGraph(self):
+    def define_graph(self):
         """This function is defined by the user to construct the
         graph of operations for their pipeline.
         It returns a list of outputs created by calling ROCAL Operators."""
-        print("defineGraph is deprecated")
+        print("define_graph is deprecated")
         raise NotImplementedError
 
-    def getHandle(self):
+    def get_handle(self):
         return self._handle
 
-    def getOneHotEncodedLabels(self, array, device):
+    def get_one_hot_encoded_labels(self, array, device):
         if device == "cpu":
             if (isinstance(array, np.ndarray)):
                 b.getOneHotEncodedLabels(self._handle, array.ctypes.data_as(ctypes.c_void_p), self._num_classes, 0)
@@ -186,7 +186,7 @@ class Pipeline(object):
             elif (isinstance(array, torch.Tensor)):
                 return b.getOneHotEncodedLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._num_classes, 1)
 
-    def setOutputs(self, *output_list):
+    def set_outputs(self, *output_list):
         b.setOutputs(self._handle, len(output_list), output_list)
 
     def __enter__(self):
@@ -196,82 +196,82 @@ class Pipeline(object):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
-    def setSeed(self, seed=0):
+    def set_seed(self, seed=0):
         return b.setSeed(seed)
 
     @classmethod
-    def createIntParam(self, value=1):
+    def create_int_param(self, value=1):
         return b.createIntParameter(value)
 
     @classmethod
-    def createFloatParam(self, value=1):
+    def create_float_param(self, value=1):
         return b.createFloatParameter(value)
 
     @classmethod
-    def updateIntParam(self, value=1, param=1):
+    def update_int_param(self, value=1, param=1):
         b.updateIntParameter(value, param)
 
     @classmethod
-    def updateFloatParam(self, value=1, param=1):
+    def update_float_param(self, value=1, param=1):
         b.updateFloatParameter(value, param)
 
     @classmethod
-    def getIntValue(self, param):
+    def get_int_value(self, param):
         return b.getIntValue(param)
 
     @classmethod
-    def getFloatValue(self, param):
+    def get_float_value(self, param):
         return b.getFloatValue(param)
 
-    def getImageName(self, array_len):
+    def get_image_name(self, array_len):
         return b.getImageName(self._handle, array_len)
 
-    def getImageId(self, array):
+    def get_image_id(self, array):
         b.getImageId(self._handle, array)
 
-    def getBoundingBoxCount(self):
+    def get_bounding_box_count(self):
         return b.getBoundingBoxCount(self._handle)
 
-    def getBoundingBoxLabels(self):
+    def get_bounding_box_abels(self):
         return b.getBoundingBoxLabels(self._handle)
 
-    def getBoundingBoxCords(self):
+    def get_bounding_box_cords(self):
         return b.getBoundingBoxCords(self._handle)
 
-    def getImageLabels(self):
+    def get_image_labels(self):
         return b.getImageLabels(self._handle)
 
-    def copyEncodedBoxesAndLables(self, bbox_array, label_array):
+    def copy_encoded_boxes_and_lables(self, bbox_array, label_array):
         b.rocalCopyEncodedBoxesAndLables(self._handle, bbox_array, label_array)
 
-    def getEncodedBoxesAndLables(self, batch_size, num_anchors):
+    def get_encoded_boxes_and_lables(self, batch_size, num_anchors):
         return b.rocalGetEncodedBoxesAndLables(self._handle, batch_size, num_anchors)
 
-    def getImgSizes(self, array):
+    def get_img_sizes(self, array):
         return b.getImgSizes(self._handle, array)
 
-    def getImageNameLength(self, idx):
+    def get_image_name_length(self, idx):
         return b.getImageNameLen(self._handle, idx)
 
-    def getRemainingImages(self):
+    def get_remaining_images(self):
         return b.getRemainingImages(self._handle)
 
-    def rocalRelease(self):
+    def rocal_release(self):
         return b.rocalRelease(self._handle)
 
-    def rocalResetLoaders(self):
+    def rocal_reset_loaders(self):
         return b.rocalResetLoaders(self._handle)
 
-    def isEmpty(self):
+    def is_empty(self):
         return b.isEmpty(self._handle)
 
-    def timingInfo(self):
+    def timing_info(self):
         return b.getTimingInfo(self._handle)
 
-    def getMatchedIndices(self):
+    def get_matched_indices(self):
         return b.getMatchedIndices(self._handle)
 
-    def getOutputTensors(self):
+    def get_output_tensors(self):
         return b.getOutputTensors(self._handle)
 
     def run(self):
@@ -282,9 +282,9 @@ class Pipeline(object):
         A list of `rocalTensorList` objects for respective pipeline outputs.
         """
         try:
-            print("getRemainingImages :", self.getRemainingImages())
-            if self.getRemainingImages() > 0:
-                self.rocalRun()
+            print("getRemainingImages :", self.get_remaining_images())
+            if self.get_remaining_images() > 0:
+                self.rocal_run()
                 return b.getOutputTensors(self._handle)
         except:
                 print("Raise stop iter")
@@ -413,7 +413,7 @@ def pipeline_def(fn=None, **pipeline_kwargs):
                     outputs = ()
                 else:
                     outputs = (pipe_outputs, )
-                pipe.setOutputs(*outputs)
+                pipe.set_outputs(*outputs)
             return pipe
 
         # Add `is_pipeline_def` attribute to the function marked as `@pipeline_def`

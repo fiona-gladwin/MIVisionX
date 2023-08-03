@@ -55,7 +55,7 @@ class ROCALVideoIterator(object):
         self.reverse_channels = reverse_channels
         self.tensor_dtype = tensor_dtype
         self.batch_size = self.loader._batch_size
-        self.rim = self.loader.getRemainingImages()
+        self.rim = self.loader.get_remaining_images()
         self.display = display
         self.iter_num = 0
         self.sequence_length = sequence_length
@@ -66,13 +66,13 @@ class ROCALVideoIterator(object):
         return self.__next__()
 
     def __next__(self):
-        if (self.loader.isEmpty()):
+        if (self.loader.is_empty()):
             raise StopIteration
 
-        if self.loader.rocalRun() != 0:
+        if self.loader.rocal_run() != 0:
             raise StopIteration
         else:
-            self.output_tensor_list = self.loader.getOutputTensors()
+            self.output_tensor_list = self.loader.get_output_tensors()
         self.iter_num += 1
         # Copy output from buffer to numpy array
         if self.output is None:
@@ -90,13 +90,13 @@ class ROCALVideoIterator(object):
         return img
 
     def reset(self):
-        self.loader.rocalResetLoaders()
+        self.loader.rocal_reset_loaders()
 
     def __iter__(self):
         return self
 
     def __del__(self):
-        self.loader.rocalRelease()
+        self.loader.rocal_release()
 
 
 def draw_frames(img, batch_idx, iter_idx, layout):
@@ -141,7 +141,7 @@ def main():
                                                  crop=crop_size,
                                                  mean=[0, 0, 0],
                                                  std=[1, 1, 1])
-        pipe.setOutputs(output_images)
+        pipe.set_outputs(output_images)
     # Build the pipeline
     pipe.build()
     # Dataloader
