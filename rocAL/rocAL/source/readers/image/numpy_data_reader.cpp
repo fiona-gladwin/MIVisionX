@@ -65,9 +65,9 @@ Reader::Status NumpyDataReader::initialize(ReaderConfig desc)
     ret = subfolder_reading();
     // the following code is required to make every shard the same size:: required for multi-gpu training
     if (_shard_count > 1 && _batch_count > 1) {
-        int _num_batches = _file_names.size()/_batch_count;
-        int max_batches_per_shard = (_file_count_all_shards + _shard_count-1)/_shard_count;
-        max_batches_per_shard = (max_batches_per_shard + _batch_count-1)/_batch_count;
+        int _num_batches = _file_names.size() / _batch_count;
+        int max_batches_per_shard = (_file_count_all_shards + _shard_count-1) / _shard_count;
+        max_batches_per_shard = (max_batches_per_shard + _batch_count-1) / _batch_count;
         if (_num_batches < max_batches_per_shard) {
             replicate_last_batch_to_pad_partial_shard();
         }

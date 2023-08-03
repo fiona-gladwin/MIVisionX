@@ -179,9 +179,9 @@ def sequence_reader(*inputs, file_root, sequence_length, bytes_per_sample_hint=0
     return (frames)
 
 def numpy(*inputs,file_root='', bytes_per_sample_hint=0, file_list='', initial_fill=1024,  lazy_init=False, num_shards=1, pad_last_batch=False, prefetch_queue_depth=1,
-                 preserve=False, random_shuffle=False, ratio=False, read_ahead=False,
-                 save_img_ids=False, seed=-1, shard_id=0, shuffle_after_epoch=False,
-                 skip_cached_images=False, skip_empty=False, stick_to_shard=False, tensor_init_bytes=1048576, is_output=True):
+          preserve=False, random_shuffle=False, ratio=False, read_ahead=False,
+          save_img_ids=False, seed=-1, shard_id=0, shuffle_after_epoch=False,
+          skip_cached_images=False, skip_empty=False, stick_to_shard=False, tensor_init_bytes=1048576, is_output=True):
 
     Pipeline._current_pipeline._reader = "NumpyReader"
     #Output

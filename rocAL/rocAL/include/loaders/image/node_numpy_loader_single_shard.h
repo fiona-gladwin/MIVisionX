@@ -25,8 +25,7 @@ THE SOFTWARE.
 #include "numpy_loader_sharded.h"
 #include "graph.h"
 
-class NumpyLoaderSingleShardNode : public Node
-{
+class NumpyLoaderSingleShardNode : public Node {
 public:
     NumpyLoaderSingleShardNode(rocalTensor *output, void *device_resources);
     ~NumpyLoaderSingleShardNode() override;

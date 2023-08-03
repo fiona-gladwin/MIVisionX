@@ -127,12 +127,12 @@ struct NumpyHeaderData {
     public:
     std::vector<unsigned> _shape;
     RocalTensorDataType _type_info;
-    bool _fortran_order        = false;
-    int64_t _data_offset       = 0;
+    bool _fortran_order = false;
+    int64_t _data_offset = 0;
 
     RocalTensorDataType type() const { return _type_info; };
 
-    size_t size() const { 
+    size_t size() const {
         size_t num_elements = 1;
         for (const auto& dim: _shape)
             num_elements *= dim;

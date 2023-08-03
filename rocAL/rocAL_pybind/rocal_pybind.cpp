@@ -740,7 +740,7 @@ namespace rocal{
               py::arg("decode_size_policy") = ROCAL_USE_MAX_SIZE,
               py::arg("shard_id") = 0,
               py::arg("shard_count") = 1);
-        m.def("Resize",&rocalResize, "Resizes the image ",py::return_value_policy::reference);
+        m.def("Resize",&rocalResize, "Resizes the image ", py::return_value_policy::reference);
         m.def("ColorTwist",&rocalColorTwist, py::return_value_policy::reference);
         m.def("rocalResetLoaders", &rocalResetLoaders);
         // rocal_api_augmentation.h

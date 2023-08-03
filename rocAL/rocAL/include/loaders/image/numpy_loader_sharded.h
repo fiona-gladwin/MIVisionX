@@ -27,8 +27,7 @@ THE SOFTWARE.
 // NumpyLoaderSharded Can be used to run load and decode in multiple shards, each shard by a single loader instance,
 // It improves load and decode performance since each loader loads the images in parallel using an internal thread
 //
-class NumpyLoaderSharded : public LoaderModule
-{
+class NumpyLoaderSharded : public LoaderModule {
 public:
     explicit NumpyLoaderSharded(void *dev_resources);
     ~NumpyLoaderSharded() override;

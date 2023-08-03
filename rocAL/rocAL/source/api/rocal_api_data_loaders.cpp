@@ -2100,7 +2100,7 @@ rocalNumpyFileSource(
     {
 
         auto max_dimensions = evaluate_numpy_data_set(decode_size_policy, StorageType::NUMPY_DATA, DecoderType::SKIP_DECODE,
-                                                       source_path, "");
+                                                      source_path, "");
 
         RocalTensorlayout tensor_format = RocalTensorlayout::NONE;
         RocalTensorDataType tensor_data_type;

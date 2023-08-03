@@ -25,8 +25,7 @@ THE SOFTWARE.
 #include "numpy_loader_sharded.h"
 #include "graph.h"
 
-class NumpyLoaderNode : public Node
-{
+class NumpyLoaderNode : public Node {
 public:
     /// \param device_resources shard count from user
 

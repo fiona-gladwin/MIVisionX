@@ -63,7 +63,7 @@ vx_uint64 tensor_data_size(RocalTensorDataType data_type);
 void allocate_host_or_pinned_mem(void **ptr, size_t size, RocalMemType mem_type);
 
 struct ROI {
-    unsigned * get_ptr() { return _roi_ptr.get();  }
+    unsigned * get_ptr() { return _roi_ptr.get(); }
     void set_ptr(unsigned *ptr, RocalMemType mem_type, unsigned dims = 0) {
         if(!_dims) _dims = dims;
         _stride = _dims * 2;
@@ -138,7 +138,7 @@ public:
             new_dims[i] = _dims.at(dims_mapping[i]);
     }
     void set_max_shape() {
-        if (_is_metadata)   return;
+        if (_is_metadata) return;
         if (_layout != RocalTensorlayout::NONE) {
             _max_shape.resize(2);  // Since 2 values will be stored in the vector
             _is_image = true;
