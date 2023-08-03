@@ -65,6 +65,7 @@ def draw_patches(img, idx, device):
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     else:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    print("check dumping")
     cv2.imwrite(args.output_file_name + ".png", img, [cv2.IMWRITE_PNG_COMPRESSION, 9])
 
 
@@ -511,7 +512,7 @@ def main():
                 rocal_tensor_output_datatype=tensor_dtype)
 
         if output_set == 0:
-            pipe.setOutputs(output)
+            pipe.set_outputs(output)
     # build the pipeline
     pipe.build()
     # Dataloader
