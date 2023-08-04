@@ -793,4 +793,13 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSSDRandomCrop(RocalContext context, R
 // /// \param dest_height The output height
 // /// \return Returns a new image that keeps the result.
 
+/// Accepts RGB24 sequence input
+/// \param context
+/// \param input
+/// \param is_output
+/// \return
+extern "C" RocalTensor ROCAL_API_CALL rocalOpticalFlow(RocalContext p_context,
+                                                       RocalTensor p_input,
+                                                       bool is_output);
+        
 #endif //MIVISIONX_ROCAL_API_AUGMENTATION_H
