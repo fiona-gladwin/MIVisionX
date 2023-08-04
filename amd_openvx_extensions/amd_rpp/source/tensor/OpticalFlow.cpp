@@ -33,6 +33,7 @@ struct OpticalFlowLocalData {
     vxRppHandle *handle;
     Rpp32u deviceType;
     Rpp8u *pSrc;
+    Rpp8u *pSrcResizedRGB;
     Rpp8u * pSrcGray;
     Rpp8u * pDst;
     RpptDescPtr pSrcDesc;
@@ -50,16 +51,23 @@ struct OpticalFlowLocalData {
     Rpp32f *pMotionVectorCartesian;
     Rpp32f *pMotionVectorPolar;
     RpptROI *pSrcRoi;
+    RpptROI *pDstRoi;
     RpptRoiType roiType;
     vxTensorLayout inputLayout;
     vxTensorLayout outputLayout;
     size_t inputTensorDims[RPP_MAX_TENSOR_DIMS];
     size_t outputTensorDims[RPP_MAX_TENSOR_DIMS];
+    RpptImagePatch *pDstImgSize;
 };
 
 static vx_status VX_CALLBACK refreshOpticalFlow(vx_node node, const vx_reference *parameters, vx_uint32 num, OpticalFlowLocalData *data) {
     vx_status status = VX_SUCCESS;
 
+    for (unsigned i = 0; i < data->pDstDesc->n; i++) {
+        data->pDstImgSize[i].width = data->pDstDesc->w;
+        data->pDstImgSize[i].height = data->pDstDesc->h;
+        *data->pDstRoi = {0, 0, FARNEBACK_FRAME_WIDTH, FARNEBACK_FRAME_HEIGHT};
+    }
     void *roi_tensor_ptr;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL
@@ -69,17 +77,16 @@ static vx_status VX_CALLBACK refreshOpticalFlow(vx_node node, const vx_reference
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
 #endif
-    } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &roi_tensor_ptr, sizeof(roi_tensor_ptr)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
+    } else {
+        return VX_ERROR_NOT_IMPLEMENTED;
     }
     data->pSrcRoi = reinterpret_cast<RpptROI *>(roi_tensor_ptr);
     if (data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW) {
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for (unsigned n = data->inputTensorDims[0] - 1; n >= 0; n--) {
+        for (int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for (unsigned f = 0; f < num_of_frames; f++) {
+                data->pDstImgSize[index + f] = data->pDstImgSize[n];
                 data->pSrcRoi[index + f].xywhROI = data->pSrcRoi[n].xywhROI;
             }
         }
@@ -90,6 +97,9 @@ static vx_status VX_CALLBACK refreshOpticalFlow(vx_node node, const vx_reference
 static vx_status VX_CALLBACK validateOpticalFlow(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
+    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[3], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
+    if (scalar_type != VX_TYPE_INT32)
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #3 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[4], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #4 type=%d (must be size)\n", scalar_type);
@@ -97,23 +107,20 @@ static vx_status VX_CALLBACK validateOpticalFlow(vx_node node, const vx_referenc
     if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #5 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[6], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
-    if (scalar_type != VX_TYPE_INT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #6 type=%d (must be size)\n", scalar_type);
-    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[7], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_UINT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #7 type=%d (must be size)\n", scalar_type);
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #6 type=%d (must be size)\n", scalar_type);
 
     // Check for input tensor
     size_t num_tensor_dims;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_NUMBER_OF_DIMS, &num_tensor_dims, sizeof(num_tensor_dims)));
-    if(num_tensor_dims < 4) return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: OpticalFlow: tensor: #0 dimensions=%lu (must be greater than or equal to 4)\n", num_tensor_dims);
+    if(num_tensor_dims != 5) return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: OpticalFlow: tensor: #0 dimensions=%lu (must be equal to 5)\n", num_tensor_dims);
 
     // Check for output tensor
     vx_uint8 tensor_fixed_point_position;
     size_t tensor_dims[RPP_MAX_TENSOR_DIMS];
     vx_enum tensor_dtype;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_NUMBER_OF_DIMS, &num_tensor_dims, sizeof(num_tensor_dims)));
-    if(num_tensor_dims < 4) return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: OpticalFlow: tensor: #2 dimensions=%lu (must be greater than or equal to 4)\n", num_tensor_dims);
+    if(num_tensor_dims != 5) return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: OpticalFlow: tensor: #2 dimensions=%lu (must be equal to 5)\n", num_tensor_dims);
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_DIMS, &tensor_dims, sizeof(tensor_dims)));
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_DATA_TYPE, &tensor_dtype, sizeof(tensor_dtype)));
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_FIXED_POINT_POSITION, &tensor_fixed_point_position, sizeof(tensor_fixed_point_position)));
@@ -132,19 +139,23 @@ static vx_status VX_CALLBACK processOpticalFlow(vx_node node, const vx_reference
     refreshOpticalFlow(node, parameters, num, data);
     
     const RpptSubpixelLayout subpixelLayout = RpptSubpixelLayout::BGRtype;
-    const RpptRoiType roiType = RpptRoiType::XYWH;
+    const RpptRoiType roiTypeXYWH = RpptRoiType::XYWH;
+    const RpptRoiType roiTypeLTRB = RpptRoiType::LTRB;
     const RpptAngleType angleType = RpptAngleType::DEGREES;
-    
+const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_NEIGHBOR;
+
+    std::cerr << "Optical process ...\t";
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
-        
+        std::cerr << "OP SEQUENCE LENGTH : " << data->outputTensorDims[1] << "\n";
         for (unsigned sequence = 0; sequence < data->inputTensorDims[0]; sequence++) {
             Rpp8u *rgbSrc1 = data->pSrc + (sequence * data->inputTensorDims[1] * data->pSrcDesc->strides.nStride);
             Rpp8u *rgbDst = data->pDst + (sequence * data->outputTensorDims[1] * data->pDstDesc->strides.nStride);
             Rpp8u *d_src1 = data->pSrcGray;
             Rpp8u *d_src2 = data->pSrcGray + data->pGreyScaleDesc->strides.nStride;
 
-            rppt_color_to_greyscale_gpu(rgbSrc1, data->pRgbScaleDesc, d_src1, data->pGreyScaleDesc, subpixelLayout, data->handle->rppHandle);
+            rppt_resize_gpu(rgbSrc1, data->pSrcDesc, data->pSrcResizedRGB, data->pDstDesc, data->pDstImgSize, interpolationType, data->pSrcRoi, roiTypeXYWH, data->handle->rppHandle);
+            rppt_color_to_greyscale_gpu(data->pSrcResizedRGB, data->pRgbScaleDesc, d_src1, data->pGreyScaleDesc, subpixelLayout, data->handle->rppHandle);
             for (unsigned frame = 0; frame < data->outputTensorDims[1]; frame++) {
                 
                 rgbSrc1 += data->pSrcDesc->strides.nStride;
@@ -154,15 +165,17 @@ static vx_status VX_CALLBACK processOpticalFlow(vx_node node, const vx_reference
                 Rpp32f *d_motionVectorsPolarF32Comp1 = data->pMotionVectorPolar + FARNEBACK_OUTPUT_FRAME_SIZE;
                 Rpp32f *d_motionVectorsPolarF32Comp2 = d_motionVectorsPolarF32Comp1 + FARNEBACK_OUTPUT_FRAME_SIZE;
                 Rpp32f *d_motionVectorsPolarF32Comp3 = d_motionVectorsPolarF32Comp2 + FARNEBACK_OUTPUT_FRAME_SIZE;
-
+                
+                rppt_resize_gpu(rgbSrc1, data->pSrcDesc, data->pSrcResizedRGB, data->pDstDesc, data->pDstImgSize, interpolationType, data->pSrcRoi, roiTypeLTRB, data->handle->rppHandle);
                 // convert to gray
-                rppt_color_to_greyscale_gpu(rgbSrc1, data->pRgbScaleDesc, d_src2, data->pGreyScaleDesc, subpixelLayout, data->handle->rppHandle);
+                rppt_color_to_greyscale_gpu(data->pSrcResizedRGB, data->pRgbScaleDesc, d_src2, data->pGreyScaleDesc, subpixelLayout, data->handle->rppHandle);
                 hipDeviceSynchronize();
-        
+                std::cerr << "-C2G-";
                 // calculate optical flow
                 RppStatus fbackOptFlowReturn = rppt_farneback_optical_flow_gpu(d_src1, d_src2, data->pGreyScaleDesc, d_motionVectorsCartesianF32Comp1, d_motionVectorsCartesianF32Comp2, data->pMotionVectorCompDesc, 0.75f, 5, 9, 3, 5, 1.2f, data->handle->rppHandle);
                 hipDeviceSynchronize();
-
+                std::cerr << "-opt-";
+                
                 // verify successful motion vector generation
                 if (fbackOptFlowReturn != RPP_SUCCESS)
                     return VX_FAILURE;
@@ -173,35 +186,35 @@ static vx_status VX_CALLBACK processOpticalFlow(vx_node node, const vx_reference
 
                 // ****************************************************************** post-processing ******************************************************************
                 // convert from cartesian to polar coordinates
-                rppt_cartesian_to_polar_gpu(data->pMotionVectorCartesian, data->pMotionVectorCartesianDesc, data->pMotionVectorPolar, data->pMotionVectorPolarDesc, angleType, data->pSrcRoi, roiType, data->handle->rppHandle);
+                rppt_cartesian_to_polar_gpu(data->pMotionVectorCartesian, data->pMotionVectorCartesianDesc, data->pMotionVectorPolar, data->pMotionVectorPolarDesc, angleType, data->pDstRoi, roiTypeXYWH, data->handle->rppHandle);
 
                 // all ops in stream1 need to complete before rppt_multiply_scalar_gpu executes on stream1 and rppt_image_min_max executes on stream2
                 // hipStreamSynchronize(stream1);
                 hipDeviceSynchronize();
+                std::cerr << "-C2P-";
 
                 // normalize polar angle from 0 to 1 in hip stream1
-                rppt_multiply_scalar_gpu(d_motionVectorsPolarF32Comp1, data->pMotionVectorGenericDesc, d_motionVectorsPolarF32Comp1, data->pMotionVectorGenericDesc, HUE_CONVERSION_FACTOR, data->pSrcRoi, roiType, data->handle->rppHandle);
+                rppt_multiply_scalar_gpu(d_motionVectorsPolarF32Comp1, data->pMotionVectorGenericDesc, d_motionVectorsPolarF32Comp1, data->pMotionVectorGenericDesc, HUE_CONVERSION_FACTOR, data->pDstRoi, roiTypeXYWH, data->handle->rppHandle);
 
-                // find min and max of polar magnitude in  hip stream2
-                rppt_image_min_max_gpu(data->pMotionVectorPolar, data->pMotionVectorGenericDesc, data->imageMinMaxArr, data->imageMinMaxArrLength, data->pSrcRoi, roiType, data->handle->rppHandle); // could be handle2
+                rppt_image_min_max_gpu(data->pMotionVectorPolar, data->pMotionVectorGenericDesc, data->imageMinMaxArr, data->imageMinMaxArrLength, data->pDstRoi, roiTypeXYWH, data->handle->rppHandle); // could be handle2
 
                 // all ops in stream2 need to complete before rppt_normalize_minmax_gpu executes on stream2
                 hipDeviceSynchronize(); // could be a hipStreamSynchronize(stream2);
 
                 // normalize polar magnitude from 0 to 1 in hip stream2
-                rppt_normalize_minmax_gpu(data->pMotionVectorPolar, data->pMotionVectorGenericDesc, d_motionVectorsPolarF32Comp3, data->pMotionVectorGenericDesc, data->imageMinMaxArr, data->imageMinMaxArrLength, 0.0f, 1.0f, data->pSrcRoi, roiType, data->handle->rppHandle); // could be handle2
+                rppt_normalize_minmax_gpu(data->pMotionVectorPolar, data->pMotionVectorGenericDesc, d_motionVectorsPolarF32Comp3, data->pMotionVectorGenericDesc, data->imageMinMaxArr, data->imageMinMaxArrLength, 0.0f, 1.0f, data->pDstRoi, roiTypeXYWH, data->handle->rppHandle); // could be handle2
 
                 // all ops in all streams need to complete before rppt_hsv_to_rgbbgr_gpu executes on stream1
                 // hipStreamSynchronize(stream2);
                 // hipStreamSynchronize(stream1);
                 hipDeviceSynchronize(); // could be a hipStreamSynchronize(stream2); followed by hipStreamSynchronize(stream1);
-
+                std::cerr << "-Minmax-";
                 // fused bitDepth + layout + colorType conversion of F32-PLN3 HSV to U8-PKD3 BGR in hip stream1
                 rppt_hsv_to_rgbbgr_gpu(d_motionVectorsPolarF32Comp1, data->pHSVScaleDesc, rgbDst, data->pDstDesc, subpixelLayout, data->handle->rppHandle);
 
                 // all ops in all streams need to complete at end of post-processing
                 hipDeviceSynchronize();
-                
+                std::cerr << "-HSV2RGB-";
                 // update d_src1 optimally to d_src2 with pointer swap
                 Rpp8u *temp;
                 temp = d_src1;
@@ -210,13 +223,12 @@ static vx_status VX_CALLBACK processOpticalFlow(vx_node node, const vx_reference
                 
                 rgbDst += data->pDstDesc->strides.nStride;
             }
+            std::cerr << "Next sequence\n";
         }
-        
-        // rpp_status = rppt_brightness_gpu(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc,  data->pAlpha, data->pBeta, data->pSrcRoi, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     }
-
+    std::cerr << "Optical process ends ...\n";
     return return_status;
 }
 
@@ -226,10 +238,10 @@ static vx_status VX_CALLBACK initializeOpticalFlow(vx_node node, const vx_refere
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
     int roi_type, input_layout, output_layout;
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[3], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
@@ -251,6 +263,7 @@ static vx_status VX_CALLBACK initializeOpticalFlow(vx_node node, const vx_refere
     data->pDstDesc->dataType = getRpptDataType(output_tensor_dtype);
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
+    data->pSrcDesc->n = data->pDstDesc->n = 1;
 
     data->pRgbScaleDesc = new RpptDesc;
     data->pRgbScaleDesc->dataType = RpptDataType::U8;
@@ -296,9 +309,11 @@ static vx_status VX_CALLBACK initializeOpticalFlow(vx_node node, const vx_refere
     fillGenericDescriptionPtrfromDims(data->pMotionVectorGenericDesc, vxTensorLayout::VX_NCHW, dims7);
     
     // set rpp tensor buffer sizes in bytes for srcRGB, dstRGB, src frames in src1 and src2
+    unsigned long long sizeInBytesDstRGB = (data->pDstDesc->n * data->pDstDesc->strides.nStride) + data->pDstDesc->offsetInBytes;
     unsigned long long sizeInBytesSrc = (2 * data->pGreyScaleDesc->n * data->pGreyScaleDesc->strides.nStride) + data->pGreyScaleDesc->offsetInBytes;
 
 #if ENABLE_HIP
+    hipMalloc(&data->pSrcResizedRGB, sizeInBytesDstRGB);
     hipMalloc(&data->pSrcGray, sizeInBytesSrc + 64);
     hipMalloc(&data->pMotionVectorCartesian, FARNEBACK_OUTPUT_MOTION_VECTORS_SIZE * sizeof(Rpp32f));
     hipMalloc(&data->pMotionVectorPolar, FARNEBACK_OUTPUT_MOTION_VECTORS_SIZE * 4 * sizeof(Rpp32f));
@@ -311,6 +326,8 @@ static vx_status VX_CALLBACK initializeOpticalFlow(vx_node node, const vx_refere
     // allocate post-processing buffer for imageMinMax
     data->imageMinMaxArrLength = 2;
     hipHostMalloc(&data->imageMinMaxArr, data->imageMinMaxArrLength * sizeof(Rpp32f));
+    hipHostMalloc(&data->pDstImgSize, data->pSrcDesc->n * sizeof(RpptImagePatch));
+    hipHostMalloc(&data->pDstRoi, data->pDstDesc->n * sizeof(RpptROI));
 #endif
     refreshOpticalFlow(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
@@ -321,8 +338,8 @@ static vx_status VX_CALLBACK initializeOpticalFlow(vx_node node, const vx_refere
 static vx_status VX_CALLBACK uninitializeOpticalFlow(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     OpticalFlowLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    
 #if ENABLE_HIP
+    if (data->pSrcResizedRGB) hipFree(data->pSrcResizedRGB);
     if (data->pSrcGray) hipFree(data->pSrcGray);
     if (data->pMotionVectorCartesian) hipFree(data->pMotionVectorCartesian);
     if (data->pMotionVectorPolar) hipFree(data->pMotionVectorPolar);
@@ -354,7 +371,7 @@ static vx_status VX_CALLBACK query_target_support(vx_graph graph, vx_node node,
     if (affinity.device_type == AGO_TARGET_AFFINITY_GPU)
         supported_target_affinity = AGO_TARGET_AFFINITY_GPU;
     else
-        supported_target_affinity = AGO_TARGET_AFFINITY_CPU;
+        return VX_ERROR_NOT_SUPPORTED;
 
     return VX_SUCCESS;
 }
