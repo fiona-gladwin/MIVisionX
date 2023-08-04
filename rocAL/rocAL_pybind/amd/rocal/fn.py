@@ -300,10 +300,6 @@ def resize_mirror_normalize(*inputs, bytes_per_sample_hint=0, interp_type=1, mag
                      "scaling_mode": scaling_mode, "max_size": max_size, "resize_shorter": resize_shorter, "resize_longer": resize_longer, 
                      "interpolation_type": interpolation_type, "mirror": mirror, "output_layout": output_layout, "output_dtype": output_dtype}
     rmn = b.ResizeMirrorNormalize(Pipeline._current_pipeline._handle ,*(kwargs_pybind.values()))
-    Pipeline._current_pipeline._tensor_layout = output_layout
-    Pipeline._current_pipeline._tensor_dtype = output_dtype
-    Pipeline._current_pipeline._multiplier = list(map(lambda x: 1/x ,std))
-    Pipeline._current_pipeline._offset = list(map(lambda x,y: -(x/y), mean, std))
     return (rmn)
 
 def random_crop(*inputs, crop_area_factor=[0.08, 1], crop_aspect_ratio=[0.75, 1.333333],

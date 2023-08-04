@@ -57,7 +57,7 @@ MIVisionX toolkit is a set of comprehensive computer vision and machine intellig
 
 Run the steps below to build documentation locally.
 
-```
+```Bash
 cd docs
 pip3 install -r .sphinx/requirements.txt
 python3 -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
@@ -200,10 +200,12 @@ For the convenience of the developer, we provide the setup script `MIVisionX-set
                             --opencv    [OpenCV Version - optional (default:4.6.0)]
                             --protobuf  [ProtoBuf Version - optional (default:3.12.4)]
                             --rpp       [RPP Version - optional (default:1.0.0)]
+                            --pybind11  [PyBind11 Version - optional (default:v2.10.4)]
                             --ffmpeg    [FFMPEG V4.4.2 Installation - optional (default:ON) [options:ON/OFF]]
                             --rocal     [MIVisionX rocAL Dependency Install - optional (default:ON) [options:ON/OFF]]
                             --neural_net[MIVisionX Neural Net Dependency Install - optional (default:ON) [options:ON/OFF]]
                             --inference [MIVisionX Neural Net Inference Dependency Install - optional (default:ON) [options:ON/OFF]]
+                            --developer [Setup Developer Options - optional (default:ON) [options:ON/OFF]]
                             --reinstall [Remove previous setup and reinstall (default:OFF)[options:ON/OFF]]
                             --backend   [MIVisionX Dependency Backend - optional (default:HIP) [options:HIP/OCL/CPU]]
                             --rocm_path [ROCm Installation Path - optional (default:/opt/rocm) - ROCm Installation Required]
@@ -465,7 +467,7 @@ Review all notable [changes](CHANGELOG.md#changelog) with the latest release
 * RPP - [1.2.0](https://github.com/GPUOpen-ProfessionalCompute-Libraries/rpp/releases/tag/1.2.0)
 * FFMPEG - [n4.4.2](https://github.com/FFmpeg/FFmpeg/releases/tag/n4.4.2)
 * Dependencies for all the above packages
-* MIVisionX Setup Script - `V2.5.3`
+* MIVisionX Setup Script - `V2.5.4`
 
 ### Known issues
 
