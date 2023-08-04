@@ -60,14 +60,14 @@ void BoundingBoxGraph::update_meta_data(pMetaDataBatch input_meta_data, decoded_
     }
 }
 
-inline float ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const float &box1_area, const BoundingBoxCordf &box2)
+inline float ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const float &box1_area, const BoundingBoxCord &box2)
 {
-    float xA = std::max(static_cast<float>(box1.l), box2.ltrb.l);
-    float yA = std::max(static_cast<float>(box1.t), box2.ltrb.t);
-    float xB = std::min(static_cast<float>(box1.r), box2.ltrb.r);
-    float yB = std::min(static_cast<float>(box1.b), box2.ltrb.b);
+    float xA = std::max(static_cast<float>(box1.l), box2.l);
+    float yA = std::max(static_cast<float>(box1.t), box2.t);
+    float xB = std::min(static_cast<float>(box1.r), box2.r);
+    float yB = std::min(static_cast<float>(box1.b), box2.b);
     float intersection_area = std::max((float)0.0, xB - xA) * std::max((float)0.0, yB - yA);
-    float box2_area = (box2.ltrb.b - box2.ltrb.t) * (box2.ltrb.r - box2.ltrb.l);
+    float box2_area = (box2.b - box2.t) * (box2.r - box2.l);
     return (float) (intersection_area / (box1_area + box2_area - intersection_area));
 }
 
@@ -243,3 +243,70 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
     }
 }
 
+void BoundingBoxGraph::update_box_iou_matcher(
+    std::vector<float> *anchors, int *matches_idx_buffer,
+    pMetaDataBatch full_batch_meta_data, float criteria, float high_threshold,
+    float low_threshold, bool allow_low_quality_matches) 
+{
+    auto bb_coords_batch = full_batch_meta_data->get_bb_cords_batch();
+    unsigned anchors_size = anchors->size() / 4;  // divide the anchors_size by 4 to get the total number of anchors
+    BoundingBoxCord *bbox_anchors = reinterpret_cast<BoundingBoxCord *>(anchors->data());
+
+    std::vector<int *> matches(full_batch_meta_data->size());
+    for (int i = 0; i < full_batch_meta_data->size(); i++) {
+        matches[i] = reinterpret_cast<int *>(matches_idx_buffer + i * anchors_size);
+    }
+
+#pragma omp parallel for
+    for (int i = 0; i < full_batch_meta_data->size(); i++) {
+        auto bb_coords = bb_coords_batch[i];
+        auto bb_count = bb_coords.size();
+
+        std::vector<float> matched_vals(anchors_size, -1.0);
+        std::vector<int> low_quality_preds(anchors_size, -1);
+
+        // Calculate IoU's, The number of IoU Values calculated will be (bb_count x anchors_size)
+        for (int bb_idx = 0; bb_idx < bb_count; bb_idx++) {
+            BoundingBoxCord box = bb_coords[bb_idx];
+            float box_area = (box.b - box.t) * (box.r - box.l);
+            float best_bbox_iou = -1.0f;
+            std::vector<float> bbox_iou(anchors_size);  // IoU value for bbox mapped with each anchor
+            for (unsigned int anchor_idx = 0; anchor_idx < anchors_size; anchor_idx++) {
+                float iou_val = ssd_BBoxIntersectionOverUnion(box, box_area, bbox_anchors[anchor_idx]);
+                bbox_iou[anchor_idx] = iou_val;
+
+                // Find col maximum in (bb_count x anchors_size) IoU values calculated
+                if (iou_val > matched_vals[anchor_idx]) {
+                    matched_vals[anchor_idx] = iou_val;
+                    matches[i][anchor_idx] = bb_idx;
+                }
+
+                // Find row maximum in (bb_count x anchors_size) IoU values calculated
+                if (allow_low_quality_matches) {
+                    if (iou_val > best_bbox_iou) best_bbox_iou = iou_val;
+                }
+            }
+
+            if (allow_low_quality_matches) {
+                for (unsigned int anchor_idx = 0; anchor_idx < anchors_size; anchor_idx++) { // if the element is found
+                    if (fabs(bbox_iou[anchor_idx] - best_bbox_iou) < 1e-6)
+                      low_quality_preds[anchor_idx] = anchor_idx;
+                }
+            }
+        }
+
+        // Update matched indices based on thresholds and low quality matches
+        for (uint pred_idx = 0; pred_idx < anchors_size; pred_idx++) {
+            if (!(allow_low_quality_matches && low_quality_preds[pred_idx] != -1)) {
+                if (matched_vals[pred_idx] < low_threshold) {
+                    matches[i][pred_idx] = -1;
+                } else if ((matched_vals[pred_idx] < high_threshold)) {
+                    matches[i][pred_idx] = -2;
+                }
+            }
+        }
+
+        matched_vals.clear();
+        low_quality_preds.clear();
+    }
+}

@@ -61,7 +61,7 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
 /// \param rocal_context
 /// \param source_path path to the coco json file
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
-extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool mask = false, bool ltrb = true, bool is_box_encoder = false, bool avoid_class_remapping = false);
+extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool mask = false, bool ltrb = true, bool is_box_encoder = false, bool avoid_class_remapping = false, bool is_box_iou_matcher = false);
 
 ///
 /// \param rocal_context
@@ -198,11 +198,27 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalGetEncodedBoxesAndLables(RocalConte
 ///
 /// \param rocal_context
 /// \param buf The user's buffer that will be filled with image id info for the images in the output batch.
-extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext p_context,  int* buf);
+extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext p_context, int* buf);
 
 ///
 /// \param rocal_context
 /// \param joints_data The user's RocalJointsData pointer that will be pointed to JointsDataBatch pointer
 extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **joints_data);
+
+/// \brief API to enable box IOU matcher and pass required params to pipeline
+/// \param p_context 
+/// \param anchors The anchors / ground truth bounding box coordinates
+/// \param criteria 
+/// \param high_threshold The max threshold for IOU
+/// \param low_threshold The min threshold for IOU
+/// \param allow_low_quality_matches bool value when set to true allows low quality matches
+/// \return 
+extern "C" void ROCAL_API_CALL rocalBoxIOUMatcher(RocalContext p_context, std::vector<float> &anchors, float criteria,
+                                                  float high_threshold, float low_threshold, bool allow_low_quality_matches = true);
+
+/// \brief 
+/// \param rocal_context 
+/// \return RocalTensorList with matched idxs for each image
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetMatchedIndices(RocalContext rocal_context);
 
 #endif //MIVISIONX_ROCAL_API_META_DATA_H

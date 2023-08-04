@@ -77,14 +77,14 @@ ROCAL_API_CALL rocalCreateVideoLabelReader(RocalContext p_context, const char* s
 }
 
 RocalMetaData
-ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool mask, bool ltrb, bool is_box_encoder, bool avoid_class_remapping) {
+ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool mask, bool ltrb, bool is_box_encoder, bool avoid_class_remapping, bool is_box_iou_matcher) {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalCreateCOCOReader")
     auto context = static_cast<Context*>(p_context);
     if(mask) {
-        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask, ltrb, is_box_encoder, avoid_class_remapping);
+        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask, ltrb, is_box_encoder, avoid_class_remapping, is_box_iou_matcher);
     }
-    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox, ltrb, is_box_encoder, avoid_class_remapping);
+    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox, ltrb, is_box_encoder, avoid_class_remapping, is_box_iou_matcher);
 }
 
 RocalMetaData
@@ -93,7 +93,7 @@ ROCAL_API_CALL rocalCreateCOCOReaderKeyPoints(RocalContext p_context, const char
         THROW("Invalid rocal context passed to rocalCreateCOCOReaderKeyPoints")
     auto context = static_cast<Context*>(p_context);
 
-    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_KEY_POINTS_META_DATA_READER, MetaDataType::KeyPoints, sigma, pose_output_width, pose_output_height);
+    return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_KEY_POINTS_META_DATA_READER, MetaDataType::KeyPoints, false, false, false, false, sigma, pose_output_width, pose_output_height);
 }
 
 RocalMetaData
@@ -299,7 +299,6 @@ ROCAL_API_CALL rocalGetOneHotImageLabels(RocalContext p_context, void* buf, int 
 #endif
     }
 }
-
 
 RocalTensorList
 ROCAL_API_CALL rocalGetBoundingBoxCords(RocalContext p_context)
@@ -528,3 +527,22 @@ ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **j
     *joints_data = (RocalJointsData *)(&(meta_data.second->get_joints_data_batch()));
 }
 
+void ROCAL_API_CALL rocalBoxIOUMatcher(RocalContext p_context,
+                                       std::vector<float>& anchors,
+                                       float criteria, float high_threshold,
+                                       float low_threshold,
+                                       bool allow_low_quality_matches) {
+    if (!p_context) 
+        THROW("Invalid rocal context passed to rocalBoxIOUMatcher")
+    auto context = static_cast<Context*>(p_context);
+    context->master_graph->box_iou_matcher(anchors, criteria, high_threshold,
+                                           low_threshold,
+                                           allow_low_quality_matches);
+}
+
+RocalTensorList ROCAL_API_CALL rocalGetMatchedIndices(RocalContext p_context) {
+    if (!p_context)
+        THROW("Invalid rocal context passed to rocalGetMatchedIndices")
+    auto context = static_cast<Context*>(p_context);
+    return context->master_graph->matches_meta_data();
+}
