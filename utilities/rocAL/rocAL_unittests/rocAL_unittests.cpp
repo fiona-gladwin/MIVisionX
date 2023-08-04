@@ -383,7 +383,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         interpolation_type_name = get_interpolation_type(resize_interpolation_type, interpolation_type);
         scaling_node_name = get_scaling_mode(resize_scaling_mode, scale_mode);
         std::cerr<<" \n Interpolation_type_name " << interpolation_type_name;
-        std::cerr<<" \n Scaling_node_name " << scaling_node_name;
+        std::cerr<<" \n Scaling_node_name " << scaling_node_name << "\n ";
         if (scale_mode != ROCAL_SCALING_MODE_DEFAULT && interpolation_type != ROCAL_LINEAR_INTERPOLATION) { // (Reference output available for bilinear interpolation for this  
             std::cerr<<" \n Running "<< scaling_node_name << " scaling mode with Bilinear interpolation for comparison \n";
             interpolation_type = ROCAL_LINEAR_INTERPOLATION;
@@ -398,7 +398,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalCropResize" << std::endl;
-        output = rocalCropResize(handle, decoded_output, resize_w, resize_h, true);
+        output = rocalCropResize(handle, input, resize_w, resize_h, true);
     }
     break;
     case 2:
@@ -598,7 +598,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalRotateFixed" << std::endl;
-        output = rocalRotateFixed(handle, input, 50, true);
+        output = rocalRotateFixed(handle, input, 45, true);
     }
     break;
 */
@@ -606,7 +606,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalBrightnessFixed" << std::endl;
-        output = rocalBrightnessFixed(handle, input, 1.90, 20, true, output_tensor_layout, output_tensor_dtype);
+        output = rocalBrightnessFixed(handle, input, 1.90, 20, true);
     }
     break;
 /*
@@ -635,15 +635,15 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalBlendFixed" << std::endl;
-        RocalTensor image0_b = rocalRotateFixed(handle, input, 50, false);
-        output = rocalBlendFixed(handle, input, image0_b, 0.5, true);
+        RocalTensor output_1 = rocalRotateFixed(handle, input, 45, false);
+        output = rocalBlendFixed(handle, input, output_1, 0.5, true);
     }
     break;
     case 37:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalWarpAffineFixed" << std::endl;
-        output = rocalWarpAffineFixed(handle, input, 0.25, 0.25, 1, 1, 5, 5, true);
+        output = rocalWarpAffineFixed(handle, input, 1, 1, 0.5, 0.5, 7, 7, true);
     }
     break;
     case 38:
@@ -664,7 +664,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalSnPNoiseFixed" << std::endl;
-        output = rocalSnPNoiseFixed(handle, input, 0.12, true);
+        output = rocalSnPNoiseFixed(handle, input, true, 0.2, 0.2, 0.2, 0.5, 0);
     }
     break;
     case 41:
@@ -713,7 +713,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalFlipFixed" << std::endl;
-        output = rocalFlipFixed(handle, input, 2, true);
+        output = rocalFlipFixed(handle, input, 1, 0, true);
     }
     break;
     case 48:
@@ -741,7 +741,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalCropFixed" << std::endl;
-        output = rocalCropFixed(handle, decoded_output, 224, 224, 1, true, 0, 0, 2);
+        output = rocalCropFixed(handle, input, 224, 224, 1, true, 0, 0, 0);
     }
     break;
     case 52:
@@ -755,14 +755,14 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     {
         std::cout << ">>>>>>> Running "
                   << "rocalResizeCropMirrorFixed" << std::endl;
-        output = rocalResizeCropMirrorFixed(handle, input, 300, 300, true, 250, 250, mirror);
+        output = rocalResizeCropMirrorFixed(handle, input, 400, 400, true, 200, 200, mirror);
     }
     break;
     case 54:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalSSDRandomCrop" << std::endl;
-        output = rocalSSDRandomCrop(handle, decoded_output, true);
+        output = rocalSSDRandomCrop(handle, input, true);
     }
     break;*/
     case 55:
@@ -771,7 +771,17 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalCropMirrorNormalizeFixed_center crop" << std::endl;
         std::vector<float> mean = {128, 128, 128};
         std::vector<float> std_dev = {1.2, 1.2, 1.2};
-        output = rocalCropMirrorNormalize(handle, input, 224, 224, 0.5, 0.5, mean, std_dev, true);
+        output = rocalCropMirrorNormalize(handle, input, 224, 224, 0.5, 0.5, mean, std_dev, true, mirror);
+    }
+    break;
+    case 56:
+    {
+        std::vector<float> mean = {128, 128, 128};
+        std::vector<float> std_dev = {1.2, 1.2, 1.2};
+        std::cout << ">>>>>>> Running "
+                  << " Resize Mirror Normalize " << std::endl;
+        output = rocalResizeMirrorNormalize(handle, input, 400 , 400, mean, std_dev, true, ROCAL_SCALING_MODE_DEFAULT,
+                                            {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, mirror);
     }
     break;
 
