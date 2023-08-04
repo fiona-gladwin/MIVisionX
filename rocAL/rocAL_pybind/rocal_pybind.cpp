@@ -588,7 +588,7 @@ namespace rocal{
         // rocal_api_meta_data.h
         m.def("randomBBoxCrop", &rocalRandomBBoxCrop);
         m.def("boxEncoder", &rocalBoxEncoder);
-        // m.def("BoxIOUMatcher", &rocalBoxIOUMatcher);
+        m.def("BoxIOUMatcher", &rocalBoxIOUMatcher);
         m.def("getImgSizes", [](RocalContext context, py::array_t<int> array) {
             auto buf = array.request();
             int* ptr = static_cast<int *>(buf.ptr);
@@ -708,17 +708,16 @@ namespace rocal{
             }
             return complete_list;
         });
-        // Will be enabled when IOU matcher changes are introduced in C++
-        // m.def("getMatchedIndices", [](RocalContext context) {
-        //     rocalTensorList *matches = rocalGetMatchedIndices(context);
-        //     return py::array(py::buffer_info(
-        //                     (int *)(matches->at(0)->buffer()),
-        //                     sizeof(int),
-        //                     py::format_descriptor<int>::format(),
-        //                     1,
-        //                     {matches->size() * 120087},
-        //                     {sizeof(int) }));
-        // }, py::return_value_policy::reference);
+        m.def("getMatchedIndices", [](RocalContext context) {
+            rocalTensorList *matches = rocalGetMatchedIndices(context);
+            return py::array(py::buffer_info(
+                            (int *)(matches->at(0)->buffer()),
+                            sizeof(int),
+                            py::format_descriptor<int>::format(),
+                            1,
+                            {matches->size() * matches->at(i)->dims().at(0)},
+                            {sizeof(int)}));
+        }, py::return_value_policy::reference);
         m.def("rocalGetEncodedBoxesAndLables", [](RocalContext context, uint batch_size, uint num_anchors) {
                 auto vec_pair_labels_boxes = rocalGetEncodedBoxesAndLables(context, batch_size * num_anchors);
                 auto labels_buf_ptr = static_cast<int *>(vec_pair_labels_boxes[0]->at(0)->buffer());
