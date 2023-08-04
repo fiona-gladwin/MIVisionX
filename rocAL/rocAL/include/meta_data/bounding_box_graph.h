@@ -26,8 +26,6 @@ THE SOFTWARE.
 #include "meta_node.h"
 
 typedef  struct { float xc; float yc; float w; float h; } BoundingBoxCord_xcycwh;
-typedef struct { float l; float t; float r; float b; } BoundingBoxCord_ltrb;
-typedef union { BoundingBoxCord_xcycwh xcycwh; BoundingBoxCord_ltrb ltrb; } BoundingBoxCordf;   // Union comprises of float bbox cords of ltrb/xcycwh type
 
 class BoundingBoxGraph : public MetaDataGraph
 {
