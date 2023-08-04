@@ -266,7 +266,7 @@ void BoundingBoxGraph::update_box_iou_matcher(
         std::vector<int> low_quality_preds(anchors_size, -1);
 
         // Calculate IoU's, The number of IoU Values calculated will be (bb_count x anchors_size)
-        for (int bb_idx = 0; bb_idx < bb_count; bb_idx++) {
+        for (unsigned bb_idx = 0; bb_idx < bb_count; bb_idx++) {
             BoundingBoxCord box = bb_coords[bb_idx];
             float box_area = (box.b - box.t) * (box.r - box.l);
             float best_bbox_iou = -1.0f;
@@ -278,7 +278,7 @@ void BoundingBoxGraph::update_box_iou_matcher(
                 // Find col maximum in (bb_count x anchors_size) IoU values calculated
                 if (iou_val > matched_vals[anchor_idx]) {
                     matched_vals[anchor_idx] = iou_val;
-                    matches[i][anchor_idx] = bb_idx;
+                    matches[i][anchor_idx] = static_cast<int>(bb_idx);
                 }
 
                 // Find row maximum in (bb_count x anchors_size) IoU values calculated
