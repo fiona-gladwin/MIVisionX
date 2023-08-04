@@ -92,5 +92,6 @@ public:
     virtual const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content()=0;
     virtual bool exists(const std::string &image_name) = 0;
     virtual bool set_timestamp_mode() = 0;
+    virtual std::pair<uint32_t, uint32_t> get_max_size() { return std::pair<uint32_t, uint32_t>(); }
 };
 

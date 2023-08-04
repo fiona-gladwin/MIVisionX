@@ -77,12 +77,16 @@ ROCAL_API_CALL rocalCreateVideoLabelReader(RocalContext p_context, const char* s
 }
 
 RocalMetaData
-ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool mask, bool ltrb, bool is_box_encoder) {
+ROCAL_API_CALL rocalCreateCOCOReader(RocalContext p_context, const char* source_path, bool is_output, bool is_polygon_mask, bool is_pixelwise_mask, bool ltrb, bool is_box_encoder) {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalCreateCOCOReader")
+    if (is_polygon_mask && is_pixelwise_mask)
+        THROW("PixelwiseMask and PolygonMask are mutually exclusive")
     auto context = static_cast<Context*>(p_context);
-    if(mask) {
+    if(is_polygon_mask) {
         return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PolygonMask, ltrb, is_box_encoder);
+    } else if (is_pixelwise_mask) {
+        return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::PixelwiseMask, ltrb, is_box_encoder);
     }
     return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_META_DATA_READER, MetaDataType::BoundingBox, ltrb, is_box_encoder);
 }
@@ -362,7 +366,16 @@ ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int *bufcount)
             }
         }
     }
-    return context->master_graph->mask_meta_data();
+    return context->master_graph->mask_meta_data(true);
+}
+
+RocalTensorList
+ROCAL_API_CALL rocalGetPixelwiseMaskLabels(RocalContext p_context)
+{
+    if (p_context == nullptr)
+        THROW("Invalid rocal context passed to rocalGetPixelwiseMaskLabels")
+    auto context = static_cast<Context *>(p_context);
+    return context->master_graph->mask_meta_data(false);
 }
 
 void
