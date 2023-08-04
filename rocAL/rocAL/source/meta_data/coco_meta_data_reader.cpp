@@ -192,6 +192,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
     {
         if (0 == std::strcmp(key, "images"))
         {
+            int original_id;
             RAPIDJSON_ASSERT(parser.PeekType() == kArrayType);
             parser.EnterArray();
             while (parser.NextArrayValue())
@@ -216,11 +217,16 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     {
                         image_name = parser.GetString();
                     }
+                    else if(0 == std::strcmp(internal_key, "id"))
+                    {
+                        original_id = parser.GetInt();
+                    }
                     else
                     {
                         parser.SkipValue();
                     }
                 }
+                _map_img_names.insert(pair<int, std::string>(original_id, image_name));
                 _map_img_sizes.insert(pair<std::string, ImgSize>(image_name, img_size));
                 img_size = {};
             }
@@ -314,7 +320,6 @@ void COCOMetaDataReader::read_all(const std::string &path)
                                 parser.EnterArray();
                                 while (parser.NextArrayValue())
                                 {
-                                    
                                     mask.push_back(parser.GetDouble());
                                     vertex_count += 1;
                                 }
@@ -327,12 +332,9 @@ void COCOMetaDataReader::read_all(const std::string &path)
                         parser.SkipValue();
                     }
                 }
-                char buffer[13];
-                sprintf(buffer, "%012d", id);
-                string str(buffer);
-                std::string file_name = str + ".jpg";
 
-                auto it = _map_img_sizes.find(file_name);
+                auto itr = _map_img_names.find(id);
+                auto it = _map_img_sizes.find(itr->second);
                 ImgSize image_size = it->second; //Normalizing the co-ordinates & convert to "ltrb" format
                 if ((_output->get_metadata_type() == MetaDataType::PolygonMask) && iscrowd == 0)
                 {
@@ -344,7 +346,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     bb_labels.push_back(label);
                     polygon_count.push_back(polygon_size);
                     vertices_count.push_back(vertices_array);
-                    add(file_name, bb_coords, bb_labels, image_size, mask, polygon_count, vertices_count);
+                    add(itr->second, bb_coords, bb_labels, image_size, mask, polygon_count, vertices_count);
                     mask.clear();
                     polygon_size = 0;
                     polygon_count.clear();
@@ -361,7 +363,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     box.b = (bbox[1] + bbox[3]);
                     bb_coords.push_back(box);
                     bb_labels.push_back(label);
-                    add(file_name, bb_coords, bb_labels, image_size, id);
+                    add(itr->second, bb_coords, bb_labels, image_size, id);
                     bb_coords.clear();
                     bb_labels.clear();
                 }

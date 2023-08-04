@@ -201,7 +201,7 @@ ROCAL_API_CALL rocalGetImageNameLen(RocalContext p_context, int* buf)
 }
 
 void
-ROCAL_API_CALL rocalGetImageId(RocalContext p_context,  int* buf)
+ROCAL_API_CALL rocalGetImageId(RocalContext p_context, int* buf)
 {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalGetImageId")
@@ -212,8 +212,7 @@ ROCAL_API_CALL rocalGetImageId(RocalContext p_context,  int* buf)
         THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
     for(unsigned int i = 0; i < meta_data_batch_size; i++)
     {
-        std::string str_id = meta_data.first[i].erase(0, meta_data.first[i].find_first_not_of('0'));
-        buf[i] = stoi(str_id);
+        buf[i] = meta_data.second->get_image_id_batch()[i];
     }
 }
 

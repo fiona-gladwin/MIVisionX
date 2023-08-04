@@ -38,7 +38,6 @@ public:
     void release() override;
     void print_map_contents();
     bool set_timestamp_mode() override { return false; }
-
     const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content;}
     COCOMetaDataReader();
 private:
@@ -52,9 +51,9 @@ private:
     std::map<std::string, std::shared_ptr<MetaData>> _map_content;
     std::map<std::string, std::shared_ptr<MetaData>>::iterator _itr;
     std::map<std::string, ImgSize> _map_img_sizes;
+    std::map<int, std::string> _map_img_names;
     std::map<std::string, ImgSize> ::iterator itr;
     std::map<int, int> _label_info;
     std::map<int, int> ::iterator _it_label;
     TimingDBG _coco_metadata_read_time;
 };
-
