@@ -76,6 +76,7 @@ public:
     unsigned out_img_height() const { return _out_img_height; }
     void set_out_img_width(unsigned out_img_width) { _out_img_width = out_img_width; }
     void set_out_img_height(unsigned out_img_height) { _out_img_height = out_img_height; }
+    void set_class_remapping(bool avoid_class_remapping) { _avoid_class_remapping = avoid_class_remapping; }
 };
 
 
