@@ -664,8 +664,8 @@ ROCAL_API_CALL rocalResizeMirrorNormalize(
             maximum_size = {resize_shorter, resize_longer};
         }
         
-        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(rocal_tensor_output_layout);
-        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(rocal_tensor_output_datatype);
+        RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(output_layout);
+        RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(output_datatype);
         TensorInfo output_info = input->info();
         output_info.set_tensor_layout(op_tensor_layout);
         output_info.set_data_type(op_tensor_datatype);
