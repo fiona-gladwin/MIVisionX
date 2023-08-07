@@ -378,6 +378,31 @@ ROCAL_API_CALL rocalGetPixelwiseMaskLabels(RocalContext p_context)
     return context->master_graph->mask_meta_data(false);
 }
 
+RocalTensorList
+ROCAL_API_CALL rocalSelectMask(RocalContext p_context,
+                               std::vector<int> mask_ids,
+                               std::vector<std::vector<int>> &sel_vertices_counts,
+                               std::vector<std::vector<int>> &sel_mask_ids,
+                               bool reindex_mask)
+{
+    if (p_context == nullptr)
+        THROW("Invalid rocal context passed to rocalSelectMask")
+    auto context = static_cast<Context *>(p_context);
+    auto meta_data = context->master_graph->meta_data();
+    size_t meta_data_batch_size = meta_data.second->get_mask_cords_batch().size();
+    if (context->user_batch_size() != meta_data_batch_size)
+        THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != " + TOSTR(context->user_batch_size()))
+    if (!meta_data.second)
+        THROW("No mask has been loaded for this output image")
+    return context->master_graph->get_select_mask_polygon(context->master_graph->mask_meta_data(true),
+                                                          meta_data.second->get_mask_polygons_count_batch(),
+                                                          meta_data.second->get_mask_vertices_count_batch(),
+                                                          mask_ids,
+                                                          sel_vertices_counts,
+                                                          sel_mask_ids,
+                                                          reindex_mask);
+}
+
 void
 ROCAL_API_CALL rocalGetImageSizes(RocalContext p_context, int* buf)
 {
