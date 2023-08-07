@@ -1538,7 +1538,12 @@ TensorList*  MasterGraph::get_select_mask_polygon(rocalTensorList* mask_data,
                                                         std::vector<std::vector<int>> &sel_vertices_counts,
                                                         std::vector<std::vector<int>> &sel_mask_ids,
                                                         bool reindex_mask)
-{
+{ 
+    if (output_select_mask_polygon.size() != 0) {
+        for (unsigned i = 0; i < _user_batch_size; i++)
+            output_select_mask_polygon[i].clear();
+    }
+    output_select_mask_polygon.clear();
     output_select_mask_polygon.resize(_user_batch_size);
     sel_vertices_counts.resize(_user_batch_size);
     sel_mask_ids.resize(_user_batch_size);
