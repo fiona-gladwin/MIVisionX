@@ -35,7 +35,8 @@ def coco(annotations_file='', ltrb=True, masks=False, ratio=False,
         "mask": masks,
         "ltrb": ltrb,
         "is_box_encoder": is_box_encoder,
-        "avoid_class_remapping": avoid_class_remapping}
+        "avoid_class_remapping": avoid_class_remapping,
+        "is_box_iou_matcher":is_box_iou_matcher}
     meta_data = b.cocoReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (meta_data, labels, bboxes)
 
