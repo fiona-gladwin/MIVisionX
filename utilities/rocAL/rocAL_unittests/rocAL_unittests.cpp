@@ -359,6 +359,24 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
+        case 13: // coco detection segmentation + polygon
+        {
+            std::cout << ">>>>>>> Running COCO READER" << std::endl;
+            pipeline_type = 4;
+            if (strcmp(rocal_data_path.c_str(), "") == 0)
+            {
+                std::cout << "\n ROCAL_DATA_PATH env variable has not been set. ";
+                exit(0);
+            }
+            // setting the default json path to ROCAL_DATA_PATH coco sample train annotation
+            std::string json_path = rocal_data_path + "MIVisionX-data/mini_coco_dataset/coco_test_10/annotations/instances_val2017_small.json";
+            rocalCreateCOCOReader(handle, json_path.c_str(), true, true, false);
+            if (decode_max_height <= 0 || decode_max_width <= 0)
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
+            else
+                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+        }
+        break;
         default:
         {
             std::cout << ">>>>>>> Running IMAGE READER" << std::endl;
@@ -986,29 +1004,27 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             {
                 RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
                 RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
-                RocalTensorList mask_data = rocalGetPixelwiseMaskLabels(handle);
-                std::cout << "\n>>>>> PIXELWISE LABELS : ";
-                for (int i = 0; i < bbox_labels->size(); i++)
-                {
-                    int *mask_buffer = (int *)(mask_data->at(i)->buffer());
-                    int mask_size = mask_data->at(i)->dims().at(0) * mask_data->at(i)->dims().at(1);
-                    for (int j = 0; j < mask_size; j++)
-                    {
-                        std::cout << mask_buffer[j] << "\t";
+                std::vector<std::vector<int>> sel_vertices_counts;
+                std::vector<std::vector<int>> sel_mask_ids;
+                std::vector<int> mask_ids{0};
+                RocalTensorList select_mask_polygon = rocalSelectMask(handle,
+                                                                      mask_ids,
+                                                                      sel_vertices_counts,
+                                                                      sel_mask_ids,
+                                                                      false);
+                for (int i = 0; i < bbox_labels->size(); i++) {
+                    std::cout << "\n>>>>>>> Selected polygons and vertices : " << std::endl;
+                    float* select_mask_polygon_buffer = (float *)(select_mask_polygon->at(i)->buffer());
+                    auto sel_vertices_count_per_image = sel_vertices_counts[i];
+                    auto sel_mask_ids_per_image = sel_mask_ids[i];
+                    int cnt = 0;
+                    for (int j = 0; j < mask_ids.size(); j++) {
+                        std::cout << "Mask id: " << mask_ids[j] << " vertices count: " << sel_vertices_count_per_image[j] <<  " [";
+                        for (int k = 0; k < sel_vertices_count_per_image[j]; k++) {
+                            std::cout << select_mask_polygon_buffer[cnt++] << " ,";
+                        }
+                        std::cout << "]" << std::endl;
                     }
-                    std::cout << std::endl;
-                }
-                for (int i = 0; i < bbox_labels->size(); i++)
-                {
-                    int *labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-                    float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
-
-                    std::cout << "\n>>>>> BBOX LABELS : ";
-                    for (int j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
-                        std::cout << labels_buffer[j] << " ";
-                    std::cout << "\n>>>>> BBOXX : " << bbox_coords->at(i)->dims().at(0) << " : \n";
-                    for (int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
-                        std::cout << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
                 }
             }
             break;
