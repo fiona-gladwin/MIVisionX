@@ -24,7 +24,7 @@ import amd.rocal.types as types
 
 
 def coco(annotations_file='', ltrb=True, masks=False, ratio=False,
-         avoid_class_remapping=False, pixelwise_masks=False, is_box_encoder=False, is_box_iou_matcher=False):
+         avoid_class_remapping=False, pixelwise_masks=False, is_box_encoder=False, is_box_iou_matcher=False, aspect_ratio_grouping=False):
     Pipeline._current_pipeline._reader = "COCOReader"
     # Output
     labels = []
@@ -35,7 +35,8 @@ def coco(annotations_file='', ltrb=True, masks=False, ratio=False,
         "mask": masks,
         "ltrb": ltrb,
         "is_box_encoder": is_box_encoder,
-        "avoid_class_remapping": avoid_class_remapping}
+        "avoid_class_remapping": avoid_class_remapping,
+        "aspect_ratio_grouping": aspect_ratio_grouping}
     meta_data = b.cocoReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (meta_data, labels, bboxes)
 
