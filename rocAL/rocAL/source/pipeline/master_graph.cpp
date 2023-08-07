@@ -1090,8 +1090,9 @@ void MasterGraph::stop_processing()
 std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(
     const char *source_path, bool is_output, MetaDataReaderType reader_type,
     MetaDataType metadata_type, bool ltrb_bbox, bool is_box_encoder,
-    bool avoid_class_remapping, bool is_box_iou_matcher, float sigma,
-    unsigned pose_output_width, unsigned pose_output_height)
+    bool avoid_class_remapping, bool aspect_ratio_grouping,
+    bool is_box_iou_matcher, float sigma, unsigned pose_output_width,
+    unsigned pose_output_height) 
 {
     if(_meta_data_reader)
         THROW("A metadata reader has already been created")
@@ -1100,6 +1101,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(
 
     MetaDataConfig config(metadata_type, reader_type, source_path, std::map<std::string, std::string>(), std::string());
     config.set_class_remapping(avoid_class_remapping);
+    config.set_aspect_ratio_grouping(aspect_ratio_grouping);
     config.set_out_img_width(pose_output_width);
     config.set_out_img_height(pose_output_height);
     _meta_data_graph = create_meta_data_graph(config);

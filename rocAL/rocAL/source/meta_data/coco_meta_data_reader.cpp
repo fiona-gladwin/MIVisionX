@@ -33,6 +33,7 @@ void COCOMetaDataReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_dat
 {
     _path = cfg.path();
     _avoid_class_remapping = cfg.class_remapping();
+    this->set_aspect_ratio_grouping(cfg.aspect_ratio_grouping());
     _output = meta_data_batch;
     _output->set_metadata_type(cfg.type());
 }
