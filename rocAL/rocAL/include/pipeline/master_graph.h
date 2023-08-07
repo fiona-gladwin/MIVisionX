@@ -110,6 +110,8 @@ public:
     void box_encoder(std::vector<float> &anchors, float criteria, const std::vector<float> &means, const std::vector<float> &stds, bool offset, float scale);
     void create_randombboxcrop_reader(RandomBBoxCrop_MetaDataReaderType reader_type, RandomBBoxCrop_MetaDataType label_type, bool all_boxes_overlap, bool no_crop, FloatParam* aspect_ratio, bool has_shape, int crop_width, int crop_height, int num_attempts, FloatParam* scaling, int total_num_attempts, int64_t seed=0);
     const std::pair<ImageNameBatch,pMetaDataBatch>& meta_data();
+    void set_random_mask_pixel_config(bool is_foreground, unsigned int value, bool is_threshold);
+    TensorList * get_random_mask_pixel(rocalTensorList* input);
     TensorList * labels_meta_data();
     TensorList * bbox_meta_data();
     TensorList * mask_meta_data(bool is_polygon_mask);
@@ -140,6 +142,7 @@ private:
     void notify_user_thread();
     /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed tensors
     bool no_more_processed_data();
+    int64_t find_pixel(std::vector<int> start, std::vector<int> foreground_count, int64_t val, int count);
     RingBuffer _ring_buffer;//!< The queue that keeps the tensors that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
     pMetaDataBatch _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
     std::shared_ptr<CropCordBatch> _random_bbox_crop_cords_data = nullptr;
@@ -158,6 +161,7 @@ private:
     TensorList _labels_tensor_list;
     TensorList _bbox_tensor_list;
     TensorList _mask_tensor_list;
+    TensorList _random_mask_pixel_list;
     std::vector<size_t> _meta_data_buffer_size;
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU
@@ -198,6 +202,10 @@ private:
     bool _offset; // Returns normalized offsets ((encoded_bboxes*scale - anchors*scale) - mean) / stds in EncodedBBoxes that use std and the mean and scale arguments if offset="True"
     std::vector<float> _means, _stds; //_means:  [x y w h] mean values for normalization _stds: [x y w h] standard deviations for offset normalization.
     bool _augmentation_metanode = false;
+    unsigned int _random_mask_pixel_value = 0;
+    bool _is_random_mask_pixel_threshold = false;
+    bool _is_random_mask_pixel_foreground = false;
+    std::vector<unsigned> output_random_mask_pixel;
 #if ENABLE_HIP
     BoxEncoderGpu *_box_encoder_gpu = nullptr;
 #endif
