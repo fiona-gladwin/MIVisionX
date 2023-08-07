@@ -53,15 +53,12 @@ struct OpticalFlowToColorLocalData {
     vxTensorLayout outputLayout;
     size_t inputTensorDims[RPP_MAX_TENSOR_DIMS];
     size_t outputTensorDims[RPP_MAX_TENSOR_DIMS];
-    RpptImagePatch *pDstImgSize;
 };
 
 static vx_status VX_CALLBACK refreshOpticalFlowToColor(vx_node node, const vx_reference *parameters, vx_uint32 num, OpticalFlowToColorLocalData *data) {
     vx_status status = VX_SUCCESS;
 
     for (unsigned i = 0; i < data->pDstDesc->n; i++) {
-        data->pDstImgSize[i].width = data->pDstDesc->w;
-        data->pDstImgSize[i].height = data->pDstDesc->h;
         *data->pDstRoi = {0, 0, FARNEBACK_FRAME_WIDTH, FARNEBACK_FRAME_HEIGHT};
     }
     void *roi_tensor_ptr;
@@ -82,7 +79,6 @@ static vx_status VX_CALLBACK refreshOpticalFlowToColor(vx_node node, const vx_re
         for (int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for (unsigned f = 0; f < num_of_frames; f++) {
-                data->pDstImgSize[index + f] = data->pDstImgSize[n];
                 data->pSrcRoi[index + f].xywhROI = data->pSrcRoi[n].xywhROI;
             }
         }
@@ -152,7 +148,7 @@ const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_N
                 Rpp32f *d_motionVectorsPolarF32Comp1 = data->pMotionVectorPolar + FARNEBACK_OUTPUT_FRAME_SIZE;
                 Rpp32f *d_motionVectorsPolarF32Comp2 = d_motionVectorsPolarF32Comp1 + FARNEBACK_OUTPUT_FRAME_SIZE;
                 Rpp32f *d_motionVectorsPolarF32Comp3 = d_motionVectorsPolarF32Comp2 + FARNEBACK_OUTPUT_FRAME_SIZE;
-                
+
                 // ****************************************************************** post-processing ******************************************************************
                 // convert from cartesian to polar coordinates
                 rppt_cartesian_to_polar_gpu(d_motionVectorCartesian, data->pMotionVectorCartesianDesc, data->pMotionVectorPolar, data->pMotionVectorPolarDesc, angleType, data->pDstRoi, roiTypeXYWH, data->handle->rppHandle);
@@ -248,7 +244,7 @@ static vx_status VX_CALLBACK initializeOpticalFlowToColor(vx_node node, const vx
     data->pMotionVectorCartesianDesc = new RpptGenericDesc;
     data->pMotionVectorCartesianDesc->dataType = RpptDataType::F32;
     data->pMotionVectorCartesianDesc->offsetInBytes = 0;
-    size_t dims5[] = {1, 1, FARNEBACK_FRAME_HEIGHT, FARNEBACK_FRAME_WIDTH};
+    size_t dims5[] = {1, 2, FARNEBACK_FRAME_HEIGHT, FARNEBACK_FRAME_WIDTH};
     fillGenericDescriptionPtrfromDims(data->pMotionVectorCartesianDesc, vxTensorLayout::VX_NCHW, dims5);
     
     data->pMotionVectorPolarDesc = new RpptGenericDesc;
@@ -266,7 +262,7 @@ static vx_status VX_CALLBACK initializeOpticalFlowToColor(vx_node node, const vx
     
 #if ENABLE_HIP
     hipMalloc(&data->pMotionVectorCartesian, FARNEBACK_OUTPUT_MOTION_VECTORS_SIZE * sizeof(Rpp32f));
-    hipMalloc(&data->pMotionVectorPolar, FARNEBACK_OUTPUT_MOTION_VECTORS_SIZE * 4 * sizeof(Rpp32f));
+    hipMalloc(&data->pMotionVectorPolar, FARNEBACK_OUTPUT_FRAME_SIZE * 4 * sizeof(Rpp32f));
 
     // preinitialize saturation channel portion of the buffer for HSV and reuse on every iteration in post-processing
     Rpp32f saturationChannel[FARNEBACK_OUTPUT_FRAME_SIZE];
@@ -276,7 +272,6 @@ static vx_status VX_CALLBACK initializeOpticalFlowToColor(vx_node node, const vx
     // allocate post-processing buffer for imageMinMax
     data->imageMinMaxArrLength = 2;
     hipHostMalloc(&data->imageMinMaxArr, data->imageMinMaxArrLength * sizeof(Rpp32f));
-    hipHostMalloc(&data->pDstImgSize, data->pSrcDesc->n * sizeof(RpptImagePatch));
     hipHostMalloc(&data->pDstRoi, data->pDstDesc->n * sizeof(RpptROI));
 #endif
     refreshOpticalFlowToColor(node, parameters, num, data);

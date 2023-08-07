@@ -137,12 +137,12 @@ const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_N
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
         std::cerr << "OP SEQUENCE LENGTH : " << data->outputTensorDims[1] << "\n";
+
         for (unsigned sequence = 0; sequence < data->inputTensorDims[0]; sequence++) {
             Rpp8u *rgbSrc1 = data->pSrc + (sequence * data->inputTensorDims[1] * data->pSrcDesc->strides.nStride);
             Rpp32f *motionVectPtr = data->pDst + (sequence * data->outputTensorDims[1] * data->pDstDesc->strides.nStride);
-            Rpp8u *d_src1 = data->pSrcGray;
-            Rpp8u *d_src2 = data->pSrcGray + data->pGreyScaleDesc->strides.nStride;
-
+            Rpp8u *d_src1 = data->pSrcGray + 64;
+            Rpp8u *d_src2 = d_src1 + FARNEBACK_OUTPUT_FRAME_SIZE;
             rppt_resize_gpu(rgbSrc1, data->pSrcDesc, data->pSrcResizedRGB, data->pRgbScaleDesc, data->pScaleImgSize, interpolationType, data->pSrcRoi, roiTypeXYWH, data->handle->rppHandle);
             hipDeviceSynchronize();
             
@@ -154,7 +154,7 @@ const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_N
                 Rpp32f *d_motionVectorsCartesianF32Comp1 = motionVectPtr;
                 Rpp32f *d_motionVectorsCartesianF32Comp2 = d_motionVectorsCartesianF32Comp1 + FARNEBACK_OUTPUT_FRAME_SIZE;
                 
-                rppt_resize_gpu(rgbSrc1, data->pSrcDesc, data->pSrcResizedRGB, data->pDstDesc, data->pScaleImgSize, interpolationType, data->pSrcRoi, roiTypeLTRB, data->handle->rppHandle);
+                rppt_resize_gpu(rgbSrc1, data->pSrcDesc, data->pSrcResizedRGB, data->pRgbScaleDesc, data->pScaleImgSize, interpolationType, data->pSrcRoi, roiTypeLTRB, data->handle->rppHandle);
                 hipDeviceSynchronize();
 
                 // convert to gray
@@ -242,7 +242,7 @@ static vx_status VX_CALLBACK initializeOpticalFlow(vx_node node, const vx_refere
 
     
     // set rpp tensor buffer sizes in bytes for srcRGB, dstRGB, src frames in src1 and src2
-    unsigned long long sizeInBytesDstRGB = (data->pDstDesc->n * data->pDstDesc->strides.nStride) + data->pDstDesc->offsetInBytes;
+    unsigned long long sizeInBytesDstRGB = (data->pRgbScaleDesc->n * data->pRgbScaleDesc->strides.nStride) + data->pRgbScaleDesc->offsetInBytes;
     unsigned long long sizeInBytesSrc = (2 * data->pGreyScaleDesc->n * data->pGreyScaleDesc->strides.nStride) + data->pGreyScaleDesc->offsetInBytes;
 
 #if ENABLE_HIP
