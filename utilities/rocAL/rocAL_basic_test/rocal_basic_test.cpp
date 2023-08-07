@@ -97,23 +97,23 @@ int main(int argc, const char ** argv)
     }
 
        /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
-    RocalImage input1;
+    RocalTensor decoded_output;
 
     // The jpeg file loader can automatically select the best size to decode all images to that size
     // User can alternatively set the size or change the policy that is used to automatically find the size
     if(decode_height <= 0 || decode_width <= 0)
-        input1 = rocalJpegFileSource(handle, folderPath1,  color_format, decode_shard_counts, false, false);
+        decoded_output = rocalJpegFileSource(handle, folderPath1,  color_format, decode_shard_counts, false, false);
     else
-        input1 = rocalJpegFileSource(handle, folderPath1,  color_format, decode_shard_counts, false, false, false,
+        decoded_output = rocalJpegFileSource(handle, folderPath1,  color_format, decode_shard_counts, false, false, false,
                                     ROCAL_USE_USER_GIVEN_SIZE, decode_width, decode_height);
     if(strcmp(label_text_file_path, "") == 0)
         rocalCreateLabelReader(handle, folderPath1);
     else
         rocalCreateTextFileBasedLabelReader(handle, label_text_file_path);
 
-    auto image0 = rocalFlipFixed(handle, input1, 1, false);
-    auto image1 = rocalColorTwistFixed(handle, image0, 1.2, 0.4, 1.2, 0.8, false);
-    rocalCropResizeFixed(handle, image1, 224, 224, true, 0.9, 1.1, 0.1, 0.1 );
+    auto flip_output = rocalFlipFixed(handle, decoded_output, 1, 0, false);
+    auto color_twist_output = rocalColorTwistFixed(handle, flip_output, 1.2, 0.4, 1.2, 0.8, false);
+    rocalCropResizeFixed(handle, color_twist_output, 224, 224, true, 0.9, 1.1, 0.1, 0.1 );
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
@@ -138,7 +138,7 @@ int main(int argc, const char ** argv)
 
 
     /*>>>>>>>>>>>>>>>>>>> Diplay using OpenCV <<<<<<<<<<<<<<<<<*/
-    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle);
+    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle)* inputBatchSize;
     int w = rocalGetOutputWidth(handle);
     int p = ((color_format ==  RocalImageColor::ROCAL_COLOR_RGB24 ) ? 3 : 1);
     std::cout << "output width "<< w << " output height "<< h << " color planes "<< p << std::endl;
@@ -150,9 +150,7 @@ int main(int argc, const char ** argv)
     int run_len[] = {2*inputBatchSize,4*inputBatchSize,1*inputBatchSize, 50*inputBatchSize};
 
     std::vector<std::string> names;
-    std::vector<int> labels;
     names.resize(inputBatchSize);
-    labels.resize(inputBatchSize);
 
     while( ++test_id < total_tests)
     {
@@ -181,7 +179,7 @@ int main(int argc, const char ** argv)
             rocalCopyToOutput(handle, mat_input.data, h * w * p);
 
             counter += inputBatchSize;
-            rocalGetImageLabels(handle, labels.data());
+            RocalTensorList labels = rocalGetImageLabels(handle);
 
             unsigned imagename_size = rocalGetImageNameLen(handle,ImageNameLen);
             char imageNames[imagename_size];
@@ -190,9 +188,10 @@ int main(int argc, const char ** argv)
 
             int pos = 0;
             for(int i = 0; i < inputBatchSize; i++) {
+                int *labels_buffer = reinterpret_cast<int *>(labels->at(i)->buffer());
                 names[i] = imageNamesStr.substr(pos, ImageNameLen[i]);
                 pos += ImageNameLen[i];
-                std::cout << "name: " << names[i] << " label: "<< labels[i] << " - ";
+                std::cout << "name: " << names[i] << " label: "<< labels_buffer[i] << " - ";
             }
             std::cout << std::endl;
 

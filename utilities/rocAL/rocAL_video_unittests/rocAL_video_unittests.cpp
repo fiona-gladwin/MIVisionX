@@ -183,7 +183,7 @@ int main(int argc, const char **argv)
         rocalCreateVideoLabelReader(handle, source_path, sequence_length, frame_step, frame_stride, file_list_frame_num);
     }
 
-    RocalImage input1;
+    RocalTensor input1;
     switch (reader_case)
     {
         default:
@@ -214,10 +214,12 @@ int main(int argc, const char **argv)
     if (enable_sequence_rearrange)
     {
         std::cout << "\n>>>> ENABLE SEQUENCE REARRANGE\n";
-        unsigned int new_order[] = {0, 0, 1, 1, 0}; // The integers in new order should range only from 0 to sequence_length - 1
+        unsigned int new_order_old[] = {0, 0, 1, 1, 0}; // The integers in new order should range only from 0 to sequence_length - 1
+            std::vector<unsigned int> new_order(new_order_old, new_order_old + sizeof(new_order_old) / sizeof(new_order_old[0]));
+
         unsigned new_sequence_length = sizeof(new_order) / sizeof(new_order[0]);
         ouput_frames_per_sequence = new_sequence_length;
-        input1 = rocalSequenceRearrange(handle, input1, new_order, new_sequence_length, sequence_length, true);
+        input1 = rocalSequenceRearrange(handle, input1, new_order, true);
     }
     RocalIntParam color_temp_adj = rocalCreateIntParameter(0);
 
@@ -241,12 +243,13 @@ int main(int argc, const char **argv)
     /*>>>>>>>>>>>>>>>>>>> Diplay using OpenCV <<<<<<<<<<<<<<<<<*/
     if(save_frames)
         mkdir("output_frames", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // Create directory in which images will be stored
-    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle);
+    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle) * input_batch_size;
     int w = rocalGetOutputWidth(handle);
     int p = ((color_format == RocalImageColor::ROCAL_COLOR_RGB24) ? 3 : 1);
     int single_image_height = h / (input_batch_size * ouput_frames_per_sequence);
     std::cout << "output width " << w << " output height " << h << " color planes " << p << std::endl;
     auto cv_color_format = ((color_format == RocalImageColor::ROCAL_COLOR_RGB24) ? CV_8UC3 : CV_8UC1);
+    std::cerr<<"\n check 1";
     cv::Mat mat_input(h, w, cv_color_format);
     cv::Mat mat_color, mat_output;
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -313,7 +316,11 @@ int main(int argc, const char **argv)
         {
             int label_id[input_batch_size];
             int image_name_length[input_batch_size];
-            rocalGetImageLabels(handle, label_id);
+            // rocalGetImageLabels(handle, label_id);
+            std::cerr<<"\n chcek before rocalGetImageLabels() ";
+            RocalTensorList labels = rocalGetImageLabels(handle);
+
+
             int img_size = rocalGetImageNameLen(handle, image_name_length);
             char img_name[img_size];
             rocalGetImageName(handle, img_name);
@@ -322,7 +329,8 @@ int main(int argc, const char **argv)
             std::cout << "\t Printing label_id : ";
             for (unsigned i = 0; i < input_batch_size; i++)
             {
-                std::cout << label_id[i] << "\t";
+                int *labels_buffer = reinterpret_cast<int *>(labels->at(i)->buffer());
+                std::cout << labels_buffer[i] << "\t";
             }
             std::cout << std::endl;
         }

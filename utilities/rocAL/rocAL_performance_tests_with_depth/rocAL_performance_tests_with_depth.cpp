@@ -127,9 +127,9 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
 
 
     /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
-    RocalImage inputImage;
-    RocalImage image0;
-    RocalImage image0_b;
+    RocalTensor inputImage;
+    RocalTensor image0;
+    RocalTensor image0_b;
 
     // The jpeg file loader can automatically select the best size to decode all images to that size
     // User can alternatively set the size or change the policy that is used to automatically find the size
@@ -411,7 +411,8 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
             for(int j = 0; j < batch_size; j++){
                 image0 = inputImage;
                 for(int k = 0; k < graph_depth; k++){
-                    image0 = rocalSnPNoiseFixed(handle, image0, 0.5, true);
+                    image0 = rocalSnPNoiseFixed(handle, image0, true, 0.2, 0.2, 0.2, 0.5, 0);
+
                 }
             }
         }

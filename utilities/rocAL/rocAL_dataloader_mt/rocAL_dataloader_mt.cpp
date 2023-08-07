@@ -78,11 +78,11 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
     // create JPEG data loader based on numshards and shard_id
     // The jpeg file loader can automatically select the best size to decode all images to that size
     // User can alternatively set the size or change the policy that is used to automatically find the size
-    RocalImage input1;
+    RocalTensor decoded_output;
     if(dec_width <= 0 || dec_height <= 0)
-        input1 = rocalJpegFileSourceSingleShard(handle, path, color_format, shard_id, num_shards, false, shuffle, false);
+        decoded_output = rocalJpegFileSourceSingleShard(handle, path, color_format, shard_id, num_shards, false, shuffle, false);
     else
-        input1 = rocalJpegFileSourceSingleShard(handle, path, color_format, shard_id, num_shards, false,
+        decoded_output = rocalJpegFileSourceSingleShard(handle, path, color_format, shard_id, num_shards, false,
                                 shuffle, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, dec_width, dec_height, dec_type);
 
     if(rocalGetStatus(handle) != ROCAL_OK)
@@ -100,8 +100,8 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
     //RocalIntParam color_temp_adj = rocalCreateIntParameter(0);
 
     // uncomment the following to add augmentation if needed
-    //image0 = input1;
-    rocalResize(handle, input1, 224, 224, true);
+    //image0 = decoded_output;
+    rocalResize(handle, decoded_output, 224, 224, true);
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
@@ -125,7 +125,7 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
 
     /*>>>>>>>>>>>>>>>>>>> Diplay using OpenCV <<<<<<<<<<<<<<<<<*/
     int n = rocalGetAugmentationBranchCount(handle);
-    int h = n * rocalGetOutputHeight(handle);
+    int h = n * rocalGetOutputHeight(handle) * batch_size;
     int w = rocalGetOutputWidth(handle);
     int p = (((color_format ==  RocalImageColor::ROCAL_COLOR_RGB24 ) ||
               (color_format ==  RocalImageColor::ROCAL_COLOR_RGB_PLANAR )) ? 3 : 1);
@@ -142,9 +142,7 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     int counter = 0;
     std::vector<std::string> names;
-    std::vector<int> labels;
     names.resize(batch_size);
-    labels.resize(batch_size);
     int image_name_length[batch_size];
     if(DISPLAY)
         cv::namedWindow( "output", CV_WINDOW_AUTOSIZE );
@@ -157,21 +155,37 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
             break;
         // copy output to host as image
         rocalCopyToOutput(handle, mat_input.data, h*w*p);
-        rocalGetImageLabels(handle, labels.data());
-        int img_name_size = rocalGetImageNameLen(handle, image_name_length);
+        RocalTensorList labels = rocalGetImageLabels(handle);
+        unsigned img_name_size = rocalGetImageNameLen(handle, image_name_length);
         char img_name[img_name_size];
         rocalGetImageName(handle, img_name);
-#if PRINT_NAMES_AND_LABELS
+// #if PRINT_NAMES_AND_LABELS
         std::string imageNamesStr(img_name);
         int pos = 0;
-        for(int i = 0; i < inputBatchSize; i++)
+        for(int i = 0; i < batch_size; i++)
         {
-            names[i] = imageNamesStr.substr(pos, ImageNameLen[i]);
-            pos += ImageNameLen[i];
-            std::cout << "name: " << names[i] << " label: "<< labels[i] << " - ";
+            int *labels_buffer = reinterpret_cast<int *>(labels->at(i)->buffer());
+            names[i] = imageNamesStr.substr(pos, image_name_length[i]);
+            pos += image_name_length[i];
+            std::cout << "name: " << names[i] << " label: "<< labels_buffer[i] << " - ";
         }
         std::cout << std::endl;
-#endif
+// #endif
+            // RocalTensorList labels = rocalGetImageLabels(handle);
+
+            // unsigned imagename_size = rocalGetImageNameLen(handle,image_name_length);
+            // char imageNames[imagename_size];
+            // rocalGetImageName(handle,imageNames);
+            // std::string imageNamesStr(imageNames);
+
+            // int pos = 0;
+            // for(int i = 0; i < batch_size; i++) {
+            //     int *labels_buffer = reinterpret_cast<int *>(labels->at(i)->buffer());
+            //     names[i] = imageNamesStr.substr(pos, image_name_length[i]);
+            //     pos += image_name_length[i];
+            //     std::cout << "name: " << names[i] << " label: "<< labels_buffer[i] << " - ";
+            // }
+            // std::cout << std::endl;
         iter_cnt ++;
 
         if(!display)
@@ -181,7 +195,7 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
         if(DISPLAY)
         cv::imshow("output.png",mat_output);
         else
-        cv::imwrite("output.jpg",mat_output);
+        cv::imwrite("output.png",mat_output);
 
         col_counter = (col_counter+1)%number_of_cols;
     }
