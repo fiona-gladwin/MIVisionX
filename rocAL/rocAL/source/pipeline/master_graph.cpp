@@ -1145,7 +1145,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
     return _metadata_output_tensor_list;
 }
 
-void  MasterGraph::set_random_mask_pixel_config(bool is_foreground, unsigned int value, bool is_threshold) {
+void  MasterGraph::set_random_mask_pixel_config(bool is_foreground, int value, bool is_threshold) {
     _random_mask_pixel_value = value;
     _is_random_mask_pixel_foreground = is_foreground;
     _is_random_mask_pixel_threshold = is_threshold;
@@ -1155,7 +1155,7 @@ int64_t MasterGraph::find_pixel(std::vector<int> start, std::vector<int> foregro
     if (val < 0 || val >= count) {
       return -1;
     }
-    int id = 0;
+    unsigned id = 0;
     while (id < start.size()) {
         if (foreground_count[id] > val) {
             break;
@@ -1174,11 +1174,10 @@ TensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
     output_random_mask_pixel.resize(_user_batch_size* 2);
     if (_is_random_mask_pixel_foreground == false) {
         #pragma omp parallel for num_threads(_user_batch_size)
-        for (int i = 0; i < _user_batch_size; i++) {
+        for (unsigned i = 0; i < _user_batch_size; i++) {
             auto rng = rngs[i];
-            int *mask_buffer = (int *)(input->at(i)->buffer());
             std::vector<unsigned long> dims{input->at(i)->dims().at(0),1};
-            for (int j = 0; j < dims.size(); j++) {
+            for (unsigned j = 0; j < dims.size(); j++) {
                 output_random_mask_pixel[i*2+j] = std::uniform_int_distribution<int64_t>(0, dims[j]-1)(rng);
             }
         }
@@ -1187,10 +1186,10 @@ TensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
     {
         if (_is_random_mask_pixel_threshold) {
             #pragma omp parallel for num_threads(_user_batch_size)
-            for (int i = 0; i < _user_batch_size; i++) {
+            for (unsigned i = 0; i < _user_batch_size; i++) {
                 std::vector<int> start;
                 std::vector<int> foreground_count;
-                int id = 0;
+                unsigned id = 0;
                 int count = 0;
                 auto rng = rngs[i];
                 int *mask_buffer = (int *)(input->at(i)->buffer());
@@ -1218,17 +1217,17 @@ TensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
                         j++;
                     }
                 } else {
-                    for (int j = 0; j < dims.size(); j++) {
+                    for (unsigned j = 0; j < dims.size(); j++) {
                         output_random_mask_pixel[i*2+j] = (std::uniform_int_distribution<int64_t>(0, dims[j]-1)(rng));
                     }
                 }
             }
         } else {
             #pragma omp parallel for num_threads(_user_batch_size)
-            for (int i = 0; i < _user_batch_size; i++) {
+            for (unsigned i = 0; i < _user_batch_size; i++) {
                 std::vector<int> start;
                 std::vector<int> foreground_count;
-                int id = 0;
+                unsigned id = 0;
                 int count = 0;
                 auto rng = rngs[i];
                 int *mask_buffer = (int *)(input->at(i)->buffer());
@@ -1256,7 +1255,7 @@ TensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
                         j++;
                     }
                 } else {
-                    for (int j = 0; j < dims.size(); j++) {
+                    for (unsigned j = 0; j < dims.size(); j++) {
                         output_random_mask_pixel[i*2+j] = (std::uniform_int_distribution<int64_t>(0, dims[j]-1)(rng));
                     }
                 }
