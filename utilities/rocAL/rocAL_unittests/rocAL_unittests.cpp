@@ -987,6 +987,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
                 RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
                 RocalTensorList mask_data = rocalGetPixelwiseMaskLabels(handle);
+                /*
                 std::cout << "\n>>>>> PIXELWISE LABELS : ";
                 for (int i = 0; i < bbox_labels->size(); i++)
                 {
@@ -1009,6 +1010,17 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                     std::cout << "\n>>>>> BBOXX : " << bbox_coords->at(i)->dims().at(0) << " : \n";
                     for (int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
                         std::cout << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
+                }
+                */
+                std::cout << "\n>>>>> RANDOM OBJECT BBOX:" << std::endl;
+                RocalTensorList output_bbox = RocalRandomObjectBBox(handle, RocalRandomObjectBBoxFormat::ROCAL_OUT_BOX);
+                for(int i =0; i < bbox_labels->size(); i++) {
+                    unsigned int *mask_buffer = (unsigned int *)(output_bbox->at(i)->buffer());
+                    int mask_size = output_bbox->at(i)->dims().at(0);
+                    for (int j = 0; j < mask_size; j++) {
+                        std::cerr << mask_buffer[j] << "\t";
+                    }
+                    std::cerr << std::endl;
                 }
             }
             break;
