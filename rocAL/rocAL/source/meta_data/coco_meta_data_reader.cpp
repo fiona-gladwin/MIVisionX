@@ -157,7 +157,7 @@ void COCOMetaDataReader::print_map_contents()
 }
 
 void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_in) {
-    std::cout  << "generate_pixelwise_mask" << std::endl;
+    //std::cout  << "generate_pixelwise_mask" << std::endl;
     Labels bb_labels;
     ImgSize img_size;
     MaskCords mask_cords;
@@ -175,18 +175,12 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_
     int h = img_size.h;
     int w = img_size.w;
     pixelwise_labels.resize(h*w);
-    std::cout << "Labels\n";
-    for (auto a : bb_labels)
-        std::cout << a << "\t";
-    std::cout << "\n";
 
     if (rle_in) {
         for (unsigned int i = 0; i < bb_coords.size(); i++) {
             bb_labels[i] = _label_info.find(bb_labels[i])->second;
-            std::cout << bb_labels[i] << std::endl;
         }
     }
-    exit(0);
     
     // Generate FromPoly for all polygons in image
     int count = 0;
@@ -200,7 +194,6 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_
             }
             auto label = bb_labels[i];
             RLE M;
-            std::cout << "Facing error 1" << std::endl;
             rleInit(&M, 0, 0, 0, 0);
             
             rleFrPoly(&M, in.data(), in.size() / 2, img_size.h, img_size.w);
@@ -220,7 +213,6 @@ void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_
         const auto &rle = rle_in;
         auto mask_idx = bb_labels.size();
         int label = bb_labels[mask_idx];
-        std::cout << "first error 2" << std::endl;
         rleInit(&r_out[label], rle->h, rle->w, rle->m, rle->cnts);
     }
 
@@ -508,7 +500,6 @@ void COCOMetaDataReader::read_all(const std::string &path)
                                 }
                             }
                             if (!rle_str.empty()) {
-                                std::cout << "first error 3" << std::endl;
                                 rleInit(R, h, w, rle_uints.size(), const_cast<uint*>(rle_uints.data()));
                             } else if (!rle_uints.empty()) {
                                 rleFrString(R, const_cast<char*>(rle_str.c_str()), h, w);
@@ -578,7 +569,6 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     bb_labels.clear();
                 }
                 if (rle_flag && _output->get_metadata_type() == MetaDataType::PixelwiseMask) {
-                    std::cout << "Gen2\n";
                     generate_pixelwise_mask(file_name, R);
                     rleFree(R);
                     rle_flag = false;
@@ -606,7 +596,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
         if (_output->get_metadata_type() == MetaDataType::PixelwiseMask) {
             std::vector<int>& pixelwise_label = elem.second->get_pixelwise_label();
             if (pixelwise_label.size() == 0) {
-                std::cout << "Gen1" << std::endl;
+                //std::cout << "Gen1" << std::endl;
                 generate_pixelwise_mask(elem.first, NULL);
             }
         }

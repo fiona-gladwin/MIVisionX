@@ -357,6 +357,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
             else
                 input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            rocalSetRandomPixelMaskConfig(handle,true);
         }
         break;
         default:
@@ -987,28 +988,38 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                 RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
                 RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
                 RocalTensorList mask_data = rocalGetPixelwiseMaskLabels(handle);
-                std::cout << "\n>>>>> PIXELWISE LABELS : ";
-                for (int i = 0; i < bbox_labels->size(); i++)
-                {
-                    int *mask_buffer = (int *)(mask_data->at(i)->buffer());
-                    int mask_size = mask_data->at(i)->dims().at(0) * mask_data->at(i)->dims().at(1);
-                    for (int j = 0; j < mask_size; j++)
-                    {
-                        std::cout << mask_buffer[j] << "\t";
-                    }
-                    std::cout << std::endl;
-                }
-                for (int i = 0; i < bbox_labels->size(); i++)
-                {
-                    int *labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-                    float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
+                // std::cout << "\n>>>>> PIXELWISE LABELS : ";
+                // for (int i = 0; i < bbox_labels->size(); i++)
+                // {
+                //     int *mask_buffer = (int *)(mask_data->at(i)->buffer());
+                //     int mask_size = mask_data->at(i)->dims().at(0) * mask_data->at(i)->dims().at(1);
+                //     for (int j = 0; j < mask_size; j++)
+                //     {
+                //         std::cout << mask_buffer[j] << "\t";
+                //     }
+                //     std::cout << std::endl;
+                // }
+                // for (int i = 0; i < bbox_labels->size(); i++)
+                // {
+                //     int *labels_buffer = (int *)(bbox_labels->at(i)->buffer());
+                //     float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
 
-                    std::cout << "\n>>>>> BBOX LABELS : ";
-                    for (int j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
-                        std::cout << labels_buffer[j] << " ";
-                    std::cout << "\n>>>>> BBOXX : " << bbox_coords->at(i)->dims().at(0) << " : \n";
-                    for (int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
-                        std::cout << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
+                //     std::cout << "\n>>>>> BBOX LABELS : ";
+                //     for (int j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
+                //         std::cout << labels_buffer[j] << " ";
+                //     std::cout << "\n>>>>> BBOXX : " << bbox_coords->at(i)->dims().at(0) << " : \n";
+                //     for (int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
+                //         std::cout << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
+                // }
+                std::cout << "\n>>>>> RANDOM PIXEL POSITION:" << std::endl;
+                RocalTensorList output = rocalRandomMaskPixel(handle);
+                for(int i =0; i < bbox_labels->size(); i++) {
+                    unsigned int *mask_buffer = (unsigned int *)(output->at(i)->buffer());
+                    int mask_size = output->at(i)->dims().at(0);
+                    for (int j = 0; j < mask_size; j++) {
+                        std::cerr << mask_buffer[j] << "\t";
+                    }
+                    std::cerr << std::endl;
                 }
             }
             break;
