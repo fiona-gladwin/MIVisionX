@@ -76,6 +76,10 @@ struct ROI {
             _roi_ptr.reset(_roi_buf, free);
         }
     }
+    void reset_ptr(unsigned *ptr) {
+        auto deleter = [&](unsigned *ptr) {};   // Empty destructor used, since memory is handled by the pipeline
+        _roi_ptr.reset(ptr, deleter);
+    }
     ROICords& operator[](const int i) {
         _roi_coords.begin = (_roi_buf + (i * _stride));
         _roi_coords.shape = (_roi_buf + (i * _stride) + _dims);
@@ -214,12 +218,11 @@ public:
     void set_metadata() { _is_metadata = true; }
     bool is_metadata() const { return _is_metadata; }
     void set_roi_ptr(unsigned *roi_ptr) { 
-        auto deleter = [&](unsigned *ptr) {};   // Empty destructor used, since memory is handled by the pipeline
-        _roi.reset(roi_ptr, deleter); 
+        _roi.reset_ptr(roi_ptr);
     }
     void copy_roi(void *roi_buffer) {
-        if(_roi != nullptr && roi_buffer != nullptr)
-            memcpy((void *)roi_buffer, (const void *)_roi.get(), _batch_size * sizeof(RocalROI));
+        if(_roi.get_ptr() != nullptr && roi_buffer != nullptr)
+            memcpy((void *)roi_buffer, (const void *)_roi.get_ptr(), _batch_size * sizeof(unsigned) * _roi.no_of_dims());
     }
 
 private:

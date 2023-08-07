@@ -46,7 +46,7 @@ void RandomCropNode::create_node()
 
 void RandomCropNode::update_node()
 {
-    _crop_param->set_image_dimensions((ROI2DCords *)_inputs[0]->info().roi().get_ptr());
+    _crop_param->set_image_dimensions(reinterpret_cast<ROI2DCords *>(_inputs[0]->info().roi().get_ptr()));
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
@@ -55,7 +55,7 @@ void RandomCropNode::update_node()
     // Obtain the crop coordinates and update the roi
     auto x1 = _crop_param->get_x1_arr_val();
     auto y1 = _crop_param->get_y1_arr_val();
-    RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);
+    ROI2DCords *crop_dims = static_cast<ROI2DCords *>(_crop_coordinates);
     for(unsigned i = 0; i < _batch_size; i++) {
         crop_dims[i].x1 = x1[i];
         crop_dims[i].y1 = y1[i];

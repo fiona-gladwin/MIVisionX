@@ -114,7 +114,7 @@ void TensorInfo::reset_tensor_roi_buffers() {
     allocate_host_or_pinned_mem((void **)&roi_buf, roi_size * roi_dims * 2 * sizeof(unsigned), _mem_type);
     _roi.set_ptr(roi_buf, _mem_type, roi_dims);
     if (_is_image) {
-        ROI2DCords * roi = static_cast<ROI2DCords *>(_roi.get_ptr());
+        ROI2DCords * roi = reinterpret_cast<ROI2DCords *>(_roi.get_ptr());
         
         for (unsigned i = 0; i < _batch_size; i++) {
             roi[i].x2 = _max_shape.at(0);
