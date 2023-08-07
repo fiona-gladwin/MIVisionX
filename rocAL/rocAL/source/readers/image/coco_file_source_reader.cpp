@@ -232,8 +232,7 @@ void COCOFileSourceReader::reset()
 {
     _aspect_ratios.clear();
 
-    if (_meta_data_reader && _meta_data_reader->aspect_ratio_grouping())
-    {
+    if (_meta_data_reader && _meta_data_reader->aspect_ratio_grouping()) {
         for (const auto &filename : _file_names)
         {
             std::string base_filename = filename.substr(filename.find_last_of("/\\") + 1);
@@ -272,9 +271,9 @@ void COCOFileSourceReader::reset()
                 shuffled_filenames.insert(shuffled_filenames.end(), _file_names.begin() + idx * _batch_count, _file_names.begin() + idx * _batch_count + _batch_count);
             _file_names = shuffled_filenames;
         }
-    }
-    else 
+    } else if (_shuffle) {
         std::random_shuffle(_file_names.begin(), _file_names.end());
+    }
     _read_counter = 0;
     _curr_file_idx = 0;
 }
