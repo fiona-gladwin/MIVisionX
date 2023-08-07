@@ -143,6 +143,7 @@ vx_status LensCorrection_Register(vx_context);
 vx_status Noise_Register(vx_context);
 vx_status Nop_Register(vx_context);
 vx_status OpticalFlow_Register(vx_context);
+vx_status OpticalFlowToColor_Register(vx_context);
 vx_status Pixelate_Register(vx_context);
 vx_status Rain_Register(vx_context);
 vx_status Resize_Register(vx_context);
@@ -262,6 +263,7 @@ vx_status WarpAffine_Register(vx_context);
 #define VX_KERNEL_RPP_NOISE_NAME                                "org.rpp.Noise"
 #define VX_KERNEL_RPP_NOP_NAME                                  "org.rpp.Nop"
 #define VX_KERNEL_RPP_OPTICALFLOW_NAME                          "org.rpp.OpticalFlow"
+#define VX_KERNEL_RPP_OPTICALFLOWTOCOLOR_NAME                   "org.rpp.OpticalFlowToColor"
 #define VX_KERNEL_RPP_RAIN_NAME                                 "org.rpp.Rain"
 #define VX_KERNEL_RPP_RESIZE_NAME                               "org.rpp.Resize"
 #define VX_KERNEL_RPP_RESIZECROP_NAME                           "org.rpp.ResizeCrop"

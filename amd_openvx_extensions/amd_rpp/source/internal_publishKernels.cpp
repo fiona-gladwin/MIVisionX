@@ -149,6 +149,7 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(Noise_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Nop_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(OpticalFlow_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(OpticalFlowToColor_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Pixelate_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Rain_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Resize_Register));

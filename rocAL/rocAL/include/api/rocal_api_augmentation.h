@@ -802,4 +802,13 @@ extern "C" RocalTensor ROCAL_API_CALL rocalOpticalFlow(RocalContext p_context,
                                                        RocalTensor p_input,
                                                        bool is_output);
         
+/// Accepts RGB24 sequence input
+/// \param context
+/// \param input
+/// \param is_output
+/// \return
+extern "C" RocalTensor ROCAL_API_CALL rocalOpticalFlowToColor(RocalContext p_context,
+                                                              RocalTensor p_input,
+                                                              bool is_output);
+        
 #endif //MIVISIONX_ROCAL_API_AUGMENTATION_H

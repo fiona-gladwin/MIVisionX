@@ -2224,15 +2224,49 @@ rocalOpticalFlow(
     auto context = static_cast<Context*>(p_context);
     auto input = static_cast<Tensor*>(p_input);
     try {
-        TensorInfo output_info = input->info();
-        std::vector<size_t> out_dims = output_info.dims();
-        out_dims[1] = output_info.dims()[1] - 1; // For Optical flow we compare extract the flow for every 2 images, hence output will be less than the number of frames by 1
-        modify_dims_width_and_height(output_info.layout(), out_dims, 960, 540); // Farneback width and height
-        output_info.set_dims(out_dims);
+        auto input_info = input->info();
+        std::vector<size_t> out_dims = input_info.dims();
+        out_dims = {out_dims[0], out_dims[1] - 1, 2, 540, 960};
+        auto output_info  = TensorInfo(std::move(out_dims),
+                                       context->master_graph->mem_type(),
+                                       RocalTensorDataType::FP32);
+        output_info.set_tensor_layout(RocalTensorlayout::NFCHW);
+        output_info.set_max_shape();
         output = context->master_graph->create_tensor(output_info, is_output);
-        output->reset_tensor_roi();
         
         context->master_graph->add_node<OpticalFlowNode>({input}, {output});
+    } catch(const std::exception& e) {
+        context->capture_error(e.what());
+        ERR(e.what())
+    }
+    return output;
+}
+
+RocalTensor ROCAL_API_CALL
+rocalOpticalFlowToColor(
+        RocalContext p_context,
+        RocalTensor p_input,
+        bool is_output) {
+    Tensor* output = nullptr;
+    if ((p_context == nullptr) || (p_input == nullptr)) {
+        ERR("Invalid ROCAL context or invalid input tensor")
+        return output;
+    }
+
+    auto context = static_cast<Context*>(p_context);
+    auto input = static_cast<Tensor*>(p_input);
+    try {
+        auto input_info = input->info();
+        std::vector<size_t> out_dims = input_info.dims();
+        out_dims = {out_dims[0], out_dims[1], 540, 960, 3};
+        auto output_info  = TensorInfo(std::move(out_dims),
+                                       context->master_graph->mem_type(),
+                                       RocalTensorDataType::UINT8);
+        output_info.set_tensor_layout(RocalTensorlayout::NFHWC);
+        output_info.set_max_shape();
+        output = context->master_graph->create_tensor(output_info, is_output);
+        
+        context->master_graph->add_node<OpticalFlowToColorNode>({input}, {output});
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())

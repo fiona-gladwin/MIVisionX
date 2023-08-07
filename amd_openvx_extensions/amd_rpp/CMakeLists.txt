@@ -149,6 +149,7 @@ list(APPEND SOURCES
         source/tensor/Noise.cpp
         source/tensor/Nop.cpp
         source/tensor/OpticalFlow.cpp
+        source/tensor/OpticalFlowToColor.cpp
         source/tensor/Rotate.cpp
         source/tensor/Pixelate.cpp
         source/tensor/Rain.cpp
