@@ -582,8 +582,6 @@ void MasterGraph::get_label_boundingboxes(std::vector<std::vector<std::pair<unsi
     for (auto &mask : hits) {
         mask = 0u;  // mark all labels as not found in this row
     }
-  
-    int ndim = 2;
 
     const unsigned nboxes = ranges.size();
     int background = -1;
@@ -612,7 +610,7 @@ void MasterGraph::get_label_boundingboxes(std::vector<std::vector<std::pair<unsi
 
     const int d = 1;
 
-    for (int word = 0; word < hits.size(); word++) {
+    for (unsigned word = 0; word < hits.size(); word++) {
         unsigned mask = hits[word];
         unsigned i = 32 * word;
         while (mask) {
@@ -643,7 +641,7 @@ void MasterGraph::get_label_boundingboxes(std::vector<std::vector<std::pair<unsi
 TensorList*  MasterGraph::get_random_object_bbox(rocalTensorList* input, RandomObjectBBoxFormat format) {
     SeededRNG<std::mt19937, 4> rngs(_user_batch_size);
     if (output_random_object_bbox.size() != 0) {
-        for (int i  = 0; i < _user_batch_size; i++) {
+        for (unsigned i  = 0; i < _user_batch_size; i++) {
             output_random_object_bbox[i].clear();
         }
     }
