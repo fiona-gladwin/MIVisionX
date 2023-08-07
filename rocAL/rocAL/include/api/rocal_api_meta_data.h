@@ -209,4 +209,9 @@ extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext p_context,  int* buf
 /// \param joints_data The user's RocalJointsData pointer that will be pointed to JointsDataBatch pointer
 extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **joints_data);
 
+///
+/// \param rocal_context
+/// \param format RocalRandomObjectBBoxFormat  
+extern "C" RocalTensorList ROCAL_API_CALL RocalRandomObjectBBox(RocalContext p_context, RocalRandomObjectBBoxFormat format);
+
 #endif //MIVISIONX_ROCAL_API_META_DATA_H
