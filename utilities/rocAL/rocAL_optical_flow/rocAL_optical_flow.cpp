@@ -91,7 +91,7 @@ int main(int argc, const char **argv)
     unsigned frame_step = 1;
     unsigned frame_stride = 1;
     bool file_list_frame_num = true;
-    bool is_output = true;
+    bool is_output = false;
     unsigned hardware_decode_mode = 0;
     if (argc >= argIdx + MIN_ARG_COUNT)
         reader_case = atoi(argv[++argIdx]);
@@ -180,6 +180,10 @@ int main(int argc, const char **argv)
             break;
         }
     }
+
+    RocalTensor optical_flow_output = rocalOpticalFlow(handle, input1, false);
+    RocalTensor optical_flow_output_2 = rocalOpticalFlowToColor(handle, optical_flow_output, true);
+    ouput_frames_per_sequence -= 1;
     RocalIntParam color_temp_adj = rocalCreateIntParameter(0);
 
     // Calling the API to verify and build the augmentation graph
@@ -232,7 +236,10 @@ int main(int argc, const char **argv)
             color_temp_increment *= -1;
 
         rocalUpdateIntParameter(rocalGetIntValue(color_temp_adj) + color_temp_increment, color_temp_adj);
-        rocalCopyToOutput(handle, mat_input.data, h * w * p);
+        
+        RocalTensorList output_tensor_list = rocalGetOutputTensors(handle);
+        output_tensor_list->at(0)->copy_data(mat_input.data);
+
         counter += input_batch_size;
         if (save_frames)
         {
