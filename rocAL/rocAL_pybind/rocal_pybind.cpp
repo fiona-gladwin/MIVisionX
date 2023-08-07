@@ -715,7 +715,7 @@ namespace rocal{
                             sizeof(int),
                             py::format_descriptor<int>::format(),
                             1,
-                            {matches->size() * matches->at(i)->dims().at(0)},
+                            {matches->size() * matches->at(0)->dims().at(0)},
                             {sizeof(int)}));
         }, py::return_value_policy::reference);
         m.def("rocalGetEncodedBoxesAndLables", [](RocalContext context, uint batch_size, uint num_anchors) {
