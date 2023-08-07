@@ -185,4 +185,12 @@ enum class RocalROICordsType {
 typedef struct {
     unsigned x1, y1, x2, y2;
 } RocalROICords;
+
+enum RocalRandomObjectBBoxFormat
+{
+    ROCAL_OUT_BOX = 0,
+    ROCAL_OUT_ANCHORSHAPE = 1,
+    ROCAL_OUT_STARTEND = 2,
+};
+
 #endif //MIVISIONX_ROCAL_API_TYPES_H
