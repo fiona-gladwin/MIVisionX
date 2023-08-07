@@ -199,19 +199,21 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     bool no_crop = false;
 #endif
 
-    RocalImage input1;
+    RocalTensor decoded_output;
+    RocalTensorLayout output_tensor_layout = (rgb != 0) ? RocalTensorLayout::ROCAL_NHWC : RocalTensorLayout::ROCAL_NCHW;
+    RocalTensorOutputType output_tensor_dtype = RocalTensorOutputType::ROCAL_UINT8;
     // The jpeg file loader can automatically select the best size to decode all images to that size
     // User can alternatively set the size or change the policy that is used to automatically find the size
     switch (reader_type)
     {
-        case 1: //image_partial decode
+        /* case 1: //image_partial decode
         {
             std::cout << ">>>>>>> Running PARTIAL DECODE" << std::endl;
             pipeline_type = 1;
             rocalCreateLabelReader(handle, path);
             std::vector<float> area = {0.08, 1};
             std::vector<float> aspect_ratio = {3.0f/4, 4.0f/3};
-            input1 = rocalFusedJpegCrop(handle, path, color_format, num_threads, false, area, aspect_ratio, 10, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalFusedJpegCrop(handle, path, color_format, num_threads, false, area, aspect_ratio, 10, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 2: //coco detection
@@ -227,9 +229,9 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             std::string json_path = rocal_data_path + "/rocal_data/coco/coco_10_img/annotations/instances_train2017.json";
             rocalCreateCOCOReader(handle, json_path.c_str(), true);
             if (decode_max_height <= 0 || decode_max_width <= 0)
-                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
+                decoded_output = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
             else
-                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+                decoded_output = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 3: //coco detection partial
@@ -249,7 +251,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
 #endif
             std::vector<float> area = {0.08, 1};
             std::vector<float> aspect_ratio = {3.0f/4, 4.0f/3};
-            input1 = rocalJpegCOCOFileSourcePartial(handle, path, json_path.c_str(), color_format, num_threads, false, area, aspect_ratio, 10, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalJpegCOCOFileSourcePartial(handle, path, json_path.c_str(), color_format, num_threads, false, area, aspect_ratio, 10, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 4: //tf classification
@@ -260,7 +262,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             char key2[25] = "image/class/label";
             char key8[25] = "image/filename";
             rocalCreateTFReader(handle, path, true, key2, key8);
-            input1 = rocalJpegTFRecordSource(handle, path, color_format, num_threads, false, key1, key8, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalJpegTFRecordSource(handle, path, color_format, num_threads, false, key1, key8, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 5: //tf detection
@@ -276,7 +278,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             char key7[25] = "image/object/bbox/ymax";
             char key8[25] = "image/filename";
             rocalCreateTFReaderDetection(handle, path, true, key2, key3, key4, key5, key6, key7, key8);
-            input1 = rocalJpegTFRecordSource(handle, path, color_format, num_threads, false, key1, key8, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalJpegTFRecordSource(handle, path, color_format, num_threads, false, key1, key8, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 6: //caffe classification
@@ -284,7 +286,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             std::cout << ">>>>>>> Running CAFFE CLASSIFICATION READER" << std::endl;
             pipeline_type = 1;
             rocalCreateCaffeLMDBLabelReader(handle, path);
-            input1 = rocalJpegCaffeLMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalJpegCaffeLMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 7: //caffe detection
@@ -292,7 +294,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             std::cout << ">>>>>>> Running CAFFE DETECTION READER" << std::endl;
             pipeline_type = 2;
             rocalCreateCaffeLMDBReaderDetection(handle, path);
-            input1 = rocalJpegCaffeLMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalJpegCaffeLMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 8: //caffe2 classification
@@ -300,7 +302,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             std::cout << ">>>>>>> Running CAFFE2 CLASSIFICATION READER" << std::endl;
             pipeline_type = 1;
             rocalCreateCaffe2LMDBLabelReader(handle, path, true);
-            input1 = rocalJpegCaffe2LMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalJpegCaffe2LMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 9: //caffe2 detection
@@ -308,7 +310,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             std::cout << ">>>>>>> Running CAFFE2 DETECTION READER" << std::endl;
             pipeline_type = 2;
             rocalCreateCaffe2LMDBReaderDetection(handle, path, true);
-            input1 = rocalJpegCaffe2LMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalJpegCaffe2LMDBRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 10: //coco reader keypoints
@@ -325,9 +327,9 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             float sigma = 3.0;
             rocalCreateCOCOReaderKeyPoints(handle, json_path.c_str(), true, sigma, (unsigned)width, (unsigned)height);
             if (decode_max_height <= 0 || decode_max_width <= 0)
-                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
+                decoded_output = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false);
             else
-                input1 = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+                decoded_output = rocalJpegCOCOFileSource(handle, path, json_path.c_str(), color_format, num_threads, false, true, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
         case 11: // mxnet reader
@@ -335,24 +337,18 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             std::cout << ">>>>>>> Running MXNET READER" << std::endl;
             pipeline_type = 1;
             rocalCreateMXNetReader(handle, path, true);
-            input1 = rocalMXNetRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+            decoded_output = rocalMXNetRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
-        break;
-        case 12: //Numpy reader
-        {
-            std::cout << ">>>>>>> Running Numpy reader" << std::endl;
-            input1 = rocalNumpyFileSource(handle, path, num_threads, true, false, false, ROCAL_USE_MAX_SIZE);
-        }
-        break;
-        default: //image pipeline
+        break;*/
+        default:
         {
             std::cout << ">>>>>>> Running IMAGE READER" << std::endl;
             pipeline_type = 1;
             rocalCreateLabelReader(handle, path);
             if (decode_max_height <= 0 || decode_max_width <= 0)
-                input1 = rocalJpegFileSource(handle, path, color_format, num_threads, false, true);
+                decoded_output = rocalJpegFileSource(handle, path, color_format, num_threads, false, true);
             else
-                input1 = rocalJpegFileSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+                decoded_output = rocalJpegFileSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
     }
@@ -363,63 +359,436 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         return -1;
     }
 
-    int resize_w = 100, resize_h = 300; // height and width
+    int resize_w = width, resize_h = height; // height and width
 
-    // RocalTensor image1;
+    RocalTensor input = decoded_output;
+    // RocalTensor input = rocalResize(handle, decoded_output, resize_w, resize_h, false); // uncomment when processing images of different size
+    RocalTensor output;
+    
+    if((test_case == 48 || test_case == 49 || test_case == 50) && rgb == 0) {
+        std::cout << "Not a valid option! Exiting!\n";
+        return -1;
+    }
+    switch (test_case)
+    {
+    /*case 0:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalResize" << std::endl;
+        resize_w = 400;
+        resize_h = 400;
+        std::string interpolation_type_name, scaling_node_name;
+        RocalResizeInterpolationType interpolation_type;
+        RocalResizeScalingMode scale_mode;
+        interpolation_type_name = get_interpolation_type(resize_interpolation_type, interpolation_type);
+        scaling_node_name = get_scaling_mode(resize_scaling_mode, scale_mode);
+        std::cerr<<" \n Interpolation_type_name " << interpolation_type_name;
+        std::cerr<<" \n Scaling_node_name " << scaling_node_name << "\n ";
+        if (scale_mode != ROCAL_SCALING_MODE_DEFAULT && interpolation_type != ROCAL_LINEAR_INTERPOLATION) { // (Reference output available for bilinear interpolation for this  
+            std::cerr<<" \n Running "<< scaling_node_name << " scaling mode with Bilinear interpolation for comparison \n";
+            interpolation_type = ROCAL_LINEAR_INTERPOLATION;
+        }
+        if(scale_mode == ROCAL_SCALING_MODE_STRETCH) // For reference Output comparison 
+            output = rocalResize(handle, input, resize_w, 0, true, scale_mode, {}, 0, 0, interpolation_type);
+        else
+            output = rocalResize(handle, input, resize_w, resize_h, true, scale_mode, {}, 0, 0, interpolation_type);
+    }
+    break;
+    case 1:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalCropResize" << std::endl;
+        output = rocalCropResize(handle, input, resize_w, resize_h, true);
+    }
+    break;
+    case 2:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalRotate" << std::endl;
+        output = rocalRotate(handle, input, true);
+    }
+    break;*/
+    case 3:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalBrightness" << std::endl;
+        output = rocalBrightness(handle, input, true);
+    }
+    break;
+    /*case 4:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalGamma" << std::endl;
+        output = rocalGamma(handle, input, true);
+    }
+    break;
+    case 5:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalContrast" << std::endl;
+        output = rocalContrast(handle, input, true);
+    }
+    break;
+    case 6:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalFlip" << std::endl;
+        output = rocalFlip(handle, input, true);
+    }
+    break;
+    case 7:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalBlur" << std::endl;
+        output = rocalBlur(handle, input, true);
+    }
+    break;
+    case 8:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalBlend" << std::endl;
+        RocalTensor output_1 = rocalRotate(handle, input, false);
+        output = rocalBlend(handle, input, output_1, true);
+    }
+    break;
+    case 9:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalWarpAffine" << std::endl;
+        output = rocalWarpAffine(handle, input, true);
+    }
+    break;
+    case 10:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalFishEye" << std::endl;
+        output = rocalFishEye(handle, input, true);
+    }
+    break;
+    case 11:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalVignette" << std::endl;
+        output = rocalVignette(handle, input, true);
+    }
+    break;
+    case 12:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalJitter" << std::endl;
+        output = rocalJitter(handle, input, true);
+    }
+    break;
+    case 13:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalSnPNoise" << std::endl;
+        output = rocalSnPNoise(handle, input, true);
+    }
+    break;
+    case 14:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalSnow" << std::endl;
+        output = rocalSnow(handle, input, true);
+    }
+    break;
+    case 15:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalRain" << std::endl;
+        output = rocalRain(handle, input, true);
+    }
+    break;
+    case 16:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalColorTemp" << std::endl;
+        output = rocalColorTemp(handle, input, true);
+    }
+    break;
+    case 17:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalFog" << std::endl;
+        output = rocalFog(handle, input, true);
+    }
+    break;
+    case 18:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalLensCorrection" << std::endl;
+        output = rocalLensCorrection(handle, input, true);
+    }
+    break;
+    case 19:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalPixelate" << std::endl;
+        output = rocalPixelate(handle, input, true);
+    }
+    break;
+    case 20:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalExposure" << std::endl;
+        output = rocalExposure(handle, input, true);
+    }
+    break;
+    case 21:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalHue" << std::endl;
+        output = rocalHue(handle, input, true);
+    }
+    break;
+    case 22:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalSaturation" << std::endl;
+        output = rocalSaturation(handle, input, true);
+    }
+    break;
+    case 23:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalCopy" << std::endl;
+        output = rocalCopy(handle, input, true);
+    }
+    break;
+    case 24:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalColorTwist" << std::endl;
+        output = rocalColorTwist(handle, input, true);
+    }
+    break;*/
+    case 25:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalCropMirrorNormalize" << std::endl;
+        std::vector<float> mean = {128, 128, 128};
+        std::vector<float> std_dev = {1.2, 1.2, 1.2};
+        output = rocalCropMirrorNormalize(handle, input, 224, 224, 0, 0, mean, std_dev, true, mirror, output_tensor_layout, output_tensor_dtype);
+    }
+    break;
+    /*case 26:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalCrop" << std::endl;
+        output = rocalCrop(handle, input, true);
+    }
+    break;
+    case 27:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalResizeCropMirror" << std::endl;
+        output = rocalResizeCropMirror(handle, input, resize_w, resize_h, true);
+    }
+    break;
 
-    // switch (test_case)
-    // {
-    // case 0:
-    // {
-    //     std::vector<float> mean{0, 0, 0};
-    //     std::vector<float> sdev{1, 1, 1};
-    //     std::cout << ">>>>>>> Running "
-    //               << " Crop Mirror Normalize " << std::endl;
-    //     image1 = rocalCropMirrorNormalize(handle, input1, resize_h, resize_w, 0, 0, mean, sdev, true, NULL, tensorLayout, tensorOutputType);
-    //     break;
-    // }
-    // case 1:
-    // {
-    //     std::cout << ">>>>>>> Running "
-    //               << "Brightness" << std::endl;
-    //     image1 = rocalBrightness(handle, input1, true, NULL, NULL, tensorLayout, tensorOutputType);
-    // }
-    // break;
-    // case 3:
-    // {
-    //      std::cout << ">>>>>>> Running "
-    //               << "rocalResize" << std::endl;
-    //     image1 = rocalResize(handle, input1, 0, 0, true, ROCAL_SCALING_MODE_NOT_SMALLER, {}, 256, 0, ROCAL_LINEAR_INTERPOLATION, tensorLayout, tensorOutputType);
-    // }
-    // break;
-    // case 26:
-    // {
-    //      std::cout << ">>>>>>> Running "
-    //               << "rocalcrop" << std::endl;
-    //     // image1 = rocalCrop(handle, input1, true, tensorLayout, tensorOutputType, resize_w, resize_h, 0, 0, 0);
+    case 30:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalCropResizeFixed" << std::endl;
+        output = rocalCropResizeFixed(handle, input, resize_w, resize_h, true, 0.25, 1.2, 0.6, 0.4);
+    }
+    break;
+    case 31:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalRotateFixed" << std::endl;
+        output = rocalRotateFixed(handle, input, 45, true);
+    }
+    break;
+*/
+    case 32:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalBrightnessFixed" << std::endl;
+        output = rocalBrightnessFixed(handle, input, 1.90, 20, true);
+    }
+    break;
+/*
+    case 33:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalGammaFixed" << std::endl;
+        output = rocalGammaFixed(handle, input, 0.5, true);
+    }
+    break;
+    case 34:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalContrastFixed" << std::endl;
+        output = rocalContrastFixed(handle, input, 30, 80, true);
+    }
+    break;
+    case 35:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalBlurFixed" << std::endl;
+        output = rocalBlurFixed(handle, input, 5, true);
+    }
+    break;
+    case 36:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalBlendFixed" << std::endl;
+        RocalTensor output_1 = rocalRotateFixed(handle, input, 45, false);
+        output = rocalBlendFixed(handle, input, output_1, 0.5, true);
+    }
+    break;
+    case 37:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalWarpAffineFixed" << std::endl;
+        output = rocalWarpAffineFixed(handle, input, 1, 1, 0.5, 0.5, 7, 7, true);
+    }
+    break;
+    case 38:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalVignetteFixed" << std::endl;
+        output = rocalVignetteFixed(handle, input, 50, true);
+    }
+    break;
+    case 39:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalJitterFixed" << std::endl;
+        output = rocalJitterFixed(handle, input, 3, true);
+    }
+    break;
+    case 40:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalSnPNoiseFixed" << std::endl;
+        output = rocalSnPNoiseFixed(handle, input, true, 0.2, 0.2, 0.2, 0.5, 0);
+    }
+    break;
+    case 41:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalSnowFixed" << std::endl;
+        output = rocalSnowFixed(handle, input, 0.2, true);
+    }
+    break;
+    case 42:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalRainFixed" << std::endl;
+        output = rocalRainFixed(handle, input, 0.5, 2, 16, 0.25, true);
+    }
+    break;
+    case 43:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalColorTempFixed" << std::endl;
+        output = rocalColorTempFixed(handle, input, 70, true);
+    }
+    break;
+    case 44:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalFogFixed" << std::endl;
+        output = rocalFogFixed(handle, input, 0.5, true);
+    }
+    break;
+    case 45:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalLensCorrectionFixed" << std::endl;
+        output = rocalLensCorrectionFixed(handle, input, 2.9, 1.2, true);
+    }
+    break;
+    case 46:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalExposureFixed" << std::endl;
+        output = rocalExposureFixed(handle, input, 1, true);
+    }
+    break;
+    case 47:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalFlipFixed" << std::endl;
+        output = rocalFlipFixed(handle, input, 1, 0, true);
+    }
+    break;
+    case 48:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalHueFixed" << std::endl;
+        output = rocalHueFixed(handle, input, 150, true);
+    }
+    break;
+    case 49:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalSaturationFixed" << std::endl;
+        output = rocalSaturationFixed(handle, input, 0.3, true);
+    }
+    break;
+    case 50:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalColorTwistFixed" << std::endl;
+        output = rocalColorTwistFixed(handle, input, 0.2, 10.0, 100.0, 0.25, true);
+    }
+    break;
+    case 51:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalCropFixed" << std::endl;
+        output = rocalCropFixed(handle, input, 224, 224, 1, true, 0, 0, 0);
+    }
+    break;
+    case 52:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalCropCenterFixed" << std::endl;
+        output = rocalCropCenterFixed(handle, input, 224, 224, 2, true);
+    }
+    break;
+    case 53:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalResizeCropMirrorFixed" << std::endl;
+        output = rocalResizeCropMirrorFixed(handle, input, 400, 400, true, 200, 200, mirror);
+    }
+    break;
+    case 54:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalSSDRandomCrop" << std::endl;
+        output = rocalSSDRandomCrop(handle, input, true);
+    }
+    break;*/
+    case 55:
+    {
+        std::cout << ">>>>>>> Running "
+                  << "rocalCropMirrorNormalizeFixed_center crop" << std::endl;
+        std::vector<float> mean = {128, 128, 128};
+        std::vector<float> std_dev = {1.2, 1.2, 1.2};
+        output = rocalCropMirrorNormalize(handle, input, 224, 224, 0.5, 0.5, mean, std_dev, true, mirror);
+    }
+    break;
+    case 56:
+    {
+        std::vector<float> mean = {128, 128, 128};
+        std::vector<float> std_dev = {1.2, 1.2, 1.2};
+        std::cout << ">>>>>>> Running "
+                  << " Resize Mirror Normalize " << std::endl;
+        output = rocalResizeMirrorNormalize(handle, input, 400 , 400, mean, std_dev, true, ROCAL_SCALING_MODE_DEFAULT,
+                                            {}, 0, 0, ROCAL_LINEAR_INTERPOLATION, mirror);
+    }
+    break;
 
-    // }
-    // break;
-    // case 50:
-    // {
-    //     std::cout << ">>>>>>> Running "
-    //               << "rocalColorTwist" << std::endl;
-    //     image1 = rocalColorTwist(handle, input1, true, NULL, NULL, NULL, NULL, tensorLayout, tensorOutputType);
-    // }
-    // break;
-    // case 10:
-    // {
-    //     std::vector<float> mean{0, 0, 0};
-    //     std::vector<float> sdev{1, 1, 1};
-    //     std::cout << ">>>>>>> Running "
-    //               << " Resize Mirror Normalize " << std::endl;
-    //     image1 = rocalResizeMirrorNormalize(handle, input1, resize_w , resize_h, 0, mean, sdev, true, NULL, tensorLayout, tensorOutputType);
-    //     break;
-    // }
-    // default:
-    //     std::cout << "Not a valid option! Exiting!\n";
-    //     return -1;
-    // }
+    default:
+        std::cout << "Not a valid option! Exiting!\n";
+        return -1;
+    }
 
     // Calling the API to verify and build the augmentation graph
     rocalVerify(handle);
@@ -428,11 +797,17 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         std::cout << "Could not verify the augmentation graph " << rocalGetErrorMessage(handle);
         return -1;
     }
-
-    printf("\n\nAugmented copies count %lu \n", rocalGetAugmentationBranchCount(handle));
+    
+    auto number_of_outputs = rocalGetAugmentationBranchCount(handle);
+    std::cout << "\n\nAugmented copies count " << number_of_outputs << "\n";
+    
+    if(number_of_outputs != 1) {
+        std::cout << "More than 1 output set in the pipeline";
+        return -1;
+    }
 
     /*>>>>>>>>>>>>>>>>>>> Diplay using OpenCV <<<<<<<<<<<<<<<<<*/
-    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle);
+    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle) * inputBatchSize;
     int w = rocalGetOutputWidth(handle);
     int p = ((color_format == RocalImageColor::ROCAL_COLOR_RGB24) ? 3 : 1);
     const unsigned number_of_cols = 1; //1920 / w;
@@ -456,122 +831,9 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         index++;
         if (rocalRun(handle) != 0)
             break;
-        // int label_id[inputBatchSize];
-        // int numOfClasses = 0;
-        // int image_name_length[inputBatchSize];
-//         switch(pipeline_type)
-//         {
-//             case 1: //classification pipeline
-//             {
-//                 RocalTensorList labels = rocalGetImageLabels(handle);
-
-//                 for(int i = 0; i < labels->size(); i++)
-//                 {
-//                     int * labels_buffer = (int *)(labels->at(i)->buffer());
-//                     std::cerr << ">>>>> LABELS : " << labels_buffer[0] << "\t";
-//                 }
-//             }
-//             break;
-//             case 2: //detection pipeline
-//             {
-//                 RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
-//                 RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
-//                 for(int i = 0; i < bbox_labels->size(); i++)
-//                 {
-//                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-//                     float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
-//                     std::cerr << "\n>>>>> BBOX LABELS : ";
-//                     for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
-//                         std::cerr << labels_buffer[j] << " ";
-//                     std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->info().dims().at(0) << " : \n";
-//                     for(int j = 0, j4 = 0; j < bbox_coords->at(i)->info().dims().at(0); j++, j4 = j * 4)
-//                         std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
-
-//                 }
-//             }
-//             break;
-//             case 3: //detection + segmentation pipeline
-//             {
-//                 RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
-//                 RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
-//                 std::vector<int> mask_count;
-//                 std::vector<int> polygon_size;
-//                 unsigned total_number_of_objects_per_batch = rocalGetBoundingBoxCount(handle);
-//                 mask_count.resize(total_number_of_objects_per_batch);
-//                 int mask_size = rocalGetMaskCount(handle, mask_count.data());
-//                 polygon_size.resize(mask_size);
-//                 RocalTensorList mask_data = rocalGetMaskCoordinates(handle, polygon_size.data());
-                
-//                 for(int i = 0; i < bbox_labels->size(); i++)
-//                 {
-//                     int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-//                     float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
-//                     float *mask_buffer = (float *)(mask_data->at(i)->buffer());
-//                     std::cerr << "\n>>>>> BBOX LABELS : ";
-//                     for(int j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
-//                         std::cerr << labels_buffer[j] << " ";
-//                     std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->info().dims().at(0) << " : \n";
-//                     for(int j = 0, j4 = 0; j < bbox_coords->at(i)->info().dims().at(0); j++, j4 = j * 4)
-//                         std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
-//                     std::cerr << "\n>>>>>>> MASK COORDS : ";
-//                     int poly_cnt = 0;
-//                     for(unsigned j = 0; j < bbox_labels->at(i)->info().dims().at(0); j++)
-//                     {
-//                         std::cerr << "Mask idx : " << j << "Polygons : " <<  mask_count[j] << "[" ;
-//                         for(int k = 0; k < mask_count[j]; k++)
-//                         {
-//                             std::cerr << "[";
-//                             for(int l = 0; l < polygon_size[poly_cnt]; l++)
-//                                 std::cerr << mask_buffer[l] << ", ";
-//                             std::cerr << "]";
-//                             mask_buffer += polygon_size[poly_cnt++];
-//                         }
-//                         std::cerr << "]\n";
-//                     }
-//                 }
-//             }
-//             break;
-// #if 0
-//             case 4: // keypoints pipeline
-//             {
-//                 int size = inputBatchSize;
-//                 RocalJointsData *joints_data;
-//                 rocalGetJointsDataPtr(handle, &joints_data);
-//                 for (int i = 0; i < size; i++)
-//                 {
-//                     std::cout << "ImageID: " << joints_data->image_id_batch[i] << std::endl;
-//                     std::cout << "AnnotationID: " << joints_data->annotation_id_batch[i] << std::endl;
-//                     std::cout << "ImagePath: " << joints_data->image_path_batch[i] << std::endl;
-//                     std::cout << "Center: " << joints_data->center_batch[i][0] << " " << joints_data->center_batch[i][1] << std::endl;
-//                     std::cout << "Scale: " << joints_data->scale_batch[i][0] << " " << joints_data->scale_batch[i][1] << std::endl;
-//                     std::cout << "Score: " << joints_data->score_batch[i] << std::endl;
-//                     std::cout << "Rotation: " << joints_data->rotation_batch[i] << std::endl;
-
-//                     for (int k = 0; k < 17; k++)
-//                     {
-//                     std::cout << "x : " << joints_data->joints_batch[i][k][0] << " , y : " << joints_data->joints_batch[i][k][1] << " , v : " << joints_data->joints_visibility_batch[i][k][0] << std::endl;
-//                     }
-//                 }
-//             }
-//             break;
-// #endif
-//             default:
-//             {
-//                 std::cout << "Not a valid pipeline type ! Exiting!\n";
-//                 return -1;
-//             }
-//         }
-        // auto last_colot_temp = rocalGetIntValue(color_temp_adj);
-        // rocalUpdateIntParameter(last_colot_temp + 1, color_temp_adj);
-
-        output_tensor_list = rocalGetOutputTensors(handle);
-        // std::vector<int> compression_params;
-        // compression_params.push_back(IMWRITE_PNG_COMPRESSION);
-        // compression_params.push_back(9);
-
-        // cv::Mat mat_input;
-        // cv::Mat mat_output;
-        for(int idx = 0; idx < output_tensor_list->size(); idx++)
+        int numOfClasses = 0;
+        int image_name_length[inputBatchSize];
+        switch(pipeline_type)
         {
             int h = output_tensor_list->at(idx)->info().max_shape().at(1) * output_tensor_list->at(idx)->info().dims().at(0);
             int w = output_tensor_list->at(idx)->info().max_shape().at(0);
@@ -580,12 +842,36 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             unsigned char *out_buffer;
             if(output_tensor_list->at(idx)->info().data_type() == RocalTensorDataType::FP32)
             {
-                float * out_f_buffer;
-                std::cout << "Creating float buffer of " << w << " x " << h << "shape\n";
-                if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HIP)
+                RocalTensorList labels = rocalGetImageLabels(handle);
+                int *label_id = reinterpret_cast<int *>(labels->at(0)->buffer());  // The labels are present contiguously in memory
+                int img_size = rocalGetImageNameLen(handle, image_name_length);
+                char img_name[img_size];
+                numOfClasses = num_of_classes;
+                int label_one_hot_encoded[inputBatchSize * numOfClasses];
+                rocalGetImageName(handle, img_name);
+                /*if (num_of_classes != 0)
                 {
-                    out_f_buffer = (float *)malloc(output_tensor_list->at(idx)->info().data_size());
-                    output_tensor_list->at(idx)->copy_data(out_f_buffer);
+                    rocalGetOneHotImageLabels(handle, label_one_hot_encoded, numOfClasses,0);
+                }*/
+                std::cerr << "\nPrinting image names of batch: " << img_name << "\n";
+                for (unsigned int i = 0; i < inputBatchSize; i++)
+                {
+                    std::cerr<<"\t Printing label_id : " << label_id[i] << std::endl;
+                    /*if(num_of_classes != 0)
+                    {
+                        std::cout << "One Hot Encoded labels:"<<"\t";
+                        for (int j = 0; j < numOfClasses; j++)
+                        {
+                            int idx_value = label_one_hot_encoded[(i*numOfClasses)+j];
+                            if(idx_value == 0)
+                                std::cout << idx_value;
+                            else
+                            {
+                                std::cout << idx_value;
+                            }
+                        }
+                    }*/
+                    std::cout << "\n";
                 }
                 else if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HOST)
                     out_f_buffer = (float *)output_tensor_list->at(idx)->buffer();
@@ -596,9 +882,25 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             }
             if(output_tensor_list->at(idx)->info().data_type() == RocalTensorDataType::FP16)
             {
-                half * out_f16_buffer;
-                std::cout << "Creating float16 buffer of " << w << " x " << h << "shape\n";
-                if(output_tensor_list->at(idx)->info().mem_type() == RocalMemType::HIP)
+                int img_size = rocalGetImageNameLen(handle, image_name_length);
+                char img_name[img_size];
+                rocalGetImageName(handle, img_name);
+                std::cerr << "\nPrinting image names of batch: " << img_name;
+                RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
+                RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
+                for(unsigned i = 0; i < bbox_labels->size(); i++) {
+                    int *labels_buffer = reinterpret_cast<int *>(bbox_labels->at(i)->buffer());
+                    float *bbox_buffer = reinterpret_cast<float *>(bbox_coords->at(i)->buffer());
+                    std::cerr << "\n>>>>> BBOX LABELS : ";
+                    for(unsigned j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
+                        std::cerr << labels_buffer[j] << " ";
+                    std::cerr << "\n>>>>> BBOX : " << bbox_coords->at(i)->dims().at(0) << " : \n";
+                    for(unsigned j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
+                        std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
+                }
+                int img_sizes_batch[inputBatchSize * 2];
+                rocalGetImageSizes(handle, img_sizes_batch);
+                for (int i = 0; i < (int)inputBatchSize; i++)
                 {
                     out_f16_buffer = (half *)malloc(output_tensor_list->at(idx)->info().data_size());
                     output_tensor_list->at(idx)->copy_data(out_f16_buffer);
@@ -622,33 +924,31 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                     out_buffer = (unsigned char *)(output_tensor_list->at(idx)->buffer());
             }
 
-            // if(output_tensor_list->at(idx)->info().layout() == RocalTensorlayout::NCHW)
-            // {
-            //     // cv::Mat mat_input_nchw = cv::Mat(cv_color_format, h, w);
-            //     // mat_input_nchw = (unsigned char *)out_buffer;
-            //     // cv::transposeND(mat_input_nchw, {0, 3, 1, 2}, mat_input); // Can be enabled only with OpenCV 4.6.0
-            //     convert_nchw_to_nhwc(out_buffer, mat_input.data, output_tensor_list->at(idx)->info().dims().at(0), output_tensor_list->at(idx)->info().dims().at(2),
-            //                          output_tensor_list->at(idx)->info().dims().at(3), output_tensor_list->at(idx)->info().dims().at(1));            
-            // }
-            // else
-            //     mat_input.data = (unsigned char *)out_buffer;
+        rocalCopyToOutput(handle, mat_input.data, h * w * p);
 
-            // mat_input.copyTo(mat_output(cv::Rect(0, 0, w, h)));
+        std::vector<int> compression_params;
+        compression_params.push_back(IMWRITE_PNG_COMPRESSION);
+        compression_params.push_back(9);
 
-            // std::string out_filename = std::string(outName) + ".png";   // in case the user specifies non png filename
-            // if (display_all)
-            //     out_filename = std::string(outName) + std::to_string(index) + std::to_string(idx) + ".png";   // in case the user specifies non png filename
+        mat_input.copyTo(mat_output(cv::Rect(col_counter * w, 0, w, h)));
+        std::string out_filename = std::string(outName) + ".png";   // in case the user specifies non png filename
+        if (display_all)
+            out_filename = std::string(outName) + std::to_string(index) + ".png";   // in case the user specifies non png filename
 
-            // if (color_format == RocalImageColor::ROCAL_COLOR_RGB24)
-            // {
-            //     cv::cvtColor(mat_output, mat_color, CV_RGB2BGR);
-            //     cv::imwrite(out_filename, mat_color, compression_params);
-            // }
-            // else
-            // {
-            //     cv::imwrite(out_filename, mat_output, compression_params);
-            // }
-            // if(out_buffer != nullptr) free(out_buffer);
+        if (color_format == RocalImageColor::ROCAL_COLOR_RGB24)
+        {
+            cv::cvtColor(mat_output, mat_color, CV_RGB2BGR);
+            if(DISPLAY)
+                cv::imshow("output", mat_output);
+            else
+                cv::imwrite(out_filename, mat_color, compression_params);
+        }
+        else
+        {
+            if(DISPLAY)
+                cv::imshow("output", mat_output);
+            else
+                cv::imwrite(out_filename, mat_output, compression_params);
         }
         // mat_input.release();
         // mat_output.release();
@@ -665,7 +965,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     rocalRelease(handle);
     mat_input.release();
     mat_output.release();
-    if (!image1)
+    if (!output)
         return -1;
     return 0;
 }

@@ -26,17 +26,16 @@ THE SOFTWARE.
 #include "parameter_factory.h"
 #include "parameter_vx.h"
 
-class SnowNode : public Node
-{
+class SnowNode : public Node {
 public:
     SnowNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SnowNode() = delete;
-    void init(float shift);
-    void init(FloatParam *shift);
+    void init(float snow_value);
+    void init(FloatParam *snow_value_param);
 protected:
     void create_node() override;
     void update_node() override;
 private:
-    ParameterVX<float> _shift;
+    ParameterVX<float> _snow_value;
     constexpr static float SNOW_VALUE_RANGE [2] = {0.1, 0.8};
 };
