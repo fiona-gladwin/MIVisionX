@@ -1170,17 +1170,8 @@ int64_t MasterGraph::find_pixel(std::vector<int> start, std::vector<int> foregro
 TensorList*  MasterGraph::get_random_mask_pixel(rocalTensorList* input)
 {
     SeededRNG<std::mt19937, 4> rngs(_user_batch_size);
-    //std::vector<std::vector<int>> output;
-    auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[2]; // Get bbox buffer from ring buffer
-    auto img_sizes = _ring_buffer.get_meta_data().second->get_img_sizes_batch();
-            
-    for(unsigned i = 0; i < _mask_tensor_list.size(); i++)
-    {
-        _mask_tensor_list[i]->set_dims({(long unsigned int)img_sizes[i].w, (long unsigned int)img_sizes[i].h});
-        _mask_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
-        meta_data_buffers += _mask_tensor_list[i]->info().data_size();
-    }
-    output_random_mask_pixel.reserve(_user_batch_size* 2);
+    output_random_mask_pixel.clear();
+    output_random_mask_pixel.resize(_user_batch_size* 2);
     if (_is_random_mask_pixel_foreground == false) {
         #pragma omp parallel for num_threads(_user_batch_size)
         for (int i = 0; i < _user_batch_size; i++) {
