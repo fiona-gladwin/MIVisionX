@@ -27,10 +27,10 @@ RingBuffer::RingBuffer(unsigned buffer_depth):
         BUFF_DEPTH(buffer_depth),
         _dev_sub_buffer(buffer_depth),
         _host_sub_buffers(buffer_depth),
-        _dev_bbox_buffer(buffer_depth),
-        _dev_labels_buffer(buffer_depth),
         _dev_roi_buffers(buffer_depth),
-        _host_roi_buffers(buffer_depth)
+        _host_roi_buffers(buffer_depth),
+        _dev_bbox_buffer(buffer_depth),
+        _dev_labels_buffer(buffer_depth)
 {
     reset();
 }

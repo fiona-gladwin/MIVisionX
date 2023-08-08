@@ -65,7 +65,7 @@ static vx_status VX_CALLBACK refreshColorTwist(vx_node node, const vx_reference 
     data->pSrcRoi = reinterpret_cast<RpptROI *>(roi_tensor_ptr);
     if (data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW) {
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for (unsigned n = data->inputTensorDims[0] - 1; n >= 0; n--) {
+        for (int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for (unsigned f = 0; f < num_of_frames; f++) {
                 data->pAlpha[index + f] = data->pAlpha[n];
@@ -148,7 +148,7 @@ static vx_status VX_CALLBACK initializeColorTwist(vx_node node, const vx_referen
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[10], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
     
@@ -170,10 +170,10 @@ static vx_status VX_CALLBACK initializeColorTwist(vx_node node, const vx_referen
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
-    data->pAlpha = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pBeta = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pHue = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pSat = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
+    data->pAlpha = new Rpp32f[data->pSrcDesc->n];
+    data->pBeta = new Rpp32f[data->pSrcDesc->n];
+    data->pHue = new Rpp32f[data->pSrcDesc->n];
+    data->pSat = new Rpp32f[data->pSrcDesc->n];
     refreshColorTwist(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -183,14 +183,14 @@ static vx_status VX_CALLBACK initializeColorTwist(vx_node node, const vx_referen
 static vx_status VX_CALLBACK uninitializeColorTwist(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ColorTwistLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pAlpha != nullptr)  free(data->pAlpha);
-    if (data->pBeta != nullptr)  free(data->pBeta);
-    if (data->pHue != nullptr)  free(data->pHue);
-    if (data->pSat != nullptr)  free(data->pSat);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pAlpha;
+    delete[] data->pBeta;
+    delete[] data->pHue;
+    delete[] data->pSat;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

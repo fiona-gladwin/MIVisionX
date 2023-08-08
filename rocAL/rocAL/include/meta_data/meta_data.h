@@ -293,11 +293,11 @@ public:
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
         if(copy_contents) {
-            return std::make_shared<LabelBatch>(*this);
+            return std::make_shared<LabelBatch>(*this); // Copy the entire metadata batch with all the metadata values and info
         } else {
             std::shared_ptr<MetaDataBatch> label_batch_instance = std::make_shared<LabelBatch>();
             label_batch_instance->resize(this->size());
-            label_batch_instance->get_info_batch() = this->get_info_batch();
+            label_batch_instance->get_info_batch() = this->get_info_batch();    // Copy only info to newly created instance excluding the metadata values
             return label_batch_instance;
         }
     }
@@ -368,11 +368,11 @@ public:
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
         if(copy_contents) {
-            return std::make_shared<BoundingBoxBatch>(*this);
+            return std::make_shared<BoundingBoxBatch>(*this);   // Copy the entire metadata batch with all the metadata values and info
         } else {
             std::shared_ptr<MetaDataBatch> bbox_batch_instance = std::make_shared<BoundingBoxBatch>();
             bbox_batch_instance->resize(this->size());
-            bbox_batch_instance->get_info_batch() = this->get_info_batch();
+            bbox_batch_instance->get_info_batch() = this->get_info_batch(); // Copy only info to newly created instance excluding the metadata values
             return bbox_batch_instance;
         }
     }
@@ -455,11 +455,11 @@ public:
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
         if(copy_contents) {
-            return std::make_shared<PolygonMaskBatch>(*this);
+            return std::make_shared<PolygonMaskBatch>(*this);   // Copy the entire metadata batch with all the metadata values and info
         } else {
             std::shared_ptr<MetaDataBatch> mask_batch_instance = std::make_shared<PolygonMaskBatch>();
             mask_batch_instance->resize(this->size());
-            mask_batch_instance->get_info_batch() = this->get_info_batch();
+            mask_batch_instance->get_info_batch() = this->get_info_batch(); // Copy only info to newly created instance excluding the metadata values
             return mask_batch_instance;
         }
     }
@@ -546,11 +546,11 @@ public:
     std::shared_ptr<MetaDataBatch> clone(bool copy_contents) override
     {
         if(copy_contents) {
-            return std::make_shared<KeyPointBatch>(*this);
+            return std::make_shared<KeyPointBatch>(*this);  // Copy the entire metadata batch with all the metadata values and info
         } else {
             std::shared_ptr<MetaDataBatch> joints_batch_instance = std::make_shared<KeyPointBatch>();
             joints_batch_instance->resize(this->size());
-            joints_batch_instance->get_info_batch() = this->get_info_batch();
+            joints_batch_instance->get_info_batch() = this->get_info_batch();   // Copy only info to newly created instance excluding the metadata values
             return joints_batch_instance;
         }
     }

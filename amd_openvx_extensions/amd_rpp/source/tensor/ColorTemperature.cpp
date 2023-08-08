@@ -59,7 +59,7 @@ static vx_status VX_CALLBACK refreshColorTemperature(vx_node node, const vx_refe
     data->pSrcRoi = reinterpret_cast<RpptROI *>(roi_tensor_ptr);
     if (data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW) {
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for (unsigned n = data->inputTensorDims[0] - 1; n >= 0; n--) {
+        for (int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for (unsigned f = 0; f < num_of_frames; f++) {
                 data->pAdjustmentValue[index + f] = data->pAdjustmentValue[n];
@@ -139,7 +139,7 @@ static vx_status VX_CALLBACK initializeColorTemperature(vx_node node, const vx_r
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
 
@@ -161,7 +161,7 @@ static vx_status VX_CALLBACK initializeColorTemperature(vx_node node, const vx_r
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pAdjustmentValue = static_cast<Rpp32s *>(malloc(sizeof(Rpp32s) * data->pSrcDesc->n));
+    data->pAdjustmentValue = new Rpp32s[data->pSrcDesc->n];
     refreshColorTemperature(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -171,11 +171,11 @@ static vx_status VX_CALLBACK initializeColorTemperature(vx_node node, const vx_r
 static vx_status VX_CALLBACK uninitializeColorTemperature(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ColorTemperatureLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pAdjustmentValue != nullptr) free(data->pAdjustmentValue);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pAdjustmentValue;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

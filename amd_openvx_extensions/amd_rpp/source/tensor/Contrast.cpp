@@ -61,7 +61,7 @@ static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *p
     data->pSrcRoi = reinterpret_cast<RpptROI *>(roi_tensor_ptr);
     if (data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW) {
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for (unsigned n = data->inputTensorDims[0] - 1; n >= 0; n--) {
+        for (int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for (unsigned f = 0; f < num_of_frames; f++) {
                 data->pContrastFactor[index + f] = data->pContrastFactor[n];
@@ -141,7 +141,7 @@ static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
 
@@ -163,8 +163,8 @@ static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
-    data->pContrastFactor = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pContrastCenter = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
+    data->pContrastFactor = new Rpp32f[data->pSrcDesc->n];
+    data->pContrastCenter = new Rpp32f[data->pSrcDesc->n];
     refreshContrast(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -174,12 +174,12 @@ static vx_status VX_CALLBACK initializeContrast(vx_node node, const vx_reference
 static vx_status VX_CALLBACK uninitializeContrast(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ContrastLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pContrastFactor != nullptr) free(data->pContrastFactor);
-    if (data->pContrastCenter != nullptr) free(data->pContrastCenter);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pContrastFactor;
+    delete[] data->pContrastCenter;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

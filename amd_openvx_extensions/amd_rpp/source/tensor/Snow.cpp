@@ -66,7 +66,7 @@ static vx_status VX_CALLBACK refreshSnow(vx_node node, const vx_reference *param
     }
     if ((data->inputLayout == 2 || data->inputLayout == 3)) { // For NFCHW and NFHWC formats
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for (unsigned n = data->inputTensorDims[0] - 1; n >= 0; n--) {
+        for (int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for (unsigned f = 0; f < num_of_frames; f++) {
                 data->pSnowValue[index + f] = data->pSnowValue[n];
@@ -153,7 +153,7 @@ static vx_status VX_CALLBACK initializeSnow(vx_node node, const vx_reference *pa
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
 
@@ -175,8 +175,8 @@ static vx_status VX_CALLBACK initializeSnow(vx_node node, const vx_reference *pa
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pSnowValue = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pSrcDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
+    data->pSnowValue = new Rpp32f[data->pSrcDesc->n];
+    data->pSrcDimensions = new RppiSize[data->pSrcDesc->n];
     data->maxSrcDimensions.height = data->pSrcDesc->h;
     data->maxSrcDimensions.width = data->pSrcDesc->w;
     refreshSnow(node, parameters, num, data);
@@ -188,12 +188,12 @@ static vx_status VX_CALLBACK initializeSnow(vx_node node, const vx_reference *pa
 static vx_status VX_CALLBACK uninitializeSnow(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     SnowLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pSnowValue != nullptr) free(data->pSnowValue);
-    if (data->pSrcDimensions != nullptr) free(data->pSrcDimensions);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pSnowValue;
+    delete[] data->pSrcDimensions;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 
