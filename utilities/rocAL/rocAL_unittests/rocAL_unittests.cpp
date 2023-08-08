@@ -371,7 +371,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     }
     switch (test_case)
     {
-    /*case 0:
+    case 0:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalResize" << std::endl;
@@ -407,7 +407,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalRotate" << std::endl;
         output = rocalRotate(handle, input, true);
     }
-    break;*/
+    break;
     case 3:
     {
         std::cout << ">>>>>>> Running "
@@ -415,7 +415,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         output = rocalBrightness(handle, input, true);
     }
     break;
-    /*case 4:
+    case 4:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalGamma" << std::endl;
@@ -562,7 +562,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalColorTwist" << std::endl;
         output = rocalColorTwist(handle, input, true);
     }
-    break;*/
+    break;
     case 25:
     {
         std::cout << ">>>>>>> Running "
@@ -572,7 +572,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         output = rocalCropMirrorNormalize(handle, input, 224, 224, 0, 0, mean, std_dev, true, mirror, output_tensor_layout, output_tensor_dtype);
     }
     break;
-    /*case 26:
+    case 26:
     {
         std::cout << ">>>>>>> Running "
                   << "rocalCrop" << std::endl;
@@ -601,7 +601,6 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         output = rocalRotateFixed(handle, input, 45, true);
     }
     break;
-*/
     case 32:
     {
         std::cout << ">>>>>>> Running "
@@ -609,7 +608,6 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
         output = rocalBrightnessFixed(handle, input, 1.90, 20, true);
     }
     break;
-/*
     case 33:
     {
         std::cout << ">>>>>>> Running "
@@ -764,7 +762,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalSSDRandomCrop" << std::endl;
         output = rocalSSDRandomCrop(handle, input, true);
     }
-    break;*/
+    break;
     case 55:
     {
         std::cout << ">>>>>>> Running "
