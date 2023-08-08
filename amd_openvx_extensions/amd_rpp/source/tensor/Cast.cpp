@@ -108,7 +108,7 @@ static vx_status VX_CALLBACK processCast(vx_node node, const vx_reference *param
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
         return_status = VX_ERROR_NOT_IMPLEMENTED;
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        
+        // rpp_status = rppt_cast_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -183,7 +183,7 @@ vx_status Cast_Register(vx_context context) {
     vx_kernel kernel = vxAddUserKernel(context, "org.rpp.Cast",
                                        VX_KERNEL_RPP_CAST,
                                        processCast,
-                                       9,
+                                       6,
                                        validateCast,
                                        initializeCast,
                                        uninitializeCast);
