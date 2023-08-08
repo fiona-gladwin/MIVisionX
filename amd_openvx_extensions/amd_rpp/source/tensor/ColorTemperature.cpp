@@ -161,7 +161,7 @@ static vx_status VX_CALLBACK initializeColorTemperature(vx_node node, const vx_r
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pAdjustmentValue = static_cast<Rpp32s *>(malloc(sizeof(Rpp32s) * data->pSrcDesc->n));
+    data->pAdjustmentValue = new Rpp32s[data->pSrcDesc->n];
     refreshColorTemperature(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -171,11 +171,11 @@ static vx_status VX_CALLBACK initializeColorTemperature(vx_node node, const vx_r
 static vx_status VX_CALLBACK uninitializeColorTemperature(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ColorTemperatureLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pAdjustmentValue != nullptr) free(data->pAdjustmentValue);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pAdjustmentValue;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

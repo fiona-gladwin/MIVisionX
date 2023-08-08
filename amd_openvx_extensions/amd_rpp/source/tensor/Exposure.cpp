@@ -161,7 +161,7 @@ static vx_status VX_CALLBACK initializeExposure(vx_node node, const vx_reference
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
-    data->pExposureFactor = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
+    data->pExposureFactor = new Rpp32f[data->pSrcDesc->n];
     refreshExposure(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -171,11 +171,11 @@ static vx_status VX_CALLBACK initializeExposure(vx_node node, const vx_reference
 static vx_status VX_CALLBACK uninitializeExposure(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ExposureLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pExposureFactor != nullptr) free(data->pExposureFactor);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pExposureFactor;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

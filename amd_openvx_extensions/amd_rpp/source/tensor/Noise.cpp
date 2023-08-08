@@ -177,10 +177,10 @@ static vx_status VX_CALLBACK initializeNoise(vx_node node, const vx_reference *p
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pNoiseProb = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pSaltProb = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pSaltValue = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pPepperValue = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
+    data->pNoiseProb = new Rpp32f[data->pSrcDesc->n];
+    data->pSaltProb = new Rpp32f[data->pSrcDesc->n];
+    data->pSaltValue = new Rpp32f[data->pSrcDesc->n];
+    data->pPepperValue = new Rpp32f[data->pSrcDesc->n];
     refreshNoise(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -190,14 +190,14 @@ static vx_status VX_CALLBACK initializeNoise(vx_node node, const vx_reference *p
 static vx_status VX_CALLBACK uninitializeNoise(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     NoiseLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pNoiseProb != nullptr)  free(data->pNoiseProb);
-    if (data->pSaltProb != nullptr)  free(data->pSaltProb);
-    if (data->pSaltValue != nullptr)  free(data->pSaltValue);
-    if (data->pPepperValue != nullptr)  free(data->pPepperValue);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pNoiseProb;
+    delete[] data->pSaltProb;
+    delete[] data->pSaltValue;
+    delete[] data->pPepperValue;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

@@ -170,10 +170,10 @@ static vx_status VX_CALLBACK initializeColorTwist(vx_node node, const vx_referen
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
-    data->pAlpha = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pBeta = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pHue = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pSat = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
+    data->pAlpha = new Rpp32f[data->pSrcDesc->n];
+    data->pBeta = new Rpp32f[data->pSrcDesc->n];
+    data->pHue = new Rpp32f[data->pSrcDesc->n];
+    data->pSat = new Rpp32f[data->pSrcDesc->n];
     refreshColorTwist(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -183,14 +183,14 @@ static vx_status VX_CALLBACK initializeColorTwist(vx_node node, const vx_referen
 static vx_status VX_CALLBACK uninitializeColorTwist(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ColorTwistLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pAlpha != nullptr)  free(data->pAlpha);
-    if (data->pBeta != nullptr)  free(data->pBeta);
-    if (data->pHue != nullptr)  free(data->pHue);
-    if (data->pSat != nullptr)  free(data->pSat);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pAlpha;
+    delete[] data->pBeta;
+    delete[] data->pHue;
+    delete[] data->pSat;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

@@ -177,8 +177,8 @@ static vx_status VX_CALLBACK initializeBlur(vx_node node, const vx_reference *pa
 
     data->maxSrcDimensions.height = data->pSrcDesc->h;
     data->maxSrcDimensions.width = data->pSrcDesc->w;
-    data->pKernelSize = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pSrcDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
+    data->pKernelSize = new Rpp32u[data->pSrcDesc->n];
+    data->pSrcDimensions = new RppiSize[data->pSrcDesc->n];
 
     refreshBlur(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
@@ -189,12 +189,12 @@ static vx_status VX_CALLBACK initializeBlur(vx_node node, const vx_reference *pa
 static vx_status VX_CALLBACK uninitializeBlur(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     BlurLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pKernelSize != nullptr) free(data->pKernelSize);
-    free(data->pSrcDimensions);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pKernelSize;
+    delete[] data->pSrcDimensions;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

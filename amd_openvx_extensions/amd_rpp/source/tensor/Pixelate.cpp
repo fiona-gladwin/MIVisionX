@@ -167,10 +167,10 @@ static vx_status VX_CALLBACK initializePixelate(vx_node node, const vx_reference
 static vx_status VX_CALLBACK uninitializePixelate(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     PixelateLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

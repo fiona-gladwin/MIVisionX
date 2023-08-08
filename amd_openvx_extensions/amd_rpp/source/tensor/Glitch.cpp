@@ -176,12 +176,12 @@ static vx_status VX_CALLBACK initializeGlitch(vx_node node, const vx_reference *
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pXOffsetR = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pYOffsetR = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pXOffsetG = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pYOffsetG = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pXOffsetB = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pYOffsetB = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pXOffsetR = new Rpp32u[data->pSrcDesc->n];
+    data->pYOffsetR = new Rpp32u[data->pSrcDesc->n];
+    data->pXOffsetG = new Rpp32u[data->pSrcDesc->n];
+    data->pYOffsetG = new Rpp32u[data->pSrcDesc->n];
+    data->pXOffsetB = new Rpp32u[data->pSrcDesc->n];
+    data->pYOffsetB = new Rpp32u[data->pSrcDesc->n];
     refreshGlitch(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -191,16 +191,16 @@ static vx_status VX_CALLBACK initializeGlitch(vx_node node, const vx_reference *
 static vx_status VX_CALLBACK uninitializeGlitch(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     GlitchLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pXOffsetR != nullptr)  free(data->pXOffsetR);
-    if (data->pYOffsetR != nullptr)  free(data->pYOffsetR);
-    if (data->pXOffsetG != nullptr)  free(data->pXOffsetG);
-    if (data->pYOffsetG != nullptr)  free(data->pYOffsetG);
-    if (data->pXOffsetB != nullptr)  free(data->pXOffsetB);
-    if (data->pYOffsetB != nullptr)  free(data->pYOffsetB);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pXOffsetR;
+    delete[] data->pYOffsetR;
+    delete[] data->pXOffsetG;
+    delete[] data->pYOffsetG;
+    delete[] data->pXOffsetB;
+    delete[] data->pYOffsetB;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

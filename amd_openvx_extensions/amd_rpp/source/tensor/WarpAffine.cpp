@@ -174,7 +174,7 @@ static vx_status VX_CALLBACK initializeWarpAffine(vx_node node, const vx_referen
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pAffine = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * AFFINE_MATRIX_SIZE * data->pSrcDesc->n));
+    data->pAffine = new Rpp32f[AFFINE_MATRIX_SIZE * data->pSrcDesc->n];
     refreshWarpAffine(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -184,11 +184,11 @@ static vx_status VX_CALLBACK initializeWarpAffine(vx_node node, const vx_referen
 static vx_status VX_CALLBACK uninitializeWarpAffine(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     WarpAffineLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pAffine != nullptr) free(data->pAffine);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pAffine;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

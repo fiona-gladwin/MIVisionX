@@ -160,7 +160,7 @@ static vx_status VX_CALLBACK initializeGammaCorrection(vx_node node, const vx_re
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
-    data->pGamma = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
+    data->pGamma = new Rpp32f[data->pSrcDesc->n];
     refreshGammaCorrection(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -170,11 +170,11 @@ static vx_status VX_CALLBACK initializeGammaCorrection(vx_node node, const vx_re
 static vx_status VX_CALLBACK uninitializeGammaCorrection(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     GammaCorrectionLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pGamma != nullptr) free(data->pGamma);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pGamma;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

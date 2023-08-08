@@ -175,7 +175,7 @@ static vx_status VX_CALLBACK initializeSequenceRearrange(vx_node node, const vx_
 
     data->pDstDesc->n = out_tensor_dims[0];
     data->newSequenceLength = out_tensor_dims[1];
-    data->pNewOrder = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->newSequenceLength));
+    data->pNewOrder = new Rpp32u[data->newSequenceLength];
     refreshSequenceRearrange(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -186,11 +186,11 @@ static vx_status VX_CALLBACK initializeSequenceRearrange(vx_node node, const vx_
 static vx_status VX_CALLBACK uninitializeSequenceRearrange(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     SequenceRearrangeLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pNewOrder) free(data->pNewOrder);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pNewOrder;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

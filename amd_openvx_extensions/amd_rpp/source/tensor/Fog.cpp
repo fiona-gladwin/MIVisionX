@@ -178,8 +178,8 @@ static vx_status VX_CALLBACK initializeFog(vx_node node, const vx_reference *par
 
     data->maxSrcDimensions.height = data->pSrcDesc->h;
     data->maxSrcDimensions.width = data->pSrcDesc->w;
-    data->pSrcDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
-    data->pFogValue = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
+    data->pSrcDimensions = new RppiSize[data->pSrcDesc->n];
+    data->pFogValue = new Rpp32f[data->pSrcDesc->n];
     refreshFog(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -189,12 +189,12 @@ static vx_status VX_CALLBACK initializeFog(vx_node node, const vx_reference *par
 static vx_status VX_CALLBACK uninitializeFog(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     FogLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pFogValue != nullptr)  free(data->pFogValue);
-    if (data->pSrcDimensions != nullptr) free(data->pSrcDimensions);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pFogValue;
+    delete[] data->pSrcDimensions;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

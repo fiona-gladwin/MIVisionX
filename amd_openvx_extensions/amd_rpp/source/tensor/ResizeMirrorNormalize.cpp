@@ -189,15 +189,15 @@ static vx_status VX_CALLBACK initializeResizeMirrorNormalize(vx_node node, const
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
 
-    data->pResizeWidth = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pResizeHeight = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pMean = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n * data->pSrcDesc->c));
-    data->pStdDev = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n * data->pSrcDesc->c));
-    data->pMirror = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pResizeWidth = new Rpp32u[data->pSrcDesc->n];
+    data->pResizeHeight = new Rpp32u[data->pSrcDesc->n];
+    data->pMean = new Rpp32f[data->pSrcDesc->n * data->pSrcDesc->c];
+    data->pStdDev = new Rpp32f[data->pSrcDesc->n * data->pSrcDesc->c];
+    data->pMirror = new Rpp32u[data->pSrcDesc->n];
 #if ENABLE_HIP
     hipHostMalloc(&data->pDstImgSize, data->pSrcDesc->n * sizeof(RpptImagePatch));
 #else
-    data->pDstImgSize = static_cast<RpptImagePatch *>(calloc(data->pSrcDesc->n, sizeof(RpptImagePatch)));
+    data->pDstImgSize = new RpptImagePatch[data->pSrcDesc->n];
 #endif    
     refreshResizeMirrorNormalize(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
@@ -209,20 +209,20 @@ static vx_status VX_CALLBACK uninitializeResizeMirrorNormalize(vx_node node, con
 {
     ResizeMirrorNormalizeLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pResizeWidth != nullptr)  free(data->pResizeWidth);
-    if (data->pResizeHeight != nullptr)  free(data->pResizeHeight);
-    if (data->pMean != nullptr)  free(data->pMean);
-    if (data->pStdDev != nullptr)  free(data->pStdDev);
-    if (data->pMirror != nullptr) free(data->pMirror);
+    delete[] data->pResizeWidth;
+    delete[] data->pResizeHeight;
+    delete[] data->pMean;
+    delete[] data->pStdDev;
+    delete[] data->pMirror;
 #if ENABLE_HIP
     if (data->pDstImgSize != nullptr) hipHostFree(data->pDstImgSize);
 #else
-    if (data->pDstImgSize != nullptr) free(data->pDstImgSize);
+    delete[] data->pDstImgSize;
 #endif
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 
