@@ -153,7 +153,7 @@ static vx_status VX_CALLBACK initializeResizeCropMirror(vx_node node, const vx_r
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[10], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(inputLayout);
     data->outputLayout = static_cast<vxTensorLayout>(outputLayout);
     data->interpolationType = static_cast<RpptInterpolationType>(interpolation_type);
