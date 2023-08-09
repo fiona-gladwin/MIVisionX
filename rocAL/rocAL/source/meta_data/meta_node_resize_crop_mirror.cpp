@@ -37,9 +37,7 @@ void ResizeCropMirrorMetaNode::update_parameters(pMetaDataBatch input_meta_data,
     {
         _batch_size = input_meta_data->size();
     }
-    _meta_crop_param = _node->get_crop_param();    
-    _dst_width = _node->get_dst_width();
-    _dst_height = _node->get_dst_height();
+    _meta_crop_param = _node->get_crop_param();
     _mirror = _node->get_mirror();
     _x1 = _meta_crop_param->x1_arr;
     _y1 = _meta_crop_param->y1_arr;
@@ -59,8 +57,8 @@ void ResizeCropMirrorMetaNode::update_parameters(pMetaDataBatch input_meta_data,
         BoundingBoxCord temp_box;
         Labels bb_labels;
         BoundingBoxCord crop_box;
-        _crop_w = _x2_val[i] - _x1_val[i];
-        _crop_h = _y2_val[i] - _y1_val[i];
+        auto _crop_w = _x2_val[i] - _x1_val[i];
+        auto _crop_h = _y2_val[i] - _y1_val[i];
         crop_box.l = _x1_val[i];
         crop_box.t = _y1_val[i];
         crop_box.r = _x2_val[i] ;
@@ -73,25 +71,27 @@ void ResizeCropMirrorMetaNode::update_parameters(pMetaDataBatch input_meta_data,
                 float yA = std::max(crop_box.t, box_coords_buf[j].t);
                 float xB = std::min(crop_box.r, box_coords_buf[j].r);
                 float yB = std::min(crop_box.b, box_coords_buf[j].b);
-                box_coords_buf[j].l = (xA - crop_box.l) / (crop_box.r - crop_box.l);
-                box_coords_buf[j].t = (yA - crop_box.t) / (crop_box.b - crop_box.t);
-                box_coords_buf[j].r = (xB - crop_box.l) / (crop_box.r - crop_box.l);
-                box_coords_buf[j].b = (yB - crop_box.t) / (crop_box.b - crop_box.t);
+                box_coords_buf[j].l = (xA - crop_box.l);
+                box_coords_buf[j].t = (yA - crop_box.t);
+                box_coords_buf[j].r = (xB - crop_box.l);
+                box_coords_buf[j].b = (yB - crop_box.t);
                 
                 if(_mirror_val[i] == 1)
                 {
-                    float l = 1 - box_coords_buf[j].r;
-                    box_coords_buf[j].r = 1 - box_coords_buf[j].l;
-                    box_coords_buf[j].l = l;
-                }                  
+                    auto l = box_coords_buf[j].l;
+                    box_coords_buf[j].l = _crop_w - box_coords_buf[j].r;
+                    box_coords_buf[j].r = _crop_w - l;
+                }
                 bb_coords.push_back(box_coords_buf[j]);
                 bb_labels.push_back(labels_buf[j]);
             }
         }
         if(bb_coords.size() == 0)
         {
-            temp_box.l = temp_box.t = 0;
-            temp_box.r = temp_box.b = 1;
+            temp_box.l = 0;
+            temp_box.t = 0;
+            temp_box.r = _crop_w;
+            temp_box.b = _crop_h;
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }

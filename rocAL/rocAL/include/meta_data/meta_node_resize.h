@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,17 +26,15 @@ THE SOFTWARE.
 #include "bounding_box_graph.h"
 #include "meta_data.h"
 #include "node.h"
-#include "node_resize_crop_mirror.h"
+#include "node_resize.h"
 #include "parameter_vx.h"
-class ResizeCropMirrorMetaNode:public MetaNode
+
+class ResizeMetaNode:public MetaNode
 {
     public:
-        ResizeCropMirrorMetaNode() {};
+        ResizeMetaNode() {};
         void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
-        std::shared_ptr<ResizeCropMirrorNode> _node = nullptr;
+        std::shared_ptr<ResizeNode> _node = nullptr;
     private:
-        void initialize();
-        std::shared_ptr<RocalCropParam> _meta_crop_param;
-        vx_array _x1, _y1, _x2, _y2, _mirror;
-        std::vector<uint> _x1_val, _y1_val, _x2_val, _y2_val, _mirror_val;
+        void initialize() {};
 };

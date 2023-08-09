@@ -44,6 +44,8 @@ public:
     void set_meta_data(pMetaDataBatch meta_data_info) { _meta_data_info = meta_data_info; }
     bool _is_ssd = false;
     void create_crop_tensor(vx_tensor &crop_tensor, void **crop_coordinates);
+    RocalROI *get_src_roi() { return _inputs[0]->info().get_roi(); }
+    RocalROI *get_dst_roi() { return _outputs[0]->info().get_roi(); }
 protected:
     virtual void create_node() = 0;
     virtual void update_node() = 0;

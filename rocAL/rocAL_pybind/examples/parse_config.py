@@ -35,7 +35,13 @@ def parse_args():
                         help='--display:to display output from the pipeline')
     common_group.add_argument('--no-display', dest='display', action="store_false",
                         help='--no-display:to not display output from the pipeline')
-    parser.set_defaults(display=True)   #case when none of the above is specified
+    parser.set_defaults(display=False)   #case when none of the above is specified
+    common_group.add_argument('--max-height', '-mh', type=int, default=1000,
+                        help='maximum height set during decoding')
+    common_group.add_argument('--max-width', '-mw', type=int, default=1000,
+                        help='maximum width set during decoding')
+    common_group.add_argument('--color-format', '-c', type=int, default=1,
+                        help='color format used during decoding')
 
     common_group.add_argument('--print_tensor', action="store_true",
                         help='--print_tensor: to print tensor output from the pipeline')
@@ -77,8 +83,16 @@ def parse_args():
 
     # rocAL_api_python_unittest.py related options
     python_unit_test = parser.add_argument_group('python-unittest', 'python-unittest-related options')
+    python_unit_test.add_argument('--reader-type', '-r', type=str, default="file",
+                        help='Reader used for reading and decoding the images')
     python_unit_test.add_argument('--augmentation-name', '-aug_name', type=str, default="resize",
                         help='refer python unit test for all augmentation names ')
+    python_unit_test.add_argument('--output-file-name', '-f', type=str, default="",
+                        help='file name to save the augmentation outputs')
+    python_unit_test.add_argument('--resize-interpolation-type', '-ri', type=int, default=1,
+                        help='interpolation type used for resize and crop')
+    python_unit_test.add_argument('--resize-scaling-mode', '-sm', type=int, default=0,
+                        help='scaling mode type used for resize')                        
     # rocAL_api_coco_pipeline.py related options
     coco_pipeline = parser.add_argument_group('coco-pipeline', 'coco-pipeline-related options')
     coco_pipeline.add_argument('--json-path', '-json-path', type=str,
