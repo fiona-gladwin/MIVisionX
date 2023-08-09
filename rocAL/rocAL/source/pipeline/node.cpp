@@ -52,10 +52,10 @@ Node::create(std::shared_ptr<Graph> graph)
         if (_inputs[0]->info().mem_type() == RocalMemType::HIP)
             mem_type = VX_MEMORY_TYPE_HIP;
             
-        _src_tensor_roi = vxCreateTensorFromHandle(vxGetContext((vx_reference) _graph->get()), num_of_dims, roi_dims.data(), VX_TYPE_UINT32, 0, 
-                                                                 stride, (void *)_inputs[0]->info().get_roi(), mem_type);
-        _dst_tensor_roi = vxCreateTensorFromHandle(vxGetContext((vx_reference) _graph->get()), num_of_dims, roi_dims.data(), VX_TYPE_UINT32, 0,
-                                                                 stride, (void *)_outputs[0]->info().get_roi(), mem_type);
+        _src_tensor_roi_ = vxCreateTensorFromHandle(vxGetContext((vx_reference) _graph->get()), num_of_dims, roi_dims.data(), VX_TYPE_UINT32, 0, 
+                                                                 stride, (void *)_inputs[0]->info().roi().get_ptr(), mem_type);
+        _dst_tensor_roi_ = vxCreateTensorFromHandle(vxGetContext((vx_reference) _graph->get()), num_of_dims, roi_dims.data(), VX_TYPE_UINT32, 0,
+                                                                 stride, (void *)_outputs[0]->info().roi().get_ptr(), mem_type);
         vx_status status;
         if ((status = vxGetStatus((vx_reference)_src_tensor_roi)) != VX_SUCCESS)
             THROW("Error: vxCreateTensorFromHandle(src tensor roi: failed " + TOSTR(status))
