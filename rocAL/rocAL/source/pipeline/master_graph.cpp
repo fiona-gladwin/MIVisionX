@@ -288,9 +288,9 @@ MasterGraph::build()
         THROW("No output tensors are there, cannot create the pipeline")
 
 #if ENABLE_HIP || ENABLE_OPENCL
-    _ring_buffer.init(_mem_type, (void *)_device.resources(), _internal_tensor_list.data_size());
+    _ring_buffer.init(_mem_type, (void *)_device.resources(), _internal_tensor_list.data_size(), _user_batch_size * sizeof(RocalROI));
 #else
-    _ring_buffer.init(_mem_type, nullptr, _internal_tensor_list.data_size());
+    _ring_buffer.init(_mem_type, nullptr, _internal_tensor_list.data_size(), _user_batch_size * sizeof(RocalROI));
 #endif
     if (_is_box_encoder) _ring_buffer.initBoxEncoderMetaData(_mem_type, _user_batch_size*_num_anchors*4*sizeof(float), _user_batch_size*_num_anchors*sizeof(int));
     create_single_graph();
@@ -380,14 +380,14 @@ void MasterGraph::release()
 
     if(_graph != nullptr)
         _graph->release();
+    if(_context && (status = vxReleaseContext(&_context)) != VX_SUCCESS)
+        LOG ("Failed to call vxReleaseContext " + TOSTR(status))
     if(_meta_data_reader != nullptr)
         _meta_data_reader->release();
 
     _augmented_meta_data = nullptr;
     _meta_data_graph = nullptr;
     _meta_data_reader = nullptr;
-    if(_context && (status = vxReleaseContext(&_context)) != VX_SUCCESS)
-        LOG ("Failed to call vxReleaseContext " + TOSTR(status))
 }
 
 MasterGraph::Status
@@ -532,7 +532,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         cl_kernel kernel = _device["utility"][kernel_name];
         auto queue = _device.resources()->cmd_queue;
         unsigned dest_buf_offset = 0;
-        auto output_buffers =_ring_buffer.get_read_buffers();
+        auto output_buffers = _ring_buffer.get_read_buffers().first;
 
         if(_output_tensor_buffer == nullptr) {
             size_t size = output_tensor_info.data_size() * sizeof(cl_float);
@@ -591,7 +591,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
     {
         unsigned int fp16 = (output_data_type == RocalTensorDataType::FP16);
 
-        auto output_buffers =_ring_buffer.get_read_buffers();
+        auto output_buffers = _ring_buffer.get_read_buffers().first;
         unsigned dest_buf_offset = 0;
         // copy hip buffer to out_ptr
         // todo:: add callback routing to exchange memory pointer to avoid extra copy
@@ -617,7 +617,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
         {
             unsigned int fp16 = (output_data_type == RocalTensorDataType::FP16);
 
-            auto output_buffers =_ring_buffer.get_read_buffers();
+            auto output_buffers = _ring_buffer.get_read_buffers().first;
             unsigned dest_buf_offset = 0;
             
             if(_output_tensor_buffer == nullptr) {
@@ -664,7 +664,7 @@ MasterGraph::to_tensor(void *out_ptr, RocalTensorlayout format, float multiplier
             float offset[3] = {offset0, offset1, offset2};
             size_t dest_buf_offset_start = 0;
 
-            auto output_buffers =_ring_buffer.get_read_buffers();
+            auto output_buffers = _ring_buffer.get_read_buffers().first;
             auto num_threads = _cpu_num_threads * 2;
             for( auto&& out_tensor: output_buffers)
             {
@@ -878,7 +878,7 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
         // to avoid unnecessary sequence of synchronizations
 
         // get_read_buffers() calls block_if_empty() internally and blocks if buffers are empty until a new batch is processed
-        auto output_buffers = _ring_buffer.get_read_buffers();
+        auto output_buffers = _ring_buffer.get_read_buffers().first;
         auto out_image_idx = output_buffers.size();
         for( auto&& output_handle: output_buffers)
         {
@@ -904,7 +904,7 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
 
         // get_read_buffers() calls block_if_empty() internally and blocks if buffers are empty until a new batch is processed
         size_t dest_buf_offset = 0;
-        auto output_buffers =_ring_buffer.get_read_buffers();
+        auto output_buffers = _ring_buffer.get_read_buffers().first;
         for( auto&& output_handle: output_buffers)
         {
             hipError_t err = hipMemcpyDtoHAsync((void *)(out_ptr + dest_buf_offset), output_handle, size, _device.resources()->hip_stream);
@@ -921,7 +921,7 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
     else {
 #endif
         // get_read_buffer is blocking if _ring_buffer is empty, and blocks this thread till internal processing thread process a new batch and store in the _ring_buffer
-        auto output_buffer = _ring_buffer.get_read_buffers()[0];
+        auto output_buffer = _ring_buffer.get_read_buffers().first[0];
         memcpy(out_ptr, output_buffer, size);
 #if ENABLE_OPENCL || ENABLE_HIP
     }
@@ -933,10 +933,13 @@ MasterGraph::copy_output(unsigned char *out_ptr, size_t out_size_in_bytes)
 TensorList *
 MasterGraph::get_output_tensors()
 {
-    auto output_ptr = _ring_buffer.get_read_buffers();
-    for(unsigned i = 0; i < _internal_tensor_list.size(); i++)
+    auto read_buffers = _ring_buffer.get_read_buffers();
+    auto output_ptr = read_buffers.first;
+    auto roi_ptr = read_buffers.second;
+    for(unsigned i = 0; i < _internal_tensor_list.size(); i++) {
         _output_tensor_list[i]->set_mem_handle(output_ptr[i]);
-    
+        _output_tensor_list[i]->set_roi(roi_ptr[i]);
+    }
     return &_output_tensor_list;
 }
 
@@ -959,6 +962,7 @@ void MasterGraph::output_routine()
             _rb_block_if_full_time.start();
             // _ring_buffer.get_write_buffers() is blocking and blocks here until user uses processed image by calling run() and frees space in the ring_buffer
             auto write_buffers = _ring_buffer.get_write_buffers();
+            auto write_output_buffers = write_buffers.first;
             _rb_block_if_full_time.end();
 
             // Swap handles on the input tensor, so that new tensor is loaded to be processed
@@ -967,23 +971,23 @@ void MasterGraph::output_routine()
                 THROW("Loader module failed to load next batch of images, status " + TOSTR(load_ret))
             if (!_processing)
                 break;
-            auto full_batch_image_names =  _loader_module->get_id();
-            auto decode_image_info = _loader_module->get_decode_image_info();
+            auto full_batch_sample_names =  _loader_module->get_id();
+            auto decode_sample_info = _loader_module->get_decode_sample_info();
             auto crop_image_info = _loader_module->get_crop_image_info();
 
-            if(full_batch_image_names.size() != _user_batch_size)
-                WRN("Internal problem: names count "+ TOSTR(full_batch_image_names.size()))
+            if(full_batch_sample_names.size() != _user_batch_size)
+                WRN("Internal problem: names count "+ TOSTR(full_batch_sample_names.size()))
 
             // meta_data lookup is done before _meta_data_graph->process() is called to have the new meta_data ready for processing
             if (_meta_data_reader)
-                _meta_data_reader->lookup(full_batch_image_names);
+                _meta_data_reader->lookup(full_batch_sample_names);
 
             if (!_processing)
                 break;
 
             // Swap handles on the output tensor, so that new processed tensor will be written to the a new buffer
             for (size_t idx = 0; idx < _internal_tensor_list.size(); idx++)
-                _internal_tensor_list[idx]->swap_handle(write_buffers[idx]);
+                _internal_tensor_list[idx]->swap_handle(write_output_buffers[idx]);
 
             if (!_processing)
                 break;
@@ -1003,13 +1007,10 @@ void MasterGraph::output_routine()
                 output_meta_data = _augmented_meta_data->clone(!_augmentation_metanode); // copy the data if metadata is not processed by the nodes, else create an empty instance
                 if (_meta_data_graph)
                 {
+                    if(_augmentation_metanode) output_meta_data->resize(_user_batch_size);
                     if(_is_random_bbox_crop)
                     {
-                        _meta_data_graph->update_random_bbox_meta_data(_augmented_meta_data, output_meta_data, decode_image_info, crop_image_info);
-                    }
-                    else
-                    {
-                        _meta_data_graph->update_meta_data(_augmented_meta_data, decode_image_info);
+                        _meta_data_graph->update_random_bbox_meta_data(_augmented_meta_data, output_meta_data, decode_sample_info, crop_image_info);
                     }
                     _meta_data_graph->process(_augmented_meta_data, output_meta_data);
                 }
@@ -1017,6 +1018,10 @@ void MasterGraph::output_routine()
             _process_time.start();
             _graph->process();
             _process_time.end();
+
+            auto write_roi_buffers = write_buffers.second;   // Obtain ROI buffers from ring buffer
+            for (size_t idx = 0; idx < _internal_tensor_list.size(); idx++)
+                _internal_tensor_list[idx]->copy_roi(write_roi_buffers[idx]);   // Copy ROI from internal tensor's buffer to ring buffer
             _bencode_time.start();
             if(_is_box_encoder )
             {
@@ -1034,7 +1039,7 @@ void MasterGraph::output_routine()
             _sequence_start_framenum_vec.insert(_sequence_start_framenum_vec.begin(), _loader_module->get_sequence_start_frame_number());
             _sequence_frame_timestamps_vec.insert(_sequence_frame_timestamps_vec.begin(), _loader_module->get_sequence_frame_timestamps());
 #endif
-            _ring_buffer.set_meta_data(full_batch_image_names, output_meta_data);
+            _ring_buffer.set_meta_data(full_batch_sample_names, output_meta_data);
             _ring_buffer.push(); // Image data and metadata is now stored in output the ring_buffer, increases it's level by 1
         }
     }
@@ -1547,7 +1552,7 @@ MasterGraph::copy_out_tensor_planar(void *out_ptr, RocalTensorlayout format, flo
         float offset[3] = {offset0, offset1, offset2 };
         size_t dest_buf_offset = 0;
 
-        auto output_buffers = _ring_buffer.get_read_buffers();
+        auto output_buffers = _ring_buffer.get_read_buffers().first;
 
         for( auto&& out_tensor: output_buffers)
         {

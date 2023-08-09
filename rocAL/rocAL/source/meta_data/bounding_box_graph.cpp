@@ -29,7 +29,7 @@ void BoundingBoxGraph::process(pMetaDataBatch input_meta_data, pMetaDataBatch ou
     }
 }
 
-void BoundingBoxGraph::update_meta_data(pMetaDataBatch input_meta_data, decoded_image_info decode_image_info)
+void BoundingBoxGraph::update_meta_data(pMetaDataBatch input_meta_data, decoded_sample_info decode_image_info)
 {
     std::vector<uint32_t> original_height = decode_image_info._original_height;
     std::vector<uint32_t> original_width = decode_image_info._original_width;
@@ -71,7 +71,7 @@ inline float ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const fl
     return (float) (intersection_area / (box1_area + box2_area - intersection_area));
 }
 
-void BoundingBoxGraph::update_random_bbox_meta_data(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data, decoded_image_info decode_image_info, crop_image_info crop_image_info)
+void BoundingBoxGraph::update_random_bbox_meta_data(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data, decoded_sample_info decode_image_info, crop_image_info crop_image_info)
 {
     std::vector<uint32_t> original_height = decode_image_info._original_height;
     std::vector<uint32_t> original_width = decode_image_info._original_width;

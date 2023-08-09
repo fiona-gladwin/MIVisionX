@@ -21,22 +21,29 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <list>
-#include "circular_buffer.h"
-#include "meta_data.h"
-#include "parameter_factory.h"
-#include "node.h"
-#include "meta_node.h"
-#include "randombboxcrop_meta_data_reader.h"
+#include <memory>
+#include <map>
+#include "sndfile_decoder.h"
+#include "reader_factory.h"
+#include "timing_debug.h"
+#include "loader_module.h"
 
-class MetaDataGraph
-{
+enum class AudioSourceEvaluatorStatus {
+    OK = 0,
+    UNSUPPORTED_DECODER_TYPE,
+    UNSUPPORTED_STORAGE_TYPE,
+};
+
+class AudioSourceEvaluator {
 public:
-    virtual ~MetaDataGraph()= default;
-    virtual void process(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) = 0;
-    virtual void update_meta_data(pMetaDataBatch meta_data, decoded_sample_info decoded_image_info) = 0;
-    virtual void update_random_bbox_meta_data(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data, decoded_sample_info decoded_image_info,crop_image_info crop_image_info) = 0;
-    virtual void update_box_encoder_meta_data(std::vector<float> *anchors, pMetaDataBatch full_batch_meta_data , float criteria, bool offset , float scale, std::vector<float> &means, std::vector<float> &stds, float *encoded_boxes_data, int *encoded_labels_data) = 0;
-    std::list<std::shared_ptr<MetaNode>> _meta_nodes;
+    AudioSourceEvaluatorStatus create(ReaderConfig reader_cfg, DecoderConfig decoder_cfg);
+    void find_max_dimension();
+    size_t max_samples();
+    size_t max_channels();
+private:
+    int _samples_max = 0, _channels_max = 0;
+    std::shared_ptr<AudioDecoder> _decoder;
+    std::shared_ptr<Reader> _reader;
+    std::string _input_path;
 };
 

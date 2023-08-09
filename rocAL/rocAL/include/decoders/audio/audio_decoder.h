@@ -21,22 +21,32 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <list>
-#include "circular_buffer.h"
-#include "meta_data.h"
-#include "parameter_factory.h"
-#include "node.h"
-#include "meta_node.h"
-#include "randombboxcrop_meta_data_reader.h"
 
-class MetaDataGraph
-{
+#include <cstddef>
+#include <iostream>
+#include <vector>
+#include "parameter_factory.h"
+#include "sndfile.h"
+
+
+class AudioDecoder {
 public:
-    virtual ~MetaDataGraph()= default;
-    virtual void process(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) = 0;
-    virtual void update_meta_data(pMetaDataBatch meta_data, decoded_sample_info decoded_image_info) = 0;
-    virtual void update_random_bbox_meta_data(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data, decoded_sample_info decoded_image_info,crop_image_info crop_image_info) = 0;
-    virtual void update_box_encoder_meta_data(std::vector<float> *anchors, pMetaDataBatch full_batch_meta_data , float criteria, bool offset , float scale, std::vector<float> &means, std::vector<float> &stds, float *encoded_boxes_data, int *encoded_labels_data) = 0;
-    std::list<std::shared_ptr<MetaNode>> _meta_nodes;
+    enum class Status {
+        OK = 0,
+        HEADER_DECODE_FAILED,
+        CONTENT_DECODE_FAILED,
+        UNSUPPORTED,
+        FAILED,
+        NO_MEMORY
+    };
+    virtual AudioDecoder::Status initialize(const char *src_filename) = 0; // This function is responsible for initializing the audio decoder. It takes the source filename as input and returns the status of the initialization process.
+    virtual AudioDecoder::Status decode(float* buffer) = 0; //to pass buffer & number of frames/samples to decode
+    virtual AudioDecoder::Status decode_info(int* samples, int* channels, float* sample_rates) = 0; //to decode info about the audio samples
+    virtual void release() = 0;
+    virtual ~AudioDecoder() = default;
+protected:
+    const char *_src_filename = NULL;
+    SF_INFO _sfinfo;
+    SNDFILE* _sf_ptr;
 };
 

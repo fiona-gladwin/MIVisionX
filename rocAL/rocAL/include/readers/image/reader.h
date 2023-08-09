@@ -159,6 +159,6 @@ public:
     virtual std::string id() = 0;
     //! Returns the number of items remained in this resource
     virtual unsigned count_items() = 0;
-    
+    virtual std::string file_path() = 0;
     virtual ~Reader() = default;
 };

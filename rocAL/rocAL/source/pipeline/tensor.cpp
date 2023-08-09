@@ -63,6 +63,8 @@ vx_size tensor_data_size(RocalTensorDataType data_type) {
             return sizeof(vx_uint32);
         case RocalTensorDataType::INT32:
             return sizeof(vx_int32);
+        case RocalTensorDataType::INT8:
+            return sizeof(vx_int8);
         default:
             throw std::runtime_error("tensor data_type not valid");
     }
@@ -77,6 +79,12 @@ vx_enum interpret_tensor_data_type(RocalTensorDataType data_type) {
             return VX_TYPE_FLOAT16;
         case RocalTensorDataType::UINT8:
             return VX_TYPE_UINT8;
+        case RocalTensorDataType::INT8:
+            return VX_TYPE_INT8;
+        case RocalTensorDataType::INT32:
+            return VX_TYPE_INT32;
+        case RocalTensorDataType::UINT32:
+            return VX_TYPE_UINT32;
         default:
             THROW("Unsupported Tensor type " + TOSTR(data_type))
     }
@@ -108,9 +116,14 @@ bool operator==(const TensorInfo &rhs, const TensorInfo &lhs) {
 
 
 void TensorInfo::reset_tensor_roi_buffers() {
-    if(!_roi_buf) {
-        size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
-        allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
+    size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
+    allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
+    if (_mem_type == RocalMemType::HIP) {
+#if ENABLE_HIP
+        _roi.reset(_roi_buf, hipHostFree);
+#endif
+    } else {
+        _roi.reset(_roi_buf, free);
     }
     if (_is_image) {
         auto roi = get_roi();
@@ -121,6 +134,12 @@ void TensorInfo::reset_tensor_roi_buffers() {
     } else {
         // TODO - For other tensor types
     }
+}
+
+void TensorInfo::reallocate_tensor_sample_rate_buffers() {
+    if (_is_image)
+        THROW("No sample rate available for Image data")
+    _sample_rate = std::make_shared<std::vector<float>>(_batch_size);
 }
 
 TensorInfo::TensorInfo()
@@ -147,46 +166,6 @@ TensorInfo::TensorInfo(std::vector<size_t> dims,
     _data_size = _strides[0] * dims[0];
 
     if (_num_of_dims <= 3) _is_image = false;
-}
-
-TensorInfo::TensorInfo(const TensorInfo &other) {
-    _type = other._type;
-    _num_of_dims = other._num_of_dims;
-    _dims = other._dims;
-    _strides = other._strides;
-    _batch_size = other._batch_size;
-    _mem_type = other._mem_type;
-    _roi_type = other._roi_type;
-    _data_type = other._data_type;
-    _layout = other._layout;
-    _color_format = other._color_format;
-    _data_type_size = other._data_type_size;
-    _data_size = other._data_size;
-    _max_shape = other._max_shape;
-    _is_image = other._is_image;
-    _is_metadata = other._is_metadata;
-    _channels = other._channels;
-    if(!other.is_metadata()) {  // For Metadata ROI buffer is not required
-        allocate_host_or_pinned_mem(&_roi_buf, _batch_size * 4 * sizeof(unsigned), _mem_type);
-        memcpy((void *)_roi_buf, (const void *)other.get_roi(), _batch_size * 4 * sizeof(unsigned));
-    }
-}
-
-TensorInfo::~TensorInfo() {
-    if(!_is_metadata) {
-        if(_mem_type == RocalMemType::HIP) {
-#if ENABLE_HIP
-            if(_roi_buf) {
-                hipError_t err = hipHostFree(_roi_buf);
-                if (err != hipSuccess)
-                    ERR("hipHostFree failed " + TOSTR(err));
-            }
-#endif
-        } else {
-            if(_roi_buf) free(_roi_buf);
-        }
-        _roi_buf = nullptr;
-    } 
 }
 
 void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
@@ -217,6 +196,44 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
             }
         }
     }
+    else if(!_info.is_metadata()) {
+        auto max_dims = _info.max_shape();
+        unsigned max_samples = max_dims.at(0);
+        unsigned max_channels = max_dims.at(1);
+        auto samples = width;
+        auto channels = height;
+        if (samples.size() != channels.size())
+            THROW("Batch size of Tensor height and width info does not match")
+        if (samples.size() != info().batch_size())
+            THROW("The batch size of actual Tensor height and width different from Tensor batch size " + TOSTR(samples.size()) + " != " + TOSTR(info().batch_size()))
+        for (unsigned i = 0; i < info().batch_size(); i++) {
+            if (samples[i] > max_samples) {
+                ERR("Given ROI width is larger than buffer width for tensor[" + TOSTR(i) + "] " + TOSTR(samples[i]) + " > " + TOSTR(max_samples))
+                _info.get_roi()[i].x1 = max_samples;
+            }
+            else {
+                _info.get_roi()[i].x1 = samples[i];
+            }
+            if (channels[i] > max_channels) {
+                ERR("Given ROI height is larger than buffer with for tensor[" + TOSTR(i) + "] " + TOSTR(channels[i]) + " > " + TOSTR(max_channels))
+                _info.get_roi()[i].y1 = max_channels;
+            }
+            else {
+                _info.get_roi()[i].y1 = channels[i];
+            }
+        }
+    }
+}
+
+void Tensor::update_audio_tensor_sample_rate(const std::vector<float> &sample_rate) {
+    if (_info.is_image()) {
+        THROW("No sample rate available for Image data")
+    }
+    else if(!_info.is_metadata()) {
+        for (unsigned i = 0; i < info().batch_size(); i++) {
+            _info.get_sample_rate()->at(i) = sample_rate[i];
+        }
+    }
 }
 
 Tensor::~Tensor() {
@@ -224,8 +241,7 @@ Tensor::~Tensor() {
     if (_vx_handle) vxReleaseTensor(&_vx_handle);
 }
 
-Tensor::Tensor(const TensorInfo &tensor_info)
-    : _info(tensor_info) {
+Tensor::Tensor(const TensorInfo &tensor_info) : _info(tensor_info) {
     _info._type = TensorInfo::Type::UNKNOWN;
     _mem_handle = nullptr;
 }
@@ -356,6 +372,25 @@ unsigned Tensor::copy_data(void *user_buffer, RocalOutputMemType external_mem_ty
         }
     } else {
         THROW("copy_data requested mem type not supported")
+    }
+    return 0;
+}
+
+unsigned Tensor::copy_data(void *user_buffer, uint max_y1, uint max_x1) {
+    if (_mem_handle == nullptr) return 0;
+    //TODO : Handle this case for HIP buffer
+    auto max_shape_x1 = _info.max_shape().at(0);
+    auto dtype_size = _info.data_type_size();
+    auto src_stride = (max_shape_x1 * _info.max_shape().at(1) * dtype_size);
+    auto dst_stride = (max_y1 * max_x1 * dtype_size);
+    for (uint i = 0; i < _info._batch_size; i++) {
+        auto temp_src_ptr = static_cast<unsigned char *>(_mem_handle) + i * src_stride;
+        auto temp_dst_ptr = static_cast<unsigned char *>(user_buffer) + i * dst_stride;
+        for (uint height = 0; height < max_y1; height++) {
+            memcpy(temp_dst_ptr, temp_src_ptr, max_x1 * dtype_size);
+            temp_src_ptr += max_shape_x1 * dtype_size;
+            temp_dst_ptr += max_x1 * dtype_size;
+        }
     }
     return 0;
 }
