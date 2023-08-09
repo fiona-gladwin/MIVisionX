@@ -125,21 +125,17 @@ static vx_status VX_CALLBACK validateOpticalFlowToColor(vx_node node, const vx_r
 
 static vx_status VX_CALLBACK processOpticalFlowToColor(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     RppStatus rpp_status = RPP_SUCCESS;
-    vx_status return_status = VX_ERROR_NOT_IMPLEMENTED;
+    vx_status return_status = VX_ERROR_NOT_SUPPORTED;
     OpticalFlowToColorLocalData *data = NULL;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     refreshOpticalFlowToColor(node, parameters, num, data);
     
     const RpptSubpixelLayout subpixelLayout = RpptSubpixelLayout::BGRtype;
     const RpptRoiType roiTypeXYWH = RpptRoiType::XYWH;
-    const RpptRoiType roiTypeLTRB = RpptRoiType::LTRB;
     const RpptAngleType angleType = RpptAngleType::DEGREES;
-const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_NEIGHBOR;
 
-    std::cerr << "Optical Flow to color process ...\t";
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
-        std::cerr << "OP SEQUENCE LENGTH : " << data->outputTensorDims[1] << "\n";
         for (unsigned sequence = 0; sequence < data->inputTensorDims[0]; sequence++) {
             Rpp32f *d_motionVectorCartesian = data->pSrc + (sequence * data->inputTensorDims[1] * data->pSrcDesc->strides.nStride);
             Rpp8u *rgbDst = data->pDst + (sequence * data->outputTensorDims[1] * data->pDstDesc->strides.nStride);
@@ -156,7 +152,6 @@ const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_N
                 // all ops in stream1 need to complete before rppt_multiply_scalar_gpu executes on stream1 and rppt_image_min_max executes on stream2
                 // hipStreamSynchronize(stream1);
                 hipDeviceSynchronize();
-                std::cerr << "-C2P-";
 
                 // normalize polar angle from 0 to 1 in hip stream1
                 rppt_multiply_scalar_gpu(d_motionVectorsPolarF32Comp1, data->pMotionVectorGenericDesc, d_motionVectorsPolarF32Comp1, data->pMotionVectorGenericDesc, HUE_CONVERSION_FACTOR, data->pDstRoi, roiTypeXYWH, data->handle->rppHandle);
@@ -174,24 +169,20 @@ const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_N
                 // hipStreamSynchronize(stream2);
                 // hipStreamSynchronize(stream1);
                 hipDeviceSynchronize(); // could be a hipStreamSynchronize(stream2); followed by hipStreamSynchronize(stream1);
-                std::cerr << "-Minmax-" << data->imageMinMaxArr[0] << " & " << data->imageMinMaxArr[1];
                 // fused bitDepth + layout + colorType conversion of F32-PLN3 HSV to U8-PKD3 BGR in hip stream1
                 rppt_hsv_to_rgbbgr_gpu(d_motionVectorsPolarF32Comp1, data->pHSVScaleDesc, rgbDst, data->pDstDesc, subpixelLayout, data->handle->rppHandle);
 
                 // all ops in all streams need to complete at end of post-processing
                 hipDeviceSynchronize();
-                std::cerr << "-HSV2RGB-";
-                
-                
+
                 d_motionVectorCartesian += data->pSrcDesc->strides.nStride;
                 rgbDst += data->pDstDesc->strides.nStride;
             }
-            std::cerr << "Next sequence\n";
         }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     }
-    std::cerr << "Optical flow to color process ends ...\n";
+
     return return_status;
 }
 

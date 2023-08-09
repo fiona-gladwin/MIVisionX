@@ -122,7 +122,7 @@ static vx_status VX_CALLBACK validateOpticalFlow(vx_node node, const vx_referenc
 
 static vx_status VX_CALLBACK processOpticalFlow(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     RppStatus rpp_status = RPP_SUCCESS;
-    vx_status return_status = VX_ERROR_NOT_IMPLEMENTED;
+    vx_status return_status = VX_ERROR_NOT_SUPPORTED;
     OpticalFlowLocalData *data = NULL;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     refreshOpticalFlow(node, parameters, num, data);
@@ -130,14 +130,10 @@ static vx_status VX_CALLBACK processOpticalFlow(vx_node node, const vx_reference
     const RpptSubpixelLayout subpixelLayout = RpptSubpixelLayout::BGRtype;
     const RpptRoiType roiTypeXYWH = RpptRoiType::XYWH;
     const RpptRoiType roiTypeLTRB = RpptRoiType::LTRB;
-    const RpptAngleType angleType = RpptAngleType::DEGREES;
-const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_NEIGHBOR;
+    const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_NEIGHBOR;
 
-    std::cerr << "Optical process ...\t";
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_HIP
-        std::cerr << "OP SEQUENCE LENGTH : " << data->outputTensorDims[1] << "\n";
-
         for (unsigned sequence = 0; sequence < data->inputTensorDims[0]; sequence++) {
             Rpp8u *rgbSrc1 = data->pSrc + (sequence * data->inputTensorDims[1] * data->pSrcDesc->strides.nStride);
             Rpp32f *motionVectPtr = data->pDst + (sequence * data->outputTensorDims[1] * data->pDstDesc->strides.nStride);
@@ -162,16 +158,13 @@ const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_N
                 hipDeviceSynchronize();
 
                 // calculate optical flow
-                RppStatus fbackOptFlowReturn = rppt_farneback_optical_flow_gpu(d_src1, d_src2, data->pGreyScaleDesc, d_motionVectorsCartesianF32Comp1, d_motionVectorsCartesianF32Comp2, data->pMotionVectorCompDesc, 0.75f, 5, 9, 3, 5, 1.2f, data->handle->rppHandle);
+                rpp_status = rppt_farneback_optical_flow_gpu(d_src1, d_src2, data->pGreyScaleDesc, d_motionVectorsCartesianF32Comp1, d_motionVectorsCartesianF32Comp2, data->pMotionVectorCompDesc, 0.75f, 5, 9, 3, 5, 1.2f, data->handle->rppHandle);
                 hipDeviceSynchronize();
                 
                 // verify successful motion vector generation
-                if (fbackOptFlowReturn != RPP_SUCCESS)
+                if (rpp_status != RPP_SUCCESS)
                     return VX_FAILURE;
-                
-            for (int c = 0; c < 10; c++)
-                std::cerr << d_motionVectorsCartesianF32Comp1[c] << " ";
-                std::cerr << "\n";
+
                 // update d_src1 optimally to d_src2 with pointer swap
                 Rpp8u *temp;
                 temp = d_src1;
@@ -179,12 +172,11 @@ const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_N
                 d_src2 = temp;
                 motionVectPtr += data->pDstDesc->strides.nStride;
             }
-            std::cerr << "Next sequence\n";
         }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     }
-    std::cerr << "Optical process ends ...\n";
+    
     return return_status;
 }
 
