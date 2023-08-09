@@ -2228,14 +2228,12 @@ rocalOpticalFlow(
     auto context = static_cast<Context*>(p_context);
     auto input = static_cast<Tensor*>(p_input);
     try {
-        auto input_info = input->info();
-        std::vector<size_t> out_dims = input_info.dims();
-        out_dims = {out_dims[0], out_dims[1] - 1, 2, 540, 960};
-        auto output_info  = TensorInfo(std::move(out_dims),
-                                       context->master_graph->mem_type(),
-                                       RocalTensorDataType::FP32);
+        auto output_info = input->info();
         output_info.set_tensor_layout(RocalTensorlayout::NFCHW);
-        output_info.set_max_shape();
+        output_info.set_data_type(RocalTensorDataType::FP32);
+        std::vector<size_t> out_dims = output_info.dims();
+        out_dims = {out_dims[0], out_dims[1] - 1, 2, 540, 960};
+        output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
         
         context->master_graph->add_node<OpticalFlowNode>({input}, {output});
@@ -2260,14 +2258,12 @@ rocalOpticalFlowToColor(
     auto context = static_cast<Context*>(p_context);
     auto input = static_cast<Tensor*>(p_input);
     try {
-        auto input_info = input->info();
-        std::vector<size_t> out_dims = input_info.dims();
-        out_dims = {out_dims[0], out_dims[1], 540, 960, 3};
-        auto output_info  = TensorInfo(std::move(out_dims),
-                                       context->master_graph->mem_type(),
-                                       RocalTensorDataType::UINT8);
+        auto output_info = input->info();
         output_info.set_tensor_layout(RocalTensorlayout::NFHWC);
-        output_info.set_max_shape();
+        output_info.set_data_type(RocalTensorDataType::UINT8);
+        std::vector<size_t> out_dims = output_info.dims();
+        out_dims = {out_dims[0], out_dims[1], 540, 960, 3};
+        output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
         
         context->master_graph->add_node<OpticalFlowToColorNode>({input}, {output});
