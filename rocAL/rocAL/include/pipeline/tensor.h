@@ -273,6 +273,7 @@ public:
     explicit Tensor(const TensorInfo& tensor_info);
     int create(vx_context context);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
+    void update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
     void set_roi(unsigned *roi_ptr) { _info.set_roi_ptr(roi_ptr); }
     void copy_roi(void *roi_buffer) { _info.copy_roi(roi_buffer); }
