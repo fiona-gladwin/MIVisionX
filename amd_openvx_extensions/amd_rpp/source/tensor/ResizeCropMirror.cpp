@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -153,7 +153,7 @@ static vx_status VX_CALLBACK initializeResizeCropMirror(vx_node node, const vx_r
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[10], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(inputLayout);
     data->outputLayout = static_cast<vxTensorLayout>(outputLayout);
     data->interpolationType = static_cast<RpptInterpolationType>(interpolation_type);
@@ -179,11 +179,11 @@ static vx_status VX_CALLBACK initializeResizeCropMirror(vx_node node, const vx_r
 #if ENABLE_HIP
     hipHostMalloc(&data->pDstImgSize, data->pSrcDesc->n * sizeof(RpptImagePatch));
 #else
-    data->pDstImgSize = static_cast<RpptImagePatch *>(calloc(data->pSrcDesc->n, sizeof(RpptImagePatch)));
+    data->pDstImgSize = new RpptImagePatch[data->pSrcDesc->n];
 #endif    
-    data->pResizeWidth = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pResizeHeight = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pMirror = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pResizeWidth = new Rpp32u[data->pSrcDesc->n];
+    data->pResizeHeight = new Rpp32u[data->pSrcDesc->n];
+    data->pMirror = new Rpp32u[data->pSrcDesc->n];
     refreshResizeCropMirror(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -193,18 +193,18 @@ static vx_status VX_CALLBACK initializeResizeCropMirror(vx_node node, const vx_r
 static vx_status VX_CALLBACK uninitializeResizeCropMirror(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ResizeCropMirrorLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pResizeWidth != nullptr)   free(data->pResizeWidth);
-    if (data->pResizeHeight != nullptr)  free(data->pResizeHeight);
-    if (data->pMirror != nullptr)  free(data->pMirror);
+    delete[] data->pResizeWidth;
+    delete[] data->pResizeHeight;
+    delete[] data->pMirror;
 #if ENABLE_HIP
     if (data->pDstImgSize != nullptr) hipHostFree(data->pDstImgSize);
 #else
-    if (data->pDstImgSize != nullptr) free(data->pDstImgSize);
+    delete[] data->pDstImgSize;
 #endif
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

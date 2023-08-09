@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2021 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,7 @@ static vx_status VX_CALLBACK refreshResizeMirrorNormalize(vx_node node, const vx
     data->pSrcRoi = reinterpret_cast<RpptROI *>(roi_tensor_ptr);
     if (data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW) {
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
-        for (unsigned n = data->inputTensorDims[0] - 1; n >= 0; n--) {
+        for (int n = data->inputTensorDims[0] - 1; n >= 0; n--) {
             unsigned index = n * num_of_frames;
             for (unsigned f = 0; f < num_of_frames; f++) {
                 data->pSrcRoi[index + f].xywhROI = data->pSrcRoi[n].xywhROI;
@@ -165,7 +165,7 @@ static vx_status VX_CALLBACK initializeResizeMirrorNormalize(vx_node node, const
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[10], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[11], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[12], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
     data->interpolationType = static_cast<RpptInterpolationType>(interpolation_type);
@@ -189,15 +189,15 @@ static vx_status VX_CALLBACK initializeResizeMirrorNormalize(vx_node node, const
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
 
-    data->pResizeWidth = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pResizeHeight = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pMean = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n * data->pSrcDesc->c));
-    data->pStdDev = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n * data->pSrcDesc->c));
-    data->pMirror = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pResizeWidth = new Rpp32u[data->pSrcDesc->n];
+    data->pResizeHeight = new Rpp32u[data->pSrcDesc->n];
+    data->pMean = new Rpp32f[data->pSrcDesc->n * data->pSrcDesc->c];
+    data->pStdDev = new Rpp32f[data->pSrcDesc->n * data->pSrcDesc->c];
+    data->pMirror = new Rpp32u[data->pSrcDesc->n];
 #if ENABLE_HIP
     hipHostMalloc(&data->pDstImgSize, data->pSrcDesc->n * sizeof(RpptImagePatch));
 #else
-    data->pDstImgSize = static_cast<RpptImagePatch *>(calloc(data->pSrcDesc->n, sizeof(RpptImagePatch)));
+    data->pDstImgSize = new RpptImagePatch[data->pSrcDesc->n];
 #endif    
     refreshResizeMirrorNormalize(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
@@ -209,20 +209,20 @@ static vx_status VX_CALLBACK uninitializeResizeMirrorNormalize(vx_node node, con
 {
     ResizeMirrorNormalizeLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pResizeWidth != nullptr)  free(data->pResizeWidth);
-    if (data->pResizeHeight != nullptr)  free(data->pResizeHeight);
-    if (data->pMean != nullptr)  free(data->pMean);
-    if (data->pStdDev != nullptr)  free(data->pStdDev);
-    if (data->pMirror != nullptr) free(data->pMirror);
+    delete[] data->pResizeWidth;
+    delete[] data->pResizeHeight;
+    delete[] data->pMean;
+    delete[] data->pStdDev;
+    delete[] data->pMirror;
 #if ENABLE_HIP
     if (data->pDstImgSize != nullptr) hipHostFree(data->pDstImgSize);
 #else
-    if (data->pDstImgSize != nullptr) free(data->pDstImgSize);
+    delete[] data->pDstImgSize;
 #endif
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 
