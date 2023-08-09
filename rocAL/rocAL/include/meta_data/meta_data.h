@@ -229,9 +229,9 @@ public:
     }
     void insert(MetaDataInfoBatch &other) {
         img_sizes.insert(img_sizes.end(), other.img_sizes.begin(), other.img_sizes.end());
-        img_roi_sizes.insert(img_roi_sizes.end(), other.img_roi_sizes.begin(), other.img_roi_sizes.end());
         img_ids.insert(img_ids.end(), other.img_ids.begin(), other.img_ids.end());
         img_names.insert(img_names.end(), other.img_names.begin(), other.img_names.end());
+        img_roi_sizes.insert(img_roi_sizes.end(), other.img_roi_sizes.begin(), other.img_roi_sizes.end());
     }
 };
 

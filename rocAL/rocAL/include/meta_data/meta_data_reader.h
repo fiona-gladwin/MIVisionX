@@ -78,7 +78,7 @@ public:
     unsigned out_img_height() const { return _out_img_height; }
     void set_out_img_width(unsigned out_img_width) { _out_img_width = out_img_width; }
     void set_out_img_height(unsigned out_img_height) { _out_img_height = out_img_height; }
-    void set_class_remapping(bool avoid_class_remapping) { _avoid_class_remapping = avoid_class_remapping; }
+    void set_avoid_class_remapping(bool avoid_class_remapping) { _avoid_class_remapping = avoid_class_remapping; }
     void set_aspect_ratio_grouping(bool aspect_ratio_grouping) { _aspect_ratio_grouping = aspect_ratio_grouping; }
 };
 
@@ -96,7 +96,7 @@ public:
     virtual void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) = 0;
     virtual void read_all(const std::string& path) = 0;// Reads all the meta data information
     virtual void lookup(const std::vector<std::string>& image_names) = 0;// finds meta_data info associated with given names and fills the output
-    virtual ImgSize lookup_image_size(const std::string& image_name) { return {}; };
+    virtual ImgSize lookup_image_size(const std::string& image_name) { return {}; }
     virtual void release() = 0; // Deletes the loaded information
     virtual const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content()=0;
     virtual bool exists(const std::string &image_name) = 0;

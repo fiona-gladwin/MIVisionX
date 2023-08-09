@@ -193,7 +193,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
     {
         if (0 == std::strcmp(key, "images"))
         {
-            int original_id;
+            int image_id;
             RAPIDJSON_ASSERT(parser.PeekType() == kArrayType);
             parser.EnterArray();
             while (parser.NextArrayValue())
@@ -220,14 +220,14 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     }
                     else if(0 == std::strcmp(internal_key, "id"))
                     {
-                        original_id = parser.GetInt();
+                        image_id = parser.GetInt();
                     }
                     else
                     {
                         parser.SkipValue();
                     }
                 }
-                _map_img_names.insert(pair<int, std::string>(original_id, image_name));
+                _map_img_names.insert(pair<int, std::string>(image_id, image_name));
                 _map_img_sizes.insert(pair<std::string, ImgSize>(image_name, img_size));
                 img_size = {};
             }
@@ -385,10 +385,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
             auto _it_label = _label_info.find(bb_labels[i]);
-            if (_avoid_class_remapping)
-                cnt_idx = _it_label->first;
-            else
-                cnt_idx = _it_label->second;
+            cnt_idx = _avoid_class_remapping ? _it_label->first : _it_label->second;
             continuous_label_id.push_back(cnt_idx);
         }
         elem.second->set_labels(continuous_label_id);

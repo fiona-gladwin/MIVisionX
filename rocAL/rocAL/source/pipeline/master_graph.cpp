@@ -1083,7 +1083,7 @@ std::vector<rocalTensorList *> MasterGraph::create_coco_meta_data_reader(const c
         THROW("Metadata output already defined, there can only be a single output for metadata augmentation");
 
     MetaDataConfig config(metadata_type, reader_type, source_path, std::map<std::string, std::string>(), std::string());
-    config.set_class_remapping(avoid_class_remapping);
+    config.set_avoid_class_remapping(avoid_class_remapping);
     config.set_aspect_ratio_grouping(aspect_ratio_grouping);
     config.set_out_img_width(pose_output_width);
     config.set_out_img_height(pose_output_height);

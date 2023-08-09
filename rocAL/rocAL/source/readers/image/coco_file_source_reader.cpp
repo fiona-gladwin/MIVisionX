@@ -87,10 +87,8 @@ Reader::Status COCOFileSourceReader::initialize(ReaderConfig desc)
         }
     }
 
-    if (_meta_data_reader && _meta_data_reader->aspect_ratio_grouping())
-    {
-        for (const auto &filename : _file_names)
-        {
+    if (_meta_data_reader && _meta_data_reader->aspect_ratio_grouping()) {
+        for (const auto &filename : _file_names) {
             std::string base_filename = filename.substr(filename.find_last_of("/\\") + 1);
             auto img_size = _meta_data_reader->lookup_image_size(base_filename);
             auto aspect_ratio = static_cast<float>(img_size.h) / img_size.w;
@@ -116,8 +114,7 @@ Reader::Status COCOFileSourceReader::initialize(ReaderConfig desc)
         auto mid = std::upper_bound(_aspect_ratios.begin(), _aspect_ratios.end(), 1.0f) - _aspect_ratios.begin();
 
         // shuffle dataset if set
-        if (ret == Reader::Status::OK && _shuffle)
-        {
+        if (ret == Reader::Status::OK && _shuffle) {
             std::random_shuffle(_file_names.begin(), _file_names.begin() + mid);
             std::random_shuffle(_file_names.begin() + mid, _file_names.end());
             std::vector<std::string> shuffled_filenames;
@@ -233,8 +230,7 @@ void COCOFileSourceReader::reset()
     _aspect_ratios.clear();
 
     if (_meta_data_reader && _meta_data_reader->aspect_ratio_grouping()) {
-        for (const auto &filename : _file_names)
-        {
+        for (const auto &filename : _file_names) {
             std::string base_filename = filename.substr(filename.find_last_of("/\\") + 1);
             auto img_size = _meta_data_reader->lookup_image_size(base_filename);
             auto aspect_ratio = static_cast<float>(img_size.h) / img_size.w;
@@ -258,8 +254,7 @@ void COCOFileSourceReader::reset()
         _file_names = sorted;
         std::sort(_aspect_ratios.begin(), _aspect_ratios.end());
         auto mid = std::upper_bound(_aspect_ratios.begin(), _aspect_ratios.end(), 1.0f) - _aspect_ratios.begin();
-        if (_shuffle)
-        {
+        if (_shuffle) {
             std::random_shuffle(_file_names.begin(), _file_names.begin() + mid);
             std::random_shuffle(_file_names.begin() + mid, _file_names.end());
             std::vector<std::string> shuffled_filenames;

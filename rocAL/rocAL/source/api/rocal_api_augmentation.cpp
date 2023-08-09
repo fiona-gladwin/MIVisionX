@@ -660,9 +660,10 @@ ROCAL_API_CALL rocalResizeMirrorNormalize(
             }
         }
         if(scaling_mode == RocalResizeScalingMode::ROCAL_SCALING_MODE_MIN_MAX) {
+            // For Min Max scaling mode, both min size and max size are passed as resize_shorter and resize_longer values
             maximum_size = {resize_shorter, resize_longer};
         }
-        
+
         RocalTensorlayout op_tensor_layout = static_cast<RocalTensorlayout>(output_layout);
         RocalTensorDataType op_tensor_datatype = static_cast<RocalTensorDataType>(output_datatype);
         TensorInfo output_info = input->info();
@@ -679,9 +680,8 @@ ROCAL_API_CALL rocalResizeMirrorNormalize(
             context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode, ResizeMirrorNormalizeNode>(rmn_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
-        ERR(e.what());
+        ERR(e.what())
     }
-
     return output;
 }
 
