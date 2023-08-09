@@ -18,9 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 from amd.rocal.plugin.generic import ROCALClassificationIterator
 from amd.rocal.pipeline import Pipeline
 import amd.rocal.fn as fn
@@ -46,7 +43,6 @@ SCALING_MODES = {
     2: types.SCALING_MODE_NOT_SMALLER,
     3: types.SCALING_MODE_NOT_LARGER
 }
-
 
 def draw_patches(img, idx, device):
     # image is expected as a tensor, bboxes as numpy
@@ -87,8 +83,8 @@ def main():
     random_seed = args.seed
     local_rank = args.local_rank
     world_size = args.world_size
-    interpolation_type = INTERPOLATION_TYPES[args.interpolation_type]
-    scaling_mode = SCALING_MODES[args.scaling_mode]
+    interpolation_type = INTERPOLATION_TYPES[args.resize_interpolation_type]
+    scaling_mode = SCALING_MODES[args.resize_scaling_mode]
     if (scaling_mode != types.SCALING_MODE_DEFAULT and interpolation_type !=
             types.LINEAR_INTERPOLATION):
         interpolation_type = types.LINEAR_INTERPOLATION
@@ -104,15 +100,14 @@ def main():
     except OSError as error:
         print(error)
     # Create Pipeline instance
-    pipe = Pipeline(
-        batch_size=batch_size,
-        num_threads=num_threads,
-        device_id=local_rank,
-        seed=random_seed,
-        rocal_cpu=rocal_cpu,
-        tensor_layout=tensor_layout,
-        tensor_dtype=tensor_dtype,
-        output_memory_type=types.CPU_MEMORY if rocal_cpu else types.GPU_MEMORY)
+    pipe = Pipeline(batch_size=batch_size,
+                    num_threads=num_threads,
+                    device_id=local_rank,
+                    seed=random_seed,
+                    rocal_cpu=rocal_cpu,
+                    tensor_layout=tensor_layout,
+                    tensor_dtype=tensor_dtype,
+                    output_memory_type=types.CPU_MEMORY if rocal_cpu else types.GPU_MEMORY)
     # Set Params
     output_set = 0
     rocal_device = 'cpu' if rocal_cpu else 'gpu'
@@ -121,33 +116,30 @@ def main():
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
         if reader_type == "file":
-            jpegs, _ = fn.readers.file(
-                file_root=data_path)
-            images = fn.decoders.image(
-                jpegs,
-                file_root=data_path,
-                device=decoder_device,
-                max_decoded_width=max_width,
-                max_decoded_height=max_height,
-                output_type=color_format,
-                shard_id=0,
-                num_shards=1,
-                random_shuffle=False)
+            jpegs, _ = fn.readers.file(file_root=data_path)
+            images = fn.decoders.image(jpegs,
+                                   file_root=data_path,
+                                   device=decoder_device,
+                                   max_decoded_width=max_width,
+                                   max_decoded_height=max_height,
+                                   output_type=color_format,
+                                   shard_id=local_rank,
+                                   num_shards=world_size,
+                                   random_shuffle=False)
 
         elif reader_type == "coco":
             annotation_path = args.json_path
             jpegs, _, _ = fn.readers.coco(annotations_file=annotation_path)
-            images = fn.decoders.image(
-                jpegs,
-                file_root=data_path,
-                annotations_file=annotation_path,
-                device=decoder_device,
-                max_decoded_width=max_width,
-                max_decoded_height=max_height,
-                output_type=color_format,
-                shard_id=0,
-                num_shards=1,
-                random_shuffle=False)
+            images = fn.decoders.image(jpegs,
+                                   file_root=data_path,
+                                   annotations_file=annotation_path,
+                                   device=decoder_device,
+                                   max_decoded_width=max_width,
+                                   max_decoded_height=max_height,
+                                   output_type=color_format,
+                                   shard_id=local_rank,
+                                   num_shards=world_size,
+                                   random_shuffle=False)
 
         elif reader_type == "tf_classification":
             try:
@@ -160,7 +152,7 @@ def main():
                 'image/class/label':'image/class/label',
                 'image/filename':'image/filename'
             }
-            features={
+            features = {
                 'image/encoded':tf.io.FixedLenFeature((), tf.string, ""),
                 'image/class/label':tf.io.FixedLenFeature([1], tf.int64,  -1),
                 'image/filename':tf.io.FixedLenFeature((), tf.string, "")
@@ -168,12 +160,12 @@ def main():
             inputs = fn.readers.tfrecord(data_path, featureKeyMap, features, reader_type=0)
             jpegs = inputs["image/encoded"]
             images = fn.decoders.image(jpegs, user_feature_key_map=featureKeyMap,
-                output_type=color_format, path=data_path,
-                max_decoded_width=max_width,
-                max_decoded_height=max_height,
-                shard_id=0,
-                num_shards=1,
-                random_shuffle=False)
+                                       output_type=color_format, path=data_path,
+                                       max_decoded_width=max_width,
+                                       max_decoded_height=max_height,
+                                       shard_id=local_rank,
+                                       num_shards=world_size,
+                                       random_shuffle=False)
 
         elif reader_type == "tf_detection":
             try:
@@ -191,7 +183,7 @@ def main():
                 'image/object/bbox/ymax': 'image/object/bbox/ymax',
                 'image/filename': 'image/filename'
             }
-            features={
+            features = {
                 'image/encoded': tf.io.FixedLenFeature((), tf.string, ""),
                 'image/class/label': tf.io.FixedLenFeature([1], tf.int64,  -1),
                 'image/class/text': tf.io.FixedLenFeature([], tf.string, ''),
@@ -205,131 +197,119 @@ def main():
             jpegs = inputs["image/encoded"]
             _ = inputs["image/class/label"]
             images = fn.decoders.image_random_crop(jpegs,user_feature_key_map=featureKeyMap,
-                                                max_decoded_width=max_width,
-                                                max_decoded_height=max_height,
-                                                output_type=color_format,
-                                                shard_id=0,
-                                                num_shards=1,
-                                                random_shuffle=False,path = data_path)
+                                                   max_decoded_width=max_width,
+                                                   max_decoded_height=max_height,
+                                                   output_type=color_format,
+                                                   shard_id=local_rank,
+                                                   num_shards=world_size,
+                                                   random_shuffle=False, path=data_path)
 
         elif reader_type == "caffe_classification":
             jpegs, _ = fn.readers.caffe(path=data_path, bbox=False)
-            images = fn.decoders.image(
-                jpegs,
-                path=data_path,
-                device=decoder_device,
-                max_decoded_width=max_width,
-                max_decoded_height=max_height,
-                output_type=color_format,
-                shard_id=0,
-                num_shards=1,
-                random_shuffle=False)
+            images = fn.decoders.image(jpegs,
+                                       path=data_path,
+                                       device=decoder_device,
+                                       max_decoded_width=max_width,
+                                       max_decoded_height=max_height,
+                                       output_type=color_format,
+                                       shard_id=local_rank,
+                                       num_shards=world_size,
+                                       random_shuffle=False)
 
         elif reader_type == "caffe_detection":
             jpegs, _, _ = fn.readers.caffe(path=data_path, bbox=True)
-            images = fn.decoders.image(
-                jpegs,
-                path=data_path,
-                device=decoder_device,
-                max_decoded_width=max_width,
-                max_decoded_height=max_height,
-                output_type=color_format,
-                shard_id=0,
-                num_shards=1,
-                random_shuffle=False)
+            images = fn.decoders.image(jpegs,
+                                       path=data_path,
+                                       device=decoder_device,
+                                       max_decoded_width=max_width,
+                                       max_decoded_height=max_height,
+                                       output_type=color_format,
+                                       shard_id=local_rank,
+                                       num_shards=world_size,
+                                       random_shuffle=False)
 
         elif reader_type == "caffe2_classification":
-            jpegs, _ = fn.readers.caffe2(path=data_path, bbox=False)
-            images = fn.decoders.image(
-                jpegs,
-                path=data_path,
-                device=decoder_device,
-                max_decoded_width=max_width,
-                max_decoded_height=max_height,
-                output_type=color_format,
-                shard_id=0,
-                num_shards=1,
-                random_shuffle=False)
+            jpegs, _ = fn.readers.caffe2(path=data_path)
+            images = fn.decoders.image(jpegs,
+                                       path=data_path,
+                                       device=decoder_device,
+                                       max_decoded_width=max_width,
+                                       max_decoded_height=max_height,
+                                       output_type=color_format,
+                                       shard_id=local_rank,
+                                       num_shards=world_size,
+                                       random_shuffle=False)
 
         elif reader_type == "caffe2_detection":
             jpegs, _, _ = fn.readers.caffe2(path=data_path, bbox=True)
-            images = fn.decoders.image(
-                jpegs,
-                path=data_path,
-                device=decoder_device,
-                max_decoded_width=max_width,
-                max_decoded_height=max_height,
-                output_type=color_format,
-                shard_id=0,
-                num_shards=1,
-                random_shuffle=False)
+            images = fn.decoders.image(jpegs,
+                                       path=data_path,
+                                       device=decoder_device,
+                                       max_decoded_width=max_width,
+                                       max_decoded_height=max_height,
+                                       output_type=color_format,
+                                       shard_id=local_rank,
+                                       num_shards=world_size,
+                                       random_shuffle=False)
 
         elif reader_type == "mxnet":
             jpegs = fn.readers.mxnet(path=data_path)
-            images = fn.decoders.image(
-                jpegs,
-                path=data_path,
-                device=decoder_device,
-                max_decoded_width=max_width,
-                max_decoded_height=max_height,
-                output_type=color_format,
-                shard_id=0,
-                num_shards=1,
-                random_shuffle=False)
+            images = fn.decoders.image(jpegs,
+                                       path=data_path,
+                                       device=decoder_device,
+                                       max_decoded_width=max_width,
+                                       max_decoded_height=max_height,
+                                       output_type=color_format,
+                                       shard_id=local_rank,
+                                       num_shards=world_size,
+                                       random_shuffle=False)
 
         if augmentation_name == "resize":
             resize_w = 400
             resize_h = 400
             if (scaling_mode == types.SCALING_MODE_STRETCH):
                 resize_h = 480
-            output = fn.resize(
-                images,
-                resize_width=resize_w,
-                resize_height=resize_h,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype,
-                scaling_mode=scaling_mode,
-                interpolation_type=interpolation_type)
+            output = fn.resize(images,
+                               resize_width=resize_w,
+                               resize_height=resize_h,
+                               rocal_tensor_output_layout=tensor_layout,
+                               rocal_tensor_output_datatype=tensor_dtype,
+                               scaling_mode=scaling_mode,
+                               interpolation_type=interpolation_type)
         elif augmentation_name == "rotate":
-            output = fn.rotate(
-                images,
-                angle=45.0,
-                dest_width=640,
-                dest_height=480,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype,
-                interpolation_type=interpolation_type)
+            output = fn.rotate(images,
+                               angle=45.0,
+                               dest_width=640,
+                               dest_height=480,
+                               rocal_tensor_output_layout=tensor_layout,
+                               rocal_tensor_output_datatype=tensor_dtype,
+                               interpolation_type=interpolation_type)
         elif augmentation_name == "brightness":
-            output = fn.brightness(
-                images,
-                alpha=1.9,
-                beta=20.0,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.brightness(images,
+                                   alpha=1.9,
+                                   beta=20.0,
+                                   rocal_tensor_output_layout=tensor_layout,
+                                   rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "gamma_correction":
-            output = fn.gamma_correction(
-                images,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.gamma_correction(images,
+                                         rocal_tensor_output_layout=tensor_layout,
+                                         rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "contrast":
-            output = fn.contrast(
-                images,
-                contrast_factor=30.0,
-                contrast_center=80.0,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.contrast(images,
+                                 contrast_factor=30.0,
+                                 contrast_center=80.0,
+                                 rocal_tensor_output_layout=tensor_layout,
+                                 rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "flip":
-            output = fn.flip(
-                images,
-                h_flip=1,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.flip(images,
+                             h_flip=1,
+                             rocal_tensor_output_layout=tensor_layout,
+                             rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "blur":
-            output = fn.blur(
-                images,
-                kernel_size=5,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.blur(images,
+                             kernel_size=5,
+                             rocal_tensor_output_layout=tensor_layout,
+                             rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "warp_affine":
             output = fn.warp_affine(images, dest_height=480, dest_width=640, transform_matrix=[1.0, 1.0, 0.5, 0.5, 7.0, 7.0],
                                     rocal_tensor_output_layout=tensor_layout, rocal_tensor_output_datatype=tensor_dtype, interpolation_type=types.LINEAR_INTERPOLATION)
@@ -342,81 +322,71 @@ def main():
                                  rocal_tensor_output_layout=tensor_layout,
                                  rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "jitter":
-            output = fn.jitter(
-                images,
-                kernel_size=3,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.jitter(images,
+                               kernel_size=3,
+                               rocal_tensor_output_layout=tensor_layout,
+                               rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "snp_noise":
-            output = fn.snp_noise(
-                images,
-                p_noise=0.2,
-                p_salt=0.2,
-                noise_val=0.2,
-                salt_val=0.5,
-                seed=0,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.snp_noise(images,
+                                  p_noise=0.2,
+                                  p_salt=0.2,
+                                  noise_val=0.2,
+                                  salt_val=0.5,
+                                  seed=0,
+                                  rocal_tensor_output_layout=tensor_layout,
+                                  rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "snow":
-            output = fn.snow(
-                images,
-                snow=0.2,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.snow(images,
+                             snow=0.2,
+                             rocal_tensor_output_layout=tensor_layout,
+                             rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "rain":
-            output = fn.rain(
-                images,
-                rain=0.5,
-                rain_width=2,
-                rain_height=16,
-                rain_transparency=0.25,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.rain(images,
+                             rain=0.5,
+                             rain_width=2,
+                             rain_height=16,
+                             rain_transparency=0.25,
+                             rocal_tensor_output_layout=tensor_layout,
+                             rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "fog":
-            output = fn.fog(
-                images,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.fog(images,
+                            rocal_tensor_output_layout=tensor_layout,
+                            rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "pixelate":
             output = fn.pixelate(images,
                                  rocal_tensor_output_layout=tensor_layout,
                                  rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "exposure":
-            output = fn.exposure(
-                images,
-                exposure=1.0,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.exposure(images,
+                                 exposure=1.0,
+                                 rocal_tensor_output_layout=tensor_layout,
+                                 rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "hue":
-            output = fn.hue(
-                images,
-                hue=150.0,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.hue(images,
+                            hue=150.0,
+                            rocal_tensor_output_layout=tensor_layout,
+                            rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "saturation":
-            output = fn.saturation(
-                images,
-                saturation=0.3,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.saturation(images,
+                                   saturation=0.3,
+                                   rocal_tensor_output_layout=tensor_layout,
+                                   rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "color_twist":
-            output = fn.color_twist(
-                images,
-                brightness=0.2,
-                contrast=10.0,
-                hue=100.0,
-                saturation=0.25,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.color_twist(images,
+                                    brightness=0.2,
+                                    contrast=10.0,
+                                    hue=100.0,
+                                    saturation=0.25,
+                                    rocal_tensor_output_layout=tensor_layout,
+                                    rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "crop":
-            output = fn.crop(
-                images,
-                crop=(3, 224, 224),
-                crop_pos_x=0.0,
-                crop_pos_y=0.0,
-                crop_pos_z=0.0,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.crop(images,
+                             crop=(3, 224, 224),
+                             crop_pos_x=0.0,
+                             crop_pos_y=0.0,
+                             crop_pos_z=0.0,
+                             rocal_tensor_output_layout=tensor_layout,
+                             rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "crop_mirror_normalize":
             output = fn.crop_mirror_normalize(images,
                                               rocal_tensor_output_layout=tensor_layout,
@@ -431,92 +401,80 @@ def main():
             resize_h = 400
             if (scaling_mode == types.SCALING_MODE_STRETCH):
                 resize_h = 480
-            output = fn.resize_mirror_normalize(
-                images,
-                resize_width=resize_w,
-                resize_height=resize_h,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype,
-                scaling_mode=scaling_mode,
-                interpolation_type=interpolation_type,
-                mirror=0,
-                mean=[0, 0, 0],
-                std=[1, 1, 1])
+            output = fn.resize_mirror_normalize(images,
+                                                resize_width=resize_w,
+                                                resize_height=resize_h,
+                                                rocal_tensor_output_layout=tensor_layout,
+                                                rocal_tensor_output_datatype=tensor_dtype,
+                                                scaling_mode=scaling_mode,
+                                                interpolation_type=interpolation_type,
+                                                mean=[128, 128, 128],
+                                                std=[1.2, 1.2, 1.2])
         elif augmentation_name == "nop":
-            output = fn.nop(
-                images,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.nop(images,
+                            rocal_tensor_output_layout=tensor_layout,
+                            rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "centre_crop":
             output = fn.centre_crop(images,
                                     rocal_tensor_output_layout=tensor_layout,
                                     rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "color_temp":
-            output = fn.color_temp(
-                images,
-                adjustment_value=70,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.color_temp(images,
+                                   adjustment_value=70,
+                                   rocal_tensor_output_layout=tensor_layout,
+                                   rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "copy":
-            output = fn.copy(
-                images,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.copy(images,
+                             rocal_tensor_output_layout=tensor_layout,
+                             rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "resize_crop_mirror":
-            output = fn.resize_crop_mirror(
-                images,
-                resize_height=400,
-                resize_width=400,
-                crop_h=200,
-                crop_w=200,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.resize_crop_mirror(images,
+                                           resize_height=400,
+                                           resize_width=400,
+                                           crop_h=200,
+                                           crop_w=200,
+                                           rocal_tensor_output_layout=tensor_layout,
+                                           rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "lens_correction":
-            output = fn.lens_correction(
-                images,
-                strength=2.9,
-                zoom=1.2,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.lens_correction(images,
+                                        strength=2.9,
+                                        zoom=1.2,
+                                        rocal_tensor_output_layout=tensor_layout,
+                                        rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "blend":
-            output1 = fn.rotate(
-                images,
-                angle=45.0,
-                dest_width=640,
-                dest_height=480,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
-            output = fn.blend(
-                images,
-                output1,
-                ratio=0.5,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output1 = fn.rotate(images,
+                                angle=45.0,
+                                dest_width=640,
+                                dest_height=480,
+                                rocal_tensor_output_layout=tensor_layout,
+                                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.blend(images,
+                              output1,
+                              ratio=0.5,
+                              rocal_tensor_output_layout=tensor_layout,
+                              rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "resize_crop":
-            output = fn.resize_crop(
-                images,
-                resize_width=640,
-                resize_height=480,
-                crop_area_factor=0.25,
-                crop_aspect_ratio=1.2,
-                x_drift=0.6,
-                y_drift=0.4,
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.resize_crop(images,
+                                    resize_width=640,
+                                    resize_height=480,
+                                    crop_area_factor=0.25,
+                                    crop_aspect_ratio=1.2,
+                                    x_drift=0.6,
+                                    y_drift=0.4,
+                                    rocal_tensor_output_layout=tensor_layout,
+                                    rocal_tensor_output_datatype=tensor_dtype)
         elif augmentation_name == "center_crop":
-            output = fn.center_crop(
-                images,
-                crop=[2, 224, 224],
-                rocal_tensor_output_layout=tensor_layout,
-                rocal_tensor_output_datatype=tensor_dtype)
+            output = fn.center_crop(images,
+                                    crop=[2, 224, 224],
+                                    rocal_tensor_output_layout=tensor_layout,
+                                    rocal_tensor_output_datatype=tensor_dtype)
 
         if output_set == 0:
-            pipe.setOutputs(output)
+            pipe.set_outputs(output)
     # build the pipeline
     pipe.build()
     # Dataloader
-    data_loader = ROCALClassificationIterator(
-        pipe, device=device, device_id=local_rank)
+    data_loader = ROCALClassificationIterator(pipe, device=device, device_id=local_rank)
     cnt = 0
     import timeit
     start = timeit.default_timer()

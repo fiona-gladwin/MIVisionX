@@ -37,8 +37,8 @@ void BoundingBoxGraph::update_meta_data(pMetaDataBatch input_meta_data, decoded_
     std::vector<uint32_t> roi_height = decode_image_info._roi_height;
     for (int i = 0; i < input_meta_data->size(); i++)
     {
-        float _dst_to_src_width_ratio = roi_width[i] / float(original_width[i]);
-        float _dst_to_src_height_ratio = roi_height[i] / float(original_height[i]);
+        float _dst_to_src_width_ratio = roi_width[i] / static_cast<float>(original_width[i]);
+        float _dst_to_src_height_ratio = roi_height[i] / static_cast<float>(original_height[i]);
         unsigned bb_count = input_meta_data->get_labels_batch()[i].size();
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
         BoundingBoxCords bb_coords;

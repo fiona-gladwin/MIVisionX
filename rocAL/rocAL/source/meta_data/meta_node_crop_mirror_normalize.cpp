@@ -43,27 +43,24 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
     _dstImgHeight = _meta_crop_param->croph_arr;
     _x1 = _meta_crop_param->x1_arr;
     _y1 = _meta_crop_param->y1_arr;
-    auto input_roi = _meta_crop_param->in_roi;
-    vxCopyArrayRange((vx_array)_dstImgWidth, 0, _batch_size, sizeof(uint),_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_dstImgHeight, 0, _batch_size, sizeof(uint),_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint),_x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint),_y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_mirror, 0, _batch_size, sizeof(uint),_mirror_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-
+    vxCopyArrayRange((vx_array)_dstImgWidth, 0, _batch_size, sizeof(uint), _width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_dstImgHeight, 0, _batch_size, sizeof(uint), _height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint), _x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint), _y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_mirror, 0, _batch_size, sizeof(uint), _mirror_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     for(int i = 0; i < _batch_size; i++)
     {
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
         BoundingBoxCords bb_coords;
-        BoundingBoxCord temp_box;
+        BoundingBoxCord temp_box = {0, 0, static_cast<float>(_width_val[i]), static_cast<float>(_height_val[i])};
         Labels bb_labels;
         BoundingBoxCord crop_box;
         crop_box.l = (_x1_val[i]);
         crop_box.t = (_y1_val[i]);
         crop_box.r = (_x1_val[i] + _width_val[i]);
         crop_box.b = (_y1_val[i] + _height_val[i]);
-        // std::cout<<"CROP Co-ordinates in CMN: lxtxrxb::\t"<<crop_box.l<<"x"<<crop_box.t<<"x"<<crop_box.r<<"x"<<crop_box.b<<"x";
         for(uint j = 0; j < bb_count; j++)
         {
             if (BBoxIntersectionOverUnion(coords_buf[j], crop_box) >= _iou_threshold)
@@ -80,8 +77,7 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
                 {
 
                 auto l = coords_buf[j].l;
-                auto r = coords_buf[j].r;
-                coords_buf[j].l = _width_val[i] - r;
+                coords_buf[j].l =  _width_val[i] - coords_buf[j].r;
                 coords_buf[j].r = _width_val[i] - l;
                 }
                 bb_coords.push_back(coords_buf[j]);
@@ -92,10 +88,6 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
         if(bb_coords.size() == 0)
         {
             std::cerr <<"Crop mirror Normalize - Zero Bounding boxes" << std::endl;
-            temp_box.l = 0;
-            temp_box.t = 0;
-	        temp_box.r =  _width_val[i];
-	        temp_box.b =  _height_val[i];
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }

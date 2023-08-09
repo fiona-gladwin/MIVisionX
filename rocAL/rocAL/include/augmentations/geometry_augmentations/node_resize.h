@@ -28,11 +28,6 @@ class ResizeNode : public Node {
 public:
     ResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ResizeNode() = delete;
-    vx_array get_dst_width() { return _dst_roi_width; }
-    vx_array get_dst_height() { return _dst_roi_height;}
-
-    RocalROI *get_src_roi() { return _inputs[0]->info().get_roi();}
-    RocalROI *get_dst_roi() { return _outputs[0]->info().get_roi();}
     void init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode,
               const std::vector<unsigned>& max_size, RocalResizeInterpolationType interpolation_type);
     void adjust_out_roi_size();

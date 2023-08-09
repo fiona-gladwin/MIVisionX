@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2020 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "node.h"
 #include "node_resize.h"
 #include "parameter_vx.h"
+
 class ResizeMetaNode:public MetaNode
 {
     public:
@@ -35,9 +36,5 @@ class ResizeMetaNode:public MetaNode
         void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
         std::shared_ptr<ResizeNode> _node = nullptr;
     private:
-        void initialize();
-        vx_array _src_width, _src_height,_dst_width, _dst_height;
-        std::vector<uint> _src_width_val, _src_height_val, _dst_width_val, _dst_height_val;
-        // unsigned int _dst_width, _dst_height;
-        float _dst_to_src_width_ratio, _dst_to_src_height_ratio;
+        void initialize() {};
 };

@@ -74,7 +74,7 @@ rocalSequenceRearrange(RocalContext p_context,
         output_info.set_dims(new_dims);
 
         output = context->master_graph->create_tensor(output_info, is_output);
-        std::shared_ptr<SequenceRearrangeNode> sequence_rearrange_node =  context->master_graph->add_node<SequenceRearrangeNode>({input}, {output});
+        std::shared_ptr<SequenceRearrangeNode> sequence_rearrange_node = context->master_graph->add_node<SequenceRearrangeNode>({input}, {output});
         sequence_rearrange_node->init(new_order);
     }
     catch(const std::exception& e) {
@@ -120,10 +120,10 @@ rocalRotate(
         output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
-        std::shared_ptr<RotateNode> rotate_node =  context->master_graph->add_node<RotateNode>({input}, {output});
+        std::shared_ptr<RotateNode> rotate_node = context->master_graph->add_node<RotateNode>({input}, {output});
         rotate_node->init(angle, interpolation_type);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<RotateMetaNode,RotateNode>(rotate_node);
+            context->master_graph->meta_add_node<RotateMetaNode, RotateNode>(rotate_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -170,7 +170,7 @@ rocalRotateFixed(
         std::shared_ptr<RotateNode> rotate_node = context->master_graph->add_node<RotateNode>({input}, {output});
         rotate_node->init(angle, interpolation_type);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<RotateMetaNode,RotateNode>(rotate_node);
+            context->master_graph->meta_add_node<RotateMetaNode, RotateNode>(rotate_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -409,10 +409,10 @@ rocalCropResize(
 
         // For the nodes that user provides the output size the dimension of all the images after this node will be fixed and equal to that size
         output->reset_tensor_roi();
-        std::shared_ptr<CropResizeNode> crop_resize_node =  context->master_graph->add_node<CropResizeNode>({input}, {output});
+        std::shared_ptr<CropResizeNode> crop_resize_node = context->master_graph->add_node<CropResizeNode>({input}, {output});
         crop_resize_node->init(area, aspect_ratio, x_center_drift, y_center_drift);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<CropResizeMetaNode,CropResizeNode>(crop_resize_node);
+            context->master_graph->meta_add_node<CropResizeMetaNode, CropResizeNode>(crop_resize_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -458,11 +458,10 @@ rocalCropResizeFixed(
 
         // user provides the output size and the dimension of all the images after this node will be fixed and equal to that size
         output->reset_tensor_roi();
-        std::shared_ptr<CropResizeNode> crop_resize_node =  context->master_graph->add_node<CropResizeNode>({input}, {output});
+        std::shared_ptr<CropResizeNode> crop_resize_node = context->master_graph->add_node<CropResizeNode>({input}, {output});
         crop_resize_node->init(area, aspect_ratio, x_center_drift, y_center_drift);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<CropResizeMetaNode,CropResizeNode>(crop_resize_node);
-
+            context->master_graph->meta_add_node<CropResizeMetaNode, CropResizeNode>(crop_resize_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -565,7 +564,7 @@ rocalResize(
         std::shared_ptr<ResizeNode> resize_node = context->master_graph->add_node<ResizeNode>({input}, {output});
         resize_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<ResizeMetaNode,ResizeNode>(resize_node);
+            context->master_graph->meta_add_node<ResizeMetaNode, ResizeNode>(resize_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -677,7 +676,7 @@ ROCAL_API_CALL rocalResizeMirrorNormalize(
         std::shared_ptr<ResizeMirrorNormalizeNode> rmn_node = context->master_graph->add_node<ResizeMirrorNormalizeNode>({input}, {output});
         rmn_node->init(out_width, out_height, resize_scaling_mode, maximum_size, interpolation_type, mean, std_dev, mirror);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode,ResizeMirrorNormalizeNode>(rmn_node);
+            context->master_graph->meta_add_node<ResizeMirrorNormalizeMetaNode, ResizeMirrorNormalizeNode>(rmn_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what());
@@ -1233,7 +1232,10 @@ rocalFlip(
         output_info.set_tensor_layout(op_tensor_layout);
         output_info.set_data_type(op_tensor_datatype);
         output = context->master_graph->create_tensor(output_info, is_output);
-        context->master_graph->add_node<FlipNode>({input}, {output})->init(horizontal_flag, vertical_flag);
+        std::shared_ptr<FlipNode> flip_node =  context->master_graph->add_node<FlipNode>({input}, {output});
+        flip_node->init(horizontal_flag, vertical_flag);
+        if (context->master_graph->meta_data_graph())
+            context->master_graph->meta_add_node<FlipMetaNode,FlipNode>(flip_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -1264,7 +1266,10 @@ rocalFlipFixed(
         output_info.set_tensor_layout(op_tensor_layout);
         output_info.set_data_type(op_tensor_datatype);
         output = context->master_graph->create_tensor(output_info, is_output);
-        context->master_graph->add_node<FlipNode>({input}, {output})->init(horizontal_flag, vertical_flag);
+        std::shared_ptr<FlipNode> flip_node =  context->master_graph->add_node<FlipNode>({input}, {output});
+        flip_node->init(horizontal_flag, vertical_flag);
+        if (context->master_graph->meta_data_graph())
+            context->master_graph->meta_add_node<FlipMetaNode,FlipNode>(flip_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -1852,10 +1857,10 @@ rocalCropMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned c
         modify_dims_width_and_height(output_info.layout(), out_dims, crop_width, crop_height);
         output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
-        std::shared_ptr<CropMirrorNormalizeNode> cmn_node =  context->master_graph->add_node<CropMirrorNormalizeNode>({input}, {output});
+        std::shared_ptr<CropMirrorNormalizeNode> cmn_node = context->master_graph->add_node<CropMirrorNormalizeNode>({input}, {output});
         cmn_node->init(crop_height, crop_width, start_x, start_y, mean, std_dev, mirror);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<CropMirrorNormalizeMetaNode,CropMirrorNormalizeNode>(cmn_node);
+            context->master_graph->meta_add_node<CropMirrorNormalizeMetaNode, CropMirrorNormalizeNode>(cmn_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -1896,10 +1901,10 @@ rocalCrop(
         output_info.set_data_type(op_tensor_datatype);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
-        std::shared_ptr<CropNode> crop_node =  context->master_graph->add_node<CropNode>({input}, {output});
+        std::shared_ptr<CropNode> crop_node = context->master_graph->add_node<CropNode>({input}, {output});
         crop_node->init(crop_h, crop_w, x_drift, y_drift);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<CropMetaNode,CropNode>(crop_node);
+            context->master_graph->meta_add_node<CropMetaNode, CropNode>(crop_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -1942,10 +1947,10 @@ rocalCropFixed(
         output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
-        std::shared_ptr<CropNode> crop_node =  context->master_graph->add_node<CropNode>({input}, {output});
+        std::shared_ptr<CropNode> crop_node = context->master_graph->add_node<CropNode>({input}, {output});
         crop_node->init(crop_height, crop_width, crop_pos_x, crop_pos_y);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<CropMetaNode,CropNode>(crop_node);
+            context->master_graph->meta_add_node<CropMetaNode, CropNode>(crop_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -1986,10 +1991,10 @@ rocalCropCenterFixed(
         output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
-        std::shared_ptr<CropNode> crop_node =  context->master_graph->add_node<CropNode>({input}, {output});
+        std::shared_ptr<CropNode> crop_node = context->master_graph->add_node<CropNode>({input}, {output});
         crop_node->init(crop_height, crop_width);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<CropMetaNode,CropNode>(crop_node);
+            context->master_graph->meta_add_node<CropMetaNode, CropNode>(crop_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -2033,10 +2038,10 @@ rocalResizeCropMirrorFixed(
         output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
-        std::shared_ptr<ResizeCropMirrorNode> rcm_node =  context->master_graph->add_node<ResizeCropMirrorNode>({input}, {output});
+        std::shared_ptr<ResizeCropMirrorNode> rcm_node = context->master_graph->add_node<ResizeCropMirrorNode>({input}, {output});
         rcm_node->init(crop_h, crop_w, mirror);
         if (context->master_graph->meta_data_graph())
-        context->master_graph->meta_add_node<ResizeCropMirrorMetaNode,ResizeCropMirrorNode>(rcm_node);
+            context->master_graph->meta_add_node<ResizeCropMirrorMetaNode, ResizeCropMirrorNode>(rcm_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -2076,10 +2081,10 @@ RocalTensor  ROCAL_API_CALL rocalResizeCropMirror(
         modify_dims_width_and_height(output_info.layout(), out_dims, dest_width, dest_height);
         output_info.set_dims(out_dims);
         output = context->master_graph->create_tensor(output_info, is_output);
-        std::shared_ptr<ResizeCropMirrorNode> rcm_node =  context->master_graph->add_node<ResizeCropMirrorNode>({input}, {output});
+        std::shared_ptr<ResizeCropMirrorNode> rcm_node = context->master_graph->add_node<ResizeCropMirrorNode>({input}, {output});
         rcm_node->init(crop_h, crop_w, mirror);
         if (context->master_graph->meta_data_graph())
-            context->master_graph->meta_add_node<ResizeCropMirrorMetaNode,ResizeCropMirrorNode>(rcm_node);
+            context->master_graph->meta_add_node<ResizeCropMirrorMetaNode, ResizeCropMirrorNode>(rcm_node);
     } catch(const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
@@ -2119,7 +2124,7 @@ rocalRandomCrop(
         output_info.set_data_type(op_tensor_datatype);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
-        std::shared_ptr<RandomCropNode> crop_node =  context->master_graph->add_node<RandomCropNode>({input}, {output});
+        std::shared_ptr<RandomCropNode> crop_node = context->master_graph->add_node<RandomCropNode>({input}, {output});
         crop_node->init(crop_area_factor, crop_aspect_ratio, x_drift, y_drift, num_of_attempts);
         // if (context->master_graph->meta_data_graph())
         //     context->master_graph->meta_add_node<SSDRandomCropMetaNode,RandomCropNode>(crop_node);
@@ -2163,7 +2168,7 @@ rocalSSDRandomCrop(
         output_info.set_data_type(op_tensor_datatype);
         output = context->master_graph->create_tensor(output_info, is_output);
         output->reset_tensor_roi();
-        std::shared_ptr<SSDRandomCropNode> crop_node =  context->master_graph->add_node<SSDRandomCropNode>({input}, {output});
+        std::shared_ptr<SSDRandomCropNode> crop_node = context->master_graph->add_node<SSDRandomCropNode>({input}, {output});
         crop_node->init(crop_area_factor, crop_aspect_ratio, x_drift, y_drift, num_of_attempts);
         // if (context->master_graph->meta_data_graph())
         //     context->master_graph->meta_add_node<SSDRandomCropMetaNode,SSDRandomCropNode>(crop_node);

@@ -41,17 +41,15 @@ class ROCALGenericIterator(object):
         self.labels_size = ((self.batch_size * self.loader._num_classes) if self.loader._one_hot_encoding else self.batch_size)
         self.output_list = self.dimensions = self.dtype = None
         self.labels_tensor = None
-        self.len = b.getRemainingImages(self.loader._handle) // self.batch_size  # iteration length
+        self.iterator_length = b.getRemainingImages(self.loader._handle) // self.batch_size  # iteration length
 
     def next(self):
         return self.__next__()
 
     def __next__(self):
-
-        if self.loader.rocalRun() != 0:
+        if self.loader.rocal_run() != 0:
             raise StopIteration
-        else:
-            self.output_tensor_list = self.loader.getOutputTensors()
+        self.output_tensor_list = self.loader.get_output_tensors()
 
         if self.output_list is None:  # Checking if output_list is empty and initializing the buffers
             self.output_list = []
@@ -68,27 +66,27 @@ class ROCALGenericIterator(object):
                         self.labels = cp.empty(self.labels_size, dtype=self.dtype)
 
                 if self.device == "cpu":
-                    self.output_tensor_list[i].copy_data_numpy(self.output)
+                    self.output_tensor_list[i].copy_data(self.output)
                 else:
-                    self.output_tensor_list[i].copy_data_cupy(self.output.data.ptr)
+                    self.output_tensor_list[i].copy_data(self.output.data.ptr)
                 self.output_list.append(self.output)
         else:
             for i in range(len(self.output_tensor_list)):
                 if self.device == "cpu":
-                    self.output_tensor_list[i].copy_data_numpy(self.output_list[i])
+                    self.output_tensor_list[i].copy_data(self.output_list[i])
                 else:
-                    self.output_tensor_list[i].copy_data_cupy(self.output_list[i].data.ptr)
+                    self.output_tensor_list[i].copy_data(self.output_list[i].data.ptr)
 
-        if (self.loader._name == "labelReader"):
-            if (self.loader._one_hot_encoding == True):
-                self.loader.getOneHotEncodedLabels(self.labels, self.device)
+        if self.loader._name == "labelReader":
+            if self.loader._one_hot_encoding == True:
+                self.loader.get_one_hot_encoded_labels(self.labels, self.device)
                 self.labels_tensor = self.labels.reshape(-1, self.batch_size, self.loader._num_classes)
             else:
                 if self.display:
                     for output in self.output_tensor_list:
                         for i in range(self.batch_size):
-                            draw_patches(output[i], i, 0)
-                self.labels = self.loader.getImageLabels()
+                            draw_patches(output[i], i)
+                self.labels = self.loader.get_image_labels()
                 if self.device == "cpu":
                     self.labels_tensor = self.labels.astype(dtype=np.int_)
                 else:
@@ -104,7 +102,7 @@ class ROCALGenericIterator(object):
         return self
 
     def __len__(self):
-        return self.len
+        return self.iterator_length
 
     def __del__(self):
         b.rocalRelease(self.loader._handle)
@@ -159,6 +157,12 @@ class ROCALClassificationIterator(ROCALGenericIterator):
                  the next epoch. If set to False next epoch will end sooner as data from
                  it was consumed but dropped. If set to True next epoch would be the
                  same length as the first one.
+    display : bool, optional, default = False
+                 Whether the images should be saved as png files for display.
+    device : str, optional, default = "cpu"
+                 Whether to use CPU or GPU backend for the dataloader.
+    device_id : int, optional, default = 0
+                 Device ID of the GPU being used for the training loader.
 
     Example
     -------
@@ -184,8 +188,8 @@ class ROCALClassificationIterator(ROCALGenericIterator):
                                                           multiplier=pipe._multiplier, offset=pipe._offset, display=display, device=device, device_id=device_id)
 
 
-def draw_patches(img, idx, bboxes):
-    # image is expected as a tensor, bboxes as numpy
+def draw_patches(img, idx):
+    # image is expected as an array
     import cv2
     img = img.cpu()
     image = img.detach().numpy()

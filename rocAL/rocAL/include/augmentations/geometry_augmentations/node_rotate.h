@@ -35,10 +35,6 @@ public:
     void init(FloatParam* angle_param, RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
-    vx_array get_src_width() { return _src_roi_width; }
-    vx_array get_src_height() { return _src_roi_height; }
-    RocalROI * get_src_roi() { return _inputs[0]->info().get_roi(); }
-    
     vx_array get_angle() { return _angle.default_array(); }
 protected:
     void create_node() override;

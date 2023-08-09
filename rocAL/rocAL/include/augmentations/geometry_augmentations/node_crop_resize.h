@@ -32,8 +32,6 @@ public:
     ~CropResizeNode();
     void init(float area, float aspect_ratio, float x_center_drift, float y_center_drift);
     void init(FloatParam* area, FloatParam *aspect_ratio, FloatParam * x_drift_factor, FloatParam * y_drift_factor);
-    RocalROI *get_src_roi() { return _inputs[0]->info().get_roi();}
-    RocalROI *get_dst_roi() { return _outputs[0]->info().get_roi();}
     std::shared_ptr<RocalRandomCropParam> get_crop_param() { return _crop_param; }
 protected:
     void create_node() override;
