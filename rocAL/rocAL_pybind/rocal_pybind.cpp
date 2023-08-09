@@ -600,5 +600,9 @@ namespace rocal{
             py::return_value_policy::reference);
         m.def("lensCorrection", &rocalLensCorrection,
             py::return_value_policy::reference);
+        m.def("opticalFlow", &rocalOpticalFlow,
+            py::return_value_policy::reference);
+        m.def("opticalFlowToColor", &rocalOpticalFlowToColor,
+            py::return_value_policy::reference);
     }
 }

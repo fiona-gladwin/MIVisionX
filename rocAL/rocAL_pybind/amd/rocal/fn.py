@@ -1006,3 +1006,30 @@ def box_iou_matcher(*inputs, anchors, criteria=0.5, high_threshold=0.5,
     box_iou_matcher = b.BoxIOUMatcher(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     Pipeline._current_pipeline._BoxIOUMatcher = True
     return (box_iou_matcher, [])
+
+
+def optical_flow(*inputs, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
+    """
+    inputs - the input image passed to the augmentation
+    
+    rocal_tensor_output_layout (int, optional, default = types.NHWC) - tensor layout for the augmentation output
+
+    rocal_tensor_output_datatype (int, optional, default = types.UINT8) - tensor dtype for the augmentation output
+    """
+    # pybind call arguments
+    kwargs_pybind = {"input_image": inputs[0], "is_output": False}
+    optical_flow_image = b.opticalFlow(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    return (optical_flow_image)
+
+def optical_flow_to_color(*inputs, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
+    """
+    inputs - the input image passed to the augmentation
+    
+    rocal_tensor_output_layout (int, optional, default = types.NHWC) - tensor layout for the augmentation output
+
+    rocal_tensor_output_datatype (int, optional, default = types.UINT8) - tensor dtype for the augmentation output
+    """
+    # pybind call arguments
+    kwargs_pybind = {"input_image": inputs[0], "is_output": True}
+    optical_flow_to_color_image = b.opticalFlowToColor(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    return (optical_flow_to_color_image)
