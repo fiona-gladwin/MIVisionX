@@ -61,6 +61,7 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
         _output->get_bb_cords_batch()[i] = it->second->get_bb_cords();
         _output->get_labels_batch()[i] = it->second->get_labels();
         _output->get_img_sizes_batch()[i] = it->second->get_img_size();
+        _output->get_image_id_batch()[i] = it->second->get_image_id();
         if (_output->get_metadata_type() == MetaDataType::PolygonMask)
         {
             auto mask_cords = it->second->get_mask_cords();
@@ -87,7 +88,7 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
     _map_content.insert(pair<std::string, std::shared_ptr<PolygonMask>>(image_name, info));
 }
 
-void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, uint image_id)
+void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, int image_id)
 {
     if (exists(image_name))
     {
