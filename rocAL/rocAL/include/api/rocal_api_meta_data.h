@@ -65,6 +65,7 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
 /// \param is_box_encoder If set to True, bboxes are returned as encoded bboxes using the anchors
 /// \param avoid_class_remapping If set to True, classes are returned directly. Otherwise, classes are mapped to consecutive values
 /// \param aspect_ratio_grouping If set to True, images are sorted by their aspect ratio and returned
+/// \param is_box_iou_matcher If set to True, box iou matcher which returns matched indices is enabled in the pipeline
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool mask = false, bool ltrb = true, bool is_box_encoder = false, bool avoid_class_remapping = false, bool aspect_ratio_grouping = false, bool is_box_iou_matcher = false);
 
@@ -222,17 +223,17 @@ extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext p_context, int* buf)
 extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **joints_data);
 
 /// \brief API to enable box IOU matcher and pass required params to pipeline
-/// \param p_context 
+/// \param p_context rocAL context
 /// \param anchors The anchors / ground truth bounding box coordinates
-/// \param criteria 
+/// \param criteria Threshold IoU for matching bounding boxes with anchors.
 /// \param high_threshold The max threshold for IOU
 /// \param low_threshold The min threshold for IOU
 /// \param allow_low_quality_matches bool value when set to true allows low quality matches
-/// \return 
+/// \return
 extern "C" void ROCAL_API_CALL rocalBoxIouMatcher(RocalContext p_context, std::vector<float> &anchors, float criteria,
                                                   float high_threshold, float low_threshold, bool allow_low_quality_matches = true);
 
-/// \brief 
+/// \brief API to return the matched idices for the bounding box and anchors
 /// \param rocal_context 
 /// \return RocalTensorList with matched idxs for each image
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetMatchedIndices(RocalContext rocal_context);
