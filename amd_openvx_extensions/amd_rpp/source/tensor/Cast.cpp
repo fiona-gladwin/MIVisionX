@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 struct CastLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
     RpptDescPtr pSrcDesc;
@@ -106,9 +106,13 @@ static vx_status VX_CALLBACK processCast(vx_node node, const vx_reference *param
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     refreshCast(node, parameters, num, data);
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
+#if ENABLE_OPENCL
         return_status = VX_ERROR_NOT_IMPLEMENTED;
+#elif ENABLE_HIP
+        rpp_status = rppt_copy_gpu(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->handle->rppHandle);
+#endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        // rpp_status = rppt_cast_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->handle->rppHandle);
+        rpp_status = rppt_copy_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -119,7 +123,7 @@ static vx_status VX_CALLBACK initializeCast(vx_node node, const vx_reference *pa
     memset(data, 0, sizeof(CastLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, layout;
+    vx_int32 roi_type, layout;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[3], &layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
