@@ -372,7 +372,7 @@ namespace rocal{
         // rocal_api_meta_data.h
         m.def("randomBBoxCrop", &rocalRandomBBoxCrop);
         m.def("boxEncoder", &rocalBoxEncoder);
-        m.def("BoxIOUMatcher", &rocalBoxIOUMatcher);
+        m.def("boxIouMatcher", &rocalBoxIouMatcher);
         m.def("getImgSizes", [](RocalContext context, py::array_t<int> array) {
             auto buf = array.request();
             int* ptr = static_cast<int *>(buf.ptr);
@@ -495,7 +495,7 @@ namespace rocal{
         m.def("getMatchedIndices", [](RocalContext context) {
             rocalTensorList *matches = rocalGetMatchedIndices(context);
             return py::array(py::buffer_info(
-                            (int *)(matches->at(0)->buffer()),
+                            static_cast<int *>(matches->at(0)->buffer()),
                             sizeof(int),
                             py::format_descriptor<int>::format(),
                             1,

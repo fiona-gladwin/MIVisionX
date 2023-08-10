@@ -527,13 +527,13 @@ ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **j
     *joints_data = (RocalJointsData *)(&(meta_data.second->get_joints_data_batch()));
 }
 
-void ROCAL_API_CALL rocalBoxIOUMatcher(RocalContext p_context,
+void ROCAL_API_CALL rocalBoxIouMatcher(RocalContext p_context,
                                        std::vector<float>& anchors,
                                        float criteria, float high_threshold,
                                        float low_threshold,
                                        bool allow_low_quality_matches) {
     if (!p_context) 
-        THROW("Invalid rocal context passed to rocalBoxIOUMatcher")
+        THROW("Invalid rocal context passed to rocalBoxIouMatcher")
     auto context = static_cast<Context*>(p_context);
     context->master_graph->box_iou_matcher(anchors, criteria, high_threshold,
                                            low_threshold,
@@ -544,5 +544,5 @@ RocalTensorList ROCAL_API_CALL rocalGetMatchedIndices(RocalContext p_context) {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalGetMatchedIndices")
     auto context = static_cast<Context*>(p_context);
-    return context->master_graph->matches_meta_data();
+    return context->master_graph->matched_index_meta_data();
 }

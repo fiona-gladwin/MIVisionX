@@ -229,7 +229,7 @@ extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, Roc
 /// \param low_threshold The min threshold for IOU
 /// \param allow_low_quality_matches bool value when set to true allows low quality matches
 /// \return 
-extern "C" void ROCAL_API_CALL rocalBoxIOUMatcher(RocalContext p_context, std::vector<float> &anchors, float criteria,
+extern "C" void ROCAL_API_CALL rocalBoxIouMatcher(RocalContext p_context, std::vector<float> &anchors, float criteria,
                                                   float high_threshold, float low_threshold, bool allow_low_quality_matches = true);
 
 /// \brief 

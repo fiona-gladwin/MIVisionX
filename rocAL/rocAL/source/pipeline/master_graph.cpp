@@ -1544,14 +1544,14 @@ TensorList * MasterGraph::mask_meta_data()
     return &_mask_tensor_list;
 }
 
-TensorList * MasterGraph::matches_meta_data()
+TensorList * MasterGraph::matched_index_meta_data()
 {
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
-    auto meta_data_buffers = (unsigned char *)(_ring_buffer.get_meta_read_buffers()[2]); // Get matches buffer from ring buffer
+    auto meta_data_buffers = reinterpret_cast<unsigned char *>(_ring_buffer.get_meta_read_buffers()[2]); // Get matches buffer from ring buffer
     for(unsigned i = 0; i < _matches_tensor_list.size(); i++)
     {
-        _matches_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
+        _matches_tensor_list[i]->set_mem_handle(reinterpret_cast<void *>(meta_data_buffers));
         meta_data_buffers += _matches_tensor_list[i]->info().data_size();
     }
 
