@@ -24,12 +24,12 @@ THE SOFTWARE.
 
 struct ResizeCropMirrorLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    Rpp32u *pResizeHeight;
-    Rpp32u *pResizeWidth;
-    Rpp32u *pMirror;
+    vx_uint32 *pResizeHeight;
+    vx_uint32 *pResizeWidth;
+    vx_uint32 *pMirror;
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
     RpptROI *pSrcRoi;
@@ -44,9 +44,9 @@ struct ResizeCropMirrorLocalData {
 
 static vx_status VX_CALLBACK refreshResizeCropMirror(vx_node node, const vx_reference *parameters, vx_uint32 num, ResizeCropMirrorLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pResizeWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pResizeHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pMirror, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pResizeWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pResizeHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pMirror, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     for (unsigned i = 0; i < data->inputTensorDims[0]; i++) {
         data->pDstImgSize[i].width = data->pResizeWidth[i];
         data->pDstImgSize[i].height = data->pResizeHeight[i];
@@ -147,7 +147,7 @@ static vx_status VX_CALLBACK initializeResizeCropMirror(vx_node node, const vx_r
     memset(data, 0, sizeof(ResizeCropMirrorLocalData));
     
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, inputLayout, outputLayout, interpolation_type;
+    vx_int32 roi_type, inputLayout, outputLayout, interpolation_type;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &interpolation_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &inputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &outputLayout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -181,9 +181,9 @@ static vx_status VX_CALLBACK initializeResizeCropMirror(vx_node node, const vx_r
 #else
     data->pDstImgSize = new RpptImagePatch[data->pSrcDesc->n];
 #endif    
-    data->pResizeWidth = new Rpp32u[data->pSrcDesc->n];
-    data->pResizeHeight = new Rpp32u[data->pSrcDesc->n];
-    data->pMirror = new Rpp32u[data->pSrcDesc->n];
+    data->pResizeWidth = new vx_uint32[data->pSrcDesc->n];
+    data->pResizeHeight = new vx_uint32[data->pSrcDesc->n];
+    data->pMirror = new vx_uint32[data->pSrcDesc->n];
     refreshResizeCropMirror(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));

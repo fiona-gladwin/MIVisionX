@@ -24,15 +24,15 @@ THE SOFTWARE.
 
 struct GlitchLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    Rpp32u *pXOffsetR;
-    Rpp32u *pYOffsetR;
-    Rpp32u *pXOffsetG;
-    Rpp32u *pYOffsetG;
-    Rpp32u *pXOffsetB;
-    Rpp32u *pYOffsetB;
+    vx_uint32 *pXOffsetR;
+    vx_uint32 *pYOffsetR;
+    vx_uint32 *pXOffsetG;
+    vx_uint32 *pYOffsetG;
+    vx_uint32 *pXOffsetB;
+    vx_uint32 *pYOffsetB;
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
     RpptROI *pSrcRoi;
@@ -45,12 +45,12 @@ struct GlitchLocalData {
 
 static vx_status VX_CALLBACK refreshGlitch(vx_node node, const vx_reference *parameters, vx_uint32 num, GlitchLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pXOffsetR, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pYOffsetR, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pXOffsetG, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[6], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pYOffsetG, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[7], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pXOffsetB, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[8], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pYOffsetB, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pXOffsetR, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pYOffsetR, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pXOffsetG, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[6], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pYOffsetG, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[7], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pXOffsetB, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[8], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pYOffsetB, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     void *roi_tensor_ptr;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
@@ -149,7 +149,7 @@ static vx_status VX_CALLBACK initializeGlitch(vx_node node, const vx_reference *
     memset(data, 0, sizeof(GlitchLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, input_layout, output_layout;
+    vx_int32 roi_type, input_layout, output_layout;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[10], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[11], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -176,12 +176,12 @@ static vx_status VX_CALLBACK initializeGlitch(vx_node node, const vx_reference *
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pXOffsetR = new Rpp32u[data->pSrcDesc->n];
-    data->pYOffsetR = new Rpp32u[data->pSrcDesc->n];
-    data->pXOffsetG = new Rpp32u[data->pSrcDesc->n];
-    data->pYOffsetG = new Rpp32u[data->pSrcDesc->n];
-    data->pXOffsetB = new Rpp32u[data->pSrcDesc->n];
-    data->pYOffsetB = new Rpp32u[data->pSrcDesc->n];
+    data->pXOffsetR = new vx_uint32[data->pSrcDesc->n];
+    data->pYOffsetR = new vx_uint32[data->pSrcDesc->n];
+    data->pXOffsetG = new vx_uint32[data->pSrcDesc->n];
+    data->pYOffsetG = new vx_uint32[data->pSrcDesc->n];
+    data->pXOffsetB = new vx_uint32[data->pSrcDesc->n];
+    data->pYOffsetB = new vx_uint32[data->pSrcDesc->n];
     refreshGlitch(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));

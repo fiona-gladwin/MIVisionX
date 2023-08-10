@@ -24,11 +24,11 @@ THE SOFTWARE.
 
 struct FlipLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    Rpp32u *pHorizontalFlag;
-    Rpp32u *pVerticalFlag;
+    vx_uint32 *pHorizontalFlag;
+    vx_uint32 *pVerticalFlag;
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
     RpptROI *pSrcRoi;
@@ -41,8 +41,8 @@ struct FlipLocalData {
 
 static vx_status VX_CALLBACK refreshFlip(vx_node node, const vx_reference *parameters, vx_uint32 num, FlipLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pHorizontalFlag, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pVerticalFlag, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pHorizontalFlag, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pVerticalFlag, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     void *roi_tensor_ptr;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
@@ -137,7 +137,7 @@ static vx_status VX_CALLBACK initializeFlip(vx_node node, const vx_reference *pa
     memset(data, 0, sizeof(FlipLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, input_layout, output_layout;
+    vx_int32 roi_type, input_layout, output_layout;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -164,8 +164,8 @@ static vx_status VX_CALLBACK initializeFlip(vx_node node, const vx_reference *pa
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pHorizontalFlag = new Rpp32u[data->pSrcDesc->n];
-    data->pVerticalFlag = new Rpp32u[data->pSrcDesc->n];
+    data->pHorizontalFlag = new vx_uint32[data->pSrcDesc->n];
+    data->pVerticalFlag = new vx_uint32[data->pSrcDesc->n];
     refreshFlip(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
