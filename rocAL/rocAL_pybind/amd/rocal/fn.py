@@ -1003,6 +1003,6 @@ def box_iou_matcher(*inputs, anchors, criteria=0.5, high_threshold=0.5,
     # pybind call arguments
     kwargs_pybind = {"anchors": anchors, "criteria": criteria, "high_threshold": high_threshold,
                      "low_threshold": low_threshold, "allow_low_quality_matches": allow_low_quality_matches}
-    box_iou_matcher = b.BoxIOUMatcher(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    box_iou_matcher = b.boxIouMatcher(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     Pipeline._current_pipeline._BoxIOUMatcher = True
     return (box_iou_matcher, [])
