@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 
 project(MIVisionX)
 set(VERSION "2.5.0")
@@ -84,7 +84,7 @@ endif()
 if(NOT DEFINED BACKEND)
   set(BACKEND "HIP")   # set default backend to HIP
 else()
-  if("${BACKEND}" STREQUAL "OPENCL" OR "${BACKEND}" STREQUAL "OCL" OR "${BACKEND}" STREQUAL "OpenCL")
+  if("${BACKEND}" STREQUAL "OPENCL" OR "${BACKEND}" STREQUAL "OCL" OR "${BACKEND}" STREQUAL "OpenCL" OR "${BACKEND}" STREQUAL "opencl")
     set(BACKEND "OPENCL")
   elseif("${BACKEND}" STREQUAL "HIP" OR "${BACKEND}" STREQUAL "hip")
     set(BACKEND "HIP")
@@ -150,7 +150,7 @@ endif()
 
 enable_testing()
 include(CTest)
-add_subdirectory(tests/openvx)
+add_subdirectory(tests/openvx_api_tests)
 
 # set package information
 set(CPACK_PACKAGE_VERSION       ${VERSION})
