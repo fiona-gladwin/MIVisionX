@@ -24,13 +24,13 @@ THE SOFTWARE.
 
 struct ColorTwistLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    Rpp32f *pAlpha;
-    Rpp32f *pBeta;
-    Rpp32f *pHue;
-    Rpp32f *pSat;
+    vx_float32 *pAlpha;
+    vx_float32 *pBeta;
+    vx_float32 *pHue;
+    vx_float32 *pSat;
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
     RpptROI *pSrcRoi;
@@ -43,10 +43,10 @@ struct ColorTwistLocalData {
 
 static vx_status VX_CALLBACK refreshColorTwist(vx_node node, const vx_reference *parameters, vx_uint32 num, ColorTwistLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(Rpp32f), data->pAlpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(Rpp32f), data->pBeta, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(Rpp32f), data->pHue, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[6], 0, data->inputTensorDims[0], sizeof(Rpp32f), data->pSat, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(vx_float32), data->pAlpha, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(vx_float32), data->pBeta, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(vx_float32), data->pHue, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[6], 0, data->inputTensorDims[0], sizeof(vx_float32), data->pSat, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     void *roi_tensor_ptr;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
@@ -143,7 +143,7 @@ static vx_status VX_CALLBACK initializeColorTwist(vx_node node, const vx_referen
     memset(data, 0, sizeof(ColorTwistLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, input_layout, output_layout;
+    vx_int32 roi_type, input_layout, output_layout;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -170,10 +170,10 @@ static vx_status VX_CALLBACK initializeColorTwist(vx_node node, const vx_referen
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
-    data->pAlpha = new Rpp32f[data->pSrcDesc->n];
-    data->pBeta = new Rpp32f[data->pSrcDesc->n];
-    data->pHue = new Rpp32f[data->pSrcDesc->n];
-    data->pSat = new Rpp32f[data->pSrcDesc->n];
+    data->pAlpha = new vx_float32[data->pSrcDesc->n];
+    data->pBeta = new vx_float32[data->pSrcDesc->n];
+    data->pHue = new vx_float32[data->pSrcDesc->n];
+    data->pSat = new vx_float32[data->pSrcDesc->n];
     refreshColorTwist(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));

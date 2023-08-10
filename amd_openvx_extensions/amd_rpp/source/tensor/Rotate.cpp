@@ -24,10 +24,10 @@ THE SOFTWARE.
 
 struct RotateLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    Rpp32f *pAngle;
+    vx_float32 *pAngle;
     RpptInterpolationType interpolationType; 
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
@@ -41,7 +41,7 @@ struct RotateLocalData {
 
 static vx_status VX_CALLBACK refreshRotate(vx_node node, const vx_reference *parameters, vx_uint32 num, RotateLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(Rpp32f), data->pAngle, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(vx_float32), data->pAngle, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     void *roi_tensor_ptr;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
@@ -134,7 +134,7 @@ static vx_status VX_CALLBACK initializeRotate(vx_node node, const vx_reference *
     memset(data, 0, sizeof(RotateLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, input_layout, output_layout, interpolation_type;
+    vx_int32 roi_type, input_layout, output_layout, interpolation_type;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &interpolation_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
@@ -163,7 +163,7 @@ static vx_status VX_CALLBACK initializeRotate(vx_node node, const vx_reference *
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pAngle = new Rpp32f[data->pSrcDesc->n];
+    data->pAngle = new vx_float32[data->pSrcDesc->n];
     refreshRotate(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));

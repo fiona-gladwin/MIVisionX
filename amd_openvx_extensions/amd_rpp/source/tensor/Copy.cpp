@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 struct CopyLocalData {
     vxRppHandle handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
     size_t tensorSize;
