@@ -44,7 +44,7 @@ def blend(*inputs, ratio=None, rocal_tensor_output_layout=types.NHWC, rocal_tens
     # pybind call arguments
     kwargs_pybind = {"input_image0": inputs[0], "input_image1": inputs[1], "is_output": False, "ratio": ratio,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    blend_image = b.Blend(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    blend_image = b.blend(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (blend_image)
 
 
@@ -62,7 +62,7 @@ def snow(*inputs, snow=0.5, rocal_tensor_output_layout=types.NHWC, rocal_tensor_
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "snow": snow,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    snow_image = b.Snow(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    snow_image = b.snow(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (snow_image)
 
 
@@ -80,7 +80,7 @@ def exposure(*inputs, exposure=0.5, rocal_tensor_output_layout=types.NHWC, rocal
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "exposure": exposure,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    exposure_image = b.Exposure(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    exposure_image = b.exposure(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (exposure_image)
 
 
@@ -95,7 +95,7 @@ def fish_eye(*inputs, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    fisheye_image = b.FishEye(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    fisheye_image = b.fishEye(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (fisheye_image)
 
 
@@ -113,12 +113,11 @@ def fog(*inputs, fog=0.5, rocal_tensor_output_layout=types.NHWC, rocal_tensor_ou
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "fog_value": fog, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    fog_image = b.Fog(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    fog_image = b.fog(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (fog_image)
 
 
-def brightness(*inputs, alpha=None, beta=None,
-               rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
+def brightness(*inputs, alpha=None, beta=None, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
     
@@ -136,7 +135,7 @@ def brightness(*inputs, alpha=None, beta=None,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "alpha": alpha, "beta": beta,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    brightness_image = b.Brightness(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    brightness_image = b.brightness(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (brightness_image)
 
 
@@ -156,12 +155,11 @@ def brightness_fixed(*inputs, alpha=1.0, beta=0.0,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "alpha": alpha, "beta": beta,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    brightness_image = b.BrightnessFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    brightness_image = b.brightnessFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (brightness_image)
 
 
-def lens_correction(*inputs, strength=None, zoom=None,
-                    rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
+def lens_correction(*inputs, strength=None, zoom=None, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
     
@@ -179,7 +177,7 @@ def lens_correction(*inputs, strength=None, zoom=None,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "strength": strength, "zoom": zoom,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    len_corrected_image = b.LensCorrection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    len_corrected_image = b.lensCorrection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (len_corrected_image)
 
 
@@ -197,12 +195,11 @@ def blur(*inputs, kernel_size=None, rocal_tensor_output_layout=types.NHWC, rocal
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "kernel_size": kernel_size,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    blur_image = b.Blur(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    blur_image = b.blur(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (blur_image)
 
 
-def contrast(*inputs, contrast_factor=None, contrast_center=None,
-             rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
+def contrast(*inputs, contrast_factor=None, contrast_center=None, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
     
@@ -220,18 +217,17 @@ def contrast(*inputs, contrast_factor=None, contrast_center=None,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "contrast_factor": contrast_factor, "contrast_center": contrast_center, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    contrast_image = b.Contrast(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    contrast_image = b.contrast(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (contrast_image)
 
 
-def flip(*inputs, h_flip=0, v_flip=0,
-         rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
+def flip(*inputs, h_flip=0, v_flip=0, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
     
-    h_flip (int, optional, default = None) - flip the horizontal dimensions
+    h_flip (int, optional, default = 0) - flip the horizontal dimensions
 
-    v_flip (int, optional, default = None) - flip the vertical dimension
+    v_flip (int, optional, default = 0) - flip the vertical dimension
 
     rocal_tensor_output_layout (int, optional, default = types.NHWC) - tensor layout for the augmentation output
 
@@ -243,7 +239,7 @@ def flip(*inputs, h_flip=0, v_flip=0,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "h_flip": h_flip, "v_flip": v_flip, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    flip_image = b.Flip(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    flip_image = b.flip(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (flip_image)
 
 
@@ -261,7 +257,7 @@ def gamma_correction(*inputs, gamma=0.5, rocal_tensor_output_layout=types.NHWC, 
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "gamma": gamma, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    gamma_correction_image = b.GammaCorrection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    gamma_correction_image = b.gammaCorrection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (gamma_correction_image)
 
 
@@ -279,7 +275,7 @@ def hue(*inputs, hue=None, rocal_tensor_output_layout=types.NHWC, rocal_tensor_o
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "hue": hue, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    hue_image = b.Hue(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    hue_image = b.hue(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (hue_image)
 
 
@@ -299,7 +295,7 @@ def jitter(*inputs, kernel_size=None, seed=0, rocal_tensor_output_layout=types.N
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "kernel_size": kernel_size, "seed": seed, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    jitter_image = b.Jitter(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    jitter_image = b.jitter(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (jitter_image)
 
 
@@ -314,7 +310,7 @@ def pixelate(*inputs, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    pixelate_image = b.Pixelate(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    pixelate_image = b.pixelate(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (pixelate_image)
 
 
@@ -343,7 +339,7 @@ def rain(*inputs, rain=None, rain_width=None, rain_height=None, rain_transparenc
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "rain_value": rain, "rain_width": rain_width, "rain_height": rain_height,
                      "rain_transparency": rain_transparency, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    rain_image = b.Rain(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    rain_image = b.rain(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (rain_image)
 
 
@@ -387,7 +383,7 @@ def resize(*inputs, max_size=[], resize_longer=0, resize_shorter=0, resize_width
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "dest_width:": resize_width, "dest_height": resize_height, "is_output": False, "scaling_mode": scaling_mode, "max_size": max_size, "resize_shorter": resize_shorter,
                      "resize_longer": resize_longer, "interpolation_type": interpolation_type, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    resized_image = b.Resize(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    resized_image = b.resize(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (resized_image)
 
 
@@ -419,7 +415,7 @@ def resize_crop_mirror(*inputs, resize_width=0, resize_height=0, crop_w=0, crop_
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "dest_width:": resize_width, "dest_height": resize_height, "is_output": False, "crop_w": crop_w,
                      "crop_h": crop_h, "mirror": mirror, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    rcm = b.ResizeCropMirrorFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    rcm = b.resizeCropMirrorFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (rcm)
 
 
@@ -452,8 +448,8 @@ def resize_crop(*inputs, resize_width=0, resize_height=0, crop_area_factor=None,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "dest_width:": resize_width, "dest_height": resize_height, "is_output": False, "crop_area_factor": crop_area_factor,
                      "crop_aspect_ratio": crop_aspect_ratio, "x_drift": x_drift, "y_drift": y_drift, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    rcm = b.CropResize(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    return (rcm)
+    crop_resized_image = b.cropResize(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    return (crop_resized_image)
 
 
 def resize_mirror_normalize(*inputs, max_size=[], resize_longer=0, resize_shorter=0, resize_width=0, resize_height=0, scaling_mode=types.SCALING_MODE_DEFAULT,
@@ -509,7 +505,7 @@ def resize_mirror_normalize(*inputs, max_size=[], resize_longer=0, resize_shorte
     kwargs_pybind = {"input_image": inputs[0], "dest_width:": resize_width, "dest_height": resize_height, "mean": mean, "std_dev": std, "is_output": False,
                      "scaling_mode": scaling_mode, "max_size": max_size, "resize_shorter": resize_shorter, "resize_longer": resize_longer,
                      "interpolation_type": interpolation_type, "mirror": mirror, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    rmn = b.ResizeMirrorNormalize(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    rmn = b.resizeMirrorNormalize(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (rmn)
 
 
@@ -535,7 +531,7 @@ def random_crop(*inputs, crop_area_factor=[0.08, 1], crop_aspect_ratio=[0.75, 1.
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False,
                      "crop_area_factor": crop_area_factor, "crop_aspect_ratio": crop_aspect_ratio, "crop_pos_x": crop_pox_x, "crop_pos_y": crop_pox_y, "num_of_attempts": num_attempts, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    random_cropped_image = b.RandomCrop(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    random_cropped_image = b.randomCrop(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (random_cropped_image)
 
 
@@ -560,12 +556,11 @@ def rotate(*inputs, angle=None, dest_width=0, dest_height=0, interpolation_type=
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False,
                      "angle": angle, "dest_width": dest_width, "dest_height": dest_height, "interpolation_type": interpolation_type, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    rotated_image = b.Rotate(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    rotated_image = b.rotate(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (rotated_image)
 
 
-def saturation(*inputs, saturation=1.0, rocal_tensor_output_layout=types.NHWC,
-               rocal_tensor_output_datatype=types.UINT8):
+def saturation(*inputs, saturation=1.0, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
     
@@ -579,7 +574,7 @@ def saturation(*inputs, saturation=1.0, rocal_tensor_output_layout=types.NHWC,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "sat": saturation, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    saturated_image = b.Saturation(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    saturated_image = b.saturation(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (saturated_image)
 
 
@@ -642,12 +637,11 @@ def warp_affine(*inputs, dest_width=0, dest_height=0, transform_matrix=[0, 0, 0,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "x0": x0, "x1": x1, "y0": y0, "y1": y1, "o0": o0,
                      "o1": o1, "is_output": False, "dest_height": dest_height, "dest_width": dest_width, "interpolation_type": interpolation_type, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    warp_affine_output = b.WarpAffineFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    warp_affine_output = b.warpAffineFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (warp_affine_output)
 
 
-def vignette(*inputs, vignette=0.5, rocal_tensor_output_layout=types.NHWC,
-             rocal_tensor_output_datatype=types.UINT8):
+def vignette(*inputs, vignette=0.5, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
     
@@ -661,8 +655,8 @@ def vignette(*inputs, vignette=0.5, rocal_tensor_output_layout=types.NHWC,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "sdev": vignette,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    vignette_outputcolor_temp_output = b.Vignette(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
-    return (vignette_outputcolor_temp_output)
+    vignette_output = b.vignette(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    return (vignette_output)
 
 
 def crop_mirror_normalize(*inputs, crop=[0, 0], crop_pos_x=0.5, crop_pos_y=0.5,
@@ -709,11 +703,11 @@ def crop_mirror_normalize(*inputs, crop=[0, 0], crop_pos_x=0.5, crop_pos_y=0.5,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "crop_height": crop_height, "crop_width": crop_width, "start_x": crop_pos_x, "start_y": crop_pos_y, "mean": mean, "std_dev": std,
                      "is_output": False, "mirror": mirror, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    cmn = b.CropMirrorNormalize(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    cmn = b.cropMirrorNormalize(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (cmn)
 
 
-def center_crop(*inputs, crop=[100, 100], crop_h=0, crop_w=0, crop_d=1,
+def center_crop(*inputs, crop=[0, 0], crop_h=0, crop_w=0, crop_d=1,
                 rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
@@ -746,12 +740,12 @@ def center_crop(*inputs, crop=[100, 100], crop_h=0, crop_w=0, crop_d=1,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "crop_width": crop_width, "crop_height": crop_height, "crop_depth": crop_depth,
                      "is_output": False, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    centre_cropped_image = b.CenterCropFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    centre_cropped_image = b.centerCropFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
 
     return (centre_cropped_image)
 
 
-def crop(*inputs, crop=[0.0, 0.0], crop_pos_x=0.5, crop_pos_y=0.5, crop_pos_z=0.5,
+def crop(*inputs, crop=[0, 0], crop_pos_x=0.5, crop_pos_y=0.5, crop_pos_z=0.5,
          crop_w=0, crop_h=0, crop_d=1, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
@@ -791,12 +785,12 @@ def crop(*inputs, crop=[0.0, 0.0], crop_pos_x=0.5, crop_pos_y=0.5, crop_pos_z=0.
         # pybind call arguments
         kwargs_pybind = {"input_image": inputs[0], "crop_width": None, "crop_height": None, "crop_depth": None, "is_output": False, "crop_pos_x": None,
                          "crop_pos_y": None, "crop_pos_z": None, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-        cropped_image = b.Crop(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        cropped_image = b.crop(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     else:
         # pybind call arguments
         kwargs_pybind = {"input_image": inputs[0], "crop_width": crop_width, "crop_height": crop_height, "crop_depth": crop_depth, "is_output": False, "crop_pos_x": crop_pos_x,
                          "crop_pos_y": crop_pos_y, "crop_pos_z": crop_pos_z, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-        cropped_image = b.CropFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        cropped_image = b.cropFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (cropped_image)
 
 
@@ -825,7 +819,7 @@ def color_twist(*inputs, brightness=1.0, contrast=1.0, hue=0.0,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "p_alpha": brightness, "p_beta": contrast,
                      "p_hue": hue, "p_sat": saturation, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    color_twist_image = b.ColorTwist(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    color_twist_image = b.colorTwist(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (color_twist_image)
 
 
@@ -922,8 +916,7 @@ def box_encoder(*inputs, anchors, criteria=0.5, means=None,
     return (box_encoder, [])
 
 
-def color_temp(*inputs, adjustment_value=50, rocal_tensor_output_layout=types.NHWC,
-               rocal_tensor_output_datatype=types.UINT8):
+def color_temp(*inputs, adjustment_value=50, rocal_tensor_output_layout=types.NHWC, rocal_tensor_output_datatype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
     
@@ -937,7 +930,7 @@ def color_temp(*inputs, adjustment_value=50, rocal_tensor_output_layout=types.NH
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "adjustment_value": adjustment_value,
                      "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    color_temp_output = b.ColorTemp(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    color_temp_output = b.colorTemp(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (color_temp_output)
 
 
@@ -947,7 +940,7 @@ def nop(*inputs):
     """
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False}
-    nop_output = b.rocalNop(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    nop_output = b.nop(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (nop_output)
 
 
@@ -957,7 +950,7 @@ def copy(*inputs):
     """
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False}
-    copied_image = b.rocalCopy(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    copied_image = b.copy(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (copied_image)
 
 
@@ -988,7 +981,7 @@ def snp_noise(*inputs, p_noise=0.0, p_salt=0.0, noise_val=0.0, salt_val=0.0,
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "p_noise": p_noise, "p_salt": p_salt, "noise_val": noise_val,
                      "salt_val": salt_val, "seed": seed, "rocal_tensor_output_layout": rocal_tensor_output_layout, "rocal_tensor_output_datatype": rocal_tensor_output_datatype}
-    snp_noise_added_image = b.SnPNoise(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    snp_noise_added_image = b.snpNoise(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (snp_noise_added_image)
 
 

@@ -31,4 +31,3 @@ THE SOFTWARE.
 #include "meta_node_flip.h"
 #include "meta_node_resize_mirror_normalize.h"
 #include "meta_node_resize.h"
-

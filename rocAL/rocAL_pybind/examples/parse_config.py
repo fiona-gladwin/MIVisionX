@@ -89,9 +89,9 @@ def parse_args():
                         help='refer python unit test for all augmentation names ')
     python_unit_test.add_argument('--output-file-name', '-f', type=str, default="",
                         help='file name to save the augmentation outputs')
-    python_unit_test.add_argument('--interpolation-type', '-i', type=int, default=1,
+    python_unit_test.add_argument('--resize-interpolation-type', '-ri', type=int, default=1,
                         help='interpolation type used for resize and crop')
-    python_unit_test.add_argument('--scaling-mode', '-sm', type=int, default=0,
+    python_unit_test.add_argument('--resize-scaling-mode', '-sm', type=int, default=0,
                         help='scaling mode type used for resize')                        
     # rocAL_api_coco_pipeline.py related options
     coco_pipeline = parser.add_argument_group('coco-pipeline', 'coco-pipeline-related options')

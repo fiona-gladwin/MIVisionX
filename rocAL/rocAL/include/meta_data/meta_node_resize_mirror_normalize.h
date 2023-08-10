@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "node.h"
 #include "node_resize_mirror_normalize.h"
 #include "parameter_vx.h"
+
 class ResizeMirrorNormalizeMetaNode:public MetaNode
 {
     public:
@@ -36,7 +37,6 @@ class ResizeMirrorNormalizeMetaNode:public MetaNode
         std::shared_ptr<ResizeMirrorNormalizeNode> _node = nullptr;
     private:
         void initialize();
-        vx_array _src_width, _src_height, _dst_width, _dst_height, _mirror;
-        std::vector<uint> _src_width_val, _src_height_val, _dst_width_val, _dst_height_val, _mirror_val;
-        float _dst_to_src_width_ratio, _dst_to_src_height_ratio;
+        vx_array _mirror;
+        std::vector<uint> _mirror_val;
 };

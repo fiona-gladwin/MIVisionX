@@ -36,9 +36,9 @@ class ROCALGenericIterator(object):
         self.device_id = device_id
         self.batch_size = self.loader._batch_size
         self.labels_size = ((self.batch_size * self.loader._num_classes) if self.loader._one_hot_encoding else self.batch_size)
-        self.output_list = self.dimensions = self.torch_dtype = None
+        self.output_list = None
         self.output_memory_type = self.loader._output_memory_type
-        self.len = b.getRemainingImages(self.loader._handle)
+        self.iterator_length = b.getRemainingImages(self.loader._handle)
         self.display = display
         if self.loader._name is None:
             self.loader._name = self.loader._reader
@@ -47,27 +47,27 @@ class ROCALGenericIterator(object):
         return self.__next__()
 
     def __next__(self):
-        if self.loader.rocalRun() != 0:
+        if self.loader.rocal_run() != 0:
             raise StopIteration
         else:
-            self.output_tensor_list = self.loader.getOutputTensors()
+            self.output_tensor_list = self.loader.get_output_tensors()
 
         if self.output_list is None:
             self.output_list = []
             for i in range(len(self.output_tensor_list)):
-                self.dimensions = self.output_tensor_list[i].dimensions()
+                dimensions = self.output_tensor_list[i].dimensions()
                 if self.device == "cpu":
-                    self.torch_dtype = self.output_tensor_list[i].dtype()
-                    self.output = torch.empty(self.dimensions, dtype = getattr(torch, self.torch_dtype))
-                    self.labels_tensor = torch.empty(self.labels_size, dtype = getattr(torch, self.torch_dtype))
+                    torch_dtype = self.output_tensor_list[i].dtype()
+                    output = torch.empty(dimensions, dtype=getattr(torch, torch_dtype))
+                    self.labels_tensor = torch.empty(self.labels_size, dtype=getattr(torch, torch_dtype))
                 else:
                     torch_gpu_device = torch.device('cuda', self.device_id)
-                    self.torch_dtype = self.output_tensor_list[i].dtype()
-                    self.output = torch.empty(self.dimensions, dtype = getattr(torch, self.torch_dtype), device=torch_gpu_device)
-                    self.labels_tensor = torch.empty(self.labels_size, dtype = getattr(torch, self.torch_dtype), device=torch_gpu_device)
+                    torch_dtype = self.output_tensor_list[i].dtype()
+                    output = torch.empty(dimensions, dtype=getattr(torch, torch_dtype), device=torch_gpu_device)
+                    self.labels_tensor = torch.empty(self.labels_size, dtype=getattr(torch, torch_dtype), device=torch_gpu_device)
 
-                self.output_tensor_list[i].copy_data(ctypes.c_void_p(self.output.data_ptr()), self.output_memory_type)
-                self.output_list.append(self.output)
+                self.output_tensor_list[i].copy_data(ctypes.c_void_p(output.data_ptr()), self.output_memory_type)
+                self.output_list.append(output)
         else:
             for i in range(len(self.output_tensor_list)):
                 self.output_tensor_list[i].copy_data(ctypes.c_void_p(self.output_list[i].data_ptr()), self.output_memory_type)
@@ -77,26 +77,24 @@ class ROCALGenericIterator(object):
             self.labels_list = []  # Empty list of labels
 
             # 1D labels array in a batch
-            self.labels = self.loader.getBoundingBoxLabels()
+            self.labels = self.loader.get_bounding_box_labels()
             # 1D bboxes array in a batch
-            self.bboxes = self.loader.rocalGetBoundingBoxCords()
+            self.bboxes = self.loader.get_bounding_box_cords()
             # Image sizes of a batch
             self.img_size = np.zeros((self.batch_size * 2), dtype="int32")
-            self.loader.getImgSizes(self.img_size)
+            self.loader.get_img_sizes(self.img_size)
 
             for i in range(self.batch_size):
 
-                self.label_2d_numpy = (self.labels[i])
-                self.label_2d_numpy = np.reshape(self.label_2d_numpy, (-1, 1)).tolist()
-                self.bb_2d_numpy = (self.bboxes[i])
-                self.bb_2d_numpy = np.reshape(self.bb_2d_numpy, (-1, 4)).tolist()
+                self.label_2d_numpy = np.reshape(self.labels[i], (-1, 1)).tolist()
+                self.bb_2d_numpy = np.reshape(self.bboxes[i], (-1, 4)).tolist()
 
                 self.labels_list.append(self.label_2d_numpy)
                 self.bbox_list.append(self.bb_2d_numpy)
 
                 if self.display:
                     for output in self.output_list:
-                        img = (output)
+                        img = output
                         draw_patches(img[i], i, self.bb_2d_numpy)
 
 
@@ -116,14 +114,14 @@ class ROCALGenericIterator(object):
 
         else:
             if self.loader._one_hot_encoding:
-                self.loader.getOneHotEncodedLabels(self.labels_tensor, self.device)
+                self.loader.get_one_hot_encoded_labels(self.labels_tensor, self.device)
                 self.labels_tensor = self.labels_tensor.reshape(-1, self.batch_size, self.loader._num_classes)
             else:
                 if self.display:
                     for i in range(self.batch_size):
-                        img = (self.output)
-                        draw_patches(img[i], i, 0)
-                self.labels = self.loader.getImageLabels()
+                        img = (self.output_list[0])
+                        draw_patches(img[i], i, [])
+                self.labels = self.loader.get_image_labels()
                 self.labels_tensor = self.labels_tensor.copy_(torch.from_numpy(self.labels)).long()
 
             return self.output_list, self.labels_tensor
@@ -135,7 +133,7 @@ class ROCALGenericIterator(object):
         return self
 
     def __len__(self):
-        return self.len
+        return self.iterator_length
 
     def __del__(self):
         b.rocalRelease(self.loader._handle)
@@ -199,7 +197,6 @@ class ROCALClassificationIterator(ROCALGenericIterator):
     fill_last_batch = True, last_batch_padded = True   -> last batch = [7, 7], next iteration will return [1, 2]
     fill_last_batch = True, last_batch_padded = False  -> last batch = [7, 1], next iteration will return [2, 3]
     """
-
     def __init__(self,
                  pipelines,
                  size=0,

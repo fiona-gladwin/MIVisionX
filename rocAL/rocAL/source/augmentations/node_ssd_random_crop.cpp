@@ -115,7 +115,7 @@ void SSDRandomCropNode::update_node()
         while (true)
         {
             sample_option = dis(gen);
-            iou =  IOU[sample_option];
+            iou = IOU[sample_option];
             _iou_range[i] = iou;
             min_iou = iou.first;
             max_iou = iou.second;
@@ -187,8 +187,8 @@ void SSDRandomCropNode::update_node()
             crop_dims[i].x2 = (crop_box.r - crop_box.l) * input_roi[i].x2;
             crop_dims[i].y2 = (crop_box.b - crop_box.t) * input_roi[i].y2;
         } else if(_inputs[0]->info().roi_type() == RocalROIType::LTRB) {
-            crop_dims[i].x2 =  (crop_box.r) * input_roi[i].x2;
-            crop_dims[i].y2 =  (crop_box.b) * input_roi[i].y2;
+            crop_dims[i].x2 = (crop_box.r) * input_roi[i].x2;
+            crop_dims[i].y2 = (crop_box.b) * input_roi[i].y2;
     }
     }
     _outputs[0]->update_tensor_roi(_crop_width_val, _crop_height_val);
@@ -208,7 +208,7 @@ SSDRandomCropNode::~SSDRandomCropNode() {
 #if ENABLE_HIP
         hipError_t err = hipHostFree(_crop_coordinates);
         if(err != hipSuccess)
-            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
+            std::cerr << "\n[ERR] hipFree failed" << std::to_string(err) << "\n";
 #endif
     } else {
         free(_crop_coordinates);

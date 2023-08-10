@@ -44,7 +44,7 @@ private:
     vx_array _multiplier_vx_array, _offset_vx_array;
     std::vector<float> _mean, _std_dev;
     ParameterVX<int> _mirror;
-    constexpr static int   MIRROR_RANGE [2] =  {0, 1};
+    constexpr static int MIRROR_RANGE[2] = {0, 1};
     void * _crop_coordinates;
     vx_tensor _crop_tensor;
 };
