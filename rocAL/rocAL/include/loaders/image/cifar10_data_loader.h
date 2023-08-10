@@ -36,6 +36,8 @@ public:
     void initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool keep_orig_size=true) override;
     void set_output(Tensor* output_tensor) override;
     void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) override;
+    std::vector<std::vector <float>> get_batch_random_bbox_crop_coords();
+    void set_batch_random_bbox_crop_coords(std::vector<std::vector <float>> batch_crop_coords);
     size_t remaining_count() override;
     void reset() override;
     void start_loading() override;
@@ -80,4 +82,9 @@ private:
     size_t _remaining_image_count;//!< How many images are there yet to be loaded
     Tensor *_output_tensor;
     std::shared_ptr<RandomBBoxCrop_MetaDataReader> _randombboxcrop_meta_data_reader = nullptr;
+    std::vector<std::vector <float>> _bbox_coords, _crop_coords_batch;
+    crop_image_info _crop_image_info;
+    crop_image_info _output_cropped_img_info;
+
+
 };
