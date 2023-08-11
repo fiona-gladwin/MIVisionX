@@ -51,7 +51,7 @@ using namespace cv;
 #include "rocal_api.h"
 #include "rocal_api_types.h"
 
-#define PRINT_NAMES_AND_LABELS 0 // uncomment for printing names and labels
+#define PRINT_NAMES_AND_LABELS 1 // uncomment for printing names and labels
 // #define ROCAL_MEMCPY_TO_HOST 0 //For HOST 0 / GPU 1
 #define DISPLAY 0
 using namespace std::chrono;
@@ -60,11 +60,12 @@ std::mutex g_mtx;           // mutex for critical section
 int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, int shard_id, int num_shards, int dec_width, int dec_height, int batch_size, bool shuffle, bool display, int dec_mode )
 {
     std::unique_lock<std::mutex> lck (g_mtx,std::defer_lock);
-    std::cout << ">>> Running on " << (gpu_mode>=0?"GPU":"CPU") << "shard_id: " << shard_id << std::endl;
+    std::cout << ">>> Running on " << (gpu_mode >= 0 ? "GPU" : "CPU") << std::endl;
+    std::cout << ">>> Running on shard_id: " << shard_id << std::endl;
     color_format = RocalImageColor::ROCAL_COLOR_RGB24;
     int gpu_id = (gpu_mode < 0)? 0: gpu_mode;
     RocalDecoderType dec_type = (RocalDecoderType) dec_mode;
-
+     std::cout << ">>> Running on decoder mode - dec_mode<0(tjpeg)/1(opencv)/2(hwdec) : " << dec_type << std::endl;
     lck.lock();
     //looks like OpenVX has some issue loading kernels from multiple threads at the same time
     auto handle = rocalCreate(batch_size, (gpu_mode<0)?RocalProcessMode::ROCAL_PROCESS_CPU:RocalProcessMode::ROCAL_PROCESS_GPU, gpu_id,1);
@@ -87,7 +88,7 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
-        std::cout << "rocalJpegFileSourceSingleShard<"<<shard_id<<" , "<< num_shards << ">" << " could not initialize : "<<rocalGetErrorMessage(handle) << std::endl;
+        std::cout << "rocalJpegFileSourceSingleShard<"<<shard_id<<" , "<< num_shards << ">" << " could not initialize : "<< rocalGetErrorMessage(handle) << std::endl;
         return -1;
     }
     // create meta data reader
@@ -130,11 +131,10 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
     int p = (((color_format ==  RocalImageColor::ROCAL_COLOR_RGB24 ) ||
               (color_format ==  RocalImageColor::ROCAL_COLOR_RGB_PLANAR )) ? 3 : 1);
     std::cout << "output width "<< w << " output height "<< h << " color planes "<< p << " n "<< n << std::endl;
-    const unsigned number_of_cols = 1;    // no augmented case
-    float *out_tensor =new float[h*w*p+256];
+    const unsigned number_of_cols = 1; // no augmented case
   //  printf("Allocated output tensor of size(flat) %d\n", h*w*p+256);
     auto cv_color_format = ((p==3) ? CV_8UC3 : CV_8UC1);
-    cv::Mat mat_output(h, w*number_of_cols, cv_color_format);
+    cv::Mat mat_output(h, w * number_of_cols, cv_color_format);
     cv::Mat mat_input(h, w, cv_color_format);
     cv::Mat mat_color;
     int col_counter = 0;
@@ -148,9 +148,9 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
         cv::namedWindow( "output", CV_WINDOW_AUTOSIZE );
     int iter_cnt = 0;
 
-    while (!rocalIsEmpty(handle) /*&& (iter_cnt < 100)*/)
+    while (!rocalIsEmpty(handle) && (iter_cnt < 2))
     {
-      //  std::cout << "processing iter: " << iter_cnt << std::endl;
+       std::cout << "processing iter: " << iter_cnt << std::endl;
         if(rocalRun(handle) != 0)
             break;
         // copy output to host as image
@@ -162,35 +162,18 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
 // #if PRINT_NAMES_AND_LABELS
         std::string imageNamesStr(img_name);
         int pos = 0;
+        int *labels_buffer = reinterpret_cast<int *>(labels->at(0)->buffer());
         for(int i = 0; i < batch_size; i++)
         {
-            int *labels_buffer = reinterpret_cast<int *>(labels->at(i)->buffer());
             names[i] = imageNamesStr.substr(pos, image_name_length[i]);
             pos += image_name_length[i];
             std::cout << "name: " << names[i] << " label: "<< labels_buffer[i] << " - ";
         }
         std::cout << std::endl;
-// #endif
-            // RocalTensorList labels = rocalGetImageLabels(handle);
-
-            // unsigned imagename_size = rocalGetImageNameLen(handle,image_name_length);
-            // char imageNames[imagename_size];
-            // rocalGetImageName(handle,imageNames);
-            // std::string imageNamesStr(imageNames);
-
-            // int pos = 0;
-            // for(int i = 0; i < batch_size; i++) {
-            //     int *labels_buffer = reinterpret_cast<int *>(labels->at(i)->buffer());
-            //     names[i] = imageNamesStr.substr(pos, image_name_length[i]);
-            //     pos += image_name_length[i];
-            //     std::cout << "name: " << names[i] << " label: "<< labels_buffer[i] << " - ";
-            // }
-            // std::cout << std::endl;
         iter_cnt ++;
-
         if(!display)
             continue;
-        mat_input.copyTo(mat_output(cv::Rect(  col_counter*w, 0, w, h)));
+        mat_input.copyTo(mat_output(cv::Rect(col_counter*w, 0, w, h)));
         cv::cvtColor(mat_output, mat_color, CV_RGB2BGR);
         if(DISPLAY)
         cv::imshow("output.png",mat_output);
@@ -203,15 +186,15 @@ int thread_func(const char *path, int gpu_mode, RocalImageColor color_format, in
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     auto dur = duration_cast<microseconds>( t2 - t1 ).count();
     auto rocal_timing = rocalGetTimingInfo(handle);
-    std::cout << "Load     time:"<< shard_id<<" " <<rocal_timing.load_time << std::endl;
-    std::cout << "Decode   time:"<< shard_id<<" " <<rocal_timing.decode_time << std::endl;
-    std::cout << "Process  time: "<< shard_id<<" " <<rocal_timing.process_time << std::endl;
-    std::cout << "Transfer time: "<< shard_id<<" " <<rocal_timing.transfer_time << std::endl;
+    std::cout << "For shard_id: " << shard_id << std::endl;
+    std::cout << "Load     time: " <<" " <<rocal_timing.load_time << std::endl;
+    std::cout << "Decode   time: " <<" " <<rocal_timing.decode_time << std::endl;
+    std::cout << "Process  time: " <<" " <<rocal_timing.process_time << std::endl;
+    std::cout << "Transfer time: " <<" " <<rocal_timing.transfer_time << std::endl;
     std::cout << ">>>>> "<< counter << " images/frames Processed. Total Elapsed Time " << dur/1000000 << " sec " << dur%1000000 << " us " << std::endl;
     rocalRelease(handle);
     mat_input.release();
     mat_output.release();
-    if (out_tensor) delete [] out_tensor;
     return 0;
 }
 
@@ -271,7 +254,7 @@ int main(int argc, const char ** argv) {
     int th_id;
     for (th_id = 0; th_id < num_shards; th_id++) {
         loader_threads[th_id] = std::thread(thread_func, path, gpu_id, RocalImageColor::ROCAL_COLOR_RGB24, th_id, num_shards, decode_width, decode_height, inputBatchSize,
-                                                shuffle, display, dec_mode);
+                                            shuffle, display, dec_mode);
         if (num_gpus) gpu_id = (gpu_id +1) % num_gpus;
     }
     for (auto& th:loader_threads ) {
