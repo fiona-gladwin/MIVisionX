@@ -569,7 +569,8 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                   << "rocalCropMirrorNormalize" << std::endl;
         std::vector<float> mean = {128, 128, 128};
         std::vector<float> std_dev = {1.2, 1.2, 1.2};
-        output = rocalCropMirrorNormalize(handle, input, 224, 224, 0, 0, mean, std_dev, true, mirror, output_tensor_layout, output_tensor_dtype);
+        output = rocalCropMirrorNormalize(handle, input, 224, 224, 0, 0, mean, std_dev, false, mirror, output_tensor_layout, ROCAL_FP32);
+        output = rocalCast(handle, output, true, ROCAL_UINT8);
     }
     break;
     case 26:
