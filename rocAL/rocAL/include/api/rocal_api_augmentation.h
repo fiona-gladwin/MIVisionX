@@ -146,14 +146,18 @@ extern "C" RocalTensor ROCAL_API_CALL rocalBrightness(RocalContext context, Roca
                                                       RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 inputs
-/// \param context
-/// \param input
-/// \param shift
-/// \param is_output
+/// \param context Rocal context
+/// \param input Input Rocal tensor
+/// \param is_output is the output tensor part of the graph output
+/// \param alpha controls contrast of the image
+/// \param beta controls brightness of the image
+/// \param tensor_output_layout the layout of the output tensor
+/// \param tensor_output_datatype the data type of the output tensor
 /// \return
-extern "C"  RocalTensor  ROCAL_API_CALL rocalBrightnessFixed(RocalContext context, RocalTensor input,
-                                                            float alpha, float beta,
-                                                            bool is_output );
+extern "C" RocalTensor ROCAL_API_CALL rocalBrightnessFixed(RocalContext context, RocalTensor input,
+                                                           float alpha, float beta, bool is_output,
+                                                           RocalTensorLayout rocal_tensor_output_layout = ROCAL_NHWC,
+                                                           RocalTensorOutputType rocal_tensor_output_type = ROCAL_UINT8);
 
 /// Accepts U8 and RGB24 inputs
 /// \param context
