@@ -36,6 +36,11 @@ THE SOFTWARE.
  */
 
 #ifndef dimof
+/*! \def dimof(x)
+ *  \brief A macro to get the number of elements in an array.
+ *  \param [in] x The array whose size is to be determined.
+ *  \return The number of elements in the array.
+ */
 #define dimof(x) (sizeof(x) / sizeof(x[0]))
 #endif
 
@@ -43,10 +48,20 @@ THE SOFTWARE.
 #if _WIN32
 #define SHARED_PUBLIC __declspec(dllexport)
 #else
+/*! \def SHARED_PUBLIC
+ *  \brief A macro to specify public visibility for shared library symbols.
+ */
 #define SHARED_PUBLIC __attribute__((visibility("default")))
 #endif
 #endif
 
+/*! \brief Creates a node in a graph using a predefined kernel structure.
+ *  \param [in] graph The handle to the graph.
+ *  \param [in] kernelenum The enum value representing the kernel to be used.
+ *  \param [in] params An array of parameter references for the kernel.
+ *  \param [in] num The number of parameters in the params array.
+ *  \return A handle to the created node.
+ */
 vx_node vxCreateNodeByStructure(vx_graph graph, vx_enum kernelenum, vx_reference params[], vx_uint32 num);
 
 #ifdef __cplusplus
@@ -62,13 +77,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_AbsoluteDifferencebatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -77,12 +91,11 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [inout] pSrc1 The bidirectional image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data that acts as the first input and output.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_AccumulatebatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_uint32 nbatchSize);
 
@@ -90,12 +103,11 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [inout] pSrc The bidirectional image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data that acts as the input and output.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_AccumulateSquaredbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_uint32 nbatchSize);
 
@@ -104,13 +116,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [inout] pSrc1 The bidirectional image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data that acts as the first input and output.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
-	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the alpha data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
+	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the alpha data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_AccumulateWeightedbatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_array alpha, vx_uint32 nbatchSize);
 
@@ -119,13 +130,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_AddbatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -134,13 +144,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_BitwiseANDbatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -148,13 +157,12 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_BitwiseNOTbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -163,11 +171,11 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the alpha data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the alpha data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
 	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
 	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
@@ -178,14 +186,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_BlurbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -193,14 +200,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_BoxFilterbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -208,15 +214,14 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the alpha data.
-	 * \param [in] beta The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the beta data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the alpha data.
+	 * \param [in] beta The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the beta data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_BrightnessbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array alpha, vx_array beta, vx_uint32 nbatchSize);
 
@@ -224,15 +229,14 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] max The input array in <tt>unsigned char<tt> format containing the max data.
-	 * \param [in] min The input array in <tt>unsigned char<tt> format containing the min data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] max The input array in <tt>unsigned char</tt> format containing the max data.
+	 * \param [in] min The input array in <tt>unsigned char</tt> format containing the min data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_CannyEdgeDetector(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array max, vx_array min, vx_uint32 nbatchSize);
 
@@ -241,14 +245,13 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [in] pSrc3 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ChannelCombinebatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pSrc3, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -256,14 +259,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] extractChannelNumber The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the data for channel number to be extracted.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] extractChannelNumber The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the data for channel number to be extracted.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ChannelExtractbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array extractChannelNumber, vx_uint32 nbatchSize);
 
@@ -271,14 +273,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] adjustmentValue The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the data for the adjustment value.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] adjustmentValue The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the data for the adjustment value.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ColorTemperaturebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array adjustmentValue, vx_uint32 nbatchSize);
 
@@ -286,17 +287,16 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the alpha data.
-	 * \param [in] beta The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the beta data.
-	 * \param [in] hue The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the hue data.
-	 * \param [in] sat The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the saturation data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the alpha data.
+	 * \param [in] beta The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the beta data.
+	 * \param [in] hue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the hue data.
+	 * \param [in] sat The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the saturation data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ColorTwistbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array alpha, vx_array beta, vx_array hue, vx_array sat, vx_uint32 nbatchSize);
 
@@ -304,15 +304,14 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] min The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the min data.
-	 * \param [in] max The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the max data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] min The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the min data.
+	 * \param [in] max The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the max data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ContrastbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array min, vx_array max, vx_uint32 nbatchSize);
 
@@ -322,8 +321,7 @@ extern "C"
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [out] pDst The output image data.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_CopybatchPD(vx_graph graph, vx_image pSrc, vx_image pDst);
 
@@ -359,14 +357,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_DilatebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -374,14 +371,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ErodebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -396,14 +392,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] exposureValue The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the exposure value data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] exposureValue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the exposure value data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_ExposurebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array exposureValue, vx_uint32 nbatchSize);
 
@@ -425,14 +420,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] flipAxis The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the flip axis data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] flipAxis The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the flip axis data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_FlipbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array flipAxis, vx_uint32 nbatchSize);
 
@@ -440,14 +434,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] fogValue The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the fog value data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] fogValue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the fog value data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_FogbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array fogValue, vx_uint32 nbatchSize);
 
@@ -455,14 +448,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] gamma The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the gamma data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] gamma The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the gamma data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_GammaCorrectionbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array gamma, vx_uint32 nbatchSize);
 
@@ -470,15 +462,14 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] stdDev The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the standard deviation data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] stdDev The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the standard deviation data.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_GaussianFilterbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array stdDev, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -486,15 +477,14 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] stdDev The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the standard deviation data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] stdDev The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the standard deviation data.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_GaussianImagePyramidbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array stdDev, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -509,11 +499,10 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [inout] pSrc The bidirectional image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data that acts as the input and output..
-	 * \param [in] outputHistogram The input array of given size in <tt>unsigned int<tt> containing the output histogram data.
-	 * \param [in] bins The input scalar in <tt>unsigned int<tt> to set bins value.
+	 * \param [in] outputHistogram The input array of given size in <tt>unsigned int</tt> containing the output histogram data.
+	 * \param [in] bins The input scalar in <tt>unsigned int</tt> to set bins value.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Histogram(vx_graph graph, vx_image pSrc, vx_array outputHistogram, vx_scalar bins);
 
@@ -521,13 +510,12 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_HistogramBalancebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -535,13 +523,12 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_HistogramEqualizebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -549,14 +536,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] hueShift The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the hue shift data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] hueShift The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the hue shift data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_HuebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array hueShift, vx_uint32 nbatchSize);
 
@@ -565,14 +551,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] alpha The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the alpha data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_InclusiveORbatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -580,14 +564,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_JitterbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -595,15 +578,14 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] stdDev The input array in <tt>float<tt> format containing the standard deviation data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] stdDev The input array in <tt>float</tt> format containing the standard deviation data.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_LaplacianImagePyramid(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array stdDev, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -611,15 +593,14 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] strength The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the strength data.
-	 * \param [in] zoom The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the zoom data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] strength The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the strength data.
+	 * \param [in] zoom The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the zoom data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_LensCorrectionbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array strength, vx_array zoom, vx_uint32 nbatchSize);
 
@@ -627,13 +608,12 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_LocalBinaryPatternbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -641,14 +621,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] lutPtr The input array in <tt>unsigned char<tt> format containing the strength data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] lutPtr The input array in <tt>unsigned char</tt> format containing the strength data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_LookUpTablebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array lutPtr, vx_uint32 nbatchSize);
 
@@ -657,13 +636,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_MagnitudebatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -672,13 +650,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_MaxbatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -693,14 +670,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the kernel size data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] kernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_MedianFilterbatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array kernelSize, vx_uint32 nbatchSize);
 
@@ -709,13 +685,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_MinbatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -731,13 +706,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_MultiplybatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -768,8 +742,7 @@ extern "C"
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [out] pDst The output image data.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_NopbatchPD(vx_graph graph, vx_image pSrc, vx_image pDst);
 
@@ -883,13 +856,12 @@ extern "C"
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc1 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
 	 * \param [in] pSrc2 The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SubtractbatchPD(vx_graph graph, vx_image pSrc1, vx_image pSrc2, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_uint32 nbatchSize);
 
@@ -939,14 +911,13 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input image in <tt>\ref VX_DF_IMAGE_U8</tt> or <tt>\ref VX_DF_IMAGE_RGB</tt> format data.
-	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int<tt> containing the image width data.
-	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int<tt> containing the image height data.
+	 * \param [in] srcImgWidth The input array of batch size in <tt>unsigned int</tt> containing the image width data.
+	 * \param [in] srcImgHeight The input array of batch size in <tt>unsigned int</tt> containing the image height data.
 	 * \param [out] pDst The output image data.
-	 * \param [in] stdDev The input array in <tt>VX_TYPE_FLOAT32<tt> format containing the standard deviation data.
-	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32<tt> to set batch size.
+	 * \param [in] stdDev The input array in <tt>VX_TYPE_FLOAT32</tt> format containing the standard deviation data.
+	 * \param [in] nbatchSize The input scalar in <tt>\ref VX_TYPE_UINT32</tt> to set batch size.
 	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_VignettebatchPD(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array stdDev, vx_uint32 nbatchSize);
 
@@ -969,7 +940,7 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * @note - TBD
 	 */
-	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrange(vx_graph graph, vx_image pSrc, vx_image pDst, vx_array newOrder, vx_uint32 newSequenceLength, vx_uint32 sequenceLength, vx_uint32 sequenceCount);
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_SequenceRearrangebatchPD(vx_graph graph, vx_image pSrc, vx_image pDst, vx_array newOrder, vx_uint32 newSequenceLength, vx_uint32 sequenceLength, vx_uint32 sequenceCount);
 
 	/*!
 	 * \brief [Graph] Creates a RPP Resize Tensor function node.
@@ -979,80 +950,475 @@ extern "C"
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtrppNode_Resizetensor(vx_graph graph, vx_image pSrc, vx_array srcImgWidth, vx_array srcImgHeight, vx_image pDst, vx_array dstImgWidth, vx_array dstImgHeight, vx_int32 interpolation_type, vx_uint32 nbatchSize);
 
 	// Tensor Augmentations
-	/*! \brief [Graph] Creates a RPP Brightness function node.
+	/*! \brief [Graph] Creates a Brightness function node.
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
-	 * \param [in] pSrc The input tensor data.
-	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int<tt> containing the roi values for the input in xywh/ltrb format.
-	 * \param [out] pDst The output tensor data.
-	 * \param [in] pAlpha The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the alpha data.
-	 * \param [in] pBeta The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the beta data.
-	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32<tt> denotes the layout of input tensor.
-	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32<tt> denotes the layout of output tensor.
-	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32<tt> denotes whether source roi is of XYWH/LTRB type.
-	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pAlpha The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the alpha data.
+	 * \param [in] pBeta The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the beta data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
-	SHARED_PUBLIC vx_node VX_API_CALL vxRppBrightness(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAlpha, vx_array pBeta, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppBrightness(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAlpha, vx_array pBeta, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
 
-	/*! \brief [Graph] Creates a RPP Copy function node.
+	/*! \brief [Graph] Creates a Copy function node.
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input tensor data.
 	 * \param [out] pDst The output tensor data.
-	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
-	SHARED_PUBLIC vx_node VX_API_CALL vxRppCopy(vx_graph graph, vx_tensor pSrc, vx_tensor pDst);
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppCopy(vx_graph graph, vx_tensor pSrc, vx_tensor pDst);
 
-	/*! \brief [Graph] Creates a RPP CropMirrorNormalize function node.
+	/*! \brief [Graph] Creates a CropMirrorNormalize function node.
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
-	 * \param [in] pSrc The input tensor data.
-	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int<tt> containing the roi values for the input in xywh/ltrb format.
-	 * \param [out] pDst The output tensor data.
-	 * \param [in] pMultiplier The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the multiplier data.
-	 * \param [in] pOffset The input array in <tt>\ref VX_TYPE_FLOAT32<tt> format containing the offset data.
-	 * \param [in] pOffset The input array in <tt>\ref VX_TYPE_INT32<tt> format containing the flip data.
-	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32<tt> denotes the layout of input tensor.
-	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32<tt> denotes the layout of output tensor.
-	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32<tt> denotes whether source roi is of XYWH/LTRB type.
-	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pMultiplier The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the multiplier data.
+	 * \param [in] pOffset The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the offset data.
+	 * \param [in] pMirror The input array in <tt>\ref VX_TYPE_INT32</tt> format containing the flip data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
-	SHARED_PUBLIC vx_node VX_API_CALL vxRppCropMirrorNormalize(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pMultiplier, vx_array pOffset, vx_array pFlip, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppCropMirrorNormalize(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pMultiplier, vx_array pOffset, vx_array pMirror, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
 
-	/*! \brief [Graph] Creates a RPP Nop function node.
+	/*! \brief [Graph] Creates a Nop function node.
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
 	 * \param [in] pSrc The input tensor data.
 	 * \param [out] pDst The output tensor data.
-	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
-	SHARED_PUBLIC vx_node VX_API_CALL vxRppNop(vx_graph graph, vx_tensor pSrc, vx_tensor pDst);
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppNop(vx_graph graph, vx_tensor pSrc, vx_tensor pDst);
 
-	/*! \brief [Graph] Creates a RPP vxRppResize function node.
+	/*! \brief [Graph] Creates a Resize function node.
 	 * \ingroup group_amd_rpp
 	 * \param [in] graph The handle to the graph.
-	 * \param [in] pSrc The input tensor data.
-	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int<tt> containing the roi values for the input in xywh/ltrb format.
-	 * \param [out] pDst The output tensor data.
-	 * \param [in] pDstWidth The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the output width data.
-	 * \param [in] pDstHeight The input array in <tt>\ref VX_TYPE_UINT32<tt> format containing the output height data.
-	 * \param [in] interpolationType The resize interpolation type in <tt>\ref VX_TYPE_INT32<tt> format containing the type of interpolation.
-	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32<tt> denotes the layout of input tensor.
-	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32<tt> denotes the layout of output tensor.
-	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32<tt> denotes whether source roi is of XYWH/LTRB type.
-	 * \return <tt> vx_node</tt>.
-	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
-	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pDstWidth The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the output width data.
+	 * \param [in] pDstHeight The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the output height data.
+	 * \param [in] interpolationType The resize interpolation type in <tt>\ref VX_TYPE_INT32</tt> format containing the type of interpolation.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
-	SHARED_PUBLIC vx_node VX_API_CALL vxRppResize(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pDstWidth, vx_array pDstHeight, vx_scalar interpolationType, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppResize(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pDstWidth, vx_array pDstHeight, vx_scalar interpolationType, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+
+	/*!
+	 * \brief [Graph] Creates a SequenceRearrange function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [out] pDst The output tensor <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pNewOrder The rearrange order in <tt>\ref VX_TYPE_UINT32</tt> containing the order in which frames are copied.
+	 * \param [in] layout The layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input and output tensor.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppSequenceRearrange(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_array pNewOrder, vx_scalar layout);
+
+	/*! \brief [Graph] Creates a Blend function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc1 The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrc2 The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pShift The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the shift data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppBlend(vx_graph graph, vx_tensor pSrc1, vx_tensor pSrc2, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pShift, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Blur function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pKernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppBlur(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pKernelSize, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a ColorTemperature function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pAdjustValue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the adjustment value data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppColorTemperature(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAdjustValue, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a ColorTwist function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pAlpha The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the alpha data.
+	 * \param [in] pBeta The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the beta data.
+	 * \param [in] pHue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the hue data.
+	 * \param [in] pSat The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the saturation data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppColorTwist(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAlpha, vx_array pBeta, vx_array pHue, vx_array pSat, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Contrast function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pContrastFactor The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the contrast factor data.
+	 * \param [in] pContrastCenter The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the contrast center data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppContrast(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pContrastFactor, vx_array pContrastCenter, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Crop function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppCrop(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Exposure function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pExposureFactor The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the exposure factor data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppExposure(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pExposureFactor, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a FishEye function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppFishEye(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Flip function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pHflag The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the horizontal flag data.
+	 * \param [in] pVflag The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the vertical flag data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppFlip(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pHflag, vx_array pVflag, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Fog function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pFogValue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the fog value data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppFog(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pFogValue, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a GammaCorrection function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pGamma The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the gamma data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppGammaCorrection(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pGamma, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Glitch function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pXoffsetR The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the x offset for r-channel data.
+	 * \param [in] pYoffsetR The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the y offset for r-channel data.
+	 * \param [in] pXoffsetG The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the x offset for g-channel data.
+	 * \param [in] pYoffsetG The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the y offset for g-channel data.
+	 * \param [in] pXoffsetB The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the x offset for b-channel data.
+	 * \param [in] pYoffsetB The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the y offset for b-channel data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppGlitch(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pXoffsetR, vx_array pYoffsetR, vx_array pXoffsetG, vx_array pYoffsetG, vx_array pXoffsetB, vx_array pYoffsetB, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Hue function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pHueShift The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the hue shift data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppHue(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pHueShift, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Jitter function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pKernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
+	 * \param [in] seed The input scalar in <tt>\ref VX_TYPE_UINT32</tt> contains the seed value.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppJitter(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pKernelSize, vx_scalar seed, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a LensCorrection function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pStrength The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the strength value data.
+	 * \param [in] pZoom The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the zoom value data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppLensCorrection(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pStrength, vx_array pZoom, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Noise function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pNoiseProb The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the noise probability data.
+	 * \param [in] pSaltProb The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the salt probability data.
+	 * \param [in] pSaltValue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the salt value data.
+	 * \param [in] pPepperValue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the pepper value data.
+	 * \param [in] seed The input scalar in <tt>\ref VX_TYPE_UINT32</tt> contains the seed value.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppNoise(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pNoiseProb, vx_array pSaltProb, vx_array pSaltValue, vx_array pPepperValue, vx_scalar seed, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Noise function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pRainValue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the rain value data.
+	 * \param [in] pRainWidth The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the rain width data.
+	 * \param [in] pRainHeight The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the rain height data.
+	 * \param [in] pRainTransperancy The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the rain transparency data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppRain(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pRainValue, vx_array pRainWidth, vx_array pRainHeight, vx_array pRainTransperancy, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a ResizeCrop function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [in] pCropTensor The input tensor of batch size in <tt>unsigned int</tt> containing the crop coordinates for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pDstWidth The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the output width data.
+	 * \param [in] pDstHeight The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the output height data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppResizeCrop(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pCropTensor, vx_tensor pDst, vx_array pDstWidth, vx_array pDstHeight, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a ResizeCropMirror function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pDstWidth The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the output width data.
+	 * \param [in] pDstHeight The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the output height data.
+	 * \param [in] pMirror The input array in <tt>\ref VX_TYPE_INT32</tt> format containing the mirror data.
+	 * \param [in] interpolationType The resize interpolation type in <tt>\ref VX_TYPE_INT32</tt> format containing the type of interpolation.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppResizeCropMirror(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pDstWidth, vx_array pDstHeight, vx_array pMirror, vx_scalar interpolationType, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a ResizeMirrorNormalize function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pDstWidth The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the output width data.
+	 * \param [in] pDstHeight The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the output height data.
+	 * \param [in] interpolationType The resize interpolation type in <tt>\ref VX_TYPE_INT32</tt> format containing the type of interpolation.
+	 * \param [in] pMean The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the mean data.
+	 * \param [in] pStdDev The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the std-dev data.
+	 * \param [in] pMirror The input array in <tt>\ref VX_TYPE_INT32</tt> format containing the mirror data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppResizeMirrorNormalize(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst,vx_array pDstWidth, vx_array pDstHeight, vx_scalar interpolationType, vx_array pMean, vx_array pStdDev, vx_array pMirror, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Rotate function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pAngle The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the angle data.
+	 * \param [in] interpolationType The resize interpolation type in <tt>\ref VX_TYPE_INT32</tt> format containing the type of interpolation.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppRotate(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAngle, vx_scalar interpolationType, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Saturation function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSaturationFactor The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the saturation factor data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppSaturation(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pSaturationFactor, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Snow function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
+	 * \param [in] pSnowValue The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the snow value data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppSnow(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pSnowValue, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Pixelate function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppPixelate(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+	
+	/*! \brief [Graph] Creates a Vignette function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pStdDev The input array in <tt>VX_TYPE_FLOAT32</tt> format containing the standard deviation data.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppVignette(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pStdDev, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
+
+	/*! \brief [Graph] Creates a Warp-Affine function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int</tt> containing the roi values for the input in xywh/ltrb format.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> or <tt>\ref VX_TYPE_FLOAT32</tt> or <tt>\ref VX_TYPE_FLOAT16</tt> or <tt>\ref VX_TYPE_INT8</tt> format data.
+	 * \param [in] pAffineArray The input array in <tt>\ref VX_TYPE_FLOAT32</tt> format containing the affine transformation data.
+	 * \param [in] interpolationType The resize interpolation type in <tt>\ref VX_TYPE_INT32</tt> format containing the type of interpolation.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.
+	 * \param [in] roiType The type of roi <tt>\ref VX_TYPE_INT32</tt> denotes whether source roi is of XYWH/LTRB type.
+	 * \return A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppWarpAffine(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAffineArray, vx_scalar interpolationType, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType);
 
 #ifdef __cplusplus
 }

@@ -41,7 +41,13 @@ THE SOFTWARE.
  * \ingroup group_amd
  */
 #define AGO_TARGET_AFFINITY_CPU 0x0010 // CPU
+/*! \brief AMD target affinity enumerations for AgoTargetAffinityInfo.device_type
+ * \ingroup group_amd
+ */
 #define AGO_TARGET_AFFINITY_GPU 0x0020 // GPU
+/*! \brief AMD target affinity enumerations for AgoTargetAffinityInfo.device_type
+ * \ingroup group_amd
+ */
 #define AGO_TARGET_AFFINITY_APU 0x0030 // APU
 
 /*! \brief AMD internal parameters. [TODO: This needs to be moved to ago_internal.h]
@@ -203,9 +209,7 @@ enum vx_image_attribute_amd_e
     VX_IMAGE_ATTRIBUTE_AMD_OPENCL_BUFFER = VX_ATTRIBUTE_BASE(VX_ID_AMD, VX_TYPE_IMAGE) + 0x01,
     /*! \brief GPU buffer offset. Use a <tt>\ref cl_uint</tt> parameter.*/
     VX_IMAGE_ATTRIBUTE_AMD_GPU_BUFFER_OFFSET = VX_ATTRIBUTE_BASE(VX_ID_AMD, VX_TYPE_IMAGE) + 0x02,
-    /*! \brief Enable user kernel's own GPU buffer for virtual images. Supports only images with
-     * single color plane and stride should match framework's internal alignment. image ROI not supported.
-     * Use a <tt>\ref vx_bool</tt> parameter.*/
+    /*! \brief Enable user kernel's own GPU buffer for virtual images. Supports only images with single color plane and stride should match framework's internal alignment. image ROI not supported. Use a <tt>\ref vx_bool</tt> parameter.*/
     VX_IMAGE_ATTRIBUTE_AMD_ENABLE_USER_BUFFER_GPU = VX_ATTRIBUTE_BASE(VX_ID_AMD, VX_TYPE_IMAGE) + 0x03,
     /*! \brief GPU buffer stride. Use a <tt>\ref cl_uint</tt> parameter.*/
     VX_IMAGE_ATTRIBUTE_AMD_GPU_BUFFER_STRIDE = VX_ATTRIBUTE_BASE(VX_ID_AMD, VX_TYPE_IMAGE) + 0x04,
