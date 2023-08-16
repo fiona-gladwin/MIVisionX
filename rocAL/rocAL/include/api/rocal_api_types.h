@@ -36,27 +36,25 @@ THE SOFTWARE.
 #include <half/half.hpp>
 using half_float::half;
 
-typedef void * RocalFloatParam;
-typedef void * RocalIntParam;
-typedef void * RocalContext;
+typedef void* RocalFloatParam;
+typedef void* RocalIntParam;
+typedef void* RocalContext;
 
-typedef std::vector<int> ImageIDBatch,AnnotationIDBatch;
+typedef std::vector<int> ImageIDBatch, AnnotationIDBatch;
 typedef std::vector<std::string> ImagePathBatch;
-typedef std::vector<float> ScoreBatch,RotationBatch;
+typedef std::vector<float> ScoreBatch, RotationBatch;
 typedef std::vector<std::vector<float>> CenterBatch, ScaleBatch;
 typedef std::vector<std::vector<std::vector<float>>> JointsBatch, JointsVisibilityBatch;
 
-struct TimingInfo
-{
+struct TimingInfo {
     long long unsigned load_time;
     long long unsigned decode_time;
     long long unsigned process_time;
     long long unsigned transfer_time;
 };
 
-//HRNet training expects meta data (joints_data) in below format, so added here as a type for exposing to user
-struct RocalJointsData
-{
+// HRNet training expects meta data (joints_data) in below format, so added here as a type for exposing to user
+struct RocalJointsData {
     ImageIDBatch image_id_batch;
     AnnotationIDBatch annotation_id_batch;
     ImagePathBatch image_path_batch;
@@ -68,8 +66,7 @@ struct RocalJointsData
     RotationBatch rotation_batch;
 };
 
-enum RocalStatus
-{
+enum RocalStatus {
     ROCAL_OK = 0,
     ROCAL_CONTEXT_INVALID,
     ROCAL_RUNTIME_ERROR,
@@ -77,61 +74,52 @@ enum RocalStatus
     ROCAL_INVALID_PARAMETER_TYPE
 };
 
-
-enum RocalImageColor
-{
+enum RocalImageColor {
     ROCAL_COLOR_RGB24 = 0,
     ROCAL_COLOR_BGR24 = 1,
-    ROCAL_COLOR_U8  = 2,
+    ROCAL_COLOR_U8 = 2,
     ROCAL_COLOR_RGB_PLANAR = 3,
 };
 
-enum RocalProcessMode
-{
+enum RocalProcessMode {
     ROCAL_PROCESS_GPU = 0,
     ROCAL_PROCESS_CPU = 1
 };
 
-enum RocalFlipAxis
-{
+enum RocalFlipAxis {
     ROCAL_FLIP_HORIZONTAL = 0,
     ROCAL_FLIP_VERTICAL = 1
 };
 
-enum RocalImageSizeEvaluationPolicy
-{
+enum RocalImageSizeEvaluationPolicy {
     ROCAL_USE_MAX_SIZE = 0,
     ROCAL_USE_USER_GIVEN_SIZE = 1,
     ROCAL_USE_MOST_FREQUENT_SIZE = 2,
-    ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED = 3,    // use the given size only if the actual decoded size is greater than the given size
-    ROCAL_USE_MAX_SIZE_RESTRICTED = 4,       // use max size if the actual decoded size is greater than max
+    ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED = 3,  // use the given size only if the actual decoded size is greater than the given size
+    ROCAL_USE_MAX_SIZE_RESTRICTED = 4,         // use max size if the actual decoded size is greater than max
 };
 
-enum RocalDecodeDevice
-{
+enum RocalDecodeDevice {
     ROCAL_HW_DECODE = 0,
     ROCAL_SW_DECODE = 1
 };
 
-enum RocalTensorLayout
-{
+enum RocalTensorLayout {
     ROCAL_NHWC = 0,
     ROCAL_NCHW = 1,
     ROCAL_NFHWC = 2,
     ROCAL_NFCHW = 3,
-    ROCAL_NONE = 4 // Layout for generic tensors (Non-Image or Non-Video)
+    ROCAL_NONE = 4  // Layout for generic tensors (Non-Image or Non-Video)
 };
 
-enum RocalTensorOutputType
-{
+enum RocalTensorOutputType {
     ROCAL_FP32 = 0,
     ROCAL_FP16 = 1,
     ROCAL_UINT8 = 2,
     ROCAL_INT8 = 3
 };
 
-enum RocalDecoderType
-{
+enum RocalDecoderType {
     ROCAL_DECODER_TJPEG = 0,
     ROCAL_DECODER_OPENCV = 1,
     ROCAL_DECODER_HW_JPEG = 2,
@@ -139,23 +127,22 @@ enum RocalDecoderType
     ROCAL_DECODER_VIDEO_FFMPEG_HW = 4
 };
 
-enum RocalOutputMemType
-{
+enum RocalOutputMemType {
     ROCAL_MEMCPY_HOST = 0,
     ROCAL_MEMCPY_GPU = 1,
     ROCAL_MEMCPY_PINNED = 2
 };
 
-// rocal external memcpy flags 
-#define    ROCAL_MEMCPY_TO_HOST      1      // force copy to user provided host memory
-#define    ROCAL_MEMCPY_TO_DEVICE    2      // force copy to user provided device memory (gpu)
-#define    ROCAL_MEMCPY_IS_PINNED    4      // for future use
+// rocal external memcpy flags
+#define ROCAL_MEMCPY_TO_HOST 1    // force copy to user provided host memory
+#define ROCAL_MEMCPY_TO_DEVICE 2  // force copy to user provided device memory (gpu)
+#define ROCAL_MEMCPY_IS_PINNED 4  // for future use
 
 enum RocalResizeScalingMode {
-    ROCAL_SCALING_MODE_DEFAULT = 0,     // scales wrt specified size, if only resize width/height is provided the other dimension is scaled according to aspect ratio
-    ROCAL_SCALING_MODE_STRETCH = 1,     // scales wrt specified size, if only resize width/height is provided the other dimension is not scaled
-    ROCAL_SCALING_MODE_NOT_SMALLER = 2, // scales wrt to aspect ratio, so that resize width/height is not lesser than the specified size
-    ROCAL_SCALING_MODE_NOT_LARGER = 3   // scales wrt to aspect ratio, so that resize width/height does not exceed specified size
+    ROCAL_SCALING_MODE_DEFAULT = 0,      // scales wrt specified size, if only resize width/height is provided the other dimension is scaled according to aspect ratio
+    ROCAL_SCALING_MODE_STRETCH = 1,      // scales wrt specified size, if only resize width/height is provided the other dimension is not scaled
+    ROCAL_SCALING_MODE_NOT_SMALLER = 2,  // scales wrt to aspect ratio, so that resize width/height is not lesser than the specified size
+    ROCAL_SCALING_MODE_NOT_LARGER = 3    // scales wrt to aspect ratio, so that resize width/height does not exceed specified size
 };
 
 enum RocalResizeInterpolationType {
@@ -184,4 +171,4 @@ enum class RocalROICordsType {
 typedef struct {
     unsigned x1, y1, x2, y2;
 } RocalROICords;
-#endif //MIVISIONX_ROCAL_API_TYPES_H
+#endif  // MIVISIONX_ROCAL_API_TYPES_H

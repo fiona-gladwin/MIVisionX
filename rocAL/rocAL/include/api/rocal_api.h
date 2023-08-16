@@ -33,28 +33,34 @@ THE SOFTWARE.
 #include "rocal_api_meta_data.h"
 #include "rocal_api_info.h"
 
-/// Creates the context for a new augmentation pipeline. Initializes all the required internals for the pipeline
-/// \param batch_size
-/// \param affinity
-/// \param gpu_id
-/// \param cpu_thread_count
-/// \return
-extern "C"  RocalContext  ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProcessMode affinity, int gpu_id = 0, size_t cpu_thread_count = 1, size_t prefetch_queue_depth = 3, RocalTensorOutputType output_tensor_data_type = RocalTensorOutputType::ROCAL_FP32);
-//extern "C"  RocalContext  ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProcessMode affinity, int gpu_id = 0, size_t cpu_thread_count = 1);
+/*! \brief Creates the context for a new augmentation pipeline. Initializes all the required internals for the pipeline
+ * \param [in] batch_size batch size of the rocal context
+ * \param [in] affinity affinity for the rocal context
+ * \param [in] gpu_id GPU id associated with rocal context
+ * \param [in] cpu_thread_count number of cpu threads
+ * \param [in] prefetch_queue_depth The depth of the prefetch queue for the RocalContext (default is 3).
+ * \param [in] output_tensor_data_type The output tensor data type (default is ROCAL_FP32).
+ * \return
+ */
+extern "C" RocalContext ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProcessMode affinity, int gpu_id = 0, size_t cpu_thread_count = 1, size_t prefetch_queue_depth = 3, RocalTensorOutputType output_tensor_data_type = RocalTensorOutputType::ROCAL_FP32);
+// extern "C"  RocalContext  ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProcessMode affinity, int gpu_id = 0, size_t cpu_thread_count = 1);
 
-///
-/// \param context
-/// \return
-extern "C"  RocalStatus ROCAL_API_CALL rocalVerify(RocalContext context);
+/*! \brief verifies the rocal context
+ * \param [in] context the rocal context
+ * \return rocal status value
+ */
+extern "C" RocalStatus ROCAL_API_CALL rocalVerify(RocalContext context);
 
-///
-/// \param context
-/// \return
-extern "C"  RocalStatus  ROCAL_API_CALL rocalRun(RocalContext context);
+/*! \brief executes the rocal context
+ * \param [in] context the rocal context
+ * \return rocal status value
+ */
+extern "C" RocalStatus ROCAL_API_CALL rocalRun(RocalContext context);
 
-///
-/// \param rocal_context
-/// \return
-extern "C"  RocalStatus  ROCAL_API_CALL rocalRelease(RocalContext rocal_context);
+/*! \brief releases the rocal context
+ * \param [in] rocal_context the rocal context
+ * \return rocal status value
+ */
+extern "C" RocalStatus ROCAL_API_CALL rocalRelease(RocalContext rocal_context);
 
 #endif
