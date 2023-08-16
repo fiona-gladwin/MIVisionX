@@ -26,14 +26,11 @@ THE SOFTWARE.
 #include "node_resize_mirror_normalize.h"
 #include "exception.h"
 
-ResizeMirrorNormalizeNode::ResizeMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs), _mirror(_mirror_range[0], _mirror_range[1])
-{
+ResizeMirrorNormalizeNode::ResizeMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs), _mirror(_mirror_range[0], _mirror_range[1]) {
 }
 
-void ResizeMirrorNormalizeNode::create_node()
-{
-    if(_node)
+void ResizeMirrorNormalizeNode::create_node() {
+    if (_node)
         return;
 
     std::vector<vx_float32> mean_vx, std_dev_vx;
@@ -53,16 +50,16 @@ void ResizeMirrorNormalizeNode::create_node()
     _mean_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 3);
     _std_dev_array = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_FLOAT32, _batch_size * 3);
     vx_status mean_status = VX_SUCCESS;
-    mean_status |= vxAddArrayItems(_mean_array,_batch_size * 3, mean_vx.data(), sizeof(vx_float32));
-    mean_status |= vxAddArrayItems(_std_dev_array,_batch_size * 3, std_dev_vx.data(), sizeof(vx_float32));
-    _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
-    if(mean_status != 0)
-        THROW(" vxAddArrayItems failed in the resize mirror normalize node (vxExtrppNode_ResizeMirrorNormalizeCropbatchPD    )  node: "+ TOSTR(mean_status) + "  "+ TOSTR(mean_status))
-    
+    mean_status |= vxAddArrayItems(_mean_array, _batch_size * 3, mean_vx.data(), sizeof(vx_float32));
+    mean_status |= vxAddArrayItems(_std_dev_array, _batch_size * 3, std_dev_vx.data(), sizeof(vx_float32));
+    _mirror.create_array(_graph, VX_TYPE_UINT32, _batch_size);
+    if (mean_status != 0)
+        THROW(" vxAddArrayItems failed in the resize mirror normalize node (vxExtrppNode_ResizeMirrorNormalizeCropbatchPD    )  node: " + TOSTR(mean_status) + "  " + TOSTR(mean_status))
+
     unsigned int chnShift = 0;
     vx_scalar chnToggle = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, &chnShift);
 
-    std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().max_shape()[0]);
+    std::vector<uint32_t> dst_roi_width(_batch_size, _outputs[0]->info().max_shape()[0]);
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
 
     _dst_roi_width = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
@@ -71,23 +68,21 @@ void ResizeMirrorNormalizeNode::create_node()
 
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
-     if(width_status != 0 || height_status != 0)
+    if (width_status != 0 || height_status != 0)
         THROW(" vxAddArrayItems failed in the resize mirror normalize node (vxExtrppNode_ResizeMirrorNormalizeCropbatchPD ) node: " + TOSTR(width_status) + "  " + TOSTR(height_status))
 
-   // _node = vxExtrppNode_ResizeMirrorNormalizeTensor(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(),
-                                                    // _dst_roi_width, _dst_roi_height, _mean_array, _std_dev_array,
-                                                    // _mirror.default_array(), chnToggle, _batch_size);
+    // _node = vxExtrppNode_ResizeMirrorNormalizeTensor(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(),
+    // _dst_roi_width, _dst_roi_height, _mean_array, _std_dev_array,
+    // _mirror.default_array(), chnToggle, _batch_size);
 
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the resize mirror normalize node (vxExtrppNode_ResizeMirrorNormalizeCropbatchPD) node failed: "+ TOSTR(status))
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Adding the resize mirror normalize node (vxExtrppNode_ResizeMirrorNormalizeCropbatchPD) node failed: " + TOSTR(status))
 }
 
-void ResizeMirrorNormalizeNode::update_node()
-{
-    RocalROI* src_roi = _inputs[0]->info().get_roi();   // Check if it needs to be similar to resize
-    for(uint i = 0; i < _batch_size; i++)
-    {
+void ResizeMirrorNormalizeNode::update_node() {
+    RocalROI *src_roi = _inputs[0]->info().get_roi();  // Check if it needs to be similar to resize
+    for (uint i = 0; i < _batch_size; i++) {
         // Min size and max size used for MLPerf MaskRCNN resize augmentation
         // TODO: Get the min_size and max_size as user arguments from python
         int min_size = 800;
@@ -99,25 +94,24 @@ void ResizeMirrorNormalizeNode::update_node()
 
         float min_original_size = static_cast<float>(std::min(src_width, src_height));
         float max_original_size = static_cast<float>(std::max(src_width, src_height));
-        if(max_original_size / min_original_size * size > max_size)
+        if (max_original_size / min_original_size * size > max_size)
             size = static_cast<size_t>(round(max_size * min_original_size / max_original_size));
 
-        if (((src_width <= src_height) && (src_width == size)) || ((src_height <= src_width) && (src_height == size)))
-        {
+        if (((src_width <= src_height) && (src_width == size)) || ((src_height <= src_width) && (src_height == size))) {
             _dest_height_val[i] = src_height;
             _dest_width_val[i] = src_width;
             continue;
         }
 
-        if(src_width < src_height) {
+        if (src_width < src_height) {
             output_width = size;
-            output_height = static_cast<size_t>(size * src_height / src_width);	
+            output_height = static_cast<size_t>(size * src_height / src_width);
         } else {
             output_height = size;
             output_width = static_cast<size_t>(size * src_width / src_height);
         }
-	_dest_height_val[i] = output_height;
-	_dest_width_val[i] = output_width;
+        _dest_height_val[i] = output_height;
+        _dest_width_val[i] = output_width;
     }
     vxCopyArrayRange((vx_array)_dst_roi_width, 0, _batch_size, sizeof(uint), _dest_width_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_dst_roi_height, 0, _batch_size, sizeof(uint), _dest_height_val.data(), VX_WRITE_ONLY, VX_MEMORY_TYPE_HOST);
@@ -126,9 +120,8 @@ void ResizeMirrorNormalizeNode::update_node()
     _mirror.update_array();
 }
 
-void ResizeMirrorNormalizeNode::init(std::vector<float>& mean, std::vector<float>& std_dev, IntParam *mirror)
-{
-    _mean   = mean;
+void ResizeMirrorNormalizeNode::init(std::vector<float> &mean, std::vector<float> &std_dev, IntParam *mirror) {
+    _mean = mean;
     _std_dev = std_dev;
     _mirror.set_param(core(mirror));
 }

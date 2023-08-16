@@ -26,34 +26,30 @@ THE SOFTWARE.
 #include "parameter_crop.h"
 #include "exception.h"
 
-CropNode::CropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _dest_width(_outputs[0]->info().max_shape()[0]),
-        _dest_height(_outputs[0]->info().max_shape()[1])
-{
+CropNode::CropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                _dest_width(_outputs[0]->info().max_shape()[0]),
+                                                                                                _dest_height(_outputs[0]->info().max_shape()[1]) {
     _crop_param = std::make_shared<RocalCropParam>(_batch_size);
 }
 
-void CropNode::create_node()
-{
-    if(_node)
+void CropNode::create_node() {
+    if (_node)
         return;
 
-    if(_dest_width == 0 || _dest_height == 0)
+    if (_dest_width == 0 || _dest_height == 0)
         THROW("Uninitialized destination dimension")
 
     _crop_param->create_array(_graph);
 
     // _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
-                                // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
+    // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
 
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Error adding the crop resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: "+TOSTR(status))
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Error adding the crop resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: " + TOSTR(status))
 }
 
-void CropNode::update_node()
-{
+void CropNode::update_node() {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
@@ -61,31 +57,27 @@ void CropNode::update_node()
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
 }
 
-void CropNode::init(unsigned int crop_h, unsigned int crop_w, float x_drift_, float y_drift_)
-{
+void CropNode::init(unsigned int crop_h, unsigned int crop_w, float x_drift_, float y_drift_) {
     _crop_param->crop_w = crop_w;
     _crop_param->crop_h = crop_h;
-    _crop_param->x1     = x_drift_;
-    _crop_param->y1     = y_drift_;
-    FloatParam *x_drift  = ParameterFactory::instance()->create_single_value_float_param(x_drift_);
-    FloatParam *y_drift  = ParameterFactory::instance()->create_single_value_float_param(y_drift_);
+    _crop_param->x1 = x_drift_;
+    _crop_param->y1 = y_drift_;
+    FloatParam *x_drift = ParameterFactory::instance()->create_single_value_float_param(x_drift_);
+    FloatParam *y_drift = ParameterFactory::instance()->create_single_value_float_param(y_drift_);
     _crop_param->set_x_drift_factor(core(x_drift));
     _crop_param->set_y_drift_factor(core(y_drift));
 }
 
 // This init is used only for centre crop
-void CropNode::init(unsigned int crop_h, unsigned int crop_w)
-{
+void CropNode::init(unsigned int crop_h, unsigned int crop_w) {
     _crop_param->crop_w = crop_w;
     _crop_param->crop_h = crop_h;
-    _crop_param->x1 = 0; 
+    _crop_param->x1 = 0;
     _crop_param->y1 = 0;
-    _crop_param->set_fixed_crop(0.5, 0.5);    // for center_crop
+    _crop_param->set_fixed_crop(0.5, 0.5);  // for center_crop
 }
 
-
-void CropNode::init(FloatParam *crop_h_factor, FloatParam  *crop_w_factor, FloatParam *x_drift, FloatParam *y_drift)
-{
+void CropNode::init(FloatParam *crop_h_factor, FloatParam *crop_w_factor, FloatParam *x_drift, FloatParam *y_drift) {
     _crop_param->set_x_drift_factor(core(x_drift));
     _crop_param->set_y_drift_factor(core(y_drift));
     _crop_param->set_crop_height_factor(core(crop_h_factor));

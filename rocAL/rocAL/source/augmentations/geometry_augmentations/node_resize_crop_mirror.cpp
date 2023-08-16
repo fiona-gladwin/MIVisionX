@@ -25,21 +25,18 @@ THE SOFTWARE.
 #include "node_resize_crop_mirror.h"
 #include "exception.h"
 
-ResizeCropMirrorNode::ResizeCropMirrorNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-         Node(inputs, outputs),
-        _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1])
-{
+ResizeCropMirrorNode::ResizeCropMirrorNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                                        _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1]) {
     _crop_param = std::make_shared<RocalCropParam>(_batch_size);
 }
 
-void ResizeCropMirrorNode::create_node()
-{
-    if(_node)
+void ResizeCropMirrorNode::create_node() {
+    if (_node)
         return;
 
     _crop_param->create_array(_graph);
 
-    std::vector<uint32_t> dst_roi_width(_batch_size,_outputs[0]->info().max_shape()[0]);
+    std::vector<uint32_t> dst_roi_width(_batch_size, _outputs[0]->info().max_shape()[0]);
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
 
     _dst_roi_width = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
@@ -49,38 +46,33 @@ void ResizeCropMirrorNode::create_node()
 
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
-    if(width_status != 0 || height_status != 0)
-        THROW(" vxAddArrayItems failed in the crop resize node (vxExtrppNode_ResizeCropbatchPD    )  node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
-    _mirror.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
+    if (width_status != 0 || height_status != 0)
+        THROW(" vxAddArrayItems failed in the crop resize node (vxExtrppNode_ResizeCropbatchPD    )  node: " + TOSTR(width_status) + "  " + TOSTR(height_status))
+    _mirror.create_array(_graph, VX_TYPE_UINT32, _batch_size);
     // _node = vxExtrppNode_ResizeCropMirrorPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width,
-                                        //    _dst_roi_height, _crop_param->x1_arr, _crop_param->x2_arr, _crop_param->y1_arr, _crop_param->y2_arr,  _mirror.default_array(),_batch_size);
+    //    _dst_roi_height, _crop_param->x1_arr, _crop_param->x2_arr, _crop_param->y1_arr, _crop_param->y2_arr,  _mirror.default_array(),_batch_size);
 
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Error adding the resize crop mirror resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: "+TOSTR(status))
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Error adding the resize crop mirror resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: " + TOSTR(status))
 }
 
-void ResizeCropMirrorNode::update_node()
-{
+void ResizeCropMirrorNode::update_node() {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
 }
 
-void ResizeCropMirrorNode::init(unsigned int crop_h, unsigned int crop_w, IntParam *mirror)
-{
+void ResizeCropMirrorNode::init(unsigned int crop_h, unsigned int crop_w, IntParam *mirror) {
     _crop_param->crop_w = crop_w;
     _crop_param->crop_h = crop_h;
-    _crop_param->x1     = 0;
-    _crop_param->y1     = 0;
+    _crop_param->x1 = 0;
+    _crop_param->y1 = 0;
     _mirror.set_param(core(mirror));
 }
 
-
-void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam  *crop_w_factor, IntParam *mirror)
-{
+void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam *crop_w_factor, IntParam *mirror) {
     _crop_param->set_crop_height_factor(core(crop_h_factor));
     _crop_param->set_crop_width_factor(core(crop_w_factor));
     _crop_param->set_random();
     _mirror.set_param(core(mirror));
 }
-

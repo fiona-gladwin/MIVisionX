@@ -25,33 +25,29 @@ THE SOFTWARE.
 #include "node_random_crop.h"
 #include "exception.h"
 
-RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _dest_width(_outputs[0]->info().max_shape()[0]),
-        _dest_height(_outputs[0]->info().max_shape()[1])
-{
+RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                            _dest_width(_outputs[0]->info().max_shape()[0]),
+                                                                                                            _dest_height(_outputs[0]->info().max_shape()[1]) {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
 
-void RandomCropNode::create_node()
-{
-    if(_node)
+void RandomCropNode::create_node() {
+    if (_node)
         return;
 
-    if(_dest_width == 0 || _dest_height == 0)
+    if (_dest_width == 0 || _dest_height == 0)
         THROW("Uninitialized destination dimension")
 
     _crop_param->create_array(_graph);
     // _node = vxExtrppNode_CropPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _crop_param->cropw_arr,
-                                // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
+    // _crop_param->croph_arr, _crop_param->x1_arr, _crop_param->y1_arr, _batch_size);
 
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Error adding the crop resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: "+TOSTR(status))
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Error adding the crop resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: " + TOSTR(status))
 }
 
-void RandomCropNode::update_node()
-{
+void RandomCropNode::update_node() {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
@@ -59,12 +55,9 @@ void RandomCropNode::update_node()
     _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
 }
 
-void RandomCropNode::init(float crop_area_factor, float crop_aspect_ratio, float x_drift, float y_drift)
-{
-
+void RandomCropNode::init(float crop_area_factor, float crop_aspect_ratio, float x_drift, float y_drift) {
 }
-void RandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts)
-{
+void RandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts) {
     _crop_param->set_x_drift_factor(core(x_drift));
     _crop_param->set_y_drift_factor(core(y_drift));
     _crop_param->set_area_factor(core(crop_area_factor));
