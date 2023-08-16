@@ -24,18 +24,16 @@ THE SOFTWARE.
 #include "node_brightness.h"
 #include "exception.h"
 
-
-BrightnessNode::BrightnessNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
-        _beta (BETA_RANGE[0], BETA_RANGE[1]) { }
+BrightnessNode::BrightnessNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                            _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
+                                                                                                            _beta(BETA_RANGE[0], BETA_RANGE[1]) {}
 
 void BrightnessNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
-    _alpha.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
-    _beta.create_array(_graph , VX_TYPE_FLOAT32, _batch_size);
+    _alpha.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
+    _beta.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
 
     int input_layout = (int)_inputs[0]->info().layout();
     int output_layout = (int)_outputs[0]->info().layout();
@@ -46,8 +44,8 @@ void BrightnessNode::create_node() {
     _node = vxExtrppNode_Brightness(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(), _beta.default_array(), in_layout_vx, out_layout_vx, roi_type_vx);
 
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the brightness (vxExtrppNode_Brightness) node failed: "+ TOSTR(status))
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Adding the brightness (vxExtrppNode_Brightness) node failed: " + TOSTR(status))
 }
 
 void BrightnessNode::init(float alpha, float beta) {
@@ -55,7 +53,7 @@ void BrightnessNode::init(float alpha, float beta) {
     _beta.set_param(beta);
 }
 
-void BrightnessNode::init(FloatParam* alpha, FloatParam* beta) {
+void BrightnessNode::init(FloatParam *alpha, FloatParam *beta) {
     _alpha.set_param(core(alpha));
     _beta.set_param(core(beta));
 }

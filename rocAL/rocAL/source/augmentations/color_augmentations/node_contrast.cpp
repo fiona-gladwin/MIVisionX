@@ -24,44 +24,36 @@ THE SOFTWARE.
 #include "node_contrast.h"
 #include "exception.h"
 
-RocalContrastNode::RocalContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _min(CONTRAST_MIN_RANGE[0], CONTRAST_MIN_RANGE[1]),
-        _max(CONTRAST_MAX_RANGE[0], CONTRAST_MAX_RANGE[1])
-{
+RocalContrastNode::RocalContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                                  _min(CONTRAST_MIN_RANGE[0], CONTRAST_MIN_RANGE[1]),
+                                                                                                                  _max(CONTRAST_MAX_RANGE[0], CONTRAST_MAX_RANGE[1]) {
 }
 
-void RocalContrastNode::create_node()
-{
-
-    if(_node)
+void RocalContrastNode::create_node() {
+    if (_node)
         return;
 
-    _min.create_array(_graph ,VX_TYPE_UINT32, _batch_size);
-    _max.create_array(_graph ,VX_TYPE_UINT32 , _batch_size);
+    _min.create_array(_graph, VX_TYPE_UINT32, _batch_size);
+    _max.create_array(_graph, VX_TYPE_UINT32, _batch_size);
 
     // _node = vxExtrppNode_ContrastbatchPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _min.default_array(), _max.default_array(), _batch_size);
 
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the contrast (vxExtrppNode_contrast) node failed: "+ TOSTR(status))
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Adding the contrast (vxExtrppNode_contrast) node failed: " + TOSTR(status))
 }
 
-void RocalContrastNode::init(int min, int max)
-{
+void RocalContrastNode::init(int min, int max) {
     _min.set_param(min);
     _max.set_param(max);
 }
 
-void RocalContrastNode::init(IntParam *min, IntParam* max)
-{
+void RocalContrastNode::init(IntParam *min, IntParam *max) {
     _min.set_param(core(min));
     _max.set_param(core(max));
 }
 
-void RocalContrastNode::update_node()
-{
+void RocalContrastNode::update_node() {
     _min.update_array();
     _max.update_array();
 }
-
