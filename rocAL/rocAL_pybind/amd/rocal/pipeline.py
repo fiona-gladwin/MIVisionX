@@ -231,7 +231,7 @@ class Pipeline(object):
     def get_bounding_box_count(self):
         return b.getBoundingBoxCount(self._handle)
 
-    def get_bounding_box_abels(self):
+    def get_bounding_box_labels(self):
         return b.getBoundingBoxLabels(self._handle)
 
     def get_bounding_box_cords(self):
