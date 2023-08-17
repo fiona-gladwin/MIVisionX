@@ -173,7 +173,7 @@ protected:
 
 struct PolygonMask : public BoundingBox {
 public:
-    PolygonMask(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
+    PolygonMask(BoundingBoxCords bb_cords, Labels bb_label_ids, ImgSize img_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count, int img_id = 0)
     {
         _bb_cords = std::move(bb_cords);
         _label_ids = std::move(bb_label_ids);
@@ -181,6 +181,7 @@ public:
         _mask_cords = std::move(mask_cords);
         _polygon_count = std::move(polygon_count);
         _vertices_count = std::move(vertices_count);
+        _info.img_id = img_id;
     }
     std::vector<int>& get_polygon_count() override { return _polygon_count; }
     std::vector<std::vector<int>>& get_vertices_count() override { return _vertices_count; }
