@@ -26,6 +26,7 @@ void BoundingBoxGraph::process(pMetaDataBatch input_meta_data, pMetaDataBatch ou
     for (auto &meta_node : _meta_nodes)
     {
         meta_node->update_parameters(input_meta_data, output_meta_data);
+        input_meta_data = output_meta_data->clone();
     }
 }
 
