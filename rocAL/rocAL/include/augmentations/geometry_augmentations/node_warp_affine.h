@@ -50,4 +50,5 @@ private:
     constexpr static float COEFFICIENT_RANGE_OFFSET[2] = {-10.0, 10.0};
     void update_affine_array();
     int _interpolation_type;
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

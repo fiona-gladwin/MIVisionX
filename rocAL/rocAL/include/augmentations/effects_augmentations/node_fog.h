@@ -37,6 +37,7 @@ protected:
 private:
     ParameterVX<float> _fog_param;
     constexpr static float FOG_VALUE_RANGE [2] = {0.2, 0.8};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };
 
 

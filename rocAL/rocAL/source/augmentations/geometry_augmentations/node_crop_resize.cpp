@@ -47,6 +47,15 @@ void CropResizeNode::create_node()
         THROW(" vxAddArrayItems failed in the crop resize node (vxExtRppResizeCrop)  node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
 
     create_crop_tensor(_crop_tensor, &_crop_coordinates);
+
+    // Create vx_scalar for layout and roi type to be passed to the node
+    int input_layout = static_cast<int>(_inputs[0]->info().layout());
+    int output_layout = static_cast<int>(_outputs[0]->info().layout());
+    int roi_type = static_cast<int>(_inputs[0]->info().roi_type());
+    _input_layout = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
+    _output_layout = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
+    _roi_type = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
+
     _node = vxExtRppResizeCrop(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _crop_tensor, _outputs[0]->handle(),
                                _dst_roi_width, _dst_roi_height, _input_layout, _output_layout, _roi_type);
 

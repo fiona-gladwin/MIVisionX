@@ -38,4 +38,5 @@ protected:
 private:
     ParameterVX<float> _snow_value;
     constexpr static float SNOW_VALUE_RANGE [2] = {0.1, 0.8};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

@@ -40,4 +40,5 @@ protected:
 private:
     ParameterVX<float> _ratio;
     constexpr static float RATIO_RANGE [2] = {0.1, 0.9};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

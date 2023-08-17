@@ -43,4 +43,5 @@ private:
     constexpr static float SALT_RANGE[2] = {0.1, 1};
     constexpr static float PEPPER_RANGE[2] = {0, 0.5};
     int _seed;
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

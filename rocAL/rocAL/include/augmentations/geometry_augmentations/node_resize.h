@@ -45,4 +45,5 @@ private:
     unsigned _src_width, _src_height, _dst_width, _dst_height, _out_width, _out_height;
     unsigned _max_width = 0, _max_height = 0;
     std::vector<unsigned> _dst_roi_width_vec, _dst_roi_height_vec;
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

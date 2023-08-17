@@ -47,4 +47,5 @@ private:
     constexpr static int MIRROR_RANGE[2] = {0, 1};
     void * _crop_coordinates;
     vx_tensor _crop_tensor;
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

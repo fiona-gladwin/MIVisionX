@@ -37,4 +37,5 @@ protected:
 private:
     ParameterVX<float> _saturation;
     constexpr static float SAT_RANGE[2] = {-0.5, 0.5};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

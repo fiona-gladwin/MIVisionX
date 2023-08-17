@@ -39,4 +39,5 @@ private:
     ParameterVX<float> _factor, _center;
     constexpr static float CONTRAST_FACTOR_RANGE[2] = {0.1, 1.95};
     constexpr static float CONTRAST_CENTER_RANGE[2] = {60, 90};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

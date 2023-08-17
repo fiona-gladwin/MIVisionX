@@ -41,4 +41,5 @@ protected:
 private:
     ParameterVX<int> _adj_value_param;
     constexpr static int ADJUSTMENT_RANGE [2] = {-99, 99};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

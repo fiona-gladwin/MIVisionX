@@ -36,4 +36,5 @@ protected:
     void create_node() override;
     void update_node() override;
 private:
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

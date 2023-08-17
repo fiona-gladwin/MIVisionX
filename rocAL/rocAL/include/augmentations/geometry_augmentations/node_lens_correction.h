@@ -42,4 +42,5 @@ private:
     ParameterVX<float> _zoom;
     constexpr static float STRENGTH_RANGE [2] = {0.05, 3.0};
     constexpr static float   ZOOM_RANGE [2] = {1.0, 1.3};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

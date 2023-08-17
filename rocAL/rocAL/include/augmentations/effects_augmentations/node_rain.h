@@ -45,4 +45,5 @@ private:
     constexpr static int RAIN_WIDTH_RANGE [2] = {1, 2};
     constexpr static int RAIN_HEIGHT_RANGE [2] = {15, 17};
     constexpr static float RAIN_TRANSPARENCY_RANGE [2] = {0.2, 0.3};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

@@ -39,4 +39,5 @@ protected:
 private:
     ParameterVX<float> _gamma;
     constexpr static float GAMMA_RANGE[2] = {0.3, 7.00};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

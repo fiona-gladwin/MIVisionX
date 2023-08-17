@@ -90,4 +90,5 @@ private:
     SeededRNG<std::mt19937, 4> _rngs;     // setting the state_size to 4 for 4 random parameters.
     void * _crop_coordinates;
     vx_tensor _crop_tensor;
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

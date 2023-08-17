@@ -55,6 +55,5 @@ protected:
     vx_node _node = nullptr;
     size_t _batch_size;
     pMetaDataBatch _meta_data_info;
-    vx_scalar _input_layout, _output_layout, _roi_type;
     vx_array _src_roi_width, _src_roi_height;  // TODO - To be removed after tensor changes in augmentation nodes.
 };

@@ -43,4 +43,5 @@ private:
     ParameterVX<int> _horizontal, _vertical;
     constexpr static int HORIZONTAL_RANGE[2] = {0, 1};
     constexpr static int VERTICAL_RANGE[2] = {0, 1};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

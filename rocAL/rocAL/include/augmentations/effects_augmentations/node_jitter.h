@@ -38,4 +38,5 @@ private:
     ParameterVX<int> _kernel_size;
     int _seed;
     constexpr static int KERNEL_SIZE[2] = {2, 5};
+    vx_scalar _input_layout, _output_layout, _roi_type
 };

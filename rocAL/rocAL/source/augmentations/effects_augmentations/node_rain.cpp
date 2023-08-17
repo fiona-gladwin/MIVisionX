@@ -39,6 +39,15 @@ void RainNode::create_node() {
     _rain_transparency.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
     _rain_width.create_array(_graph, VX_TYPE_UINT32, _batch_size);
     _rain_height.create_array(_graph, VX_TYPE_UINT32, _batch_size);
+
+    // Create vx_scalar for layout and roi type to be passed to the node
+    int input_layout = static_cast<int>(_inputs[0]->info().layout());
+    int output_layout = static_cast<int>(_outputs[0]->info().layout());
+    int roi_type = static_cast<int>(_inputs[0]->info().roi_type());
+    _input_layout = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
+    _output_layout = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
+    _roi_type = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
+
     _node = vxExtRppRain(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _rain_value.default_array(), _rain_width.default_array(), _rain_height.default_array(), _rain_transparency.default_array(), _input_layout, _output_layout, _roi_type);
     
     vx_status status;
