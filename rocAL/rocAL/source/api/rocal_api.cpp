@@ -67,6 +67,8 @@ rocalCreate(
                     return RocalTensorDataType::FP32;
                 case ROCAL_FP16:
                     return RocalTensorDataType::FP16;
+                case ROCAL_UINT8:
+                    return RocalTensorDataType::UINT8;
                 default:
                     THROW("Unkown Rocal data type")
             }

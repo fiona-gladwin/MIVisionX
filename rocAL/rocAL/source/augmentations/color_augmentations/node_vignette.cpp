@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 
 #include <vx_ext_rpp.h>
-#include <VX/vx_compatibility.h>
 #include "node_vignette.h"
 #include "exception.h"
 

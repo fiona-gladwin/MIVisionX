@@ -21,8 +21,6 @@ THE SOFTWARE.
 */
 
 #include <vx_ext_rpp.h>
-#include <VX/vx_compatibility.h>
-#include <graph.h>
 #include "node_rain.h"
 #include "exception.h"
 

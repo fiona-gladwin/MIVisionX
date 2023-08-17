@@ -38,12 +38,10 @@ void ResizeCropMirrorNode::create_node() {
 
     std::vector<uint32_t> dst_roi_width(_batch_size, _outputs[0]->info().max_shape()[0]);
     std::vector<uint32_t> dst_roi_height(_batch_size, _outputs[0]->info().max_shape()[1]);
-
     _dst_roi_width = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
     _dst_roi_height = vxCreateArray(vxGetContext((vx_reference)_graph->get()), VX_TYPE_UINT32, _batch_size);
 
     vx_status width_status, height_status;
-
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
     if (width_status != 0 || height_status != 0)
@@ -60,6 +58,21 @@ void ResizeCropMirrorNode::create_node() {
 void ResizeCropMirrorNode::update_node() {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
+    std::vector<uint32_t> crop_h_dims, crop_w_dims;
+    _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);
+    _outputs[0]->update_tensor_roi(crop_w_dims, crop_h_dims);
+    _mirror.update_array();
+
+    // Obtain the crop coordinates and update the roi
+    auto x1 = _crop_param->get_x1_arr_val();
+    auto y1 = _crop_param->get_y1_arr_val();
+    RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);
+    for (unsigned i = 0; i < _batch_size; i++) {
+        crop_dims[i].x1 = x1[i];
+        crop_dims[i].y1 = y1[i];
+        crop_dims[i].x2 = crop_w_dims[i];
+        crop_dims[i].y2 = crop_h_dims[i];
+    }
 }
 
 void ResizeCropMirrorNode::init(unsigned int crop_h, unsigned int crop_w, IntParam *mirror) {
@@ -68,6 +81,7 @@ void ResizeCropMirrorNode::init(unsigned int crop_h, unsigned int crop_w, IntPar
     _crop_param->x1 = 0;
     _crop_param->y1 = 0;
     _mirror.set_param(core(mirror));
+    _interpolation_type = static_cast<int>(interpolation_type);
 }
 
 void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam *crop_w_factor, IntParam *mirror) {
@@ -75,4 +89,5 @@ void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam *crop_w_fa
     _crop_param->set_crop_width_factor(core(crop_w_factor));
     _crop_param->set_random();
     _mirror.set_param(core(mirror));
+    _interpolation_type = static_cast<int>(interpolation_type);
 }

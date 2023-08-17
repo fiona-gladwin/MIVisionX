@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 
 #include <vx_ext_rpp.h>
-#include <graph.h>
 #include "node_blend.h"
 #include "exception.h"
 
@@ -36,11 +35,11 @@ void BlendNode::create_node() {
         THROW("Blend node needs two input images")
 
     _ratio.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
-    // _node = vxExtrppNode_BlendbatchPD(_graph->get(), _inputs[0]->handle(), _inputs[1]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _ratio.default_array(), _batch_size);
+    _node = vxExtRppBlend(_graph->get(), _inputs[0]->handle(), _inputs[1]->handle(), _src_tensor_roi, _outputs[0]->handle(), _ratio.default_array(), _input_layout, _output_layout, _roi_type);
 
     vx_status status;
-    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the blend (vxExtrppNode_BlendbatchPD) node failed: " + TOSTR(status))
+    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+        THROW("Adding the Blend (vxExtRppBlend) node failed: " + TOSTR(status))
 }
 
 void BlendNode::init(float ratio) {

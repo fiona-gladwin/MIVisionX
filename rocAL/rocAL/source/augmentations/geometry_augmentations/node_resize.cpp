@@ -21,7 +21,6 @@ THE SOFTWARE.
 */
 
 #include <vx_ext_rpp.h>
-#include <graph.h>
 #include "node_resize.h"
 #include "exception.h"
 

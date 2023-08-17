@@ -54,10 +54,12 @@ void RotateNode::create_node() {
 
 void RotateNode::init(float angle) {
     _angle.set_param(angle);
+    _interpolation_type = static_cast<int>(interpolation_type);
 }
 
 void RotateNode::init(FloatParam *angle) {
     _angle.set_param(core(angle));
+    _interpolation_type = static_cast<int>(interpolation_type);
 }
 
 void RotateNode::update_node() {

@@ -138,7 +138,8 @@ public:
         }
     }
     void set_tensor_layout(RocalTensorlayout layout) {
-        if(_layout != layout && _layout != RocalTensorlayout::NONE) {
+        if (layout == RocalTensorlayout::NONE) return;
+        if (_layout != layout && _layout != RocalTensorlayout::NONE) {  // If layout input and current layout's are different modify dims accordingly
             std::vector<size_t> new_dims(_num_of_dims, 0);
             get_modified_dims_from_layout(_layout, layout, new_dims);
             _dims = new_dims;

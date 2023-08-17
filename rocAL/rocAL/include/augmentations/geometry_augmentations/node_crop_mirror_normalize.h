@@ -22,29 +22,30 @@ THE SOFTWARE.
 
 #pragma once
 #include "node.h"
-#include "parameter_factory.h"
 #include "parameter_crop_factory.h"
+#include "parameter_factory.h"
 #include "parameter_vx.h"
 
-class CropMirrorNormalizeNode : public Node
-{
-public:
+class CropMirrorNormalizeNode : public Node {
+   public:
     CropMirrorNormalizeNode(const std::vector<Tensor *> &inputs,
                             const std::vector<Tensor *> &outputs);
     CropMirrorNormalizeNode() = delete;
     ~CropMirrorNormalizeNode();
-    void init(int crop_h, int crop_w, float start_x, float start_y, std::vector<float>& mean,  std::vector<float>& std_dev, IntParam *mirror);
-    vx_array return_mirror(){ return _mirror.default_array();  }
+    void init(int crop_h, int crop_w, float start_x, float start_y, std::vector<float> &mean, std::vector<float> &std_dev, IntParam *mirror);
+    vx_array return_mirror() { return _mirror.default_array(); }
     std::shared_ptr<RocalCropParam> return_crop_param() { return _crop_param; }
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     std::shared_ptr<RocalCropParam> _crop_param;
     vx_array _multiplier_vx_array, _offset_vx_array;
     std::vector<float> _mean, _std_dev;
     ParameterVX<int> _mirror;
-    constexpr static int   MIRROR_RANGE [2] =  {0, 1};
-    void * _crop_coordinates;
+    constexpr static int MIRROR_RANGE[2] = {0, 1};
+    void *_crop_coordinates;
     vx_tensor _crop_tensor;
 };

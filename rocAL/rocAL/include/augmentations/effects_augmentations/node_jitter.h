@@ -25,18 +25,17 @@ THE SOFTWARE.
 #include "parameter_factory.h"
 #include "parameter_vx.h"
 
-
-class JitterNode : public Node
-{
+class JitterNode : public Node {
 public:
     JitterNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     JitterNode() = delete;
-    void init(int kernel_size);
-    void init(IntParam *kernel_size);
+    void init(int kernel_size, int seed);
+    void init(IntParam *kernel_size, int seed);
 protected:
     void create_node() override;
     void update_node() override;
 private:
     ParameterVX<int> _kernel_size;
-    constexpr static int   KERNEL_SIZE [2] =  {2, 5};
+    int _seed;
+    constexpr static int KERNEL_SIZE[2] = {2, 5};
 };
