@@ -657,7 +657,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalColorTempFixed(RocalContext context, 
                                                           RocalTensorLayout output_layout = ROCAL_NONE,
                                                           RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
-/*! \brief Applies fog effect on images with fixed parameter.
+/*! \brief Applies fog effect on images.
  * \ingroup group_rocal_augmentations
  * \param [in] context Rocal context
  * \param [in] input Input Rocal tensor

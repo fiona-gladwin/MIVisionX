@@ -21,8 +21,7 @@ THE SOFTWARE.
 */
 
 #include <vx_ext_rpp.h>
-#include <graph.h>
-#include "node_crop_mirror_normalize.h"
+#include "node_snp_noise.h"
 #include "exception.h"
 
 SnPNoiseNode::SnPNoiseNode(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs) : Node(inputs, outputs),

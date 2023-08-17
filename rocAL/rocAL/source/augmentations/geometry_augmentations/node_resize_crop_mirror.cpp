@@ -45,14 +45,16 @@ void ResizeCropMirrorNode::create_node() {
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
     if (width_status != 0 || height_status != 0)
-        THROW(" vxAddArrayItems failed in the crop resize node (vxExtrppNode_ResizeCropbatchPD    )  node: " + TOSTR(width_status) + "  " + TOSTR(height_status))
+        THROW(" vxAddArrayItems failed in the crop resize node (vxExtRppResizeCropMirror)  node: " + TOSTR(width_status) + "  " + TOSTR(height_status))
     _mirror.create_array(_graph, VX_TYPE_UINT32, _batch_size);
-    // _node = vxExtrppNode_ResizeCropMirrorPD(_graph->get(), _inputs[0]->handle(), _src_roi_width, _src_roi_height, _outputs[0]->handle(), _dst_roi_width,
-    //    _dst_roi_height, _crop_param->x1_arr, _crop_param->x2_arr, _crop_param->y1_arr, _crop_param->y2_arr,  _mirror.default_array(),_batch_size);
+    create_crop_tensor(_crop_tensor, &_crop_coordinates);
+    vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &_interpolation_type);
+    _node = vxExtRppResizeCropMirror(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _dst_roi_width,
+                                     _dst_roi_height, _mirror.default_array(), interpolation_vx, _input_layout, _output_layout, _roi_type);
 
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Error adding the resize crop mirror resize node (vxExtrppNode_ResizeCropbatchPD    ) failed: " + TOSTR(status))
+        THROW("Error adding the resize crop mirror node (vxExtRppResizeCropMirror) failed: " + TOSTR(status))
 }
 
 void ResizeCropMirrorNode::update_node() {
@@ -75,7 +77,7 @@ void ResizeCropMirrorNode::update_node() {
     }
 }
 
-void ResizeCropMirrorNode::init(unsigned int crop_h, unsigned int crop_w, IntParam *mirror) {
+void ResizeCropMirrorNode::init(unsigned int crop_h, unsigned int crop_w, IntParam *mirror, RocalResizeInterpolationType interpolation_type) {
     _crop_param->crop_w = crop_w;
     _crop_param->crop_h = crop_h;
     _crop_param->x1 = 0;
@@ -84,10 +86,23 @@ void ResizeCropMirrorNode::init(unsigned int crop_h, unsigned int crop_w, IntPar
     _interpolation_type = static_cast<int>(interpolation_type);
 }
 
-void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam *crop_w_factor, IntParam *mirror) {
+void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam *crop_w_factor, IntParam *mirror, RocalResizeInterpolationType interpolation_type) {
     _crop_param->set_crop_height_factor(core(crop_h_factor));
     _crop_param->set_crop_width_factor(core(crop_w_factor));
     _crop_param->set_random();
     _mirror.set_param(core(mirror));
     _interpolation_type = static_cast<int>(interpolation_type);
+}
+
+ResizeCropMirrorNode::~ResizeCropMirrorNode() {
+    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
+#if ENABLE_HIP
+        hipError_t err = hipFree(_crop_coordinates);
+        if (err != hipSuccess)
+            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
+#endif
+    } else {
+        free(_crop_coordinates);
+    }
+    vxReleaseTensor(&_crop_tensor);
 }

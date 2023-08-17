@@ -24,19 +24,17 @@ THE SOFTWARE.
 #include <vx_ext_rpp.h>
 #include "exception.h"
 
-NopNode::NopNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs) {
-}
+NopNode::NopNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs) {}
 
 void NopNode::create_node() {
     if (_node)
         return;
 
-    _node = vxExtrppNode_NopbatchPD(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle());
+    _node = vxExtRppNop(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle());
 
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the nop (vxNopNode) node failed: " + TOSTR(status))
 }
 
-void NopNode::update_node() {
-}
+void NopNode::update_node() {}

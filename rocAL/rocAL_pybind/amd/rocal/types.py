@@ -143,6 +143,18 @@ _known_types = {
 }
 
 def data_type_function(dtype):
+    """
+    Converts a given data type identifier to its corresponding known type.
+
+    Args:
+        dtype: The data type identifier.
+
+    Returns:
+        Known type corresponding to the given data type identifier.
+
+    Raises:
+        RuntimeError: If the given data type identifier does not correspond to a known type.
+    """
     if dtype in _known_types:
         ret = _known_types[dtype][0]
         return ret

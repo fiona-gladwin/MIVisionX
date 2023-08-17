@@ -20,13 +20,32 @@
 
 import rocal_pybind as b
 
-
 def coin_flip(*inputs, probability=0.5):
+    """
+    coin flip with a given probability of success.
+
+    Args:
+        *inputs: list of input arguments.
+        probability: Probability of getting a "success" outcome.
+
+    Returns:
+        An array of coin flip outcomes.
+    """
     values = [0, 1]
     frequencies = [1 - probability, probability]
     output_array = b.createIntRand(values, frequencies)
     return output_array
 
 def uniform(*inputs, range=[-1, 1]):
+    """
+    Generates random values uniformly distributed within a specified range.
+
+    Args:
+        *inputs: list of input arguments.
+        range: Range for the uniform distribution.
+
+    Returns:
+    random values uniformly distributed within the specified range.
+    """
     output_param = b.createFloatUniformRand(range[0], range[1])
     return output_param

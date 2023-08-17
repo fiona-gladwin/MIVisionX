@@ -157,7 +157,7 @@ extern "C" unsigned ROCAL_API_CALL rocalGetMaskCount(RocalContext p_context, int
  * \param [out] bufcount The user's buffer that will be filled with polygon size for the mask info
  * \return The tensorlist with the mask coordinates
  */
-extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(rRocalContext p_context, int* bufcount);
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p_context, int* bufcount);
 
 /*! \brief get bounding box label
  * \param [in] rocal_context rocal context
@@ -228,6 +228,7 @@ extern "C" void ROCAL_API_CALL rocalCopyEncodedBoxesAndLables(RocalContext p_con
 /*! \brief
 * \param boxes_buf  ptr to user's buffer that will be filled with encoded bounding boxes . Its needs to be at least of size batch_size.
 * \param labels_buf  user's buffer that will be filled with encoded labels . Its needs to be at least of size batch_size.
+*/
 extern "C" RocalMetaData ROCAL_API_CALL rocalGetEncodedBoxesAndLables(RocalContext p_context, int num_encoded_boxes);
 
 /*! \brief get image id
