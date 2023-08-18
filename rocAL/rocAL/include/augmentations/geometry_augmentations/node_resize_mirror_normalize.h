@@ -32,7 +32,7 @@ public:
     void init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode, std::vector<unsigned> max_size,
               RocalResizeInterpolationType interpolation_type, std::vector<float>& mean,  std::vector<float>& std_dev, IntParam *mirror);
     void adjust_out_roi_size();
-    vx_array get_mirror(){ return _mirror.default_array();  }
+    vx_array get_mirror() { return _mirror.default_array(); }
 protected:
     void create_node() override;
     void update_node() override;

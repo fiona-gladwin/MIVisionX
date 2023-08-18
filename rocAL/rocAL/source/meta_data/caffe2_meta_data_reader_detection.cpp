@@ -179,7 +179,6 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
                 for (int i = 0; i < boundBox_size / 4; i++)
                 {
                     // Parsing the bounding box points using Iterator
-                    // && Normalizing the box Co-ordinates
                     box.l = boundingBox_proto.dims(boundIter);
                     box.t = boundingBox_proto.dims(boundIter + 1);
                     box.r = box.l + boundingBox_proto.dims(boundIter + 2);

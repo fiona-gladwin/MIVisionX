@@ -73,12 +73,10 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
                 coords_buf[j].t = (yA - crop_box.t);
                 coords_buf[j].r = (xB - crop_box.l);
                 coords_buf[j].b = (yB - crop_box.t);
-                if (_mirror_val[i] == 1)
-                {
-
-                auto l = coords_buf[j].l;
-                coords_buf[j].l =  _width_val[i] - coords_buf[j].r;
-                coords_buf[j].r = _width_val[i] - l;
+                if (_mirror_val[i] == 1) {
+                    auto l = coords_buf[j].l;
+                    coords_buf[j].l =  _width_val[i] - coords_buf[j].r;
+                    coords_buf[j].r = _width_val[i] - l;
                 }
                 bb_coords.push_back(coords_buf[j]);
                 bb_labels.push_back(labels_buf[j]);

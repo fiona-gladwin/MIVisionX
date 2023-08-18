@@ -336,7 +336,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
 
                 auto itr = _map_img_names.find(id);
                 auto it = _map_img_sizes.find(itr->second);
-                ImgSize image_size = it->second; //Normalizing the co-ordinates & convert to "ltrb" format
+                ImgSize image_size = it->second; // Convert to "ltrb" format
                 if ((_output->get_metadata_type() == MetaDataType::PolygonMask) && iscrowd == 0)
                 {
                     box.l = bbox[0];

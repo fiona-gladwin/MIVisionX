@@ -164,7 +164,7 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
                 caffe_protos::Annotation annot_protos = annotGrp_protos.annotation(i);
                 caffe_protos::NormalizedBBox bbox_protos = annot_protos.bbox();
 
-                // Parsing the bounding box points using Iterator & normalizing the bbox values between 0 & 1
+                // Parsing the bounding box points using Iterator & converting the bbox values to ltrb format
                 box.l = bbox_protos.xmin();
                 box.t = bbox_protos.ymin();
                 box.r = (bbox_protos.xmin() + bbox_protos.xmax());

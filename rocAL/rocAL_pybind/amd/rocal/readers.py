@@ -43,8 +43,6 @@ def file(file_root, file_filters=None, file_list='', stick_to_shard=False, pad_l
     Pipeline._current_pipeline._reader = "labelReader"
     # Output
     labels = []
-    if file_filters is None:
-        file_filters = ["*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tif", "*.tiff", "*.pnm", "*.ppm", "*.pgm", "*.pbm", "*.jp2", "*.webp"]
     kwargs_pybind = {"source_path": file_root}
     label_reader_meta_data = b.labelReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (label_reader_meta_data, labels)
@@ -55,7 +53,7 @@ def tfrecord(path, user_feature_key_map, features, reader_type=0, stick_to_shard
         Pipeline._current_pipeline._reader = "TFRecordReaderDetection"
         kwargs_pybind = {"path": path, "is_output": True, "user_key_for_label": user_feature_key_map["image/class/label"],
                          "user_key_for_text": user_feature_key_map["image/class/text"], "user_key_for_xmin": user_feature_key_map["image/object/bbox/xmin"],
-                         "user_key_for_ymin": user_feature_key_map["image/object/bbox/ymin"], "user_key_for_xmax": user_feature_key_map["image/object/bbox/xmax"], 
+                         "user_key_for_ymin": user_feature_key_map["image/object/bbox/ymin"], "user_key_for_xmax": user_feature_key_map["image/object/bbox/xmax"],
                          "user_key_for_ymax": user_feature_key_map["image/object/bbox/ymax"], "user_key_for_filename": user_feature_key_map["image/filename"]}
         for key in features.keys():
             if key not in user_feature_key_map.keys():
@@ -114,8 +112,8 @@ def caffe2(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
         return (caffe2_meta_data, labels)
 
 def video(sequence_length, file_list_frame_num=False, file_root="", image_type=types.RGB, num_shards=1,
-          random_shuffle=False, step=1, stride=1, decoder_mode=types.SOFTWARE_DECODE, enable_frame_num=False, 
-          enable_timestamps=False, file_list="", stick_to_shard=False, pad_last_batch=False, 
+          random_shuffle=False, step=1, stride=1, decoder_mode=types.SOFTWARE_DECODE, enable_frame_num=False,
+          enable_timestamps=False, file_list="", stick_to_shard=False, pad_last_batch=False,
           file_list_include_preceding_frame=False, normalized=False, skip_vfr_check=False):
     Pipeline._current_pipeline._reader = "VideoDecoder"
     # Output
@@ -127,7 +125,7 @@ def video(sequence_length, file_list_frame_num=False, file_root="", image_type=t
         "frame_stride": stride,
         "file_list_frame_num": file_list_frame_num}  # VideoMetaDataReader
     b.videoMetaDataReader(Pipeline._current_pipeline._handle, *(kwargs_pybind_reader.values()))
-    
+
     kwargs_pybind_decoder = {
         "source_path": file_root,
         "color_format": image_type,
@@ -148,8 +146,8 @@ def video_resize(sequence_length, resize_width, resize_height, file_list_frame_n
                  num_shards=1, random_shuffle=False, step=3,
                  stride=3, decoder_mode=types.SOFTWARE_DECODE,
                  scaling_mode=types.SCALING_MODE_DEFAULT, interpolation_type=types.LINEAR_INTERPOLATION,
-                 resize_longer=0, resize_shorter=0, max_size=[], enable_frame_num=False, 
-                 enable_timestamps=False, file_list="", stick_to_shard=False, pad_last_batch=False, 
+                 resize_longer=0, resize_shorter=0, max_size=[], enable_frame_num=False,
+                 enable_timestamps=False, file_list="", stick_to_shard=False, pad_last_batch=False,
                  file_list_include_preceding_frame=False, normalized=False, skip_vfr_check=False):
     Pipeline._current_pipeline._reader = "VideoDecoderResize"
     # Output
@@ -161,7 +159,7 @@ def video_resize(sequence_length, resize_width, resize_height, file_list_frame_n
         "frame_stride": stride,
         "file_list_frame_num": file_list_frame_num}  # VideoMetaDataReader
     meta_data = b.videoMetaDataReader(Pipeline._current_pipeline._handle, *(kwargs_pybind_reader.values()))
-    
+
     kwargs_pybind_decoder = {"source_path": file_root, "color_format": image_type, "decoder_mode": decoder_mode, "shard_count": num_shards,
                              "sequence_length": sequence_length, "resize_width": resize_width, "resize_height": resize_height,
                              "shuffle": random_shuffle, "is_output": False, "loop": False, "frame_step": step, "frame_stride": stride,

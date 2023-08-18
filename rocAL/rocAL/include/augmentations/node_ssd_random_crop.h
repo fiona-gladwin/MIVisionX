@@ -79,7 +79,7 @@ protected:
 
 private:
     std::shared_ptr<RocalRandomCropParam> _meta_crop_param;
-    std::vector<uint> _crop_width_val, _crop_height_val, _x1_val, _y1_val;
+    std::vector<uint> _x1_val, _y1_val, _crop_width_val, _crop_height_val;
     size_t _dest_width;
     size_t _dest_height;
     float  _threshold = 0.05;

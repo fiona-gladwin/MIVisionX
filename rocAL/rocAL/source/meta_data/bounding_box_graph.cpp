@@ -30,6 +30,7 @@ void BoundingBoxGraph::process(pMetaDataBatch input_meta_data, pMetaDataBatch ou
     }
 }
 
+// This function is used to rescale the metadata values w.r.t the decoded image sizes
 void BoundingBoxGraph::update_meta_data(pMetaDataBatch input_meta_data, decoded_image_info decode_image_info)
 {
     std::vector<uint32_t> original_height = decode_image_info._original_height;

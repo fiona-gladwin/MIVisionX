@@ -137,8 +137,8 @@ class Pipeline(object):
         self._shuffle = None
         self._name = None
         self._anchors = None
-        self._BoxEncoder = None
-        self._BoxIOUMatcher = None
+        self._box_encoder = None
+        self._box_iou_matcher = None
         self._encode_tensor = None
         self._num_classes = None
         self._one_hot_encoding = False

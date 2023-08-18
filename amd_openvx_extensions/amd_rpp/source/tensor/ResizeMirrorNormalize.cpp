@@ -24,16 +24,16 @@ THE SOFTWARE.
 
 struct ResizeMirrorNormalizeLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
-    Rpp32u *pResizeHeight;
-    Rpp32u *pResizeWidth;
-    Rpp32f *pMean;
-    Rpp32f *pStdDev;
-    Rpp32u *pMirror;
+    vx_uint32 *pResizeHeight;
+    vx_uint32 *pResizeWidth;
+    vx_float32 *pMean;
+    vx_float32 *pStdDev;
+    vx_uint32 *pMirror;
     RpptROI *pSrcRoi;
     RpptRoiType roiType;
     vxTensorLayout inputLayout;
@@ -46,11 +46,11 @@ struct ResizeMirrorNormalizeLocalData {
 
 static vx_status VX_CALLBACK refreshResizeMirrorNormalize(vx_node node, const vx_reference *parameters, vx_uint32 num, ResizeMirrorNormalizeLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pResizeWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pResizeHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[6], 0, data->inputTensorDims[0] * data->pSrcDesc->c, sizeof(Rpp32f), data->pMean, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[7], 0, data->inputTensorDims[0] * data->pSrcDesc->c, sizeof(Rpp32f), data->pStdDev, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[8], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pMirror, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pResizeWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pResizeHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[6], 0, data->inputTensorDims[0] * data->pSrcDesc->c, sizeof(vx_float32), data->pMean, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[7], 0, data->inputTensorDims[0] * data->pSrcDesc->c, sizeof(vx_float32), data->pStdDev, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[8], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pMirror, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     for (unsigned i = 0; i < data->inputTensorDims[0]; i++) {
         data->pDstImgSize[i].width = data->pResizeWidth[i];
         data->pDstImgSize[i].height = data->pResizeHeight[i];
@@ -159,13 +159,13 @@ static vx_status VX_CALLBACK initializeResizeMirrorNormalize(vx_node node, const
     memset(data, 0, sizeof(ResizeMirrorNormalizeLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, input_layout, output_layout, interpolation_type;
+    vx_int32 roi_type, input_layout, output_layout, interpolation_type;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &interpolation_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[10], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[11], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[12], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
     data->interpolationType = static_cast<RpptInterpolationType>(interpolation_type);
@@ -189,15 +189,15 @@ static vx_status VX_CALLBACK initializeResizeMirrorNormalize(vx_node node, const
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->outputTensorDims);
 
 
-    data->pResizeWidth = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pResizeHeight = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pMean = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n * data->pSrcDesc->c));
-    data->pStdDev = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n * data->pSrcDesc->c));
-    data->pMirror = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pResizeWidth = new vx_uint32[data->pSrcDesc->n];
+    data->pResizeHeight = new vx_uint32[data->pSrcDesc->n];
+    data->pMean = new vx_float32[data->pSrcDesc->n * data->pSrcDesc->c];
+    data->pStdDev = new vx_float32[data->pSrcDesc->n * data->pSrcDesc->c];
+    data->pMirror = new vx_uint32[data->pSrcDesc->n];
 #if ENABLE_HIP
     hipHostMalloc(&data->pDstImgSize, data->pSrcDesc->n * sizeof(RpptImagePatch));
 #else
-    data->pDstImgSize = static_cast<RpptImagePatch *>(calloc(data->pSrcDesc->n, sizeof(RpptImagePatch)));
+    data->pDstImgSize = new RpptImagePatch[data->pSrcDesc->n];
 #endif    
     refreshResizeMirrorNormalize(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
@@ -209,20 +209,20 @@ static vx_status VX_CALLBACK uninitializeResizeMirrorNormalize(vx_node node, con
 {
     ResizeMirrorNormalizeLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pResizeWidth != nullptr)  free(data->pResizeWidth);
-    if (data->pResizeHeight != nullptr)  free(data->pResizeHeight);
-    if (data->pMean != nullptr)  free(data->pMean);
-    if (data->pStdDev != nullptr)  free(data->pStdDev);
-    if (data->pMirror != nullptr) free(data->pMirror);
+    delete[] data->pResizeWidth;
+    delete[] data->pResizeHeight;
+    delete[] data->pMean;
+    delete[] data->pStdDev;
+    delete[] data->pMirror;
 #if ENABLE_HIP
     if (data->pDstImgSize != nullptr) hipHostFree(data->pDstImgSize);
 #else
-    if (data->pDstImgSize != nullptr) free(data->pDstImgSize);
+    delete[] data->pDstImgSize;
 #endif
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

@@ -37,7 +37,7 @@ void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaData
     _dst_height = _node->get_dst_height();
     _angle = _node->get_angle();
     vxCopyArrayRange((vx_array)_angle, 0, _batch_size, sizeof(float),_angle_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    BoundingBoxCord temp_box = {0, 0, 1, 1};
+    BoundingBoxCord temp_box = {0, 0, static_cast<float>(_dst_width), static_cast<float>(_dst_height)};
     for(int i = 0; i < _batch_size; i++)
     {
         auto bb_count = input_meta_data->get_labels_batch()[i].size();

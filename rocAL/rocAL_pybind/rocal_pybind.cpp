@@ -586,8 +586,8 @@ namespace rocal{
         m.def("rocalResetLoaders", &rocalResetLoaders);
         m.def("videoMetaDataReader", &rocalCreateVideoLabelReader, py::return_value_policy::reference);
         // rocal_api_augmentation.h
-        // m.def("SSDRandomCrop", &rocalSSDRandomCrop,
-        //     py::return_value_policy::reference);
+        m.def("ssdRandomCrop", &rocalSSDRandomCrop,
+            py::return_value_policy::reference);
         m.def("resize", &rocalResize, 
             py::return_value_policy::reference);
         m.def("resizeMirrorNormalize", &rocalResizeMirrorNormalize,

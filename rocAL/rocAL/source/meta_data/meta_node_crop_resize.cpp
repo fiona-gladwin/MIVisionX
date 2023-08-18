@@ -41,19 +41,17 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
     _y1 = _meta_crop_param->y1_arr;
     _x2 = _meta_crop_param->x2_arr;
     _y2 = _meta_crop_param->y2_arr;
-    auto input_roi = _meta_crop_param->in_roi;
-    auto output_roi = _node->get_dst_roi();
+    auto resize_w = _node->get_dst_width();
+    auto resize_h = _node->get_dst_height();
 
     vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint), _x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint), _y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_x2, 0, _batch_size, sizeof(uint), _x2_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_y2, 0, _batch_size, sizeof(uint), _y2_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    BoundingBoxCord temp_box = {0, 0, 1, 1};
+    BoundingBoxCord temp_box = {0, 0, static_cast<float>(resize_w), static_cast<float>(resize_h)};
 
     for(int i = 0; i < _batch_size; i++)
     {
-        float _dst_to_src_width_ratio = static_cast<float>(output_roi[i].x2) / input_roi[i].x2;
-        float _dst_to_src_height_ratio = static_cast<float>(output_roi[i].y2) / input_roi[i].y2;
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
@@ -67,7 +65,8 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
         crop_box.t = _y1_val[i];
         crop_box.r = _x1_val[i] + _crop_w;
         crop_box.b = _y1_val[i] + _crop_h;
-
+        float _dst_to_src_width_ratio = static_cast<float>(resize_w) / _crop_w;
+        float _dst_to_src_height_ratio = static_cast<float>(resize_h) / _crop_h;
         for(uint j = 0; j < bb_count; j++)
         {
             BoundingBoxCord box = coords_buf[j];
