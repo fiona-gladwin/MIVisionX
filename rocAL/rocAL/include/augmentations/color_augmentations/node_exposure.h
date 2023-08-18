@@ -38,5 +38,5 @@ protected:
 private:
     ParameterVX<float> _exposure_factor;
     constexpr static float EXPOSURE_FACTOR_RANGE[2] = {0.15, 0.95};
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

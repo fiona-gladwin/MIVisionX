@@ -43,5 +43,5 @@ private:
     void * _crop_coordinates;
     vx_tensor _crop_tensor;
     vx_array _dst_roi_width, _dst_roi_height;
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

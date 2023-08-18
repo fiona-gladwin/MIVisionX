@@ -45,5 +45,5 @@ private:
     ParameterVX<float> _angle;
     int _interpolation_type;
     constexpr static float ROTATE_ANGLE_RANGE [2] = {0, 180};
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

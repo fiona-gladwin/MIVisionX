@@ -44,5 +44,5 @@ private:
     ParameterVX<float> _beta;
     constexpr static float ALPHA_RANGE [2] = {0.1, 1.95};
     constexpr static float   BETA_RANGE [2] = {0, 25};
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

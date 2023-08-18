@@ -38,5 +38,5 @@ protected:
 private:
     ParameterVX<int> _kernel_size;
     constexpr static int KERNEL_SIZE_RANGE[2] = {3, 9};
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

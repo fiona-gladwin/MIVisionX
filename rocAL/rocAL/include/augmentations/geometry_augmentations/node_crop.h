@@ -44,5 +44,5 @@ private:
     std::shared_ptr<RocalCropParam> _crop_param;
     void * _crop_coordinates;
     vx_tensor _crop_tensor;
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

@@ -43,5 +43,5 @@ private:
     constexpr static float BETA_RANGE[2] = {0.1, 25.0};
     constexpr static float HUE_RANGE[2] = {5.0, 170.0};
     constexpr static float SAT_RANGE[2] = {0.1, 0.4};
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

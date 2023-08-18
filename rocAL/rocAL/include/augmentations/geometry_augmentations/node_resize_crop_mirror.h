@@ -52,5 +52,5 @@ private:
     void *_crop_coordinates;
     vx_tensor _crop_tensor;
     int _interpolation_type;
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

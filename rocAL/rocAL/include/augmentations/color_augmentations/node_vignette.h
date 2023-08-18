@@ -39,5 +39,5 @@ protected:
 private:
     ParameterVX<float> _sdev;
     constexpr static float SDEV_RANGE [2] = {40 , 60};
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };

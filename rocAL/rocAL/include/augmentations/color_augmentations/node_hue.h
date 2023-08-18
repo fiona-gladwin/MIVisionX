@@ -39,5 +39,5 @@ protected:
 private:
     ParameterVX<float> _hue;
     constexpr static float HUE_RANGE [2] = {-359.0, 359.0};
-    vx_scalar _input_layout, _output_layout, _roi_type
+    vx_scalar _input_layout, _output_layout, _roi_type;
 };
