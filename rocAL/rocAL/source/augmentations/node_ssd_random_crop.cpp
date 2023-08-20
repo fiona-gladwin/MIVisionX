@@ -181,14 +181,14 @@ void SSDRandomCropNode::update_node()
                 continue;
             break;
         } // while loop
-        crop_dims[i].x1 = (crop_box.l) * input_roi[i].x2;
-        crop_dims[i].y1 = (crop_box.t) * input_roi[i].y2;
+        crop_dims[i].xywhROI.x = (crop_box.l) * input_roi[i].xywhROI.roiWidth;
+        crop_dims[i].xywhROI.y = (crop_box.t) * input_roi[i].xywhROI.roiHeight;
         if(_inputs[0]->info().roi_type() == RocalROIType::XYWH) {
-            crop_dims[i].x2 = (crop_box.r - crop_box.l) * input_roi[i].x2;
-            crop_dims[i].y2 = (crop_box.b - crop_box.t) * input_roi[i].y2;
+            crop_dims[i].xywhROI.roiWidth = (crop_box.r - crop_box.l) * input_roi[i].xywhROI.roiWidth;
+            crop_dims[i].xywhROI.roiHeight = (crop_box.b - crop_box.t) * input_roi[i].xywhROI.roiHeight;
         } else if(_inputs[0]->info().roi_type() == RocalROIType::LTRB) {
-            crop_dims[i].x2 = (crop_box.r) * input_roi[i].x2;
-            crop_dims[i].y2 = (crop_box.b) * input_roi[i].y2;
+            crop_dims[i].xywhROI.roiWidth = (crop_box.r) * input_roi[i].xywhROI.roiWidth;
+            crop_dims[i].xywhROI.roiHeight = (crop_box.b) * input_roi[i].xywhROI.roiHeight;
     }
     }
     _outputs[0]->update_tensor_roi(_crop_width_val, _crop_height_val);

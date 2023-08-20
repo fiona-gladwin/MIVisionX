@@ -57,10 +57,10 @@ void RandomCropNode::update_node()
     auto y1 = _crop_param->get_y1_arr_val();
     RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);
     for(unsigned i = 0; i < _batch_size; i++) {
-        crop_dims[i].x1 = x1[i];
-        crop_dims[i].y1 = y1[i];
-        crop_dims[i].x2 = crop_w_dims[i];
-        crop_dims[i].y2 = crop_h_dims[i];
+        crop_dims[i].xywhROI.x = x1[i];
+        crop_dims[i].xywhROI.y = y1[i];
+        crop_dims[i].xywhROI.roiWidth = crop_w_dims[i];
+        crop_dims[i].xywhROI.roiHeight = crop_h_dims[i];
     }
 }
 

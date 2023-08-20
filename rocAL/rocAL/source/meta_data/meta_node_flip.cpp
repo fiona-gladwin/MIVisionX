@@ -49,14 +49,14 @@ void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBa
             if(_h_flip_val[i])
             {
                 auto l = coords_buf[j].l;
-                coords_buf[j].l = input_roi[i].x2 - coords_buf[j].r;
-                coords_buf[j].r = input_roi[i].x2 - l;
+                coords_buf[j].l = input_roi[i].xywhROI.roiWidth - coords_buf[j].r;
+                coords_buf[j].r = input_roi[i].xywhROI.roiWidth - l;
             }
             if(_v_flip_val[i])
             {
                 auto t = coords_buf[j].t;
-                coords_buf[j].t = input_roi[i].y2 - coords_buf[j].b;
-                coords_buf[j].b = input_roi[i].y2 - t;
+                coords_buf[j].t = input_roi[i].xywhROI.roiHeight - coords_buf[j].b;
+                coords_buf[j].b = input_roi[i].xywhROI.roiHeight - t;
             }
             
             bb_coords.push_back(coords_buf[j]);

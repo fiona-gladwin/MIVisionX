@@ -90,8 +90,8 @@ void ResizeMirrorNormalizeNode::update_node()
 {
     RocalROI* src_roi = _inputs[0]->info().get_roi();   // Check if it needs to be similar to resize
     for (unsigned i = 0; i < _batch_size; i++) {
-        _src_width = src_roi[i].x2;
-        _src_height = src_roi[i].y2;
+        _src_width = src_roi[i].xywhROI.roiWidth;
+        _src_height = src_roi[i].xywhROI.roiHeight;
         _dst_width = _out_width;
         _dst_height = _out_height;
         adjust_out_roi_size();
