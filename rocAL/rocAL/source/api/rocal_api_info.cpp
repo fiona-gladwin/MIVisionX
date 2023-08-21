@@ -127,7 +127,7 @@ TimingInfo
     // if (context->master_graph->is_video_loader()) // TO BE FIXED
     //     return {info.video_read_time, info.video_decode_time, info.video_process_time, info.copy_to_output}; // TODO - Add unified timers for all decoders
     // else
-        return {info.image_read_time, info.image_decode_time, info.image_process_time, info.copy_to_output};
+        return {info.read_time, info.decode_time, info.process_time, info.copy_to_output};
 }
 
 RocalMetaData
