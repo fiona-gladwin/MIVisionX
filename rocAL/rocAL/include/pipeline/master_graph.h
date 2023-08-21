@@ -44,6 +44,8 @@ THE SOFTWARE.
 #endif
 #include "randombboxcrop_meta_data_reader.h"
 #include "rocal_api_types.h"
+#include "seed_rng.h"
+
 #define MAX_STRING_LENGTH 100
 #define MAX_OBJECTS 50 // Setting an arbitrary value 50.(Max number of objects/image in COCO dataset is 93)
 #define BBOX_COUNT 4
@@ -113,6 +115,7 @@ public:
     TensorList * labels_meta_data();
     TensorList * bbox_meta_data();
     TensorList * mask_meta_data(bool is_polygon_mask);
+    TensorList * get_random_object_bbox(rocalTensorList* input, RandomObjectBBoxFormat format);
     void set_loop(bool val) { _loop = val; }
     void set_output(Tensor* output_tensor);
     size_t calculate_cpu_num_threads(size_t shard_count);
@@ -140,6 +143,17 @@ private:
     void notify_user_thread();
     /// no_more_processed_data() is logically linked to the notify_user_thread() and is used to tell the user they've already consumed all the processed tensors
     bool no_more_processed_data();
+    void merge_row(int* in1, int* in2,int* out1,int* out2, unsigned n);
+    void filter_by_label(int* in_row, int* out_row, unsigned N, int label);
+    int compact_rows(int* in, unsigned height, unsigned width);
+    void label_row(int* in_row,int* label_base,int* out_row, unsigned length);
+    void get_label_boundingboxes(std::vector<std::vector<std::pair<unsigned,unsigned>>> &boxes,
+                                std::vector<std::pair<unsigned,unsigned>> ranges,
+                                std::vector<unsigned> hits,
+                                int* in,
+                                std::vector<unsigned> origin,
+                                unsigned width);
+    bool hit(std::vector<unsigned>& hits, unsigned idx);
     RingBuffer _ring_buffer;//!< The queue that keeps the tensors that have benn processed by the internal thread (_output_thread) asynchronous to the user's thread
     pMetaDataBatch _augmented_meta_data = nullptr;//!< The output of the meta_data_graph,
     std::shared_ptr<CropCordBatch> _random_bbox_crop_cords_data = nullptr;
@@ -158,7 +172,9 @@ private:
     TensorList _labels_tensor_list;
     TensorList _bbox_tensor_list;
     TensorList _mask_tensor_list;
+    TensorList _random_object_bbox_list;
     std::vector<size_t> _meta_data_buffer_size;
+    std::vector<std::vector<unsigned>> output_random_object_bbox;
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU
 #elif ENABLE_OPENCL
