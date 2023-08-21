@@ -269,8 +269,10 @@ public:
     //! Constructor accepting the tensor information as input
     explicit Tensor(const TensorInfo& tensor_info);
     int create(vx_context context);
+    void create_roi_tensor_from_handle(void **handle);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
+    vx_tensor get_roi_tensor() { return _vx_roi_handle; }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
     int create_from_handle(vx_context context);
@@ -297,6 +299,7 @@ private:
     void* _mem_handle = nullptr;  //!< Pointer to the tensor's internal buffer (opencl or host)
     TensorInfo _info;  //!< The structure holding the info related to the stored OpenVX tensor
     vx_context _context = nullptr;
+    vx_tensor _vx_roi_handle = nullptr;  //!< The OpenVX tensor for ROI
 };
 
 /*! \brief Contains a list of rocalTensors */

@@ -1985,7 +1985,7 @@ RocalTensor  ROCAL_API_CALL rocalResizeCropMirror(
     auto input = static_cast<Tensor*>(p_input);
     auto crop_h = static_cast<FloatParam*>(p_crop_height);
     auto crop_w = static_cast<FloatParam*>(p_crop_width);
-    auto mirror  = static_cast<IntParam*>(p_mirror);
+    auto mirror = static_cast<IntParam*>(p_mirror);
     try {
         if(dest_width == 0 || dest_height == 0)
             THROW("Crop Mirror node needs tp receive non-zero destination dimensions")
@@ -2028,7 +2028,7 @@ rocalRandomCrop(
     }
     auto context = static_cast<Context*>(p_context);
     auto input = static_cast<Tensor*>(p_input);
-    auto crop_area_factor  = static_cast<FloatParam*>(p_crop_area_factor);
+    auto crop_area_factor = static_cast<FloatParam*>(p_crop_area_factor);
     auto crop_aspect_ratio = static_cast<FloatParam*>(p_crop_aspect_ratio);
     auto x_drift = static_cast<FloatParam*>(p_crop_pox_x);
     auto y_drift = static_cast<FloatParam*>(p_crop_pos_y);
@@ -2072,7 +2072,7 @@ rocalSSDRandomCrop(
     }
     auto context = static_cast<Context*>(p_context);
     auto input = static_cast<Tensor*>(p_input);
-    auto crop_area_factor  = static_cast<FloatParam*>(p_crop_area_factor);
+    auto crop_area_factor = static_cast<FloatParam*>(p_crop_area_factor);
     auto crop_aspect_ratio = static_cast<FloatParam*>(p_crop_aspect_ratio);
     auto x_drift = static_cast<FloatParam*>(p_crop_pox_x);
     auto y_drift = static_cast<FloatParam*>(p_crop_pos_y);
