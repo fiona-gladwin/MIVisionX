@@ -1554,7 +1554,6 @@ TensorList * MasterGraph::matched_index_meta_data()
         _matches_tensor_list[i]->set_mem_handle(reinterpret_cast<void *>(meta_data_buffers));
         meta_data_buffers += _matches_tensor_list[i]->info().data_size();
     }
-
     return &_matches_tensor_list;
 }
 
