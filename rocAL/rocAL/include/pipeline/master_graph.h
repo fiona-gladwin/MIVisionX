@@ -44,7 +44,7 @@ THE SOFTWARE.
 #endif
 #include "randombboxcrop_meta_data_reader.h"
 #include "rocal_api_types.h"
-#include "seedRNG.h"
+#include "seed_rng.h"
 
 #define MAX_STRING_LENGTH 100
 #define MAX_OBJECTS 50 // Setting an arbitrary value 50.(Max number of objects/image in COCO dataset is 93)

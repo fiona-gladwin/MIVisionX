@@ -34,7 +34,7 @@ THE SOFTWARE.
 #include "caffe2_meta_data_reader_detection.h"
 #include "tf_meta_data_reader_detection.h"
 #include <random>
-#include "seedRNG.h"
+#include "seed_rng.h"
 class RandomBBoxCropReader: public RandomBBoxCrop_MetaDataReader
 {
 public:

@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_crop_factory.h"
-#include "seedRNG.h"
+#include "seed_rng.h"
 
 class SSDRandomCropNode : public Node
 {

@@ -3,6 +3,7 @@
 
 
 #pragma once
+// todo:: move this to common header
 template<typename T = std::mt19937, std::size_t state_size = T::state_size>
 class SeededRNG {
   /*
