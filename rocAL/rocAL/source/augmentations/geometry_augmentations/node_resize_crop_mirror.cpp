@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 ResizeCropMirrorNode::ResizeCropMirrorNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-         Node(inputs, outputs),
+         CropNode(inputs, outputs),
         _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1]) {
     _crop_param = std::make_shared<RocalCropParam>(_batch_size);
 }
@@ -48,11 +48,17 @@ void ResizeCropMirrorNode::create_node() {
     if(width_status != 0 || height_status != 0)
         THROW(" vxAddArrayItems failed in the crop resize node (vxExtRppResizeCropMirror)  node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
     _mirror.create_array(_graph, VX_TYPE_UINT32, _batch_size);
-    create_crop_tensor(_crop_tensor, &_crop_coordinates);
+    create_crop_tensor();
+    int input_layout = static_cast<int>(_inputs[0]->info().layout());
+    int output_layout = static_cast<int>(_outputs[0]->info().layout());
+    int roi_type = static_cast<int>(_inputs[0]->info().roi_type());
+    vx_scalar input_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
+    vx_scalar output_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
+    vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
     vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &_interpolation_type);
-    _node = vxExtRppResizeCropMirror(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _dst_roi_width, 
-                                     _dst_roi_height, _mirror.default_array(), interpolation_vx, _input_layout, _output_layout, _roi_type);
 
+    _node = vxExtRppResizeCropMirror(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(), _dst_roi_width, 
+                                     _dst_roi_height, _mirror.default_array(), interpolation_vx, input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the resize crop mirror node (vxExtRppResizeCropMirror) failed: " + TOSTR(status))
@@ -94,17 +100,4 @@ void ResizeCropMirrorNode::init(FloatParam *crop_h_factor, FloatParam *crop_w_fa
     _crop_param->set_random();
     _mirror.set_param(core(mirror));
     _interpolation_type = static_cast<int>(interpolation_type);
-}
-
-ResizeCropMirrorNode::~ResizeCropMirrorNode() {
-    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
-#if ENABLE_HIP
-        hipError_t err = hipFree(_crop_coordinates);
-        if(err != hipSuccess)
-            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
-#endif
-    } else {
-        free(_crop_coordinates);
-    }
-    vxReleaseTensor(&_crop_tensor);
 }

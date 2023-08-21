@@ -43,7 +43,6 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
     _y2 = _meta_crop_param->y2_arr;
     auto resize_w = _node->get_dst_width();
     auto resize_h = _node->get_dst_height();
-
     vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint), _x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint), _y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_x2, 0, _batch_size, sizeof(uint), _x2_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
@@ -60,7 +59,6 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
         BoundingBoxCord crop_box;
         auto _crop_w = _x2_val[i] - _x1_val[i];
         auto _crop_h = _y2_val[i] - _y1_val[i];
-        
         crop_box.l = _x1_val[i];
         crop_box.t = _y1_val[i];
         crop_box.r = _x1_val[i] + _crop_w;

@@ -24,15 +24,15 @@ THE SOFTWARE.
 
 struct ResizeCropLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    Rpp32u *pDstBatchWidth;
-    Rpp32u *pDstBatchHeight;
-    Rpp32u *pX1;
-    Rpp32u *pY1;
-    Rpp32u *pX2;
-    Rpp32u *pY2;
+    vx_uint32 *pDstBatchWidth;
+    vx_uint32 *pDstBatchHeight;
+    vx_uint32 *pX1;
+    vx_uint32 *pY1;
+    vx_uint32 *pX2;
+    vx_uint32 *pY2;
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
     RpptROI *pSrcRoi;
@@ -50,8 +50,8 @@ struct ResizeCropLocalData {
 
 static vx_status VX_CALLBACK refreshResizeCrop(vx_node node, const vx_reference *parameters, vx_uint32 num, ResizeCropLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pDstBatchWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pDstBatchHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pDstBatchWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pDstBatchHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     void *roi_tensor_ptr, *crop_roi_tensor_ptr;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
@@ -172,12 +172,12 @@ static vx_status VX_CALLBACK initializeResizeCrop(vx_node node, const vx_referen
     memset(data, 0, sizeof(ResizeCropLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, input_layout, output_layout;
+    vx_int32 roi_type, input_layout, output_layout;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
 
@@ -199,14 +199,14 @@ static vx_status VX_CALLBACK initializeResizeCrop(vx_node node, const vx_referen
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pDstBatchWidth = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pDstBatchHeight = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pSrcDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
-    data->pDstDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
-    data->pX1 = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pY1 = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pX2 = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pY2 = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
+    data->pDstBatchWidth = new vx_uint32[data->pSrcDesc->n];
+    data->pDstBatchHeight = new vx_uint32[data->pSrcDesc->n];
+    data->pSrcDimensions = new RppiSize[data->pSrcDesc->n];
+    data->pDstDimensions = new RppiSize[data->pSrcDesc->n];
+    data->pX1 = new vx_uint32[data->pSrcDesc->n];
+    data->pY1 = new vx_uint32[data->pSrcDesc->n];
+    data->pX2 = new vx_uint32[data->pSrcDesc->n];
+    data->pY2 = new vx_uint32[data->pSrcDesc->n];
     data->maxSrcDimensions.height = data->pSrcDesc->h;
     data->maxSrcDimensions.width = data->pSrcDesc->w;
     data->maxDstDimensions.height = data->pDstDesc->h;
@@ -220,18 +220,18 @@ static vx_status VX_CALLBACK initializeResizeCrop(vx_node node, const vx_referen
 static vx_status VX_CALLBACK uninitializeResizeCrop(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ResizeCropLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pDstBatchWidth != nullptr)  free(data->pDstBatchWidth);
-    if (data->pDstBatchHeight != nullptr) free(data->pDstBatchHeight);
-    if (data->pSrcDimensions != nullptr) free(data->pSrcDimensions);
-    if (data->pDstDimensions != nullptr) free(data->pDstDimensions);
-    if (data->pX1 != nullptr) free(data->pX1);
-    if (data->pY1 != nullptr) free(data->pY1);
-    if (data->pX2 != nullptr) free(data->pX2);
-    if (data->pY2 != nullptr) free(data->pY2);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pDstBatchWidth;
+    delete[] data->pDstBatchHeight;
+    delete[] data->pSrcDimensions;
+    delete[] data->pDstDimensions;
+    delete[] data->pX1;
+    delete[] data->pY1;
+    delete[] data->pX2;
+    delete[] data->pY2;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

@@ -178,8 +178,8 @@ enum RocalTensorBackend {
  * currently supports following formats
  */
 enum class RocalROICordsType {
-    ROCAL_XYWH = 0,
-    ROCAL_LTRB = 1
+    ROCAL_LTRB = 0,
+    ROCAL_XYWH = 1
 };
 
 typedef struct {

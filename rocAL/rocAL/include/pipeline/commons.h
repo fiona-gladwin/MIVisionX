@@ -106,8 +106,8 @@ enum class DecodeMode
  */
 enum class RocalROIType
 {
-    XYWH = 0,
-    LTRB
+    LTRB = 0,
+    XYWH
 };
 
 typedef struct
