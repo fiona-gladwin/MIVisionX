@@ -39,7 +39,9 @@ int HipExecCopyInt8ToNHWC
     float     offset1,
     float     offset2,
     unsigned int reverse_channels,
-    unsigned int fp16
+    unsigned int fp16,
+    const unsigned max_output_height = 0,
+    const unsigned max_output_width = 0
 );
 
 int HipExecCopyInt8ToNCHW
@@ -59,5 +61,7 @@ int HipExecCopyInt8ToNCHW
     float     offset1,
     float     offset2,
     unsigned int reverse_channels,
-    unsigned int fp16
+    unsigned int fp16,
+    const unsigned max_output_height = 0,
+    const unsigned max_output_width = 0
 );
