@@ -602,14 +602,11 @@ void MasterGraph::get_label_boundingboxes(std::vector<std::vector<std::pair<unsi
 
     std::pair<unsigned,unsigned> lo = std::make_pair(0,0);
     std::pair<unsigned,unsigned> hi = std::make_pair(0,0);
-    
     lo.first = origin[0];
-    hi.first = origin[0]+1;
+    hi.first = origin[0] + 1;
     lo.second = origin[1];
-    hi.second = origin[1]+1;
-
+    hi.second = origin[1] + 1;
     const int d = 1;
-
     for (unsigned word = 0; word < hits.size(); word++) {
         unsigned mask = hits[word];
         unsigned i = 32 * word;
@@ -671,7 +668,7 @@ TensorList*  MasterGraph::get_random_object_bbox(rocalTensorList* input, RandomO
         unsigned width = input->at(id)->dims().at(1);
         int* in_filtered_row = in_filtered_buffer;
         int* out_row = out_mask_buffer;
-        for (unsigned i = 0; i < height; i ++) {
+        for (unsigned i = 0; i < height; i++) {
             label_row(in_filtered_row, out_mask_buffer, out_row, width);
             if (i >= 1) {
                 merge_row(in_filtered_row-width, in_filtered_row, out_row-width, out_row, width);
