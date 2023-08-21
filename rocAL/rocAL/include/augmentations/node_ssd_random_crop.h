@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 #pragma once
-#include "node.h"
+#include "node_crop.h"
 #include "parameter_factory.h"
 #include "parameter_crop_factory.h"
 
@@ -59,11 +59,10 @@ private:
     int _batch_size;
 };
 
-class SSDRandomCropNode : public Node {
+class SSDRandomCropNode : public CropNode {
 public:
     SSDRandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SSDRandomCropNode() = delete;
-    ~SSDRandomCropNode();
     void init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts);
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
@@ -88,6 +87,4 @@ private:
     bool _entire_iou = false;
     std::shared_ptr<RocalRandomCropParam> _crop_param;
     SeededRNG<std::mt19937, 4> _rngs;     // setting the state_size to 4 for 4 random parameters.
-    void * _crop_coordinates;
-    vx_tensor _crop_tensor;
 };

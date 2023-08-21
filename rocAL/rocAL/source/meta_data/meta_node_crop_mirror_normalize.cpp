@@ -39,12 +39,12 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
     }
     _mirror = _node->return_mirror();
     _meta_crop_param = _node->return_crop_param();
-    _dstImgWidth = _meta_crop_param->cropw_arr;
-    _dstImgHeight = _meta_crop_param->croph_arr;
+    _dst_img_width = _meta_crop_param->cropw_arr;
+    _dst_img_height = _meta_crop_param->croph_arr;
     _x1 = _meta_crop_param->x1_arr;
     _y1 = _meta_crop_param->y1_arr;
-    vxCopyArrayRange((vx_array)_dstImgWidth, 0, _batch_size, sizeof(uint), _width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_dstImgHeight, 0, _batch_size, sizeof(uint), _height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_dst_img_width, 0, _batch_size, sizeof(uint), _width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_dst_img_height, 0, _batch_size, sizeof(uint), _height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint), _x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint), _y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_mirror, 0, _batch_size, sizeof(uint), _mirror_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);

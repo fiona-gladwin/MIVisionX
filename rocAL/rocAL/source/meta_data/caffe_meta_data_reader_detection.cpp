@@ -151,12 +151,6 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
         BoundingBoxCord box;
         ImgSize img_size;
 
-        caffe_protos::Datum image_datum = annotatedDatum_protos.datum();
-        // Parsing width of image
-        img_size.w = image_datum.width();
-        // Parsing height of image
-        img_size.h = image_datum.height();
-
         if (boundBox_size > 0)
         {
             for (int i = 0; i < boundBox_size; i++)

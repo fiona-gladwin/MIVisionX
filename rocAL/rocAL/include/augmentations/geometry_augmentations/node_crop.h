@@ -40,8 +40,9 @@ public:
 protected:
     void create_node() override;
     void update_node() override;
+    void create_crop_tensor();
+    void *_crop_coordinates = nullptr;
+    vx_tensor _crop_tensor = nullptr;
 private:
     std::shared_ptr<RocalCropParam> _crop_param;
-    void * _crop_coordinates;
-    vx_tensor _crop_tensor;
 };

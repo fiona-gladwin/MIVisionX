@@ -23,10 +23,14 @@ THE SOFTWARE.
 
 void BoundingBoxGraph::process(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
+    size_t num_meta_nodes = _meta_nodes.size();
+    if (!num_meta_nodes)
+        THROW ("No meta nodes present in the metadata graph")
     for (auto &meta_node : _meta_nodes)
     {
         meta_node->update_parameters(input_meta_data, output_meta_data);
-        input_meta_data = output_meta_data->clone();
+        if(--num_meta_nodes > 0)
+            input_meta_data = output_meta_data->clone();
     }
 }
 

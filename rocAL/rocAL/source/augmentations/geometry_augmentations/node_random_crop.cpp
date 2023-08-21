@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {
+        CropNode(inputs, outputs) {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
 
@@ -36,7 +36,7 @@ void RandomCropNode::create_node()
         return;
 
     _crop_param->create_array(_graph);
-    create_crop_tensor(_crop_tensor, &_crop_coordinates);
+    create_crop_tensor();
     int input_layout = static_cast<int>(_inputs[0]->info().layout());
     int output_layout = static_cast<int>(_outputs[0]->info().layout());
     int roi_type = static_cast<int>(_inputs[0]->info().roi_type());
@@ -77,17 +77,4 @@ void RandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspect_
     _crop_param->set_area_factor(core(crop_area_factor));
     _crop_param->set_aspect_ratio(core(crop_aspect_ratio));
     _num_of_attempts = num_of_attempts;
-}
-
-RandomCropNode::~RandomCropNode() {
-    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
-#if ENABLE_HIP
-        hipError_t err = hipHostFree(_crop_coordinates);
-        if(err != hipSuccess)
-            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
-#endif
-    } else {
-        free(_crop_coordinates);
-    }
-    vxReleaseTensor(&_crop_tensor);
 }

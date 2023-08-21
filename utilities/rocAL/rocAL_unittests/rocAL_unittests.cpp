@@ -206,7 +206,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
     // User can alternatively set the size or change the policy that is used to automatically find the size
     switch (reader_type)
     {
-        /* case 1: //image_partial decode
+        case 1: //image_partial decode
         {
             std::cout << ">>>>>>> Running PARTIAL DECODE" << std::endl;
             pipeline_type = 1;
@@ -339,7 +339,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             rocalCreateMXNetReader(handle, path, true);
             decoded_output = rocalMXNetRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
-        break;*/
+        break;
         default:
         {
             std::cout << ">>>>>>> Running IMAGE READER" << std::endl;

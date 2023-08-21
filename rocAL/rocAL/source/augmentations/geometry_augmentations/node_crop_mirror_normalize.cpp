@@ -28,7 +28,7 @@ THE SOFTWARE.
 
 CropMirrorNormalizeNode::CropMirrorNormalizeNode(const std::vector<Tensor *> &inputs,
                                                  const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
+        CropNode(inputs, outputs),
         _mirror(MIRROR_RANGE[0], MIRROR_RANGE[1]) {
         _crop_param = std::make_shared<RocalCropParam>(_batch_size);
 }
@@ -78,7 +78,7 @@ void CropMirrorNormalizeNode::create_node() {
     _mirror.create_array(_graph, VX_TYPE_UINT32, _batch_size);
     if(status != 0)
         THROW(" vxAddArrayItems failed in the crop_mirror_normalize node (vxExtRppCropMirrorNormalize)  node: " + TOSTR(status) + "  " + TOSTR(status))   
-    create_crop_tensor(_crop_tensor, &_crop_coordinates);
+    create_crop_tensor();
     int input_layout = static_cast<int>(_inputs[0]->info().layout());
     int output_layout = static_cast<int>(_outputs[0]->info().layout());
     int roi_type = static_cast<int>(_inputs[0]->info().roi_type());
@@ -122,17 +122,4 @@ void CropMirrorNormalizeNode::init(int crop_h, int crop_w, float anchor_x, float
     _mean = mean;
     _std_dev = std_dev;
     _mirror.set_param(core(mirror));
-}
-
-CropMirrorNormalizeNode::~CropMirrorNormalizeNode() {
-    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
-#if ENABLE_HIP
-        hipError_t err = hipHostFree(_crop_coordinates);
-        if(err != hipSuccess)
-            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
-#endif
-    } else {
-        free(_crop_coordinates);
-    }
-    vxReleaseTensor(&_crop_tensor);
 }
