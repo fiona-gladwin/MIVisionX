@@ -71,10 +71,10 @@ void ResizeCropMirrorNode::update_node() {
     auto y1 = _crop_param->get_y1_arr_val();
     RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);
     for(unsigned i = 0; i < _batch_size; i++) {
-        crop_dims[i].xywhROI.x = x1[i];
-        crop_dims[i].xywhROI.y = y1[i];
-        crop_dims[i].xywhROI.roiWidth = crop_w_dims[i];
-        crop_dims[i].xywhROI.roiHeight = crop_h_dims[i];
+        crop_dims[i].xywh.x = x1[i];
+        crop_dims[i].xywh.y = y1[i];
+        crop_dims[i].xywh.w = crop_w_dims[i];
+        crop_dims[i].xywh.h = crop_h_dims[i];
     }
 }
 

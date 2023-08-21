@@ -113,18 +113,17 @@ enum class RocalROIType
 typedef struct
 {
     unsigned l, t, r, b;
-} RocalRoiLtrb;
+} RoiLtrb;
 
 typedef struct
 {
-    unsigned x, y;
-    unsigned roiWidth, roiHeight;
-} RocalRoiXywh;
+    unsigned x, y, w, h;
+} RoiXywh;
 
 typedef union
 {
-    RocalRoiLtrb ltrbROI;
-    RocalRoiXywh xywhROI;
+    RoiLtrb ltrb;
+    RoiXywh xywh;
 } RocalROI;
 
 struct Timing

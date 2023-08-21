@@ -115,8 +115,8 @@ void TensorInfo::reset_tensor_roi_buffers() {
     if (_is_image) {
         auto roi = get_roi();
         for (unsigned i = 0; i < _batch_size; i++) {
-            roi[i].xywhROI.roiWidth = _max_shape.at(0);
-            roi[i].xywhROI.roiHeight = _max_shape.at(1);
+            roi[i].xywh.w = _max_shape.at(0);
+            roi[i].xywh.h = _max_shape.at(1);
         }
     } else {
         // TODO - For other tensor types
@@ -229,15 +229,15 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
         for (unsigned i = 0; i < info().batch_size(); i++) {
             if (width[i] > max_width) {
                 WRN("Given ROI width is larger than buffer width for tensor[" + TOSTR(i) + "] " + TOSTR(width[i]) + " > " + TOSTR(max_width))
-                _info.get_roi()[i].xywhROI.roiWidth = max_width;
+                _info.get_roi()[i].xywh.w = max_width;
             } else {
-                _info.get_roi()[i].xywhROI.roiWidth = width[i];
+                _info.get_roi()[i].xywh.w = width[i];
             }
             if (height[i] > max_height) {
                 WRN("Given ROI height is larger than buffer height for tensor[" + TOSTR(i) + "] " + TOSTR(height[i]) + " > " + TOSTR(max_height))
-                _info.get_roi()[i].xywhROI.roiHeight = max_height;
+                _info.get_roi()[i].xywh.h = max_height;
             } else {
-                _info.get_roi()[i].xywhROI.roiHeight = height[i];
+                _info.get_roi()[i].xywh.h = height[i];
             }
         }
     }
