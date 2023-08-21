@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include "node.h"
+#include "node_crop.h"
 #include "parameter_crop_factory.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"

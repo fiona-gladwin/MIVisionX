@@ -21,25 +21,24 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include "node.h"
+#include "node_crop.h"
 #include "rocal_api_types.h"
 #include "parameter_vx.h"
 #include "parameter_factory.h"
 #include "parameter_crop_factory.h"
 
-class ResizeCropMirrorNode : public Node {
+class ResizeCropMirrorNode : public CropNode {
 public:
     ResizeCropMirrorNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ResizeCropMirrorNode() = delete;
-    ~ResizeCropMirrorNode();
     void init(unsigned int crop_h, unsigned int crop_w, IntParam *mirror,
               RocalResizeInterpolationType interpolation_type = RocalResizeInterpolationType::ROCAL_LINEAR_INTERPOLATION);
     void init(FloatParam *crop_h_factor, FloatParam *crop_w_factor, IntParam *mirror,
               RocalResizeInterpolationType interpolation_type = RocalResizeInterpolationType::ROCAL_LINEAR_INTERPOLATION);
-    std::shared_ptr<RocalCropParam> get_crop_param() { return _crop_param; }
-    vx_array get_mirror() { return _mirror.default_array(); }
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
+    std::shared_ptr<RocalCropParam> get_crop_param() { return _crop_param; }
+    vx_array get_mirror() { return _mirror.default_array(); }
     void adjust_out_roi_size();
 protected:
     void create_node() override;
@@ -49,7 +48,5 @@ private:
     vx_array _dst_roi_width, _dst_roi_height;
     ParameterVX<int> _mirror;
     constexpr static int MIRROR_RANGE[2] = {0, 1};
-    void *_crop_coordinates;
-    vx_tensor _crop_tensor;
     int _interpolation_type;
 };

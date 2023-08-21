@@ -166,13 +166,6 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
             BoundingBoxCord box;
 
             ImgSize img_size;
-
-             caffe2_protos::TensorProto image_proto = tens_protos.protos(0);
-            // Parsing width of image
-            img_size.w= image_proto.dims(0);
-            // Parsing height of image
-            img_size.h = image_proto.dims(1);
-
             if (boundBox_size != 0)
             {
                 int boundIter = 0;

@@ -131,8 +131,8 @@ TensorInfo::TensorInfo()
       _data_type(RocalTensorDataType::FP32) {}
 
 TensorInfo::TensorInfo(std::vector<size_t> dims,
-                                 RocalMemType mem_type,
-                                 RocalTensorDataType data_type)
+                       RocalMemType mem_type,
+                       RocalTensorDataType data_type)
     : _type(Type::UNKNOWN),
       _dims(dims),
       _mem_type(mem_type),
@@ -147,6 +147,30 @@ TensorInfo::TensorInfo(std::vector<size_t> dims,
     _data_size = _strides[0] * dims[0];
 
     if (_num_of_dims <= 3) _is_image = false;
+}
+
+TensorInfo::TensorInfo(std::vector<size_t> dims,
+                       RocalMemType mem_type,
+                       RocalTensorDataType data_type,
+                       RocalTensorlayout layout,
+                       RocalColorFormat color_format)
+    : _type(Type::UNKNOWN),
+      _dims(dims),
+      _mem_type(mem_type),
+      _data_type(data_type),
+      _layout(layout),
+      _color_format(color_format) {
+    _batch_size = dims.at(0);
+    _num_of_dims = dims.size();
+    _strides.resize(_num_of_dims);
+    _strides[_num_of_dims - 1] = tensor_data_size(data_type);
+    for (int i = _num_of_dims - 2; i >= 0; i--) {
+        _strides[i] = _strides[i + 1] * dims[i + 1];
+    }
+    _data_size = _strides[0] * dims[0];
+
+    if (_num_of_dims <= 3) _is_image = false;
+    set_max_shape();
 }
 
 TensorInfo::TensorInfo(const TensorInfo &other) {
@@ -222,6 +246,7 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
 Tensor::~Tensor() {
     _mem_handle = nullptr;
     if (_vx_handle) vxReleaseTensor(&_vx_handle);
+    if (_vx_roi_handle) vxReleaseTensor(&_vx_roi_handle);
 }
 
 Tensor::Tensor(const TensorInfo &tensor_info)
@@ -243,6 +268,8 @@ int Tensor::create_virtual(vx_context context, vx_graph graph) {
         THROW("Error: vxCreateVirtualTensor(input:[" + TOSTR(_info.max_shape().at(0)) + "W" + TOSTR(_info.max_shape().at(1)) + "H" + "]): failed " + TOSTR(status))
 
     _info._type = TensorInfo::Type::VIRTUAL;
+    void *roi_handle = reinterpret_cast<void *>(_info.get_roi());
+    create_roi_tensor_from_handle(&roi_handle); // Create ROI tensor from handle
     return 0;
 }
 
@@ -267,6 +294,8 @@ int Tensor::create_from_handle(vx_context context) {
     if ((status = vxGetStatus((vx_reference)_vx_handle)) != VX_SUCCESS)
         THROW("Error: vxCreateTensorFromHandle(input: failed " + TOSTR(status))
     _info._type = TensorInfo::Type::HANDLE;
+    void *roi_handle = reinterpret_cast<void *>(_info.get_roi());
+    create_roi_tensor_from_handle(&roi_handle); // Create ROI tensor from handle
     return 0;
 }
 
@@ -284,6 +313,35 @@ int Tensor::create(vx_context context) {
         THROW("Error: vxCreateTensor(input: failed " + TOSTR(status))
     _info._type = TensorInfo::Type::REGULAR;
     return 0;
+}
+
+void Tensor::create_roi_tensor_from_handle(void **handle) {
+    if (_vx_roi_handle) {
+        WRN("ROI Tensor object is already created")
+        return;
+    }
+    
+    if (*handle == nullptr) {
+        THROW("Empty ROI handle is passed")
+    }
+
+    vx_size num_of_dims = 2;
+    vx_size stride[num_of_dims];
+    std::vector<size_t> roi_dims = {_info.batch_size(), 4};
+    if(_info.layout() == RocalTensorlayout::NFCHW || _info.layout() == RocalTensorlayout::NFHWC)
+        roi_dims = {_info.dims()[0] * _info.dims()[1], 4}; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions        stride[0] = sizeof(vx_uint32);
+    stride[0] = sizeof(vx_uint32);
+    stride[1] = stride[0] * roi_dims[0];
+    vx_enum mem_type = VX_MEMORY_TYPE_HOST;
+    if (_info.mem_type() == RocalMemType::HIP)
+        mem_type = VX_MEMORY_TYPE_HIP;
+        
+    _vx_roi_handle = vxCreateTensorFromHandle(_context, num_of_dims, roi_dims.data(), 
+                                              VX_TYPE_UINT32, 0, stride, *handle, mem_type);
+    vx_status status;
+    if ((status = vxGetStatus((vx_reference)_vx_roi_handle)) != VX_SUCCESS)
+        THROW("Error: vxCreateTensorFromHandle(src tensor roi: failed " + TOSTR(status))
+
 }
 
 #if ENABLE_OPENCL
