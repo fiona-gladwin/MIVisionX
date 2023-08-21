@@ -55,7 +55,7 @@ void SSDRandomCropNode::create_node()
         THROW("Error adding the crop resize node (vxExtrppNode_ResizeCropbatchPD) failed: " + TOSTR(status))
 }
 
-inline double ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const BoundingBoxCord &box2, bool is_iou = false)
+inline double ssd_bbox_intersection_over_union(const BoundingBoxCord &box1, const BoundingBoxCord &box2, bool is_iou = false)
 {
     double iou;
     float xA = std::max(box1.l, box2.l);
@@ -158,7 +158,7 @@ void SSDRandomCropNode::update_node()
 
             for (int j = 0; j < bb_count; j++)
             {
-                float bb_iou = ssd_BBoxIntersectionOverUnion(coords_buf[j], crop_box, _entire_iou);
+                float bb_iou = ssd_bbox_intersection_over_union(coords_buf[j], crop_box, _entire_iou);
                 if (bb_iou < min_iou || bb_iou > max_iou )
                 {
                     invalid_bboxes = true;

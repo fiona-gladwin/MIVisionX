@@ -60,7 +60,7 @@ void BoundingBoxGraph::update_meta_data(pMetaDataBatch input_meta_data, decoded_
     }
 }
 
-inline float ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const float &box1_area, const BoundingBoxCord &box2)
+inline float ssd_bbox_intersection_over_union(const BoundingBoxCord &box1, const float &box1_area, const BoundingBoxCord &box2)
 {
     float xA = std::max(static_cast<float>(box1.l), box2.l);
     float yA = std::max(static_cast<float>(box1.t), box2.t);
@@ -127,13 +127,13 @@ void BoundingBoxGraph::update_random_bbox_meta_data(pMetaDataBatch input_meta_da
 inline void calculate_ious_for_box(float *ious, BoundingBoxCord &box, BoundingBoxCord *anchors, unsigned int num_anchors)
 {
     float box_area = (box.b - box.t) * (box.r - box.l);
-    ious[0] = ssd_BBoxIntersectionOverUnion(box, box_area, anchors[0]);
+    ious[0] = ssd_bbox_intersection_over_union(box, box_area, anchors[0]);
 
     int best_idx = 0;
     float best_iou = ious[0];
     for (unsigned int anchor_idx = 1; anchor_idx < num_anchors; anchor_idx++)
     {
-        ious[anchor_idx] = ssd_BBoxIntersectionOverUnion(box, box_area, anchors[anchor_idx]);
+        ious[anchor_idx] = ssd_bbox_intersection_over_union(box, box_area, anchors[anchor_idx]);
         if (ious[anchor_idx] > best_iou)
         {
             best_iou = ious[anchor_idx];
@@ -243,10 +243,9 @@ void BoundingBoxGraph::update_box_encoder_meta_data(std::vector<float> *anchors,
     }
 }
 
-void BoundingBoxGraph::update_box_iou_matcher(
-    std::vector<float> *anchors, int *matches_idx_buffer,
-    pMetaDataBatch full_batch_meta_data, float criteria, float high_threshold,
-    float low_threshold, bool allow_low_quality_matches) 
+void BoundingBoxGraph::update_box_iou_matcher(std::vector<float> *anchors, int *matches_idx_buffer,
+                                              pMetaDataBatch full_batch_meta_data, float criteria, float high_threshold,
+                                              float low_threshold, bool allow_low_quality_matches) 
 {
     auto bb_coords_batch = full_batch_meta_data->get_bb_cords_batch();
     unsigned anchors_size = anchors->size() / 4;  // divide the anchors_size by 4 to get the total number of anchors
@@ -272,7 +271,7 @@ void BoundingBoxGraph::update_box_iou_matcher(
             float best_bbox_iou = -1.0f;
             std::vector<float> bbox_iou(anchors_size);  // IoU value for bbox mapped with each anchor
             for (unsigned int anchor_idx = 0; anchor_idx < anchors_size; anchor_idx++) {
-                float iou_val = ssd_BBoxIntersectionOverUnion(box, box_area, bbox_anchors[anchor_idx]);
+                float iou_val = ssd_bbox_intersection_over_union(box, box_area, bbox_anchors[anchor_idx]);
                 bbox_iou[anchor_idx] = iou_val;
 
                 // Find col maximum in (bb_count x anchors_size) IoU values calculated

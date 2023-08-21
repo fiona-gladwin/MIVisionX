@@ -58,7 +58,7 @@ bool RandomBBoxCropReader::exists(const std::string &image_name)
     return _map_content.find(image_name) != _map_content.end();
 }
 
-inline double ssd_BBoxIntersectionOverUnion(const BoundingBoxCord &box1, const BoundingBoxCord &box2, bool is_iou = false)
+inline double ssd_bbox_intersection_over_union(const BoundingBoxCord &box1, const BoundingBoxCord &box2, bool is_iou = false)
 {
     double iou;
     float xA = std::max(box1.l, box2.l);
@@ -202,7 +202,7 @@ void RandomBBoxCropReader::read_all()
                 {
                     for (uint j = 0; j < bb_count; j++)
                     {
-                        float bb_iou = ssd_BBoxIntersectionOverUnion(bb_coords[j], crop_box, true);
+                        float bb_iou = ssd_bbox_intersection_over_union(bb_coords[j], crop_box, true);
                         if (bb_iou < min_iou)
                         {
                             invalid_bboxes = true;
@@ -316,7 +316,7 @@ RandomBBoxCropReader::get_batch_crop_coords(const std::vector<std::string> &imag
                 {
                     for (uint j = 0; j < bb_count; j++)
                     {
-                        float bb_iou = ssd_BBoxIntersectionOverUnion(bb_coords[j], crop_box, true);
+                        float bb_iou = ssd_bbox_intersection_over_union(bb_coords[j], crop_box, true);
                         if (bb_iou < min_iou)
                         {
                             invalid_bboxes = true;
