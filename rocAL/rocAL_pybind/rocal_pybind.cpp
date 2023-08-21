@@ -91,6 +91,20 @@ namespace rocal{
         return py::bytes(s);
     }
 
+    py::object wrapper_tensor(RocalContext context, py::object p,
+                                RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type, float multiplier0,
+                                float multiplier1, float multiplier2, float offset0,
+                                float offset1, float offset2,
+                                bool reverse_channels, RocalOutputMemType output_mem_type, int max_height, int max_width)
+    {
+        auto ptr = ctypes_void_ptr(p);
+        // call pure C++ function
+        int status = rocalToTensor(context, ptr, tensor_format, tensor_output_type, multiplier0,
+                                              multiplier1, multiplier2, offset0,
+                                              offset1, offset2, reverse_channels, output_mem_type, max_height, max_width);
+        return py::cast<py::none>(Py_None);
+    }
+
     std::unordered_map<int, std::string> rocalToPybindLayout = {
         {0, "NHWC"},
         {1, "NCHW"},
@@ -401,6 +415,7 @@ namespace rocal{
         m.def("getIntValue", &rocalGetIntValue);
         m.def("getFloatValue", &rocalGetFloatValue);
         // rocal_api_data_transfer.h
+        m.def("rocalToTensor", &wrapper_tensor);
         m.def("getOutputTensors", [](RocalContext context) {
             rocalTensorList * output_tensor_list = rocalGetOutputTensors(context);
             py::list list;
@@ -570,8 +585,8 @@ namespace rocal{
         m.def("rocalResetLoaders", &rocalResetLoaders);
         m.def("videoMetaDataReader", &rocalCreateVideoLabelReader, py::return_value_policy::reference);
         // rocal_api_augmentation.h
-        // m.def("SSDRandomCrop", &rocalSSDRandomCrop,
-        //     py::return_value_policy::reference);
+        m.def("ssdRandomCrop", &rocalSSDRandomCrop,
+            py::return_value_policy::reference);
         m.def("resize", &rocalResize, 
             py::return_value_policy::reference);
         m.def("resizeMirrorNormalize", &rocalResizeMirrorNormalize,

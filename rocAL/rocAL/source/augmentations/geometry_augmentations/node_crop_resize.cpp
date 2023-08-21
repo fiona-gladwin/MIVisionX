@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 CropResizeNode::CropResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {
+        CropNode(inputs, outputs) {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
 
@@ -46,10 +46,16 @@ void CropResizeNode::create_node()
     if(width_status != 0 || height_status != 0)
         THROW(" vxAddArrayItems failed in the crop resize node (vxExtRppResizeCrop)  node: "+ TOSTR(width_status) + "  "+ TOSTR(height_status))
 
-    create_crop_tensor(_crop_tensor, &_crop_coordinates);
-    _node = vxExtRppResizeCrop(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _crop_tensor, _outputs[0]->handle(),
-                               _dst_roi_width, _dst_roi_height, _input_layout, _output_layout, _roi_type);
+    create_crop_tensor();
+    int input_layout = static_cast<int>(_inputs[0]->info().layout());
+    int output_layout = static_cast<int>(_outputs[0]->info().layout());
+    int roi_type = static_cast<int>(_inputs[0]->info().roi_type());
+    vx_scalar input_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
+    vx_scalar output_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
+    vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
 
+    _node = vxExtRppResizeCrop(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _crop_tensor, _outputs[0]->handle(),
+                               _dst_roi_width, _dst_roi_height, input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the crop resize node (vxExtRppResizeCrop) failed: " + TOSTR(status))
@@ -88,17 +94,4 @@ void CropResizeNode::init(FloatParam* area, FloatParam* aspect_ratio, FloatParam
     _crop_param->set_aspect_ratio(core(aspect_ratio));
     _crop_param->set_x_drift_factor(core(x_center_drift));
     _crop_param->set_y_drift_factor(core(y_center_drift));
-}
-
-CropResizeNode::~CropResizeNode() {
-    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
-#if ENABLE_HIP
-        hipError_t err = hipHostFree(_crop_coordinates);
-        if(err != hipSuccess)
-            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
-#endif
-    } else {
-        free(_crop_coordinates);
-    }
-    vxReleaseTensor(&_crop_tensor);
 }

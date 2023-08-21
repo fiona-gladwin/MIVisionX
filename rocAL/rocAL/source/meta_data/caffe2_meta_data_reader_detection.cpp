@@ -166,20 +166,12 @@ void Caffe2MetaDataReaderDetection::read_lmdb_record(std::string file_name, uint
             BoundingBoxCord box;
 
             ImgSize img_size;
-
-             caffe2_protos::TensorProto image_proto = tens_protos.protos(0);
-            // Parsing width of image
-            img_size.w= image_proto.dims(0);
-            // Parsing height of image
-            img_size.h = image_proto.dims(1);
-
             if (boundBox_size != 0)
             {
                 int boundIter = 0;
                 for (int i = 0; i < boundBox_size / 4; i++)
                 {
                     // Parsing the bounding box points using Iterator
-                    // && Normalizing the box Co-ordinates
                     box.l = boundingBox_proto.dims(boundIter);
                     box.t = boundingBox_proto.dims(boundIter + 1);
                     box.r = box.l + boundingBox_proto.dims(boundIter + 2);

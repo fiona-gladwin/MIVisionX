@@ -39,6 +39,8 @@ void ResizeCropMirrorMetaNode::update_parameters(pMetaDataBatch input_meta_data,
     }
     _meta_crop_param = _node->get_crop_param();
     _mirror = _node->get_mirror();
+    auto resize_w = _node->get_dst_width();
+    auto resize_h = _node->get_dst_height();
     _x1 = _meta_crop_param->x1_arr;
     _y1 = _meta_crop_param->y1_arr;
     _x2 = _meta_crop_param->x2_arr;
@@ -63,6 +65,8 @@ void ResizeCropMirrorMetaNode::update_parameters(pMetaDataBatch input_meta_data,
         crop_box.t = _y1_val[i];
         crop_box.r = _x2_val[i] ;
         crop_box.b = _y2_val[i];
+        float _dst_to_src_width_ratio = static_cast<float>(resize_w) / _crop_w;
+        float _dst_to_src_height_ratio = static_cast<float>(resize_h) / _crop_h;
         for(uint j = 0; j < bb_count; j++)
         {
             if (BBoxIntersectionOverUnion(box_coords_buf[j], crop_box) >= _iou_threshold)
@@ -82,6 +86,10 @@ void ResizeCropMirrorMetaNode::update_parameters(pMetaDataBatch input_meta_data,
                     box_coords_buf[j].l = _crop_w - box_coords_buf[j].r;
                     box_coords_buf[j].r = _crop_w - l;
                 }
+                box_coords_buf[j].l *= _dst_to_src_width_ratio;
+                box_coords_buf[j].t *= _dst_to_src_height_ratio;
+                box_coords_buf[j].r *= _dst_to_src_width_ratio;
+                box_coords_buf[j].b *= _dst_to_src_height_ratio; 
                 bb_coords.push_back(box_coords_buf[j]);
                 bb_labels.push_back(labels_buf[j]);
             }
@@ -90,8 +98,8 @@ void ResizeCropMirrorMetaNode::update_parameters(pMetaDataBatch input_meta_data,
         {
             temp_box.l = 0;
             temp_box.t = 0;
-            temp_box.r = _crop_w;
-            temp_box.b = _crop_h;
+            temp_box.r = resize_w;
+            temp_box.b = resize_h;
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }

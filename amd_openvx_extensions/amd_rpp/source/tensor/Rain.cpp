@@ -24,13 +24,13 @@ THE SOFTWARE.
 
 struct RainLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    Rpp32f *pRainValue;
-    Rpp32u *pRainWidth;
-    Rpp32u *pRainHeight;
-    Rpp32f *pRainTransperancy;
+    vx_float32 *pRainValue;
+    vx_uint32 *pRainWidth;
+    vx_uint32 *pRainHeight;
+    vx_float32 *pRainTransperancy;
     RpptDescPtr pSrcDesc;
     RpptDescPtr pDstDesc;
     RpptROI *pSrcRoi;
@@ -45,10 +45,10 @@ struct RainLocalData {
 
 static vx_status VX_CALLBACK refreshRain(vx_node node, const vx_reference *parameters, vx_uint32 num, RainLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(Rpp32f), data->pRainValue, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pRainWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(Rpp32u), data->pRainHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[6], 0, data->inputTensorDims[0], sizeof(Rpp32f), data->pRainTransperancy, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->inputTensorDims[0], sizeof(vx_float32), data->pRainValue, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pRainWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pRainHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[6], 0, data->inputTensorDims[0], sizeof(vx_float32), data->pRainTransperancy, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
     void *roi_tensor_ptr;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
@@ -157,12 +157,12 @@ static vx_status VX_CALLBACK initializeRain(vx_node node, const vx_reference *pa
     memset(data, 0, sizeof(RainLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, input_layout, output_layout;
+    vx_int32 roi_type, input_layout, output_layout;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[9], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[10], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    data->roiType = (roi_type == 0) ? RpptRoiType::XYWH : RpptRoiType::LTRB;
+    data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
 
@@ -184,11 +184,11 @@ static vx_status VX_CALLBACK initializeRain(vx_node node, const vx_reference *pa
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
-    data->pRainValue = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pRainWidth = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pRainHeight = static_cast<Rpp32u *>(malloc(sizeof(Rpp32u) * data->pSrcDesc->n));
-    data->pRainTransperancy = static_cast<Rpp32f *>(malloc(sizeof(Rpp32f) * data->pSrcDesc->n));
-    data->pSrcDimensions = static_cast<RppiSize *>(malloc(sizeof(RppiSize) * data->pSrcDesc->n));
+    data->pRainValue = new vx_float32[data->pSrcDesc->n];
+    data->pRainWidth = new vx_uint32[data->pSrcDesc->n];
+    data->pRainHeight = new vx_uint32[data->pSrcDesc->n];
+    data->pRainTransperancy = new vx_float32[data->pSrcDesc->n];
+    data->pSrcDimensions = new RppiSize[data->pSrcDesc->n];
 
     data->maxSrcDimensions.height = data->pSrcDesc->h;
     data->maxSrcDimensions.width = data->pSrcDesc->w;
@@ -201,15 +201,15 @@ static vx_status VX_CALLBACK initializeRain(vx_node node, const vx_reference *pa
 static vx_status VX_CALLBACK uninitializeRain(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     RainLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    if (data->pRainHeight != nullptr) free(data->pRainHeight);
-    if (data->pRainWidth != nullptr) free(data->pRainWidth);
-    if (data->pRainTransperancy != nullptr)  free(data->pRainTransperancy);
-    if (data->pRainValue != nullptr)  free(data->pRainValue);
-    if (data->pSrcDimensions != nullptr) free(data->pSrcDimensions);
-    delete(data->pSrcDesc);
-    delete(data->pDstDesc);
+    delete[] data->pRainHeight;
+    delete[] data->pRainWidth;
+    delete[] data->pRainTransperancy;
+    delete[] data->pRainValue;
+    delete[] data->pSrcDimensions;
+    delete data->pSrcDesc;
+    delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete(data);
+    delete data;
     return VX_SUCCESS;
 }
 

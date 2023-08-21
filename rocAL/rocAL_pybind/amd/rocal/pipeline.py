@@ -137,8 +137,8 @@ class Pipeline(object):
         self._shuffle = None
         self._name = None
         self._anchors = None
-        self._BoxEncoder = None
-        self._BoxIOUMatcher = None
+        self._box_encoder = None
+        self._box_iou_matcher = None
         self._encode_tensor = None
         self._num_classes = None
         self._one_hot_encoding = False
@@ -172,6 +172,11 @@ class Pipeline(object):
 
     def get_handle(self):
         return self._handle
+
+    def copyToExternalTensor(self, array,  multiplier, offset, reverse_channels, tensor_format, tensor_dtype, max_height=0, max_width=0):
+
+        b.rocalToTensor(self._handle, ctypes.c_void_p(array.data_ptr()), tensor_format, tensor_dtype,
+                                    multiplier[0], multiplier[1], multiplier[2], offset[0], offset[1], offset[2], (1 if reverse_channels else 0), self._output_memory_type, max_height, max_width)
 
     def get_one_hot_encoded_labels(self, array, device):
         if device == "cpu":
@@ -231,7 +236,7 @@ class Pipeline(object):
     def get_bounding_box_count(self):
         return b.getBoundingBoxCount(self._handle)
 
-    def get_bounding_box_abels(self):
+    def get_bounding_box_labels(self):
         return b.getBoundingBoxLabels(self._handle)
 
     def get_bounding_box_cords(self):

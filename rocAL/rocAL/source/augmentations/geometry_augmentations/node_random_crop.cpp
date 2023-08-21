@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {
+        CropNode(inputs, outputs) {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
 
@@ -36,9 +36,16 @@ void RandomCropNode::create_node()
         return;
 
     _crop_param->create_array(_graph);
-    create_crop_tensor(_crop_tensor, &_crop_coordinates);
+    create_crop_tensor();
+    int input_layout = static_cast<int>(_inputs[0]->info().layout());
+    int output_layout = static_cast<int>(_outputs[0]->info().layout());
+    int roi_type = static_cast<int>(_inputs[0]->info().roi_type());
+    vx_scalar input_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
+    vx_scalar output_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
+    vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
+
     _node = vxExtRppCrop(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(),
-                         _input_layout, _output_layout, _roi_type);
+                         input_layout_vx, output_layout_vx, roi_type_vx);
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the random crop node (vxExtRppCrop) failed: " + TOSTR(status))
@@ -70,17 +77,4 @@ void RandomCropNode::init(FloatParam *crop_area_factor, FloatParam *crop_aspect_
     _crop_param->set_area_factor(core(crop_area_factor));
     _crop_param->set_aspect_ratio(core(crop_aspect_ratio));
     _num_of_attempts = num_of_attempts;
-}
-
-RandomCropNode::~RandomCropNode() {
-    if (_inputs[0]->info().mem_type() == RocalMemType::HIP) {
-#if ENABLE_HIP
-        hipError_t err = hipHostFree(_crop_coordinates);
-        if(err != hipSuccess)
-            std::cerr << "\n[ERR] hipFree failed  " << std::to_string(err) << "\n";
-#endif
-    } else {
-        free(_crop_coordinates);
-    }
-    vxReleaseTensor(&_crop_tensor);
 }

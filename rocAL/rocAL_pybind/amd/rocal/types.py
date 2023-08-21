@@ -77,6 +77,7 @@ from rocal_pybind.types import SCALING_MODE_DEFAULT
 from rocal_pybind.types import SCALING_MODE_STRETCH
 from rocal_pybind.types import SCALING_MODE_NOT_SMALLER
 from rocal_pybind.types import SCALING_MODE_NOT_LARGER
+from rocal_pybind.types import SCALING_MODE_MIN_MAX
 
 #     RocalResizeInterpolationType
 from rocal_pybind.types import NEAREST_NEIGHBOR_INTERPOLATION

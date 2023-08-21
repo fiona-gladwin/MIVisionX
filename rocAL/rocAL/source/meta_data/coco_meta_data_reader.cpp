@@ -82,7 +82,7 @@ void COCOMetaDataReader::lookup(const std::vector<std::string> &image_names)
     }
 }
 
-void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count)
+void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size, MaskCords mask_cords, std::vector<int> polygon_count, std::vector<std::vector<int>> vertices_count, int image_id)
 {
     if (exists(image_name))
     {
@@ -94,7 +94,7 @@ void COCOMetaDataReader::add(std::string image_name, BoundingBoxCords bb_coords,
         it->second->get_vertices_count().push_back(vertices_count[0]);
         return;
     }
-    pMetaDataPolygonMask info = std::make_shared<PolygonMask>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count);
+    pMetaDataPolygonMask info = std::make_shared<PolygonMask>(bb_coords, bb_labels, image_size, mask_cords, polygon_count, vertices_count, image_id);
     _map_content.insert(pair<std::string, std::shared_ptr<PolygonMask>>(image_name, info));
 }
 
@@ -336,7 +336,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
 
                 auto itr = _map_img_names.find(id);
                 auto it = _map_img_sizes.find(itr->second);
-                ImgSize image_size = it->second; //Normalizing the co-ordinates & convert to "ltrb" format
+                ImgSize image_size = it->second; // Convert to "ltrb" format
                 if ((_output->get_metadata_type() == MetaDataType::PolygonMask) && iscrowd == 0)
                 {
                     box.l = bbox[0];
@@ -347,7 +347,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     bb_labels.push_back(label);
                     polygon_count.push_back(polygon_size);
                     vertices_count.push_back(vertices_array);
-                    add(itr->second, bb_coords, bb_labels, image_size, mask, polygon_count, vertices_count);
+                    add(itr->second, bb_coords, bb_labels, image_size, mask, polygon_count, vertices_count, id);
                     mask.clear();
                     polygon_size = 0;
                     polygon_count.clear();

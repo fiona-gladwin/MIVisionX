@@ -39,9 +39,15 @@ void ColorTwistNode::create_node() {
     _beta.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
     _hue.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
     _sat.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
-    _node = vxExtRppColorTwist(_graph->get(), _inputs[0]->handle(), _src_tensor_roi, _outputs[0]->handle(), _alpha.default_array(),
-                               _beta.default_array(), _hue.default_array(), _sat.default_array(), _input_layout, _output_layout, _roi_type);
+    int input_layout = static_cast<int>(_inputs[0]->info().layout());
+    int output_layout = static_cast<int>(_outputs[0]->info().layout());
+    int roi_type = static_cast<int>(_inputs[0]->info().roi_type());
+    vx_scalar input_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &input_layout);
+    vx_scalar output_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
+    vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
 
+    _node = vxExtRppColorTwist(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _alpha.default_array(),
+                               _beta.default_array(), _hue.default_array(), _sat.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
     if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the Colortwist (vxExtRppColorTwist) node failed: " + TOSTR(status))
