@@ -61,7 +61,7 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
 /// \param rocal_context
 /// \param source_path path to the coco json file
 /// \param mask enable polygon masks
-/// \param ltrb If set to True, bboxes are returned as [left, top, right, bottom]. If set to False, the bboxes are returned as [x, y, width, height
+/// \param ltrb If set to True, bboxes are returned as [left, top, right, bottom]. If set to False, the bboxes are returned as [x, y, width, height]
 /// \param is_box_encoder If set to True, bboxes are returned as encoded bboxes using the anchors
 /// \param avoid_class_remapping If set to True, classes are returned directly. Otherwise, classes are mapped to consecutive values
 /// \param aspect_ratio_grouping If set to True, images are sorted by their aspect ratio and returned

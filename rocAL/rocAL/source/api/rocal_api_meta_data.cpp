@@ -391,7 +391,7 @@ ROCAL_API_CALL rocalGetROIImageSizes(RocalContext p_context, int* buf)
 {
     if (!p_context)
     {
-        ERR("Invalid rocal context passed to rocalGetROIImageSizes")
+        THROW("Invalid rocal context passed to rocalGetROIImageSizes")
         return;
     }
     auto context = static_cast<Context*>(p_context);
