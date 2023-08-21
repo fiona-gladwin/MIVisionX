@@ -178,7 +178,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourcePartial(RocalContex
                                                                      RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
                                                                      unsigned max_width = 0, unsigned max_height = 0);
 
-/*! Creates JPEG image reader and partial decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+/*! \brief Creates JPEG image reader and partial decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] json_path Path to the COCO Json File
@@ -208,7 +208,8 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourcePartialSingleShard(
                                                                                 RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
                                                                                 unsigned max_width = 0, unsigned max_height = 0);
 
-/*! \param [in] rocal_context Rocal context
+/*! \brief Creates JPEG image reader and decoder for Coco images. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] json_path Path to the COCO Json File
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -691,8 +692,8 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileResizeSingleShard(RocalConte
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
  * \param [in] is_output Determines if the user wants the loaded images to be part of the output or not.
- * \param [in] out_width ; output width
- * \param [in] out_height ; output_height
+ * \param [in] out_width output width of the image
+ * \param [in] out_height output_height of the image
  * \param [in] filename_prefix ; if set loader will only load files with the given prefix name
  * \return Reference to the output image
  */

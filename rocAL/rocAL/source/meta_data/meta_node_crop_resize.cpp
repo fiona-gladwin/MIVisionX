@@ -32,7 +32,7 @@ void CropResizeMetaNode::initialize()
 void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
 {
     initialize();
-    if(_batch_size != input_meta_data->size())
+    if (_batch_size != input_meta_data->size())
     {
         _batch_size = input_meta_data->size();
     }
@@ -84,7 +84,7 @@ void CropResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMeta
                 bb_labels.push_back(labels_buf[j]);
             }
         }
-        if(bb_coords.size() == 0)
+        if (bb_coords.size() == 0)
         {
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);

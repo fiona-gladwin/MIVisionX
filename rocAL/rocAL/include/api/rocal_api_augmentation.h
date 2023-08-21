@@ -27,18 +27,19 @@ THE SOFTWARE.
 /*!
  * \brief Rearranges the order of the frames in the sequences with respect to new_order. new_order can have values in the range [0, sequence_length). Frames can be repeated or dropped in the new_order.
  * \ingroup group_rocal_augmentations
- * \note: Accepts U8 and RGB24 input.
+ * \note Accepts U8 and RGB24 input.
  * \param [in] context context for the pipeline.
  * \param [in] input Input Rocal Tensor
  * \param [in] new_order represents the new order of the frames in the sequence
  * \param [in] is_output True: the output image is needed by user and will be copied to output buffers using the data transfer API calls. False: the output image is just an intermediate image, user is not interested in using it directly. This option allows certain optimizations to be achieved.
- * \return
+ * \return RocalTensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalSequenceRearrange(RocalContext p_context, RocalTensor p_input,
                                                              std::vector<unsigned int> &new_order,
                                                              bool is_output);
 
-/*! \brief Accepts U8 and RGB24 input.
+/*! \brief Resize images.
+ * \note Accepts U8 and RGB24 input.
  * \ingroup group_rocal_augmentations
  * \param [in] context context for the pipeline.
  * \param [in] input Input Rocal Tensor
@@ -83,7 +84,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResize(RocalContext context, RocalTen
  * \param [in] mirror Parameter to enable horizontal flip for output image.
  * \param [in] output_layout the layout of the output tensor
  * \param [in] output_datatype the data type of the output tensor
- * \return
+ * \return RocalTensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_context, RocalTensor p_input, unsigned dest_width,
                                                                  unsigned dest_height, std::vector<float> &mean, std::vector<float> &std_dev,
@@ -98,7 +99,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_
 
 /*! \brief Fused function which perrforms crop and resize on images.
  * \ingroup group_rocal_augmentations
- * \note: Accepts U8 and RGB24 input.
+ * \note Accepts U8 and RGB24 input.
  * \param [in] context Rocal context
  * \param [in] input Input Rocal Tensor
  * \param [in] dest_width output width
@@ -110,7 +111,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalResizeMirrorNormalize(RocalContext p_
  * \param [in] y_center_drift Vertical shift of the crop center from its original position in the input image
  * \param [in] output_layout the layout of the output tensor
  * \param [in] output_datatype the data type of the output tensor
- * \return
+ * \return RocalTensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalCropResize(RocalContext context, RocalTensor input,
                                                       unsigned dest_width, unsigned dest_height,
@@ -442,8 +443,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFishEye(RocalContext context, RocalTe
                                                    RocalTensorLayout output_layout = ROCAL_NONE,
                                                    RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
-/*! \brief Accepts U8 and RGB24 input.
+/*! \brief Applies vignette effect on images.
  * \ingroup group_rocal_augmentations
+ * \note Accepts U8 and RGB24 input.
  * \param [in] context Rocal context
  * \param [in] input Input Rocal tensor
  * \param [in] is_output is the output tensor part of the graph output
@@ -457,8 +459,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVignette(RocalContext context, RocalT
                                                     RocalTensorLayout output_layout = ROCAL_NONE,
                                                     RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
-/*! \brief Accepts U8 and RGB24 input.
+/*! \brief Applies vignette effect on images with fixed parameter
  * \ingroup group_rocal_augmentations
+ * \note Accepts U8 and RGB24 input.
  * \param [in] context Rocal context
  * \param [in] input Input Rocal tensor
  * \param [in] sdev standard deviation for the vignette effect

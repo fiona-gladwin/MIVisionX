@@ -45,7 +45,7 @@ extern "C" RocalIntParam ROCAL_API_CALL rocalCreateIntUniformRand(int start, int
  * \param start start value of the integer range
  * \param end start value of the integer range
  * \param input_obj  RocalIntParam to be updated.
- * \return rocal status vcalue
+ * \return rocal status value
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalUpdateIntUniformRand(int start, int end, RocalIntParam updating_obj);
 
@@ -123,7 +123,7 @@ extern "C" RocalStatus ROCAL_API_CALL rocalUpdateIntRand(const int *values, cons
  * \param [in] values random float values
  * \param [in] frequencies frequencies of the values
  * \param size size of the array
- * \return random float paraeter
+ * \return random float parameter
  */
 extern "C" RocalFloatParam ROCAL_API_CALL rocalCreateFloatRand(const float *values, const double *frequencies, unsigned size);
 

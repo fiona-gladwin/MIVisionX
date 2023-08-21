@@ -145,9 +145,7 @@ void SSDRandomCropNode::update_node() {
             crop_box.t = y_factor;
             crop_box.r = crop_box.l + w_factor;
             crop_box.b = crop_box.t + h_factor;
-
             invalid_bboxes = false;
-
             for (int j = 0; j < bb_count; j++) {
                 float bb_iou = ssd_BBoxIntersectionOverUnion(coords_buf[j], crop_box, _entire_iou);
                 if (bb_iou < min_iou || bb_iou > max_iou) {

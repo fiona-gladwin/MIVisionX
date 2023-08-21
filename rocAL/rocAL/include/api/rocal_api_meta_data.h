@@ -108,14 +108,14 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCaffe2LMDBLabelReader(RocalCo
 /*! \brief create caffe2 LMDB label reader for object detection
  * \param [in] rocal_context rocal context
  * \param [in] source_path path to the Caffe2LMDB records for Object Detection
- * \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
+ * \return RocalMetaData object - can be used to inquire about the rocal's output (processed) tensors
  */
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCaffe2LMDBReaderDetection(RocalContext rocal_context, const char* source_path, bool is_output);
 
 /*! \brief create MXNet reader
  * \param [in] rocal_context rocal context
  * \param [in] source_path path to the MXNet recordio files for Classification
- * \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
+ * \return RocalMetaData object - can be used to inquire about the rocal's output (processed) tensors
  */
 extern "C" RocalMetaData ROCAL_API_CALL rocalCreateMXNetReader(RocalContext rocal_context, const char* source_path, bool is_output);
 
@@ -135,6 +135,7 @@ extern "C" unsigned ROCAL_API_CALL rocalGetImageNameLen(RocalContext rocal_conte
 /*! \brief get image labels
  * \param [in] meta_data RocalMetaData object that contains info about the images and labels
  * \param [out] buf user's buffer that will be filled with labels. Its needs to be at least of size batch_size.
+ * \return RocalTensorList of labels associated with image
  */
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetImageLabels(RocalContext rocal_context);
 
@@ -162,12 +163,14 @@ extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p
 /*! \brief get bounding box label
  * \param [in] rocal_context rocal context
  * \param [out] buf The user's buffer that will be filled with bounding box label info for the images in the output batch. It needs to be of size returned by a call to the rocalGetBoundingBoxCount
+ * \return RocalTensorList of labels associated with bounding box coordinates
  */
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetBoundingBoxLabel(RocalContext rocal_context);
 
 /*! \brief get bounding box coordinates
  * \param [in] rocal_context rocal context
  * \param [out] buf The user's buffer that will be filled with bounding box coords info for the images in the output batch. It needs to be of size returned by a call to the rocalGetBoundingBoxCords
+ * \return RocalTensorList of bounding box co-ordinates
  */
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetBoundingBoxCords(RocalContext rocal_context);
 
@@ -228,6 +231,7 @@ extern "C" void ROCAL_API_CALL rocalCopyEncodedBoxesAndLables(RocalContext p_con
 /*! \brief
 * \param boxes_buf  ptr to user's buffer that will be filled with encoded bounding boxes . Its needs to be at least of size batch_size.
 * \param labels_buf  user's buffer that will be filled with encoded labels . Its needs to be at least of size batch_size.
+* \return RocalMetaData object, can be used to inquire about the rocal's output tensors (pair <labels, bboxes>)
 */
 extern "C" RocalMetaData ROCAL_API_CALL rocalGetEncodedBoxesAndLables(RocalContext p_context, int num_encoded_boxes);
 

@@ -47,7 +47,7 @@ extern "C" RocalStatus ROCAL_API_CALL rocalCopyToOutput(RocalContext context, un
  * \param [in] offset2 the offset for channel 2
  * \param [in] reverse_channels flag to reverse the channel orders
  * \param [in] output_mem_type the memory type of output tensor buffer
- * @return Rocal status indicating success or failure
+ * \return Rocal status indicating success or failure
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalToTensor(RocalContext rocal_context, void *out_ptr,
                                                     RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type,

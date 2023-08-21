@@ -25,28 +25,28 @@ THE SOFTWARE.
 #include "rocal_api_types.h"
 
 /*!
- * \brief Retrieves the width of the output from the RocalContext.
+ * \brief Retrieves the width of the output.
  * \param [in] rocal_context The RocalContext
  * \return The width of the output.
  */
 extern "C" int ROCAL_API_CALL rocalGetOutputWidth(RocalContext rocal_context);
 
 /*!
- * \brief Retrieves the height of the output from the RocalContext.
+ * \brief Retrieves the height of the output.
  * \param [in] rocal_context The RocalContext
  * \return The height of the output.
  */
 extern "C" int ROCAL_API_CALL rocalGetOutputHeight(RocalContext rocal_context);
 
 /*!
- * \brief Retrieves the color format of the output from the RocalContext.
+ * \brief Retrieves the color format of the output.
  * \param [in] rocal_context The RocalContext.
  * \return The color format of the output.
  */
 extern "C" int ROCAL_API_CALL rocalGetOutputColorFormat(RocalContext rocal_context);
 
 /*!
- * \brief Retrieves the number of remaining images in the RocalContext.
+ * \brief Retrieves the number of remaining images.
  * \param [in] rocal_context The RocalContext.
  * \return The number of remaining images.
  */
@@ -61,14 +61,14 @@ extern "C" size_t ROCAL_API_CALL rocalGetRemainingImages(RocalContext rocal_cont
 extern "C" size_t ROCAL_API_CALL rocalGetImageWidth(RocalTensor image);
 
 /*!
- * \brief Retrieves the height of the image from the RocalTensor.
+ * \brief Retrieves the height of the image from the RocalTensor info.
  * \param [in] image The RocalTensor data.
  * \return The height of the image.
  */
 extern "C" size_t ROCAL_API_CALL rocalGetImageHeight(RocalTensor image);
 
 /*!
- * \brief Retrieves the number of planes (channels) in the image from the RocalTensor.
+ * \brief Retrieves the number of planes (channels) in the image from the RocalTensor info.
  * \param [in] image The RocalTensor data.
  * \return The number of planes (channels) in the image.
  */
@@ -77,14 +77,14 @@ extern "C" size_t ROCAL_API_CALL rocalGetImagePlanes(RocalTensor image);
 /*!
  * \brief Checks if the RocalContext is empty.
  * \param [in] rocal_context The RocalContext
- * \return retuirn if RocalContext is empty or not.
+ * \return return if RocalContext is empty or not.
  */
 extern "C" size_t ROCAL_API_CALL rocalIsEmpty(RocalContext rocal_context);
 
 /*!
- * \brief Retrieves the number of augmentation branches in the RocalContext.
+ * \brief Retrieves the number of augmentation branches.
  * \param [in] rocal_context The RocalContext
- * \return The number of augmentation branches in the RocalContext.
+ * \return The number of augmentation branches in the pipeline.
  */
 extern "C" size_t ROCAL_API_CALL rocalGetAugmentationBranchCount(RocalContext rocal_context);
 
@@ -96,14 +96,14 @@ extern "C" size_t ROCAL_API_CALL rocalGetAugmentationBranchCount(RocalContext ro
 extern "C" RocalStatus ROCAL_API_CALL rocalGetStatus(RocalContext rocal_context);
 
 /*!
- * \brief Retrieves the error message associated with the RocalContext.
+ * \brief Retrieves the error message.
  * \param [in] rocal_context The RocalContext
  * \return A pointer to the error message string.
  */
 extern "C" const char* ROCAL_API_CALL rocalGetErrorMessage(RocalContext rocal_context);
 
 /*!
- * \brief Retrieves timing information associated with the RocalContext.
+ * \brief Retrieves timing information * \return rocal status value.
  * \param [in] rocal_context The RocalContext
  * \return A TimingInfo struct containing timing data.
  */
