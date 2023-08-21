@@ -25,6 +25,7 @@ THE SOFTWARE.
 #include "rocal_api_types.h"
 
 /*! \brief Creates JPEG image reader and decoder. It allocates the resources and objects required to read and decode Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -49,6 +50,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegFileSource(RocalContext context,
                                                           unsigned max_width = 0, unsigned max_height = 0, RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and decoder. It allocates the resources and objects required to read and decode Jpeg images stored on the file systems. It accepts external sharding information to load a singe shard. only
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -75,6 +77,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegFileSourceSingleShard(RocalContex
                                                                      unsigned max_width = 0, unsigned max_height = 0, RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and decoder. Reads [Frames] sequences from a directory representing a collection of streams.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images in a sequence will be decoded to.
@@ -99,6 +102,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSequenceReader(RocalContext context,
                                                           unsigned stride = 0);
 
 /*! \brief Creates JPEG image reader and decoder. Reads [Frames] sequences from a directory representing a collection of streams. It accepts external sharding information to load a singe shard only.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images in a sequence will be decoded to.
@@ -125,6 +129,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalContex
                                                                      unsigned stride = 0);
 
 /*! \brief JPEG image reader and decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] json_path Path to the COCO Json File
@@ -150,6 +155,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSource(RocalContext conte
                                                               RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief JPEG image reader and partial decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] json_path Path to the COCO Json File
@@ -179,6 +185,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourcePartial(RocalContex
                                                                      unsigned max_width = 0, unsigned max_height = 0);
 
 /*! \brief Creates JPEG image reader and partial decoder. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] json_path Path to the COCO Json File
@@ -208,7 +215,8 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourcePartialSingleShard(
                                                                                 RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
                                                                                 unsigned max_width = 0, unsigned max_height = 0);
 
-/*! \brief Creates JPEG image reader and decoder for Coco images. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+/*! \brief Creates JPEG image reader. It allocates the resources and objects required to read and decode COCO Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] json_path Path to the COCO Json File
@@ -236,6 +244,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourceSingleShard(RocalCo
                                                                          RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and decoder for Caffe LMDB records. It allocates the resources and objects required to read and decode Jpeg images stored in Caffe LMDB Records. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -260,6 +269,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSource(RocalContex
                                                                      RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and decoder for Caffe LMDB records. It allocates the resources and objects required to read and decode Jpeg images stored in Caffe2 LMDB Records. It has internal sharding capability to load/decode in parallel is user wants.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -287,6 +297,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourceSingleShard(
                                                                                 RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and decoder for Caffe2 LMDB records. It allocates the resources and objects required to read and decode Jpeg images stored in Caffe2 LMDB Records. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -312,6 +323,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSource(RocalConte
                                                                       RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and decoder for Caffe2 LMDB records. It allocates the resources and objects required to read and decode Jpeg images stored on the Caffe2 LMDB Records. It accepts external sharding information to load a singe shard. only
+ * \ingroup group_rocal_data_loaders
  * \param [in] p_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -339,6 +351,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourceSingleShard
                                                                                  RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and decoder for MXNet records. It allocates the resources and objects required to read and decode Jpeg images stored in MXNet Records. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -364,6 +377,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalMXNetRecordSource(RocalContext contex
                                                              RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and decoder for MXNet records. It allocates the resources and objects required to read and decode Jpeg images stored on the MXNet records. It accepts external sharding information to load a singe shard. only
+ * \ingroup group_rocal_data_loaders
  * \param [in] p_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -391,6 +405,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalMXNetRecordSourceSingleShard(RocalCon
                                                                         RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates JPEG image reader and partial decoder. It allocates the resources and objects required to read and decode Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored and Crops t
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -420,6 +435,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFusedJpegCrop(RocalContext context,
                                                          unsigned max_width = 0, unsigned max_height = 0);
 
 /*! \brief Creates JPEG image reader and partial decoder. It allocates the resources and objects required to read and decode Jpeg images stored on the file systems. It accepts external sharding information to load a singe shard. only
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -448,8 +464,8 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFusedJpegCropSingleShard(RocalContext
                                                                     RocalImageSizeEvaluationPolicy decode_size_policy = ROCAL_USE_MOST_FREQUENT_SIZE,
                                                                     unsigned max_width = 0, unsigned max_height = 0);
 
-/*! \brief Creates TensorFlow records JPEG image reader and decoder. It allocates the resources and objects required to read and decode Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants.
- * If images are not Jpeg compressed they will be ignored.
+/*! \brief Creates TensorFlow records JPEG image reader and decoder. It allocates the resources and objects required to read and decode Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location of the TF records on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -477,6 +493,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegTFRecordSource(RocalContext conte
                                                               RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates TensorFlow records JPEG image reader and decoder. It allocates the resources and objects required to read and decode Jpeg images stored on the file systems. It accepts external sharding information to load a singe shard. only
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location of the TF records on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -504,6 +521,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegTFRecordSourceSingleShard(RocalCo
                                                                          RocalDecoderType rocal_decoder_type = RocalDecoderType::ROCAL_DECODER_TJPEG);
 
 /*! \brief Creates Raw image loader. It allocates the resources and objects required to load images stored on the file systems.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -526,6 +544,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRawTFRecordSource(RocalContext p_cont
                                                              const char* record_name_prefix = "");
 
 /*! \brief Creates Raw image loader. It allocates the resources and objects required to load images stored on the file systems.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -550,9 +569,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalCon
                                                                         const char* record_name_prefix = "");
 
 /*! \brief  a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
- * \param [in] source_path A NULL terminated char string pointing to the location on the disk.
- * source_path can be a video file, folder containing videos or a text file
+ * \param [in] source_path A NULL terminated char string pointing to the location on the disk. source_path can be a video file, folder containing videos or a text file
  * \param [in] color_format The color format the frames will be decoded to.
  * \param [in] rocal_decode_device Enables software or hardware decoding. Currently only software decoding is supported.
  * \param [in] internal_shard_count Defines the parallelism level by internally sharding the input dataset and load/decode using multiple decoder/loader instances.
@@ -579,9 +598,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileSource(RocalContext context,
                                                            bool file_list_frame_num = true);
 
 /*! \brief Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. It accepts external sharding information to load a singe shard only.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
- * \param [in] source_path A NULL terminated char string pointing to the location on the disk.
- * source_path can be a video file, folder containing videos or a text file
+ * \param [in] source_path A NULL terminated char string pointing to the location on the disk. source_path can be a video file, folder containing videos or a text file
  * \param [in] color_format The color format the frames will be decoded to.
  * \param [in] rocal_decode_device Enables software or hardware decoding. Currently only software decoding is supported.
  * \param [in] shard_id Shard id for this loader.
@@ -610,9 +629,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalConte
                                                                       bool file_list_frame_num = true);
 
 /*! \brief Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. Resizes the decoded frames to the dest width and height.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
- * \param [in] source_path A NULL terminated char string pointing to the location on the disk.
- * source_path can be a video file, folder containing videos or a text file
+ * \param [in] source_path A NULL terminated char string pointing to the location on the disk. source_path can be a video file, folder containing videos or a text file
  * \param [in] color_format The color format the frames will be decoded to.
  * \param [in] rocal_decode_device Enables software or hardware decoding. Currently only software decoding is supported.
  * \param [in] internal_shard_count Defines the parallelism level by internally sharding the input dataset and load/decode using multiple decoder/loader instances.
@@ -648,9 +667,9 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileResize(RocalContext context,
                                                            RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
 
 /*! \brief Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems. Resizes the decoded frames to the dest width and height. It accepts external sharding information to load a singe shard only.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
- * \param [in] source_path A NULL terminated char string pointing to the location on the disk.
- * source_path can be a video file, folder containing videos or a text file
+ * \param [in] source_path A NULL terminated char string pointing to the location on the disk. source_path can be a video file, folder containing videos or a text file
  * \param [in] color_format The color format the frames will be decoded to.
  * \param [in] rocal_decode_device Enables software or hardware decoding. Currently only software decoding is supported.
  * \param [in] shard_id Shard id for this loader.
@@ -688,13 +707,14 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileResizeSingleShard(RocalConte
                                                                       RocalResizeInterpolationType interpolation_type = ROCAL_LINEAR_INTERPOLATION);
 
 /*! \brief Creates CIFAR10 raw data reader and loader. It allocates the resources and objects required to read raw data stored on the file systems.
+ * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
  * \param [in] is_output Determines if the user wants the loaded images to be part of the output or not.
- * \param [in] out_width output width of the image
- * \param [in] out_height output_height of the image
- * \param [in] filename_prefix ; if set loader will only load files with the given prefix name
+ * \param [in] out_width output width
+ * \param [in] out_height output_height
+ * \param [in] filename_prefix if set loader will only load files with the given prefix name
  * \return Reference to the output image
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalRawCIFAR10Source(RocalContext context,
@@ -704,13 +724,15 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRawCIFAR10Source(RocalContext context
                                                             unsigned out_width, unsigned out_height, const char* filename_prefix = "",
                                                             bool loop = false);
 
-/*!
- * \param [in] context
- * \return
+/*! \brief reset Loaders
+ * \ingroup group_rocal_data_loaders
+ * \param [in] context Rocal Context
+ * \return Rocal status value
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalResetLoaders(RocalContext context);
 
 /*! \brief Creates JPEG image reader and partial decoder for Caffe LMDB records. It allocates the resources and objects required to read and decode Jpeg images stored in Caffe2 LMDB Records. It has internal sharding capability to load/decode in parallel is user wants.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.
@@ -742,6 +764,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourcePartialSingl
                                                                                        unsigned max_width = 0, unsigned max_height = 0);
 
 /*! \brief Creates JPEG image reader and partial decoder for Caffe2 LMDB records. It allocates the resources and objects required to read and decode Jpeg images stored in Caffe22 LMDB Records. It has internal sharding capability to load/decode in parallel is user wants.
+ * \ingroup group_rocal_data_loaders
  * \param [in] rocal_context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk
  * \param [in] rocal_color_format The color format the images will be decoded to.

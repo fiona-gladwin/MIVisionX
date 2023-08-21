@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include "rocal_api_info.h"
 
 /*! \brief Creates the context for a new augmentation pipeline. Initializes all the required internals for the pipeline
+ * \ingroup group_rocal_api
  * \param [in] batch_size batch size of the rocal context
  * \param [in] affinity affinity for the rocal context
  * \param [in] gpu_id GPU id associated with rocal context
@@ -46,18 +47,21 @@ extern "C" RocalContext ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProce
 // extern "C"  RocalContext  ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProcessMode affinity, int gpu_id = 0, size_t cpu_thread_count = 1);
 
 /*! \brief verifies the rocal context
+ * \ingroup group_rocal_api
  * \param [in] context the rocal context
  * \return rocal status value
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalVerify(RocalContext context);
 
 /*! \brief executes the rocal context
+ * \ingroup group_rocal_api
  * \param [in] context the rocal context
  * \return rocal status value
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalRun(RocalContext context);
 
 /*! \brief releases the rocal context
+ * \ingroup group_rocal_api
  * \param [in] rocal_context the rocal context
  * \return rocal status value
  */

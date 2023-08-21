@@ -21,10 +21,8 @@ THE SOFTWARE.
 */
 
 #include "node_ssd_random_crop.h"
-
 #include <graph.h>
 #include <vx_ext_rpp.h>
-
 #include "exception.h"
 
 SSDRandomCropNode::SSDRandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),

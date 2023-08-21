@@ -29,7 +29,7 @@ def image(*inputs, user_feature_key_map=None, path='', file_root='', annotations
     Decodes images using different readers and decoders.
 
     Args:
-        *inputs: list of input arguments.
+        inputs: list of input images.
         user_feature_key_map: User-provided feature key mapping.
         path: Path to image source.
         file_root: Root path for image files.
@@ -152,7 +152,7 @@ def image_raw(*inputs, user_feature_key_map=None, path='', random_shuffle=False,
     Decodes raw images using different readers and decoders.
 
     Args:
-        *inputs: list of input arguments.
+        inputs: list of input images.
         user_feature_key_map: User-provided feature key mapping.
         path: Path to image source.
         random_shuffle: Whether to shuffle images randomly.
@@ -187,7 +187,7 @@ def image_random_crop(*inputs, user_feature_key_map=None, path='', file_root='',
     Applies random cropping to images using different readers and decoders.
 
     Args:
-        *inputs: list of input arguments.
+        inputs: list of input images.
         user_feature_key_map: User-provided feature key mapping.
         path: Path to image source.
         file_root: Root path for image files.
@@ -299,7 +299,7 @@ def image_slice(*inputs, file_root='', path='', annotations_file='', shard_id=0,
     Slices images using different readers and decoders.
 
     Args:
-        *inputs: list of input arguments.
+        inputs: list of input images.
         file_root: Root path for image files.
         path: Path to image source.
         annotations_file: Path to annotations file.

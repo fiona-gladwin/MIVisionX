@@ -159,7 +159,11 @@ VX_API_ENTRY vx_enum VX_API_CALL vxRegisterUserStruct(vx_context context, vx_siz
  * \brief Registers user-defined structures to the context, and associates a name to it.
  * \param [in] context     The reference to the implementation context.
  * \param [in] size        The size of user struct in bytes.
- * \param [in] type_name  Pointer to the '\0' terminated string that identifies the user struct type. The string is copied by the function so that it stays the property of the caller. NULL means that the user struct is not named. The length of the string shall be lower than VX_MAX_REFERENCE_NAME bytes.
+ * \param [in] type_name   Pointer to the '\0' terminated string that identifies the
+ *                         user struct type. The string is copied by the function so
+ *                         that it stays the property of the caller. NULL means that
+ *                         the user struct is not named. The length of the string
+ *                         shall be lower than VX_MAX_REFERENCE_NAME bytes.
  * \return A <tt>\ref vx_enum</tt> value that is a type given to the User
  * to refer to their custom structure when declaring a <tt>\ref vx_array</tt>
  * of that structure.

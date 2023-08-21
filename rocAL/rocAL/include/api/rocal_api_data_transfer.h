@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 /*!
  * \brief copies data to output buffer
+ * \ingroup group_rocal_data_transfer
  * \param [in] context Rocal context
  * \param [in] out_ptr pointer to output buffer
  * \param [in] out_size size of output buffer
@@ -35,6 +36,7 @@ extern "C" RocalStatus ROCAL_API_CALL rocalCopyToOutput(RocalContext context, un
 
 /*!
  * \brief converts data to a tensor
+ * \ingroup group_rocal_data_transfer
  * \param [in] rocal_context Rocal context
  * \param [in] out_ptr pointer to output buffer
  * \param [in] tensor_format the layout of the tensor data
@@ -57,6 +59,7 @@ extern "C" RocalStatus ROCAL_API_CALL rocalToTensor(RocalContext rocal_context, 
 
 /*!
  * \brief Sets the output images in the RocalContext
+ * \ingroup group_rocal_data_transfer
  * \param [in] p_context Rocal context
  * \param [in] num_of_outputs number of output images
  * \param [in] output_images The buffer that will be filled with output images with set_output = True
@@ -66,6 +69,7 @@ extern "C" void ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned 
 
 /*!
  * \brief gives the list of output tensors from rocal context
+ * \ingroup group_rocal_data_transfer
  * \param [in] p_context Rocal Context
  * \return A RocalTensorList containing the list of output tensors
  */

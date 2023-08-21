@@ -41,6 +41,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSequenceRearrange(RocalContext p_cont
 /*! \brief Resize images.
  * \note Accepts U8 and RGB24 input.
  * \ingroup group_rocal_augmentations
+ * \note: Accepts U8 and RGB24 input.
  * \param [in] context context for the pipeline.
  * \param [in] input Input Rocal Tensor
  * \param [in] dest_width output width
@@ -452,14 +453,14 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFishEye(RocalContext context, RocalTe
  * \param [in] sdev standard deviation for the vignette effect
  * \param [in] output_layout the layout of the output tensor
  * \param [in] output_datatype the data type of the output tensor
- * \return
+ * \return RocalTensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalVignette(RocalContext context, RocalTensor input,
                                                     bool is_output, RocalFloatParam sdev = NULL,
                                                     RocalTensorLayout output_layout = ROCAL_NONE,
                                                     RocalTensorOutputType output_datatype = ROCAL_UINT8);
 
-/*! \brief Applies vignette effect on images with fixed parameter
+/*! \brief Applies vignette effect on images with fixed parameters.
  * \ingroup group_rocal_augmentations
  * \note Accepts U8 and RGB24 input.
  * \param [in] context Rocal context
@@ -468,7 +469,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVignette(RocalContext context, RocalT
  * \param [in] is_output is the output tensor part of the graph output
  * \param [in] output_layout the layout of the output tensor
  * \param [in] output_datatype the data type of the output tensor
- * \return
+ * \return RocalTensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalVignetteFixed(RocalContext context, RocalTensor input,
                                                          float sdev, bool is_output,
