@@ -21,15 +21,14 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include "node.h"
+#include "node_crop.h"
 #include "parameter_factory.h"
 #include "parameter_crop_factory.h"
 
-class RandomCropNode : public Node {
+class RandomCropNode : public CropNode {
 public:
     RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     RandomCropNode() = delete;
-    ~RandomCropNode();
     void init(FloatParam *crop_area_factor, FloatParam *crop_aspect_ratio, FloatParam *x_drift, FloatParam *y_drift, int num_of_attempts);
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
@@ -43,7 +42,5 @@ protected:
 private:
     int _num_of_attempts = 20;
     std::shared_ptr<RocalRandomCropParam> _crop_param;
-    void * _crop_coordinates;
-    vx_tensor _crop_tensor;
 };
 

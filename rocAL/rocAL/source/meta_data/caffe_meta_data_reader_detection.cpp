@@ -151,12 +151,6 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
         BoundingBoxCord box;
         ImgSize img_size;
 
-        caffe_protos::Datum image_datum = annotatedDatum_protos.datum();
-        // Parsing width of image
-        img_size.w = image_datum.width();
-        // Parsing height of image
-        img_size.h = image_datum.height();
-
         if (boundBox_size > 0)
         {
             for (int i = 0; i < boundBox_size; i++)
@@ -164,11 +158,11 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
                 caffe_protos::Annotation annot_protos = annotGrp_protos.annotation(i);
                 caffe_protos::NormalizedBBox bbox_protos = annot_protos.bbox();
 
-                // Parsing the bounding box points using Iterator & normalizing the bbox values between 0 & 1
-                box.l = bbox_protos.xmin() / img_size.w;
-                box.t = bbox_protos.ymin() / img_size.h;
-                box.r = (bbox_protos.xmin() + bbox_protos.xmax())/ img_size.w;
-                box.b = (bbox_protos.ymin() + bbox_protos.ymax())/ img_size.h;
+                // Parsing the bounding box points using Iterator & converting the bbox values to ltrb format
+                box.l = bbox_protos.xmin();
+                box.t = bbox_protos.ymin();
+                box.r = (bbox_protos.xmin() + bbox_protos.xmax());
+                box.b = (bbox_protos.ymin() + bbox_protos.ymax());
 
                 int label = bbox_protos.label();
 

@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 struct FishEyeLocalData {
     vxRppHandle *handle;
-    Rpp32u deviceType;
+    vx_uint32 deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
     RpptDescPtr pSrcDesc;
@@ -145,7 +145,7 @@ static vx_status VX_CALLBACK initializeFishEye(vx_node node, const vx_reference 
     memset(data, 0, sizeof(FishEyeLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    int roi_type, input_layout, output_layout;
+    vx_int32 roi_type, input_layout, output_layout;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[3], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));

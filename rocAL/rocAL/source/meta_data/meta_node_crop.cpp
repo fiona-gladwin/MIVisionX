@@ -40,8 +40,6 @@ void CropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBa
     _crop_height = _meta_crop_param->croph_arr;
     _x1 = _meta_crop_param->x1_arr;
     _y1 = _meta_crop_param->y1_arr;
-    // _input_width_val = _meta_crop_param->in_width;   TODO - Commenting for now to be replaced with ROI
-    // _input_height_val = _meta_crop_param->in_height;
     vxCopyArrayRange((vx_array)_crop_width, 0, _batch_size, sizeof(uint),_crop_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_crop_height, 0, _batch_size, sizeof(uint),_crop_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint),_x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
@@ -55,10 +53,10 @@ void CropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBa
         BoundingBoxCord temp_box;
         Labels bb_labels;
         BoundingBoxCord crop_box;
-        crop_box.l = (float)_x1_val[i]/_input_width_val[i];
-        crop_box.t = (float)_y1_val[i]/_input_height_val[i];
-        crop_box.r = (float)(_x1_val[i] + _crop_width_val[i])/_input_width_val[i];
-        crop_box.b = (float)(_y1_val[i] + _crop_height_val[i])/_input_height_val[i];
+        crop_box.l = static_cast<float>(_x1_val[i]);
+        crop_box.t = static_cast<float>(_y1_val[i]);
+        crop_box.r = static_cast<float>((_x1_val[i]) + _crop_width_val[i]);
+        crop_box.b = static_cast<float>((_y1_val[i]) + _crop_height_val[i]);
 
         for(uint j = 0; j < bb_count; j++)
         {
@@ -68,10 +66,10 @@ void CropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBa
                 float yA = std::max(crop_box.t, box_coords_buf[j].t);
                 float xB = std::min(crop_box.r, box_coords_buf[j].r);
                 float yB = std::min(crop_box.b, box_coords_buf[j].b);
-                box_coords_buf[j].l = (xA - crop_box.l) / (crop_box.r - crop_box.l);
-                box_coords_buf[j].t = (yA - crop_box.t) / (crop_box.b - crop_box.t);
-                box_coords_buf[j].r = (xB - crop_box.l) / (crop_box.r - crop_box.l);
-                box_coords_buf[j].b = (yB - crop_box.t) / (crop_box.b - crop_box.t);
+                box_coords_buf[j].l = (xA - crop_box.l);
+                box_coords_buf[j].t = (yA - crop_box.t);
+                box_coords_buf[j].r = (xB - crop_box.l);
+                box_coords_buf[j].b = (yB - crop_box.t);
                 bb_coords.push_back(box_coords_buf[j]);
                 bb_labels.push_back(labels_buf[j]);
             }
@@ -80,8 +78,8 @@ void CropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBa
         {
             temp_box.l = 0;
             temp_box.t = 0;
-            temp_box.r = 1;
-	        temp_box.b = 1;
+            temp_box.r = _crop_width_val[i];
+            temp_box.b = _crop_height_val[i];
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }

@@ -31,12 +31,8 @@ public:
     ResizeMirrorNormalizeNode() = delete;
     void init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode, std::vector<unsigned> max_size,
               RocalResizeInterpolationType interpolation_type, std::vector<float>& mean,  std::vector<float>& std_dev, IntParam *mirror);
-    vx_array get_dst_width() { return _dst_roi_width; }
-    vx_array get_dst_height() { return _dst_roi_height;}
-    vx_array get_src_width() { return _src_roi_width; }
-    vx_array get_src_height() { return _src_roi_height; }
     void adjust_out_roi_size();
-    vx_array return_mirror(){ return _mirror.default_array();  }
+    vx_array get_mirror() { return _mirror.default_array(); }
 protected:
     void create_node() override;
     void update_node() override;
