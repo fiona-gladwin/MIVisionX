@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include <string>
 #include <memory>
 #include "commons.h"
-#include "reader.h"
+#include "image_reader.h"
 #include "meta_data_reader.h"
 #include "video_properties.h"
 
