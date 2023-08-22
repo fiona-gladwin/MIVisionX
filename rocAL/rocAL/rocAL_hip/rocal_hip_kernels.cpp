@@ -251,15 +251,14 @@ int HipExecCopyInt8ToNHWC(
         outDims = make_uint2(h, w);
     else
         outDims = make_uint2(max_output_height, max_output_width);
-    int globalThreads_x = outDims.x, globalThreads_y = outDims.y;
+    int globalThreads_x = w, globalThreads_y = h;
     if (!fp16)
     {
         hipLaunchKernelGGL(Hip_CopyInt8ToNHWC_fp32,
                            dim3(ceil((float)globalThreads_x / localThreads_x), ceil((float)globalThreads_y / localThreads_y)),
                            dim3(localThreads_x, localThreads_y),
                            0, stream, (const uchar *)inp_image_u8, output_tensor, dst_buf_offset,
-                           make_uint4(n, c, h, w),
-                           outDims,
+                           make_uint4(n, c, h, w), outDims,
                            make_float3(multiplier0, multiplier1, multiplier2), make_float3(offset0, offset1, offset2),
                            reverse_channels);
     }
@@ -269,8 +268,7 @@ int HipExecCopyInt8ToNHWC(
                            dim3(ceil((float)globalThreads_x / localThreads_x), ceil((float)globalThreads_y / localThreads_y)),
                            dim3(localThreads_x, localThreads_y),
                            0, stream, (const uchar *)inp_image_u8, output_tensor, dst_buf_offset,
-                           make_uint4(n, c, h, w),
-                           outDims,
+                           make_uint4(n, c, h, w), outDims,
                            make_float3(multiplier0, multiplier1, multiplier2), make_float3(offset0, offset1, offset2),
                            reverse_channels);
     }
@@ -303,15 +301,14 @@ int HipExecCopyInt8ToNCHW(
         outDims = make_uint2(h, w);
     else
         outDims = make_uint2(max_output_height, max_output_width);
-    int globalThreads_x = outDims.x, globalThreads_y = outDims.y;
+    int globalThreads_x = w, globalThreads_y = h;
     if (!fp16)
     {
         hipLaunchKernelGGL(Hip_CopyInt8ToNCHW_fp32,
                            dim3(ceil((float)globalThreads_x / localThreads_x), ceil((float)globalThreads_y / localThreads_y)),
                            dim3(localThreads_x, localThreads_y),
                            0, stream, (const uchar *)inp_image_u8, output_tensor, dst_buf_offset,
-                           make_uint4(n, c, h, w),
-                           outDims,
+                           make_uint4(n, c, h, w), outDims,
                            make_float3(multiplier0, multiplier1, multiplier2), make_float3(offset0, offset1, offset2),
                            reverse_channels);
     }
@@ -321,8 +318,7 @@ int HipExecCopyInt8ToNCHW(
                            dim3(ceil((float)globalThreads_x / localThreads_x), ceil((float)globalThreads_y / localThreads_y)),
                            dim3(localThreads_x, localThreads_y),
                            0, stream, (const uchar *)inp_image_u8, output_tensor, dst_buf_offset,
-                           make_uint4(n, c, h, w),
-                           outDims,
+                           make_uint4(n, c, h, w), outDims,
                            make_float3(multiplier0, multiplier1, multiplier2), make_float3(offset0, offset1, offset2),
                            reverse_channels);
     }
