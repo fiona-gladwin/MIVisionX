@@ -93,12 +93,13 @@ def exposure(*inputs, exposure=0.5, device=None, output_layout=types.NHWC, outpu
     return (exposure_image)
 
 
-def fish_eye(*inputs, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+def fish_eye(*inputs, device=None, fill_value=0.0, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Applies fish eye effect on images.
 
     Args:
         inputs: the input image passed to the augmentation
+        fill_value (float, optional, default = 0.0): Value to fill areas outside image.
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
         rocal_tensor_output_datatype (int, optional, default = types.UINT8): tensor dtype for the augmentation output
 
@@ -133,39 +134,39 @@ def fog(*inputs, fog=0.5, device=None, output_layout=types.NHWC, output_dtype=ty
     return (fog_image)
 
 
-def brightness(*inputs, alpha=None, beta=None, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+def brightness(*inputs, brightness=None, brightness_shift=None, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Adjusts brightness of the image.
 
     Args:
         inputs: the input image passed to the augmentation
-        alpha (float, optional, default = None): brightness multiplier. Values >= 0 are accepted. For example: 0 - black image, 1 - no change, 2 - increase brightness twice
-        beta (float, optional, default = None): brightness shift
+        brightness (float, optional, default = None): brightness multiplier. Values >= 0 are accepted. For example: 0 - black image, 1 - no change, 2 - increase brightness twice
+        brightness_shift (float, optional, default = None): brightness shift
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
         rocal_tensor_output_datatype (int, optional, default = types.UINT8): tensor dtype for the augmentation output
 
     Returns:
         Image with Adjusted Brightness
     """
-    alpha = b.createFloatParameter(alpha) if isinstance(alpha, float) else alpha
-    beta = b.createFloatParameter(beta) if isinstance(beta, float) else beta
+    brightness = b.createFloatParameter(brightness) if isinstance(brightness, float) else brightness
+    brightness_shift = b.createFloatParameter(brightness_shift) if isinstance(brightness_shift, float) else brightness_shift
 
     # pybind call arguments
-    kwargs_pybind = {"input_image": inputs[0], "is_output": False, "alpha": alpha, "beta": beta,
+    kwargs_pybind = {"input_image": inputs[0], "is_output": False, "brightness": brightness, "brightness_shift": brightness_shift,
                      "output_layout": output_layout, "output_dtype": output_dtype}
     brightness_image = b.brightness(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (brightness_image)
 
 
-def brightness_fixed(*inputs, alpha=1.0, beta=0.0, device=None,
+def brightness_fixed(*inputs, brightness=1.0, brightness_shift=0.0, device=None,
                      output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Adjusts brightness of the image with fixed parameters.
 
     Args:
         inputs: the input image passed to the augmentation
-        alpha (float, optional, default = 1.0): brightness multiplier. Values >= 0 are accepted. For example: 0 - black image, 1 - no change, 2 - increase brightness twice
-        beta (float, optional, default = 0.0): brightness shift
+        brightness (float, optional, default = 1.0): brightness multiplier. Values >= 0 are accepted. For example: 0 - black image, 1 - no change, 2 - increase brightness twice
+        brightness_shift (float, optional, default = 0.0): brightness shift
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
         rocal_tensor_output_datatype (int, optional, default = types.UINT8): tensor dtype for the augmentation output
 
@@ -173,7 +174,7 @@ def brightness_fixed(*inputs, alpha=1.0, beta=0.0, device=None,
         Image with adjusted brightness
     """
     # pybind call arguments
-    kwargs_pybind = {"input_image": inputs[0], "is_output": False, "alpha": alpha, "beta": beta,
+    kwargs_pybind = {"input_image": inputs[0], "is_output": False, "brightness": brightness, "brightness_shift": brightness_shift,
                      "output_layout": output_layout, "output_dtype": output_dtype}
     brightness_image = b.brightnessFixed(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (brightness_image)
@@ -203,34 +204,35 @@ def lens_correction(*inputs, strength=None, zoom=None, device=None, output_layou
     return (len_corrected_image)
 
 
-def blur(*inputs, kernel_size=None, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+def blur(*inputs, window_size=None, sigma=0.0, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Applies blur effect to images.
 
     Args:
         inputs: the input image passed to the augmentation
-        kernel_size (int, default = None): kernel size used for the filter
+        window_size (int, default = None): kernel size used for the filter
+        sigma (float, default = 0.0): sigma value for blur effect
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
         rocal_tensor_output_datatype (int, optional, default = types.UINT8): tensor dtype for the augmentation output
 
     Returns:
         Image with Blur effect
     """
-    kernel_size = b.createIntParameter(kernel_size) if isinstance(kernel_size, int) else kernel_size
+    window_size = b.createIntParameter(window_size) if isinstance(window_size, int) else window_size
     # pybind call arguments
-    kwargs_pybind = {"input_image": inputs[0], "is_output": False, "kernel_size": kernel_size,
+    kwargs_pybind = {"input_image": inputs[0], "is_output": False, "window_size": window_size,
                      "output_layout": output_layout, "output_dtype": output_dtype}
     blur_image = b.blur(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (blur_image)
 
 
-def contrast(*inputs, contrast_factor=None, contrast_center=None, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+def contrast(*inputs, contrast=None, contrast_center=None, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Adjusts contrast of the image
 
     Args:
         inputs: the input image passed to the augmentation
-        contrast_factor (float, optional, default = None): contrast multiplier used for the augmentation. Values >= 0 are accepted. For example: 0 - gray image, 1 - no change, 2 - increase contrast twice
+        contrast (float, optional, default = None): contrast multiplier used for the augmentation. Values >= 0 are accepted. For example: 0 - gray image, 1 - no change, 2 - increase contrast twice
         contrast_center (float, optional, default = None): intensity value unaffected by the augmentation
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
         rocal_tensor_output_datatype (int, optional, default = types.UINT8): tensor dtype for the augmentation output
@@ -238,36 +240,36 @@ def contrast(*inputs, contrast_factor=None, contrast_center=None, device=None, o
     Returns:
         Image with adjusted contrast
     """
-    contrast_factor = b.createFloatParameter(contrast_factor) if isinstance(contrast_factor, float) else contrast_factor
+    contrast = b.createFloatParameter(contrast) if isinstance(contrast, float) else contrast
     contrast_center = b.createFloatParameter(contrast_center) if isinstance(contrast_center, float) else contrast_center
 
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
-                     "is_output": False, "contrast_factor": contrast_factor, "contrast_center": contrast_center, "output_layout": output_layout, "output_dtype": output_dtype}
+                     "is_output": False, "contrast": contrast, "contrast_center": contrast_center, "output_layout": output_layout, "output_dtype": output_dtype}
     contrast_image = b.contrast(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (contrast_image)
 
 
-def flip(*inputs, h_flip=0, v_flip=0, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+def flip(*inputs, horizontal=0, vertical=0, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Flip images horizontally and/or vertically based on inputs.
 
     Args:
         inputs: the input image passed to the augmentation
-        h_flip (int, optional, default = 0): flip the horizontal dimensions
-        v_flip (int, optional, default = 0): flip the vertical dimension
+        horizontal (int, optional, default = 0): flip the horizontal dimensions
+        vertical (int, optional, default = 0): flip the vertical dimension
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
         rocal_tensor_output_datatype (int, optional, default = types.UINT8): tensor dtype for the augmentation output
 
     Returns:
         Flipped Image
     """
-    h_flip = b.createIntParameter(h_flip) if isinstance(h_flip, int) else h_flip
-    v_flip = b.createIntParameter(v_flip) if isinstance(v_flip, int) else v_flip
+    horizontal = b.createIntParameter(horizontal) if isinstance(horizontal, int) else horizontal
+    vertical = b.createIntParameter(vertical) if isinstance(vertical, int) else vertical
 
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
-                     "is_output": False, "h_flip": h_flip, "v_flip": v_flip, "output_layout": output_layout, "output_dtype": output_dtype}
+                     "is_output": False, "horizontal": horizontal, "vertical": vertical, "output_layout": output_layout, "output_dtype": output_dtype}
     flip_image = b.flip(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (flip_image)
 
@@ -293,13 +295,14 @@ def gamma_correction(*inputs, gamma=0.5, device=None, output_layout=types.NHWC, 
     return (gamma_correction_image)
 
 
-def hue(*inputs, hue=None, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+def hue(*inputs, hue=None, device=None, seed=0, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Adjust the hue in the images
 
     Args:
         inputs: the input image passed to the augmentation
         hue (float, default = None): hue change in degrees
+        seed (int, optional, default = 0): seed used for randomization in the augmentation
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
         rocal_tensor_output_datatype (int, optional, default = types.UINT8): tensor dtype for the augmentation output
 
@@ -314,7 +317,7 @@ def hue(*inputs, hue=None, device=None, output_layout=types.NHWC, output_dtype=t
     return (hue_image)
 
 
-def jitter(*inputs, kernel_size=None, seed=0, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+def jitter(*inputs, kernel_size=None, seed=0, fill_value=0.0, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Applies Jitter effect on images
 
@@ -322,6 +325,7 @@ def jitter(*inputs, kernel_size=None, seed=0, device=None, output_layout=types.N
         inputs: the input image passed to the augmentation
         kernel_size (int, optional, default = None): kernel size used for the augmentation
         seed (int, optional, default = 0): seed used for randomization in the augmentation
+        fill_value (float, optional, default = 0.0): Value to fill areas outside image.
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
         rocal_tensor_output_datatype (int, optional, default = types.UINT8): tensor dtype for the augmentation output
 
@@ -385,7 +389,7 @@ def rain(*inputs, rain=None, rain_width=None, rain_height=None, rain_transparenc
 
 
 def resize(*inputs, max_size=[], resize_longer=0, resize_shorter=0, resize_width=0, resize_height=0, scaling_mode=types.SCALING_MODE_DEFAULT, interpolation_type=types.LINEAR_INTERPOLATION,
-           device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+           antialias=True, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Resizes the images
 
@@ -412,7 +416,8 @@ def resize(*inputs, max_size=[], resize_longer=0, resize_shorter=0, resize_width
 
 
 def resize_crop_mirror(*inputs, resize_width=0, resize_height=0, crop_w=0, crop_h=0, mirror=1,
-                       device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+                       device=None, max_size=[], resize_longer=0, resize_shorter=0, scaling_mode=types.SCALING_MODE_DEFAULT,
+                       interpolation_type=types.LINEAR_INTERPOLATION, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Fused function which performs resize, crop and flip on images.
 
@@ -443,7 +448,8 @@ def resize_crop_mirror(*inputs, resize_width=0, resize_height=0, crop_w=0, crop_
 
 
 def resize_crop(*inputs, resize_width=0, resize_height=0, crop_area_factor=None, crop_aspect_ratio=None, x_drift=None, y_drift=None,
-                device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+                device=None, max_size=[], resize_longer=0, resize_shorter=0, scaling_mode=types.SCALING_MODE_DEFAULT,
+                interpolation_type=types.LINEAR_INTERPOLATION, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Fused function which performs resize, crop on images.
 
@@ -518,7 +524,8 @@ def resize_mirror_normalize(*inputs, max_size=[], resize_longer=0, resize_shorte
 
 
 def random_crop(*inputs, crop_area_factor=[0.08, 1], crop_aspect_ratio=[0.75, 1.333333],
-                crop_pox_x=0, crop_pox_y=0, num_attempts=20, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+                crop_pox_x=0, crop_pox_y=0, num_attempts=20, device=None,
+                all_boxes_above_threshold=True, allow_no_crop=True, ltrb=True, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Crops images randomly.
 
@@ -543,7 +550,7 @@ def random_crop(*inputs, crop_area_factor=[0.08, 1], crop_aspect_ratio=[0.75, 1.
 
 
 def rotate(*inputs, angle=None, dest_width=0, dest_height=0, interpolation_type=types.LINEAR_INTERPOLATION,
-           device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+           device=None, fill_value=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Rotates images
 
@@ -589,7 +596,8 @@ def saturation(*inputs, saturation=1.0, device=None, output_layout=types.NHWC, o
 
 
 def ssd_random_crop(*inputs, p_threshold=None, crop_area_factor=None, crop_aspect_ratio=None,
-                    crop_pos_x=None, crop_pos_y=None, num_attempts=1, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
+                    crop_pos_x=None, crop_pos_y=None, num_attempts=1, device=None, 
+                    all_boxes_above_threshold=True, allow_no_crop=True, ltrb=True, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Crops images randomly used for SSD training.
 
@@ -624,7 +632,7 @@ def ssd_random_crop(*inputs, p_threshold=None, crop_area_factor=None, crop_aspec
     return (ssd_random_cropped_image)
 
 
-def warp_affine(*inputs, dest_width=0, dest_height=0, transform_matrix=[0, 0, 0, 0, 0, 0],
+def warp_affine(*inputs, dest_width=0, dest_height=0, matrix=[0, 0, 0, 0, 0, 0],
                 interpolation_type=types.LINEAR_INTERPOLATION, device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     Applies affine transformation to images.
@@ -632,7 +640,7 @@ def warp_affine(*inputs, dest_width=0, dest_height=0, transform_matrix=[0, 0, 0,
     Args:
         inputs: the input image passed to the augmentation
         dest_width (int, optional, default = 0): The length of the X dimension of the transformed image
-        transform_matrix (list of ints, optional, default = [0, 0, 0, 0, 0, 0]): Transformation matrix used to produce a new image
+        matrix (list of ints, optional, default = [0, 0, 0, 0, 0, 0]): Transformation matrix used to produce a new image
         dest_height (int, optional, default = 0): The length of the Y dimension of the transformed image
         interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION): Type of interpolation to be used.
         rocal_tensor_output_layout (int, optional, default = types.NHWC): tensor layout for the augmentation output
@@ -641,7 +649,7 @@ def warp_affine(*inputs, dest_width=0, dest_height=0, transform_matrix=[0, 0, 0,
     Returns:
         Affine Transformed Images
     """
-    x0, x1, y0, y1, o0, o1 = transform_matrix
+    x0, x1, y0, y1, o0, o1 = matrix
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "x0": x0, "x1": x1, "y0": y0, "y1": y1, "o0": o0,
                      "o1": o1, "is_output": False, "dest_height": dest_height, "dest_width": dest_width, "interpolation_type": interpolation_type, "output_layout": output_layout, "output_dtype": output_dtype}
@@ -827,20 +835,20 @@ def color_twist(*inputs, brightness=1.0, contrast=1.0, hue=0.0,
     return (color_twist_image)
 
 
-def uniform(*inputs, rng_range=[-1, 1], device=None):
+def uniform(*inputs, range=[-1, 1], device=None):
     """
     Applies uniform random number generation to the input images.
 
     Args:
         inputs - the input image passed to the augmentation
-        rng_range (list of ints, optional, default = [-1, 1]) - uniform distribution used for random number generation
+        range (list of ints, optional, default = [-1, 1]) - uniform distribution used for random number generation
     """
-    output_param = b.createFloatUniformRand(rng_range[0], rng_range[1])
+    output_param = b.createFloatUniformRand(range[0], range[1])
     return output_param
 
 
 def random_bbox_crop(*inputs, all_boxes_above_threshold=True, allow_no_crop=True, aspect_ratio=None,
-                     crop_shape=None, num_attempts=1, scaling=None, seed=1, total_num_attempts=0, device=None):
+                     crop_shape=None, num_attempts=1, scaling=None, seed=1, total_num_attempts=0, device=None, ltrb=True):
     """
      Applies random bounding box cropping to the input images.
 
