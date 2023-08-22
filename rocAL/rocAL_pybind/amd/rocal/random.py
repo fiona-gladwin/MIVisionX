@@ -36,6 +36,7 @@ def coin_flip(*inputs, probability=0.5):
     output_array = b.createIntRand(values, frequencies)
     return output_array
 
+
 def uniform(*inputs, range=[-1, 1]):
     """
     Generates random values uniformly distributed within a specified range.

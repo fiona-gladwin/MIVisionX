@@ -21,24 +21,20 @@ THE SOFTWARE.
 */
 
 #include "node.h"
-Node::~Node()
-{
+
+Node::~Node() {
     if (_node) vxReleaseNode(&_node);
     _node = nullptr;
 }
 
-void
-Node::create(std::shared_ptr<Graph> graph)
-{
-    if(_outputs.empty() || _inputs.empty())
+void Node::create(std::shared_ptr<Graph> graph) {
+    if (_outputs.empty() || _inputs.empty())
         THROW("Uninitialized input/output images to the node")
 
     _graph = graph;
     create_node();
 }
 
-void
-Node::update_parameters()
-{
+void Node::update_parameters() {
     update_node();
 }

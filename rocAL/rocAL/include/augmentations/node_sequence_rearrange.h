@@ -21,19 +21,21 @@ THE SOFTWARE.
 */
 
 #pragma once
+#include "graph.h"
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"
-#include "graph.h"
 
 class SequenceRearrangeNode : public Node {
-public:
+   public:
     SequenceRearrangeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SequenceRearrangeNode() = delete;
-    void init(std::vector<unsigned int>& new_order);
-protected:
+    void init(std::vector<unsigned int> &new_order);
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     std::vector<unsigned int> _new_order;
 };

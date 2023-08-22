@@ -38,10 +38,12 @@ class ROCALGenericIterator(object):
         self.batch_size = pipeline._batch_size
         if self.loader._name is None:
             self.loader._name = self.loader._reader
-        self.labels_size = ((self.batch_size * self.loader._num_classes) if self.loader._one_hot_encoding else self.batch_size)
+        self.labels_size = ((self.batch_size * self.loader._num_classes)
+                            if self.loader._one_hot_encoding else self.batch_size)
         self.output_list = self.dimensions = self.dtype = None
         self.labels_tensor = None
-        self.iterator_length = b.getRemainingImages(self.loader._handle) // self.batch_size  # iteration length
+        self.iterator_length = b.getRemainingImages(
+            self.loader._handle) // self.batch_size  # iteration length
 
     def next(self):
         return self.__next__()
@@ -62,8 +64,10 @@ class ROCALGenericIterator(object):
                 else:
                     self.dtype = self.output_tensor_list[i].dtype()
                     with cp.cuda.Device(device=self.device_id):
-                        self.output = cp.empty(self.dimensions, dtype=self.dtype)
-                        self.labels = cp.empty(self.labels_size, dtype=self.dtype)
+                        self.output = cp.empty(
+                            self.dimensions, dtype=self.dtype)
+                        self.labels = cp.empty(
+                            self.labels_size, dtype=self.dtype)
 
                 if self.device == "cpu":
                     self.output_tensor_list[i].copy_data(self.output)
@@ -75,12 +79,15 @@ class ROCALGenericIterator(object):
                 if self.device == "cpu":
                     self.output_tensor_list[i].copy_data(self.output_list[i])
                 else:
-                    self.output_tensor_list[i].copy_data(self.output_list[i].data.ptr)
+                    self.output_tensor_list[i].copy_data(
+                        self.output_list[i].data.ptr)
 
         if self.loader._name == "labelReader":
             if self.loader._one_hot_encoding == True:
-                self.loader.get_one_hot_encoded_labels(self.labels, self.device)
-                self.labels_tensor = self.labels.reshape(-1, self.batch_size, self.loader._num_classes)
+                self.loader.get_one_hot_encoded_labels(
+                    self.labels, self.device)
+                self.labels_tensor = self.labels.reshape(
+                    -1, self.batch_size, self.loader._num_classes)
             else:
                 if self.display:
                     for output in self.output_tensor_list:

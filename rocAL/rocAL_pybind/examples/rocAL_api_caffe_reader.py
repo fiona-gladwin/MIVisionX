@@ -29,7 +29,7 @@ from parse_config import parse_args
 
 
 def draw_patches(img, idx):
-    #image is expected as a tensor, bboxes as numpy array
+    # image is expected as a tensor, bboxes as numpy array
     args = parse_args()
     if args.rocal_gpu:
         image = img.cpu().numpy()
@@ -38,9 +38,11 @@ def draw_patches(img, idx):
     image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if args.classification:
-        cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/CLASSIFICATION/"+str(idx)+"_"+"train"+".png", image)
+        cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/CLASSIFICATION/" +
+                    str(idx)+"_"+"train"+".png", image)
     else:
-        cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/DETECTION/"+str(idx)+"_"+"train"+".png", image)
+        cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/DETECTION/" +
+                    str(idx)+"_"+"train"+".png", image)
 
 
 def main():
@@ -51,8 +53,8 @@ def main():
     batch_size = args.batch_size
     _rocal_bbox = False if args.classification else True
     num_threads = args.num_threads
-    local_rank =  args.local_rank
-    world_size =  args.world_size
+    local_rank = args.local_rank
+    world_size = args.world_size
     random_seed = args.seed
     display = True if args.display else False
     device = "gpu" if args.rocal_gpu else "cpu"
@@ -60,9 +62,9 @@ def main():
     num_classes = len(next(os.walk(image_path))[1])
     try:
         if args.classification:
-            path= "OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/CLASSIFICATION/"
+            path = "OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/CLASSIFICATION/"
         else:
-            path= "OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/DETECTION/"
+            path = "OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/DETECTION/"
         isExist = os.path.exists(path)
         if not isExist:
             os.makedirs(path)
@@ -75,19 +77,26 @@ def main():
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
         if _rocal_bbox:
-            jpegs, labels, bboxes = fn.readers.caffe(path=image_path, bbox=_rocal_bbox, random_shuffle=True)
+            jpegs, labels, bboxes = fn.readers.caffe(
+                path=image_path, bbox=_rocal_bbox, random_shuffle=True)
             crop_begin, crop_size, bboxes, labels = fn.random_bbox_crop(bboxes, labels, device="cpu",
-                                    aspect_ratio=[0.5, 2.0],
-                                    thresholds=[0, 0.1, 0.3, 0.5, 0.7, 0.9],
-                                    scaling=[0.3, 1.0],
-                                    ltrb=True,
-                                    allow_no_crop=True,
-                                    num_attempts=1)
-            images = fn.decoders.image_slice(jpegs, crop_begin, crop_size, output_type = types.RGB, path=image_path, annotations_file="", random_shuffle=True,shard_id=local_rank, num_shards=world_size)
+                                                                        aspect_ratio=[
+                                                                            0.5, 2.0],
+                                                                        thresholds=[
+                                                                            0, 0.1, 0.3, 0.5, 0.7, 0.9],
+                                                                        scaling=[
+                                                                            0.3, 1.0],
+                                                                        ltrb=True,
+                                                                        allow_no_crop=True,
+                                                                        num_attempts=1)
+            images = fn.decoders.image_slice(jpegs, crop_begin, crop_size, output_type=types.RGB, path=image_path,
+                                             annotations_file="", random_shuffle=True, shard_id=local_rank, num_shards=world_size)
 
         else:
-            jpegs, labels = fn.readers.caffe(path=image_path, bbox=_rocal_bbox, random_shuffle=True)
-            images = fn.decoders.image(jpegs, path=image_path, output_type=types.RGB, shard_id=local_rank, num_shards=world_size, random_shuffle=True)
+            jpegs, labels = fn.readers.caffe(
+                path=image_path, bbox=_rocal_bbox, random_shuffle=True)
+            images = fn.decoders.image(jpegs, path=image_path, output_type=types.RGB,
+                                       shard_id=local_rank, num_shards=world_size, random_shuffle=True)
 
         images = fn.resize(images, resize_x=crop_size_resize,
                            resize_y=crop_size_resize)
@@ -95,7 +104,8 @@ def main():
     # Build the pipeline
     pipe.build()
     # Dataloader
-    data_loader = ROCALClassificationIterator(pipe , display=display, device=device, device_id=args.local_rank)
+    data_loader = ROCALClassificationIterator(
+        pipe, display=display, device=device, device_id=args.local_rank)
 
     # Training loop
     cnt = 0
@@ -114,7 +124,7 @@ def main():
             data_loader.reset()
         else:
             for i, (image_batch, bboxes, labels) in enumerate(data_loader, 0):  # Detection
-                if i ==0 :
+                if i == 0:
                     if args.print_tensor:
                         sys.stdout.write("\r Mini-batch " + str(i))
                         print("Images", image_batch)
@@ -126,6 +136,7 @@ def main():
             data_loader.reset()
     print('Finished Training !!')
     print("##############################  CAFFE READER (CLASSIFCATION/ DETECTION)  SUCCESS  ############################")
+
 
 if __name__ == '__main__':
     main()

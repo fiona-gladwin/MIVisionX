@@ -42,7 +42,7 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
 
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
-        Labels labels_buf = input_meta_data->get_labels_batch()[i];        
+        Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords bb_coords;
         Labels bb_labels;
         if (input_meta_data->get_metadata_type() == MetaDataType::PolygonMask) {
@@ -52,8 +52,7 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
                 if (_mirror_val[i] == 1) {
                     mask_data_ptr[idx] = output_roi[i].x2 - (mask_data_ptr[idx] * _dst_to_src_width_ratio) - 1;
                     mask_data_ptr[idx + 1] = mask_data_ptr[idx + 1] * _dst_to_src_height_ratio;
-                }
-                else {
+                } else {
                     mask_data_ptr[idx] = mask_data_ptr[idx] * _dst_to_src_width_ratio;
                     mask_data_ptr[idx + 1] = mask_data_ptr[idx + 1] * _dst_to_src_height_ratio;
                 }

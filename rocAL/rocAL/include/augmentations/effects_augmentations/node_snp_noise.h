@@ -22,21 +22,23 @@ THE SOFTWARE.
 
 #pragma once
 
+#include "graph.h"
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"
-#include "graph.h"
 
 class SnPNoiseNode : public Node {
-public:
+   public:
     SnPNoiseNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SnPNoiseNode() = delete;
     void init(float noise_prob, float salt_prob, float salt_value, float pepper_value, int seed);
-    void init(FloatParam *noise_prob_param, FloatParam *salt_prob_param,  FloatParam *salt_value_param, FloatParam *pepper_value_param, int seed);
-protected:
+    void init(FloatParam *noise_prob_param, FloatParam *salt_prob_param, FloatParam *salt_value_param, FloatParam *pepper_value_param, int seed);
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     ParameterVX<float> _noise_prob, _salt_prob, _salt_value, _pepper_value;
     constexpr static float NOISE_PROB_RANGE[2] = {0.1, 1};
     constexpr static float SALT_PROB_RANGE[2] = {0.1, 1};

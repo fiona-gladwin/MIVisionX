@@ -21,16 +21,15 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include "node.h"
 #include "graph.h"
+#include "node.h"
 
-class CopyNode : public Node
-{
-public:
+class CopyNode : public Node {
+   public:
     CopyNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     CopyNode() = delete;
 
-protected:
+   protected:
     void create_node() override;
-    void update_node() override {};
+    void update_node() override{};
 };

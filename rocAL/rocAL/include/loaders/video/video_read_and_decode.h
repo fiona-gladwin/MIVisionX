@@ -22,37 +22,36 @@ THE SOFTWARE.
 
 #pragma once
 #include <dirent.h>
-#include <vector>
-#include <memory>
-#include <iterator>
-#include <cstring>
-#include <map>
-#include <tuple>
+
 #include <boost/filesystem.hpp>
+#include <cstring>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <tuple>
+#include <vector>
+
 #include "commons.h"
 #include "ffmpeg_video_decoder.h"
-#include "video_reader_factory.h"
-#include "timing_debug.h"
 #include "loader_module.h"
-#include "video_properties.h"
 #include "reader.h"
+#include "timing_debug.h"
+#include "video_properties.h"
 #include "video_reader.h"
+#include "video_reader_factory.h"
 #ifdef ROCAL_VIDEO
-extern "C"
-{
+extern "C" {
 #include <libavutil/pixdesc.h>
 }
 
-class VideoReadAndDecode
-{
-public:
+class VideoReadAndDecode {
+   public:
     VideoReadAndDecode();
     ~VideoReadAndDecode();
     size_t count();
     void reset();
     void create(ReaderConfig reader_config, DecoderConfig decoder_config, int batch_size);
-    void set_video_process_count(size_t video_count)
-    {
+    void set_video_process_count(size_t video_count) {
         _video_process_count = (video_count <= _max_video_count) ? video_count : _max_video_count;
     }
     float convert_framenum_to_timestamp(size_t frame_number);
@@ -83,9 +82,9 @@ public:
 
     //! returns timing info or other status information
     Timing timing();
-private:
-    struct video_map
-    {
+
+   private:
+    struct video_map {
         int _video_map_idx;
         bool _is_decoder_instance;
     };

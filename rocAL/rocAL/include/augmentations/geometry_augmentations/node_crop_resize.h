@@ -22,22 +22,24 @@ THE SOFTWARE.
 
 #pragma once
 #include "node_crop.h"
-#include "parameter_factory.h"
 #include "parameter_crop_factory.h"
+#include "parameter_factory.h"
 
 class CropResizeNode : public CropNode {
-public:
+   public:
     CropResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     CropResizeNode() = delete;
     void init(float area, float aspect_ratio, float x_center_drift, float y_center_drift);
-    void init(FloatParam* area, FloatParam *aspect_ratio, FloatParam * x_drift_factor, FloatParam * y_drift_factor);
+    void init(FloatParam *area, FloatParam *aspect_ratio, FloatParam *x_drift_factor, FloatParam *y_drift_factor);
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     std::shared_ptr<RocalRandomCropParam> get_crop_param() { return _crop_param; }
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     std::shared_ptr<RocalRandomCropParam> _crop_param;
     vx_array _dst_roi_width, _dst_roi_height;
 };

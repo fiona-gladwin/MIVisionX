@@ -28,13 +28,16 @@ import numpy as np
 from parse_config import parse_args
 import cupy as cp
 
+
 def draw_patches(img, idx, device_type):
     import cv2
     if device_type == "gpu":
-        img= cp.asnumpy(img)
-    image = img.transpose([0,1,2])
+        img = cp.asnumpy(img)
+    image = img.transpose([0, 1, 2])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/TF_READER/CLASSIFICATION/" + str(idx)+"_"+"train"+".png", image)
+    cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/TF_READER/CLASSIFICATION/" +
+                str(idx)+"_"+"train"+".png", image)
+
 
 def main():
     args = parse_args()
@@ -45,47 +48,50 @@ def main():
     batch_size = args.batch_size
     one_hot_labels = 1
     num_threads = args.num_threads
-    tf_record_reader_type  = 0
+    tf_record_reader_type = 0
     feature_key_map = {
-        'image/encoded':'image/encoded',
-        'image/class/label':'image/class/label',
-        'image/filename':'image/filename'
+        'image/encoded': 'image/encoded',
+        'image/class/label': 'image/class/label',
+        'image/filename': 'image/filename'
     }
     try:
-        path= "OUTPUT_IMAGES_PYTHON/NEW_API/TF_READER/CLASSIFICATION/"
+        path = "OUTPUT_IMAGES_PYTHON/NEW_API/TF_READER/CLASSIFICATION/"
         is_exist = os.path.exists(path)
         if not is_exist:
             os.makedirs(path)
     except OSError as error:
         print(error)
     # Create Pipeline instance
-    pipe = Pipeline(batch_size=batch_size, num_threads=num_threads,device_id=args.local_rank, seed=2, rocal_cpu=rocal_cpu)
+    pipe = Pipeline(batch_size=batch_size, num_threads=num_threads,
+                    device_id=args.local_rank, seed=2, rocal_cpu=rocal_cpu)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
-        inputs = fn.readers.tfrecord(path=image_path, index_path = "", reader_type=tf_record_reader_type , user_feature_key_map=feature_key_map,
-            features={
-                'image/encoded':tf.io.FixedLenFeature((), tf.string, ""),
-                'image/class/label':tf.io.FixedLenFeature([1], tf.int64,  -1),
-                'image/filename':tf.io.FixedLenFeature((), tf.string, "")
-            }
-        )
+        inputs = fn.readers.tfrecord(path=image_path, index_path="", reader_type=tf_record_reader_type, user_feature_key_map=feature_key_map,
+                                     features={
+                                         'image/encoded': tf.io.FixedLenFeature((), tf.string, ""),
+                                         'image/class/label': tf.io.FixedLenFeature([1], tf.int64,  -1),
+                                         'image/filename': tf.io.FixedLenFeature((), tf.string, "")
+                                     }
+                                     )
         jpegs = inputs["image/encoded"]
-        images = fn.decoders.image(jpegs, user_feature_key_map=feature_key_map, output_type=types.RGB, path=image_path)
+        images = fn.decoders.image(
+            jpegs, user_feature_key_map=feature_key_map, output_type=types.RGB, path=image_path)
         resized = fn.resize(images, resize_x=300, resize_y=300)
-        if(one_hot_labels == 1):
+        if (one_hot_labels == 1):
             labels = inputs["image/class/label"]
             _ = fn.one_hot(labels, num_classes=1000)
         pipe.set_outputs(resized)
     # Build the pipeline
     pipe.build()
     # Dataloader
-    image_iterator = ROCALIterator(pipe, device = device)
+    image_iterator = ROCALIterator(pipe, device=device)
     cnt = 0
     # Enumerate over the Dataloader
     for i, (images_array, labels_array) in enumerate(image_iterator, 0):
-        images_array = cp.transpose(images_array, (0, 2, 3, 1)) if device == "gpu" else np.transpose(images_array, [0, 2, 3, 1])
+        images_array = cp.transpose(images_array, (0, 2, 3, 1)) if device == "gpu" else np.transpose(
+            images_array, [0, 2, 3, 1])
         if args.print_tensor:
-            print("\n",i)
+            print("\n", i)
             print("lables_array", labels_array)
             print("\n\nPrinted first batch with", (batch_size), "images!")
         for element in list(range(batch_size)):
@@ -96,6 +102,7 @@ def main():
 
     print("###############################################    TF CLASSIFICATION    ###############################################")
     print("###############################################    SUCCESS              ###############################################")
+
 
 if __name__ == '__main__':
     main()
