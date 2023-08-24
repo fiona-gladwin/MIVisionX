@@ -97,7 +97,7 @@ struct ROI {
         return _roi_coords;
     }
 private:
-    unsigned *_roi_buf;
+    unsigned *_roi_buf = nullptr;
     std::shared_ptr<unsigned> _roi_ptr;
     unsigned _roi_no_of_dims = 0;
     unsigned _stride = 0;
