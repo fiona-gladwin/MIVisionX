@@ -38,7 +38,7 @@ public:
     virtual RocalTensorOutputType data_type() = 0;
     virtual size_t data_size() = 0;
     virtual RocalROICordsType roi_type() = 0;
-    virtual size_t get_roi_size() = 0;
+    virtual size_t get_roi_dims_size() = 0;
     virtual void copy_roi(void *roi_buffer) = 0;
     virtual std::vector<size_t> shape() = 0;
 };

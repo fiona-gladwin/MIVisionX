@@ -317,7 +317,7 @@ public:
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
     void set_roi(unsigned *roi_ptr) { _info.set_roi_ptr(roi_ptr); }
     void copy_roi(void *roi_buffer) override { _info.copy_roi(roi_buffer); }
-    size_t get_roi_size() override { return _info.roi().no_of_dims(); }
+    size_t get_roi_dims_size() override { return _info.roi().no_of_dims(); }
     vx_tensor get_roi_tensor() { return _vx_roi_handle; }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
