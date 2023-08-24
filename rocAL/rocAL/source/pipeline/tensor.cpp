@@ -240,7 +240,6 @@ Tensor::Tensor(const TensorInfo &tensor_info)
     : _info(tensor_info) {
     _info._type = TensorInfo::Type::UNKNOWN;
     _mem_handle = nullptr;
-    _roi_cords_batch.resize(tensor_info.batch_size());
 }
 
 int Tensor::create_virtual(vx_context context, vx_graph graph) {

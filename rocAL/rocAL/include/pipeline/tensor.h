@@ -63,7 +63,8 @@ vx_uint64 tensor_data_size(RocalTensorDataType data_type);
 void allocate_host_or_pinned_mem(void **ptr, size_t size, RocalMemType mem_type);
 
 struct ROI {
-    unsigned * get_ptr() { return _roi_ptr.get();  }
+    unsigned *get_ptr() { return _roi_ptr.get(); }
+    ROI2DCords* get_2D_roi() { return reinterpret_cast<ROI2DCords*>(_roi_ptr.get()); }
     void set_ptr(unsigned *ptr, RocalMemType mem_type, unsigned dims = 0) {
         if(!_dims) _dims = dims;
         _stride = _dims * 2;
@@ -315,7 +316,8 @@ public:
     void update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
     void set_roi(unsigned *roi_ptr) { _info.set_roi_ptr(roi_ptr); }
-    void copy_roi(void *roi_buffer) { _info.copy_roi(roi_buffer); }
+    void copy_roi(void *roi_buffer) override { _info.copy_roi(roi_buffer); }
+    size_t get_roi_size() override { return _info.roi().no_of_dims(); }
     vx_tensor get_roi_tensor() { return _vx_roi_handle; }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
@@ -336,24 +338,11 @@ public:
     RocalTensorBackend backend() override { 
         return (_info.mem_type() == RocalMemType::HOST ? ROCAL_CPU : ROCAL_GPU);
     }
-    RocalROI2DCords *get_roi_2D() override {
-        if(_info.roi().no_of_dims() != 2)
-            ERR("The tensor ROI is multidimensional not 2D")
-        return (RocalROI2DCords *)_info.roi().get_ptr();
-    }
-    std::vector<RocalROICords>& get_roi() override {
-        for (unsigned idx = 0; idx < _info.batch_size(); idx++) {
-            _roi_cords_batch[idx].begin = _info.roi()[idx].begin;
-            _roi_cords_batch[idx].end = _info.roi()[idx].shape;
-        }
-        return _roi_cords_batch; 
-    }
 private:
     vx_tensor _vx_handle = nullptr;  //!< The OpenVX tensor
     void* _mem_handle = nullptr;  //!< Pointer to the tensor's internal buffer (opencl or host)
     TensorInfo _info;  //!< The structure holding the info related to the stored OpenVX tensor
     vx_context _context = nullptr;
-    std::vector<RocalROICords> _roi_cords_batch;
     vx_tensor _vx_roi_handle = nullptr;  //!< The OpenVX tensor for ROI
 };
 

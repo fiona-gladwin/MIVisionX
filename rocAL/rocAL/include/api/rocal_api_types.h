@@ -182,13 +182,4 @@ enum class RocalROICordsType {
     ROCAL_XYWH = 1
 };
 
-typedef struct {
-    unsigned x1, y1, x2, y2;
-} RocalROI2DCords;
-
-typedef struct {
-    unsigned *begin;
-    unsigned *end;
-} RocalROICords;
-
 #endif //MIVISIONX_ROCAL_API_TYPES_H
