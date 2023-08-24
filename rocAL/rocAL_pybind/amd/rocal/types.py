@@ -18,6 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+##
+# @file types.py
+# @brief File containing various user defined types used in rocAL
+#
+# File containing various user defined types used in rocAL
 
 # RocalStatus
 from rocal_pybind.types import OK
@@ -142,17 +147,13 @@ _known_types = {
 }
 
 def data_type_function(dtype):
-    """
-    Converts a given data type identifier to its corresponding known type.
+    """!Converts a given data type identifier to its corresponding known type.
 
-    Args:
-        dtype: The data type identifier.
+        @param dtype    The data type identifier.
 
-    Returns:
-        Known type corresponding to the given data type identifier.
+        @return    Known type corresponding to the given data type identifier.
 
-    Raises:
-        RuntimeError: If the given data type identifier does not correspond to a known type.
+        @raise     RuntimeError: If the given data type identifier does not correspond to a known type.
     """
     if dtype in _known_types:
         ret = _known_types[dtype][0]

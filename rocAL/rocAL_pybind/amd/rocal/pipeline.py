@@ -18,6 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+##
+# @file pipeline.py
+# 
+# @brief File containing the Pipeline class containing the pybind API functions
+# File containing the Pipeline class containing the pybind API functions
+
 import rocal_pybind as b
 import amd.rocal.types as types
 import numpy as np
@@ -28,62 +34,20 @@ import inspect
 
 class Pipeline(object):
 
-    """Pipeline class internally calls RocalCreate which returns context which will have all
+    """!Pipeline class internally calls RocalCreate which returns context which will have all
     the info set by the user.
-
-    Parameters
-    ----------
-    `batch_size` : int, optional, default = -1
-        Batch size of the pipeline. Negative values for this parameter
-        are invalid - the default value may only be used with
-        serialized pipeline (the value stored in serialized pipeline
-        is used instead).
-    `num_threads` : int, optional, default = -1
-        Number of CPU threads used by the pipeline.
-        Negative values for this parameter are invalid - the default
-        value may only be used with serialized pipeline (the value
-        stored in serialized pipeline is used instead).
-    `device_id` : int, optional, default = -1
-        Id of GPU used by the pipeline.
-        Negative values for this parameter are invalid - the default
-        value may only be used with serialized pipeline (the value
-        stored in serialized pipeline is used instead).
-    `seed` : int, optional, default = -1
-        Seed used for random number generation. Leaving the default value
-        for this parameter results in random seed.
-    `exec_pipelined` : bool, optional, default = True
-        Whether to execute the pipeline in a way that enables
-        overlapping CPU and GPU computation, typically resulting
-        in faster execution speed, but larger memory consumption.
-    `prefetch_queue_depth` : int or {"cpu_size": int, "gpu_size": int}, optional, default = 2
-        Depth of the executor pipeline. Deeper pipeline makes ROCAL
-        more resistant to uneven execution time of each batch, but it
-        also consumes more memory for internal buffers.
-        Specifying a dict:
-        ``{ "cpu_size": x, "gpu_size": y }``
-        instead of an integer will cause the pipeline to use separated
-        queues executor, with buffer queue size `x` for cpu stage
-        and `y` for mixed and gpu stages. It is not supported when both `exec_async`
-        and `exec_pipelined` are set to `False`.
-        Executor will buffer cpu and gpu stages separatelly,
-        and will fill the buffer queues when the first :meth:`amd.rocal.pipeline.Pipeline.run`
-        is issued.
-    `exec_async` : bool, optional, default = True
-        Whether to execute the pipeline asynchronously.
-        This makes :meth:`amd.rocal.pipeline.Pipeline.run` method
-        run asynchronously with respect to the calling Python thread.
-    `bytes_per_sample` : int, optional, default = 0
-        A hint for ROCAL for how much memory to use for its tensors.
-    `set_affinity` : bool, optional, default = False
-        Whether to set CPU core affinity to the one closest to the
-        GPU being used.
-    `max_streams` : int, optional, default = -1
-        Limit the number of CUDA streams used by the executor.
-        Value of -1 does not impose a limit.
-        This parameter is currently unused (and behavior of
-        unrestricted number of streams is assumed).
-    `default_cuda_stream_priority` : int, optional, default = 0
-        CUDA stream priority used by ROCAL. See `cudaStreamCreateWithPriority` in CUDA documentation
+                                      
+    @param batch_size (int, optional, default = -1)                                                       Batch size of the pipeline. Negative values for this parameter are invalid - the default value may only be used with serialized pipeline (the value stored in serialized pipeline is used instead).
+    @param num_threads (int, optional, default = -1)                                                      Number of CPU threads used by the pipeline. Negative values for this parameter are invalid - the default value may only be used with serialized pipeline (the value stored in serialized pipeline is used instead).
+    @param device_id (int, optional, default = -1)                                                        Id of GPU used by the pipeline. Negative values for this parameter are invalid - the default value may only be used with serialized pipeline (the value stored in serialized pipeline is used instead).
+    @param seed (int, optional, default = -1)                                                             Seed used for random number generation. Leaving the default value for this parameter results in random seed.
+    @param exec_pipelined (bool, optional, default = True)                                                Whether to execute the pipeline in a way that enables overlapping CPU and GPU computation, typically resultingin faster execution speed, but larger memory consumption.
+    @param prefetch_queue_depth (int or {"cpu_size": int, "gpu_size": int}, optional, default = 2)        Depth of the executor pipeline. Deeper pipeline makes ROCAL more resistant to uneven execution time of each batch, but it also consumes more memory for internal buffers. Specifying a dict: ``{ "cpu_size": x, "gpu_size": y }`` instead of an integer will cause the pipeline to use separated queues executor, with buffer queue size `x` for cpu stage and `y` for mixed and gpu stages. It is not supported when both `exec_async` and `exec_pipelined` are set to `False`. Executor will buffer cpu and gpu stages separatelly, and will fill the buffer queues when the first :meth:`amd.rocal.pipeline.Pipeline.run` is issued.
+    @param exec_async (bool, optional, default = True)                                                    Whether to execute the pipeline asynchronously. his makes :meth:`amd.rocal.pipeline.Pipeline.run` method run asynchronously with respect to the calling Python thread.
+    @param bytes_per_sample  (int, optional, default = 0)                                                 A hint for ROCAL for how much memory to use for its tensors.
+    @param set_affinity (bool, optional, default = False)                                                 Whether to set CPU core affinity to the one closest to the GPU being used.
+    @param max_streams (int, optional, default = -1)                                                      Limit the number of CUDA streams used by the executor. Value of -1 does not impose a limit. This parameter is currently unused (and behavior of unrestricted number of streams is assumed).
+    @param default_cuda_stream_priority (int, optional, default = 0)                                      CUDA stream priority used by ROCAL. See `cudaStreamCreateWithPriority` in CUDA documentation
     """
     '''.
     Args: batch_size
@@ -151,7 +115,7 @@ class Pipeline(object):
         self.set_seed(self._seed)
 
     def build(self):
-        """Build the pipeline using rocalVerify call
+        """!Build the pipeline using rocalVerify call
         """
         status = b.rocalVerify(self._handle)
         if (status != types.OK):
@@ -160,13 +124,13 @@ class Pipeline(object):
         return self
 
     def rocal_run(self):
-        """ Run the pipeline using rocalRun call
+        """! Run the pipeline using rocalRun call
         """
         status = b.rocalRun(self._handle)
         return status
 
     def define_graph(self):
-        """This function is defined by the user to construct the
+        """!This function is defined by the user to construct the
         graph of operations for their pipeline.
         It returns a list of outputs created by calling ROCAL Operators."""
         print("define_graph is deprecated")
@@ -293,7 +257,7 @@ class Pipeline(object):
 
 
 def _discriminate_args(func, **func_kwargs):
-    """Split args on those applicable to Pipeline constructor and the decorated function."""
+    """!Split args on those applicable to Pipeline constructor and the decorated function."""
     func_argspec = inspect.getfullargspec(func)
     ctor_argspec = inspect.getfullargspec(Pipeline.__init__)
 
@@ -326,7 +290,7 @@ def _discriminate_args(func, **func_kwargs):
 
 
 def pipeline_def(fn=None, **pipeline_kwargs):
-    """
+    """!
     Decorator that converts a graph definition function into a rocAL pipeline factory.
 
     A graph definition function is a function that returns intended pipeline outputs.

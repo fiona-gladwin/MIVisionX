@@ -18,6 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+##
+# @file generic.py
+# 
+# @brief File containing iterators for generic use case
+# File containing iterators for generic use case
+
 import cupy as cp
 import numpy as np
 import rocal_pybind as b
@@ -25,6 +31,18 @@ import amd.rocal.types as types
 
 
 class ROCALGenericIterator(object):
+    """!Iterator for processing data
+
+        @param pipeline            The rocAL pipeline to use for processing data.
+        @param tensor_layout       The layout of the output tensors
+        @param reverse_channels    Whether to reverse the order of color channels.
+        @param multiplier          Multiplier values for color normalization.
+        @param offset              Offset values for color normalization.
+        @param tensor_dtype        Data type of the output tensors.
+        @param display             Whether to display images during processing
+        @param device              The device to use for processing
+        @param device_id           The ID of the device to use
+    """
     def __init__(self, pipeline, tensor_layout=types.NCHW, reverse_channels=False, multiplier=[1.0, 1.0, 1.0], offset=[0.0, 0.0, 0.0], tensor_dtype=types.FLOAT, display=False, device="cpu", device_id=0):
         self.loader = pipeline
         self.tensor_format = tensor_layout
@@ -116,8 +134,7 @@ class ROCALGenericIterator(object):
 
 
 class ROCALClassificationIterator(ROCALGenericIterator):
-    """
-    ROCAL iterator for classification tasks for generic images. It returns 2 outputs
+    """!ROCAL iterator for classification tasks for generic images. It returns 2 outputs
     (data and label) in the form of numpy/cupy Tensor.
 
     Calling
@@ -136,40 +153,15 @@ class ROCALClassificationIterator(ROCALGenericIterator):
     still owned by ROCAL. They are valid till the next iterator call.
     If the content needs to be preserved please copy it to another tensor.
 
-    Parameters
-    ----------
-    pipelines : list of amd.rocal.pipeline.Pipeline
-                List of pipelines to use
-    size : int
-           Number of samples in the epoch (Usually the size of the dataset).
-    auto_reset : bool, optional, default = False
-                 Whether the iterator resets itself for the next epoch
-                 or it requires reset() to be called separately.
-    fill_last_batch : bool, optional, default = True
-                 Whether to fill the last batch with data up to 'self.batch_size'.
-                 The iterator would return the first integer multiple
-                 of self._num_gpus * self.batch_size entries which exceeds 'size'.
-                 Setting this flag to False will cause the iterator to return
-                 exactly 'size' entries.
-    dynamic_shape: bool, optional, default = False
-                 Whether the shape of the output of the ROCAL pipeline can
-                 change during execution. If True, the numpy tensor will be resized accordingly
-                 if the shape of ROCAL returned tensors changes during execution.
-                 If False, the iterator will fail in case of change.
-    last_batch_padded : bool, optional, default = False
-                 Whether the last batch provided by ROCAL is padded with the last sample
-                 or it just wraps up. In the conjunction with `fill_last_batch` it tells
-                 if the iterator returning last batch with data only partially filled with
-                 data from the current epoch is dropping padding samples or samples from
-                 the next epoch. If set to False next epoch will end sooner as data from
-                 it was consumed but dropped. If set to True next epoch would be the
-                 same length as the first one.
-    display : bool, optional, default = False
-                 Whether the images should be saved as png files for display.
-    device : str, optional, default = "cpu"
-                 Whether to use CPU or GPU backend for the dataloader.
-    device_id : int, optional, default = 0
-                 Device ID of the GPU being used for the training loader.
+    @param pipelines(list of amd.rocal.pipeline.Pipeline)         List of pipelines to use
+    @param size (int)                                             Number of samples in the epoch (Usually the size of the dataset).
+    @param auto_reset (bool, optional, default = False)           Whether the iterator resets itself for the next epoch or it requires reset() to be called separately.
+    @param fill_last_batch (bool, optional, default = True        Whether to fill the last batch with data up to 'self.batch_size'. The iterator would return the first integer multiple of self._num_gpus * self.batch_size entries which exceeds 'size'. Setting this flag to False will cause the iterator to return exactly 'size' entries.
+    @param dynamic_shape (bool, optional, default = False)        Whether the shape of the output of the ROCAL pipeline can change during execution. If True, the numpy tensor will be resized accordingly if the shape of ROCAL returned tensors changes during execution. If False, the iterator will fail in case of change.
+    @param last_batch_padded (bool, optional, default = False)    Whether the last batch provided by ROCAL is padded with the last sample or it just wraps up. In the conjunction with `fill_last_batch` it tells if the iterator returning last batch with data only partially filled with data from the current epoch is dropping padding samples or samples from the next epoch. If set to False next epoch will end sooner as data from it was consumed but dropped. If set to True next epoch would be the same length as the first one.
+    @param display (bool, optional, default = False)              Whether the images should be saved as png files for display.
+    @param device (str, optional, default = "cpu")                Whether to use CPU or GPU backend for the dataloader.
+    @param device_id (int, optional, default = 0)                 Device ID of the GPU being used for the training loader.
 
     Example
     -------
@@ -197,6 +189,11 @@ class ROCALClassificationIterator(ROCALGenericIterator):
 
 def draw_patches(img, idx):
     # image is expected as an array
+    """!Draws patches on an image.
+
+        @param img    The input image as an array.
+        @param idx    Index used for naming the output file.
+    """
     import cv2
     img = img.cpu()
     image = img.detach().numpy()

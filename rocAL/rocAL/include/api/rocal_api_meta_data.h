@@ -24,6 +24,14 @@ THE SOFTWARE.
 #define MIVISIONX_ROCAL_API_META_DATA_H
 #include "rocal_api_types.h"
 
+/*!
+ * \file
+ * \brief The AMD rocAL Library - Meta Data
+ *
+ * \defgroup group_rocal_meta_data API: AMD rocAL - Meta Data API
+ * \brief The AMD rocAL meta data functions.
+ */
+
 /*! \brief creates label reader
  * \ingroup group_rocal_meta_data
  * \param [in] rocal_context rocal context

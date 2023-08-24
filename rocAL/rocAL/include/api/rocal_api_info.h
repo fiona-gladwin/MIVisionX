@@ -25,8 +25,16 @@ THE SOFTWARE.
 #include "rocal_api_types.h"
 
 /*!
+ * \file
+ * \brief The AMD rocAL Library - Info
+ *
+ * \defgroup group_rocal_info API: AMD rocAL - Info API
+ * \brief The AMD rocAL Informational functions.
+ */
+
+/*!
  * \brief Retrieves the width of the output from the RocalContext.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
  * \return The width of the output.
  */
@@ -34,7 +42,7 @@ extern "C" int ROCAL_API_CALL rocalGetOutputWidth(RocalContext rocal_context);
 
 /*!
  * \brief Retrieves the height of the output.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
  * \return The height of the output.
  */
@@ -42,7 +50,7 @@ extern "C" int ROCAL_API_CALL rocalGetOutputHeight(RocalContext rocal_context);
 
 /*!
  * \brief Retrieves the color format of the output.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext.
  * \return The color format of the output.
  */
@@ -50,7 +58,7 @@ extern "C" int ROCAL_API_CALL rocalGetOutputColorFormat(RocalContext rocal_conte
 
 /*!
  * \brief Retrieves the number of remaining images.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext.
  * \return The number of remaining images.
  */
@@ -59,7 +67,7 @@ extern "C" size_t ROCAL_API_CALL rocalGetRemainingImages(RocalContext rocal_cont
 
 /*!
  * \brief Retrieves the width of the image.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] image The RocalTensor data.
  * \return The width of the image.
  */
@@ -67,7 +75,7 @@ extern "C" size_t ROCAL_API_CALL rocalGetImageWidth(RocalTensor image);
 
 /*!
  * \brief Retrieves the height of the image.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] image The RocalTensor data.
  * \return The height of the image.
  */
@@ -75,7 +83,7 @@ extern "C" size_t ROCAL_API_CALL rocalGetImageHeight(RocalTensor image);
 
 /*!
  * \brief Retrieves the number of planes (channels) in the image.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] image The RocalTensor data.
  * \return The number of planes (channels) in the image.
  */
@@ -83,7 +91,7 @@ extern "C" size_t ROCAL_API_CALL rocalGetImagePlanes(RocalTensor image);
 
 /*!
  * \brief Checks if the RocalContext is empty.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
  * \return return if RocalContext is empty or not.
  */
@@ -91,7 +99,7 @@ extern "C" size_t ROCAL_API_CALL rocalIsEmpty(RocalContext rocal_context);
 
 /*!
  * \brief Retrieves the number of augmentation branches.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
  * \return The number of augmentation branches in the pipeline.
  */
@@ -99,7 +107,7 @@ extern "C" size_t ROCAL_API_CALL rocalGetAugmentationBranchCount(RocalContext ro
 
 /*!
  * \brief Retrieves the status.
-  * \ingroup group_rocal_api_info
+  * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext from which to retrieve the status.
  * \return The status of the RocalContext
  */
@@ -107,7 +115,7 @@ extern "C" RocalStatus ROCAL_API_CALL rocalGetStatus(RocalContext rocal_context)
 
 /*!
  * \brief Retrieves the error message.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
  * \return A pointer to the error message string.
  */
@@ -115,7 +123,7 @@ extern "C" const char* ROCAL_API_CALL rocalGetErrorMessage(RocalContext rocal_co
 
 /*!
  * \brief Retrieves timing information.
- * \ingroup group_rocal_api_info
+ * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
  * \return A TimingInfo struct containing timing data.
  */

@@ -33,8 +33,16 @@ THE SOFTWARE.
 #include "rocal_api_meta_data.h"
 #include "rocal_api_info.h"
 
+/*!
+ * \file
+ * \brief The AMD rocAL Library.
+ *
+ * \defgroup group_rocal API: AMD rocAL API
+ * \brief The AMD rocAL is designed to efficiently decode and process images and videos from a variety of storage formats and modify them through a processing graph programmable by the user.
+ */
+
 /*! \brief Creates the context for a new augmentation pipeline. Initializes all the required internals for the pipeline
- * \ingroup group_rocal_api
+ * \ingroup group_rocal
  * \param [in] batch_size batch size of the rocal context
  * \param [in] affinity affinity for the rocal context
  * \param [in] gpu_id GPU id associated with rocal context
@@ -47,21 +55,21 @@ extern "C" RocalContext ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProce
 // extern "C"  RocalContext  ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProcessMode affinity, int gpu_id = 0, size_t cpu_thread_count = 1);
 
 /*! \brief verifies the rocal context
- * \ingroup group_rocal_api
+ * \ingroup group_rocal
  * \param [in] context the rocal context
  * \return rocal status value
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalVerify(RocalContext context);
 
 /*! \brief executes the rocal context
- * \ingroup group_rocal_api
+ * \ingroup group_rocal
  * \param [in] context the rocal context
  * \return rocal status value
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalRun(RocalContext context);
 
 /*! \brief releases the rocal context
- * \ingroup group_rocal_api
+ * \ingroup group_rocal
  * \param [in] rocal_context the rocal context
  * \return rocal status value
  */

@@ -25,6 +25,14 @@ THE SOFTWARE.
 #include "rocal_api_types.h"
 
 /*!
+ * \file
+ * \brief The AMD rocAL Library - Data Transfer
+ *
+ * \defgroup group_rocal_data_transfer API: AMD rocAL - Data Transfer API
+ * \brief The AMD rocAL data transfer functions.
+ */
+
+/*!
  * \brief copies data to output buffer
  * \ingroup group_rocal_data_transfer
  * \param [in] context Rocal context

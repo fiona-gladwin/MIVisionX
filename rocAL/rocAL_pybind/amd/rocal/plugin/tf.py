@@ -18,12 +18,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+##
+# @file tf.py
+# @brief File containing iterators to be used with TF trainings
+# File containing iterators to be used with TF trainings
+
 import numpy as np
 import cupy as cp
 import rocal_pybind as b
 import amd.rocal.types as types
 
 class ROCALGenericImageIterator(object):
+    """!Generic iterator for rocAL pipelines that process images
+
+        @param pipeline: The rocAL pipeline to use for processing data.
+    """
     def __init__(self, pipeline):
         self.loader = pipeline
         self.output_list = None
@@ -63,6 +72,17 @@ class ROCALGenericImageIterator(object):
 
 
 class ROCALGenericIteratorDetection(object):
+    """!Iterator for processing data
+
+        @param pipeline            The rocAL pipeline to use for processing data.
+        @param tensor_layout       The layout of the output tensors
+        @param reverse_channels    Whether to reverse the order of color channels.
+        @param multiplier          Multiplier values for color normalization.
+        @param offset              Offset values for color normalization.
+        @param tensor_dtype        Data type of the output tensors.
+        @param device              The device to use for processing
+        @param device_id           The ID of the device to use
+    """
     def __init__(self, pipeline, tensor_layout=types.NCHW, reverse_channels=False, multiplier=None, offset=None, tensor_dtype=types.FLOAT, device=None, device_id=0):
         self.loader = pipeline
         self.tensor_format = tensor_layout
@@ -187,8 +207,7 @@ class ROCALGenericIteratorDetection(object):
 
 
 class ROCALIterator(ROCALGenericIteratorDetection):
-    """
-    ROCAL iterator for detection and classification tasks for PyTorch. It returns 2 or 3 outputs
+    """!ROCAL iterator for detection and classification tasks for PyTorch. It returns 2 or 3 outputs
     (data and label) or (data , bbox , labels) in the form of PyTorch's Tensor.
     Calling
     .. code-block:: python
@@ -196,6 +215,13 @@ class ROCALIterator(ROCALGenericIteratorDetection):
     is equivalent to calling
     .. code-block:: python
        ROCALGenericIteratorDetection(pipelines, ["data", "label"], size)
+    
+        @param pipelines            The rocAL pipelines to use for processing data.
+        @param size                 The size of the iterator.
+        @param auto_reset           Whether to automatically reset the iterator after an epoch.
+        @param fill_last_batch      Whether to fill the last batch with repeated data to match the batch size.
+        @param dynamic_shape        Whether the iterator supports dynamic shapes.
+        @param last_batch_padded    Whether the last batch should be padded to match the batch size.
 
 
     """
@@ -215,10 +241,14 @@ class ROCALIterator(ROCALGenericIteratorDetection):
 
 
 class ROCAL_iterator(ROCALGenericImageIterator):
-    """
-    ROCAL iterator for classification tasks for PyTorch. It returns 2 outputs
-    (data and label) in the form of PyTorch's Tensor.
+    """! ROCAL iterator for classification tasks for PyTorch. It returns 2 outputs (data and label) in the form of PyTorch's Tensor.
 
+        @param pipelines            The rocAL pipelines to use for processing data.
+        @param size                 The size of the iterator.
+        @param auto_reset           Whether to automatically reset the iterator after an epoch.
+        @param fill_last_batch      Whether to fill the last batch with repeated data to match the batch size.
+        @param dynamic_shape        Whether the iterator supports dynamic shapes.
+        @param last_batch_padded    Whether the last batch should be padded to match the batch size.
     """
 
     def __init__(self,

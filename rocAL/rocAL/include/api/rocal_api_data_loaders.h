@@ -24,6 +24,14 @@ THE SOFTWARE.
 #define MIVISIONX_ROCAL_API_DATA_LOADERS_H
 #include "rocal_api_types.h"
 
+/*!
+ * \file
+ * \brief The AMD rocAL Library - Data Loaders
+ *
+ * \defgroup group_rocal_data_loaders API: AMD rocAL - Data Loaders API
+ * \brief The AMD rocAL data loader functions.
+ */
+
 /*! \brief Creates JPEG image reader and decoder. It allocates the resources and objects required to read and decode Jpeg images stored on the file systems. It has internal sharding capability to load/decode in parallel is user wants. If images are not Jpeg compressed they will be ignored.
  * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context

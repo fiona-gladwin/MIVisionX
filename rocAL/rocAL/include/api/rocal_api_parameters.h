@@ -24,6 +24,14 @@ THE SOFTWARE.
 #define MIVISIONX_ROCAL_API_PARAMETERS_H
 #include "rocal_api_types.h"
 
+/*!
+ * \file
+ * \brief The AMD rocAL Library - Parameters
+ *
+ * \defgroup group_rocal_parameters API: AMD rocAL - Parameter API
+ * \brief The AMD rocAL Parameters.
+ */
+
 /*! \brief set seed for random number generation
  * \ingroup group_rocal_parameters
  * \param [in] seed seed for the random number generation
