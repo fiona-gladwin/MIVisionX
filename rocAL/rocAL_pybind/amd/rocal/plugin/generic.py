@@ -22,7 +22,6 @@
 # @file generic.py
 # 
 # @brief File containing iterators for generic use case
-# File containing iterators for generic use case
 
 import cupy as cp
 import numpy as np
@@ -134,7 +133,7 @@ class ROCALGenericIterator(object):
 
 
 class ROCALClassificationIterator(ROCALGenericIterator):
-    """!ROCAL iterator for classification tasks for generic images. It returns 2 outputs
+    """!ROCAL iterator for classification tasks for generic use case. It returns 2 outputs
     (data and label) in the form of numpy/cupy Tensor.
 
     Calling
@@ -189,7 +188,7 @@ class ROCALClassificationIterator(ROCALGenericIterator):
 
 def draw_patches(img, idx):
     # image is expected as an array
-    """!Draws patches on an image.
+    """!Writes images to disk as a PNG file.
 
         @param img    The input image as an array.
         @param idx    Index used for naming the output file.

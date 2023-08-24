@@ -21,7 +21,6 @@
 ##
 # @file tf.py
 # @brief File containing iterators to be used with TF trainings
-# File containing iterators to be used with TF trainings
 
 import numpy as np
 import cupy as cp
@@ -207,8 +206,8 @@ class ROCALGenericIteratorDetection(object):
 
 
 class ROCALIterator(ROCALGenericIteratorDetection):
-    """!ROCAL iterator for detection and classification tasks for PyTorch. It returns 2 or 3 outputs
-    (data and label) or (data , bbox , labels) in the form of PyTorch's Tensor.
+    """!ROCAL iterator for detection and classification tasks for TF reader. It returns 2 or 3 outputs
+    (data and label) or (data , bbox , labels) in the form of numpy or cupy arrays.
     Calling
     .. code-block:: python
        ROCALIterator(pipelines, size)
@@ -241,7 +240,7 @@ class ROCALIterator(ROCALGenericIteratorDetection):
 
 
 class ROCAL_iterator(ROCALGenericImageIterator):
-    """! ROCAL iterator for classification tasks for PyTorch. It returns 2 outputs (data and label) in the form of PyTorch's Tensor.
+    """! ROCAL iterator for processing images for TF reader. It returns outputs in the form of numpy or cupy arrays.
 
         @param pipelines            The rocAL pipelines to use for processing data.
         @param size                 The size of the iterator.

@@ -22,7 +22,6 @@
 # @file pipeline.py
 # 
 # @brief File containing the Pipeline class containing the pybind API functions
-# File containing the Pipeline class containing the pybind API functions
 
 import rocal_pybind as b
 import amd.rocal.types as types
@@ -45,9 +44,15 @@ class Pipeline(object):
     @param prefetch_queue_depth (int or {"cpu_size": int, "gpu_size": int}, optional, default = 2)        Depth of the executor pipeline. Deeper pipeline makes ROCAL more resistant to uneven execution time of each batch, but it also consumes more memory for internal buffers. Specifying a dict: ``{ "cpu_size": x, "gpu_size": y }`` instead of an integer will cause the pipeline to use separated queues executor, with buffer queue size `x` for cpu stage and `y` for mixed and gpu stages. It is not supported when both `exec_async` and `exec_pipelined` are set to `False`. Executor will buffer cpu and gpu stages separatelly, and will fill the buffer queues when the first :meth:`amd.rocal.pipeline.Pipeline.run` is issued.
     @param exec_async (bool, optional, default = True)                                                    Whether to execute the pipeline asynchronously. his makes :meth:`amd.rocal.pipeline.Pipeline.run` method run asynchronously with respect to the calling Python thread.
     @param bytes_per_sample  (int, optional, default = 0)                                                 A hint for ROCAL for how much memory to use for its tensors.
-    @param set_affinity (bool, optional, default = False)                                                 Whether to set CPU core affinity to the one closest to the GPU being used.
-    @param max_streams (int, optional, default = -1)                                                      Limit the number of CUDA streams used by the executor. Value of -1 does not impose a limit. This parameter is currently unused (and behavior of unrestricted number of streams is assumed).
-    @param default_cuda_stream_priority (int, optional, default = 0)                                      CUDA stream priority used by ROCAL. See `cudaStreamCreateWithPriority` in CUDA documentation
+    @param rocal_cpu (bool, optional, default = False)                                                    Whether to use CPU or GPU for the pipeline
+    @param max_streams (int, optional, default = -1)                                                      Limit the number of HIP streams used by the executor. Value of -1 does not impose a limit. This parameter is currently unused (and behavior of unrestricted number of streams is assumed).
+    @param default_cuda_stream_priority (int, optional, default = 0)                                      HIP stream priority used by ROCAL. See `cudaStreamCreateWithPriority` in HIP documentation
+    @param tensor_layout (int, optional, default = 0)                                                     Tensor layout used for the augmentations
+    @param reverse_channels (int, optional, default = 0)                                                  Whether to reverse channels for the output tensors
+    @param mean (int, optional, default = 0)                                                              Mean value used for the image normalization
+    @param std (int, optional, default = 0)                                                               Standard deviation value used for the image normalization
+    @param tensor_dtype (int, optional, default = 0)                                                      Tensor datatype used for the pipeline
+    @param output_memory_type (int, optional, default = 0)                                                Output memory type used for the output tensors
     """
     '''.
     Args: batch_size
@@ -243,7 +248,7 @@ class Pipeline(object):
 
     def run(self):
         """
-        It rises StopIteration if data set reached its end.
+        It raises StopIteration if data set reached its end.
         return:
         :return:
         A list of `rocalTensorList` objects for respective pipeline outputs.

@@ -22,7 +22,6 @@
 # @file fn.py
 #
 # @brief File containing augmentation functions used in multiple trainings
-# File containing augmentation functions used in multiple trainings
 
 from amd.rocal import readers
 from amd.rocal import decoders
@@ -39,8 +38,9 @@ def blend(*inputs, ratio=None, device=None, output_layout=types.NHWC, output_dty
 
         @param inputs                                                                 list containing the input images
         @param ratio (float, optional, default = None)                                ratio used for blending one image with another
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    blended image
     """
@@ -59,8 +59,9 @@ def snow(*inputs, snow=0.5, device=None, output_layout=types.NHWC, output_dtype=
 
         @param inputs                                                                 the input image passed to the augmentation
         @param snow (float, default = 0.5)                                            snow fill value used for the augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with snow effect
     """
@@ -78,8 +79,9 @@ def exposure(*inputs, exposure=0.5, device=None, output_layout=types.NHWC, outpu
 
         @param inputs                                                                 the input image passed to the augmentation
         @param exposure (float, default = 0.5)                                        exposure fill value used for the augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with adjusted exposure
     """
@@ -98,8 +100,9 @@ def fish_eye(*inputs, device=None, fill_value=0.0, output_layout=types.NHWC, out
 
         @param inputs                                                                 the input image passed to the augmentation
         @param fill_value (float, optional, default = 0.0)                            Value to fill areas outside image.
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with fish eye effect
     """
@@ -116,8 +119,9 @@ def fog(*inputs, fog=0.5, device=None, output_layout=types.NHWC, output_dtype=ty
 
         @param inputs                                                                 the input image passed to the augmentation
         @param fog (float, default = 0.5)                                             fog fill value used for the augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with fog effect
     """
@@ -136,8 +140,9 @@ def brightness(*inputs, brightness=None, brightness_shift=None, device=None, out
         @param inputs                                                                 the input image passed to the augmentation
         @param brightness (float, optional, default = None):                          brightness multiplier. Values >= 0 are accepted. For example: 0 - black image, 1 - no change, 2 - increase brightness twice
         @param brightness_shift (float, optional, default = None)                     brightness shift
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with Adjusted Brightness
     """
@@ -161,8 +166,9 @@ def brightness_fixed(*inputs, brightness=1.0, brightness_shift=0.0, device=None,
         @param inputs                                                                 the input image passed to the augmentation
         @param brightness (float, optional, default = 1.0)                            brightness multiplier. Values >= 0 are accepted. For example: 0 - black image, 1 - no change, 2 - increase brightness twice
         @param brightness_shift (float, optional, default = 0.0)                      brightness shift
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with adjusted brightness
     """
@@ -180,8 +186,8 @@ def lens_correction(*inputs, strength=None, zoom=None, device=None, output_layou
         @para inputs                                                                 the input image passed to the augmentation
         @para strength (float, optional, default = None)                             strength value used for the augmentation
         @para zoom (float, optional, default = None)                                 zoom value used for the augmentation
-        @para rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @para rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @para output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @para output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return  Image with lens correction effect
     """
@@ -203,8 +209,9 @@ def blur(*inputs, window_size=None, sigma=0.0, device=None, output_layout=types.
         @param inputs                                                                 the input image passed to the augmentation
         @param window_size (int, default = None)                                      kernel size used for the filter
         @param sigma (float, default = 0.0)                                           sigma value for blur effect
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with Blur effect
     """
@@ -224,8 +231,9 @@ def contrast(*inputs, contrast=None, contrast_center=None, device=None, output_l
         @param inputs: the input image passed to the augmentation
         @param contrast (float, optional, default = None)                             contrast multiplier used for the augmentation. Values >= 0 are accepted. For example: 0 - gray image, 1 - no change, 2 - increase contrast twice
         @param contrast_center (float, optional, default = None)                      intensity value unaffected by the augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with adjusted contrast
     """
@@ -246,10 +254,11 @@ def flip(*inputs, horizontal=0, vertical=0, device=None, output_layout=types.NHW
     """!Flip images horizontally and/or vertically based on inputs.
 
         @param inputs                                                                 the input image passed to the augmentation
-        @param horizontal (int, optional, default = 0)                                flip the horizontal dimensions
+        @param horizontal (int, optional, default = 0)                                flip the horizontal dimension
         @param vertical (int, optional, default = 0)                                  flip the vertical dimension
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Flipped Image
     """
@@ -271,8 +280,9 @@ def gamma_correction(*inputs, gamma=0.5, device=None, output_layout=types.NHWC, 
 
         @param inputs                                                                 the input image passed to the augmentation
         @param gamma (float, default = 0.5)                                           gamma correction value used for the augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return Image with Gamma Correction
     """
@@ -292,8 +302,9 @@ def hue(*inputs, hue=None, device=None, seed=0, output_layout=types.NHWC, output
         @param inputs                                                                 the input image passed to the augmentation
         @param hue (float, default = None)                                            hue change in degrees
         @param seed (int, optional, default = 0)                                      seed used for randomization in the augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with Hue effect
     """
@@ -313,8 +324,9 @@ def jitter(*inputs, kernel_size=None, seed=0, fill_value=0.0, device=None, outpu
         @param kernel_size (int, optional, default = None)                            kernel size used for the augmentation
         @param seed (int, optional, default = 0)                                      seed used for randomization in the augmentation
         @param fill_value (float, optional, default = 0.0)                            Value to fill areas outside image.
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with Jitter effect
     """
@@ -332,8 +344,9 @@ def pixelate(*inputs, device=None, output_layout=types.NHWC, output_dtype=types.
     """!Applies pixelate effect on images
 
         @param inputs                                                                 the input image passed to the augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Images with pixelate effect
     """
@@ -348,6 +361,15 @@ def pixelate(*inputs, device=None, output_layout=types.NHWC, output_dtype=types.
 def rain(*inputs, rain=None, rain_width=None, rain_height=None, rain_transparency=None,
          device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """!Applies Rain effect on images
+
+        @param inputs                                                                 the input image passed to the augmentation
+        @param rain (float, optional, default = None)                                 rain fill value used for the augmentation
+        @param rain_width (int, optional, default = None)                             width of the rain pixels for the augmentation
+        @param rain_height (int, optional, default = None)                            height of the rain pixels for the augmentation
+        @param rain_transparency (float, optional, default = None)                    transparency value used for the augmentation
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC):                   tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @param inputs                                                                 the input image passed to the augmentation
         @param rain (float, optional, default = None)                                 rain fill value used for the augmentation
@@ -388,6 +410,19 @@ def resize(*inputs, max_size=[], resize_longer=0, resize_shorter=0, resize_width
         @param scaling_mode (int, optional, default = types.SCALING_MODE_DEFAULT)          resize scaling mode.
         @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
         @param antialias (bool, optional, default = True)                                  If True, use antialiasing for resizing
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                         tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                         tensor dtype for the augmentation output
+
+        @param inputs                                                                      the input image passed to the augmentation
+        @param max_size (int or list of int, optional, default = [])                       Maximum size of the longer dimension when resizing with resize_shorter. When set with resize_shorter, the shortest dimension will be resized to resize_shorter if the longest dimension is smaller or equal to max_size. If not, the shortest dimension is resized to satisfy the constraint longest_dim == max_size. Can be also an array of size 2, where the two elements are maximum size per dimension (H, W). Example: Original image = 400x1200. Resized with: resize_shorter = 200 (max_size not set) => 200x600 resize_shorter = 200, max_size =  400 => 132x400 resize_shorter = 200, max_size = 1000 => 200x600
+        @param resize_longer (int, optional, default = 0)                                  The length of the longer dimension of the resized image. This option is mutually exclusive with resize_shorter,`resize_x` and resize_y. The op will keep the aspect ratio of the original image.
+        @param resize_shorter (int, optional, default = 0)                                 The length of the shorter dimension of the resized image. This option is mutually exclusive with resize_longer, resize_x and resize_y. The op will keep the aspect ratio of the original image. The longer dimension can be bounded by setting the max_size argument. See max_size argument doc for more info.
+        @param resize_width (int, optional, default = 0)                                   The length of the X dimension of the resized image. This option is mutually exclusive with resize_shorter. If the resize_y is left at 0, then the op will keep the aspect ratio of the original image.
+        @param resize_height (int, optional, default = 0)                                  The length of the Y dimension of the resized image. This option is mutually exclusive with resize_shorter. If the resize_x is left at 0, then the op will keep the aspect ratio of the original image.
+        @param scaling_mode (int, optional, default = types.SCALING_MODE_DEFAULT)          resize scaling mode.
+        @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
+        @param antialias (bool, optional, default = True)                                  If True, use antialiasing for resizing
         @param rocal_tensor_output_layout (int, optional, default = types.NHWC)            tensor layout for the augmentation output
         @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)         tensor dtype for the augmentation output
 
@@ -417,8 +452,9 @@ def resize_crop_mirror(*inputs, resize_width=0, resize_height=0, crop_w=0, crop_
         @param resize_shorter (int, optional, default = 0)                                 Parameter unused for augmentation
         @param scaling_mode (int, optional, default = types.SCALING_MODE_DEFAULT)          Parameter unused for augmentation
         @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Parameter unused for augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)            tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)         tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                         tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                         tensor dtype for the augmentation output
 
         @return    Resized crop mirror Image
     """
@@ -453,8 +489,9 @@ def resize_crop(*inputs, resize_width=0, resize_height=0, crop_area_factor=None,
         @param resize_shorter (int, optional, default = 0)                                 The length of the shorter dimension of the resized image. This option is mutually exclusive with resize_longer, resize_x and resize_y. The op will keep the aspect ratio of the original image. The longer dimension can be bounded by setting the max_size argument. See max_size argument doc for more info.
         @param scaling_mode (int, optional, default = types.SCALING_MODE_DEFAULT)          resize scaling mode.
         @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)            tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)         tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                         tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                         tensor dtype for the augmentation output
 
         @return    Resized and cropped Image
     """
@@ -494,10 +531,11 @@ def resize_mirror_normalize(*inputs, max_size=[], resize_longer=0, resize_shorte
         @param scaling_mode (int, optional, default = types.SCALING_MODE_DEFAULT)          resize scaling mode.
         @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
         @param mean (list of floats, optional, default = [0.0])                            mean used for normalization
-        std (list of floats, optional, default = [1.0])                                    standard deviation used for normalization
+        @param std (list of floats, optional, default = [1.0])                             standard deviation used for normalization
         @param mirror (int, optional, default = 1)                                         flag for the horizontal flip.
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)            tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)         tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                         tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                         tensor dtype for the augmentation output
 
         @return    Transformed Image
     """
@@ -521,8 +559,8 @@ def random_crop(*inputs, crop_area_factor=[0.08, 1], crop_aspect_ratio=[0.75, 1.
                 all_boxes_above_threshold=True, allow_no_crop=True, ltrb=True, output_layout=types.NHWC, output_dtype=types.UINT8):
     """!Crops images randomly.
 
-        inputs: the input image passed to the augmentation
-        @param crop_area_factor (list of floats, optional, default = [0.08, 1])                   area factor used for crop generation
+        @param inputs: the input image passed to the augmentation
+        @param crop_area_factor (list of floats, optional, default = [0.08, 1])            area factor used for crop generation
         @param crop_aspect_ratio (list of floats, optional, default = [0.75, 1.333333])    valid range of aspect ratio of the cropping windows
         @param crop_pox_x (int, optional, default = 0)                                     crop_x position used for crop generation
         @param crop_pox_y (int, optional, default = 0)                                     crop_y position used for crop generation
@@ -530,8 +568,9 @@ def random_crop(*inputs, crop_area_factor=[0.08, 1], crop_aspect_ratio=[0.75, 1.
         @param all_boxes_above_threshold (bool, optional, default = True)                  Parameter unused for augmentation
         @param allow_no_crop (bool, optional, default = True)                              Parameter unused for augmentation
         @param ltrb (bool, optional, default = True)                                       Parameter unused for augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)            tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)         tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                         tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                         tensor dtype for the augmentation output
 
         @return    cropped Image
     """
@@ -546,6 +585,16 @@ def random_crop(*inputs, crop_area_factor=[0.08, 1], crop_aspect_ratio=[0.75, 1.
 def rotate(*inputs, angle=None, dest_width=0, dest_height=0, interpolation_type=types.LINEAR_INTERPOLATION,
            device=None, fill_value=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """!Rotates images
+
+        @param inputs                                                                      the input image passed to the augmentation
+        @param angle (float, optional, default = None)                                     angle used for rotating the image
+        @param dest_width (int, optional, default = 0)                                     The length of the X dimension of the rotated image
+        @param dest_height (int, optional, default = 0)                                    The length of the Y dimension of the rotated image
+        @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
+        @param fill_value (float, optional, default = 0.0)                                 Parameter unused for augmentation
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                         tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                         tensor dtype for the augmentation output
 
         @param inputs                                                                      the input image passed to the augmentation
         @param angle (float, optional, default = None)                                     angle used for rotating the image
@@ -573,8 +622,9 @@ def saturation(*inputs, saturation=1.0, device=None, output_layout=types.NHWC, o
 
         @param inputs                                                                 the input image passed to the augmentation
         @param saturation (float, default = 1.0)                                      The saturation change factor. Values must be non-negative. Example values: 0 - Completely desaturated image, 1 - No change to image's saturation.
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Image with Saturation effect
     """
@@ -597,14 +647,15 @@ def ssd_random_crop(*inputs, p_threshold=None, crop_area_factor=None, crop_aspec
         @param p_threshold (float, optional, default = None)                          threshold value used for selecting bboxes during crop generation
         @param crop_area_factor (float, optional, default = None)                     area factor used for crop generation
         @param crop_aspect_ratio (float, optional, default = None)                    aspect ratio of the cropping windows
-        @pram crop_pox_x (float, optional, default = None)                            crop_x position used for crop generation
+        @param crop_pox_x (float, optional, default = None)                            crop_x position used for crop generation
         @param crop_pox_y (float, optional, default = None)                           crop_y position used for crop generation
         @param num_attempts (int, optional, default = 1)                              number of attempts to get a crop window that matches the area factor and aspect ratio conditions
         @param all_boxes_above_threshold (bool, optional, default = True)             Parameter unused for augmentation
         @param allow_no_crop (bool, optional, default = True)                         Parameter unused for augmentation
         @param ltrb (bool, optional, default = True)                                  Parameter unused for augmentation
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Randomly Cropped images for SSD training
     """
@@ -640,6 +691,15 @@ def warp_affine(*inputs, dest_width=0, dest_height=0, matrix=[0, 0, 0, 0, 0, 0],
         @param matrix (list of ints, optional, default = [0, 0, 0, 0, 0, 0])               Transformation matrix used to produce a new image
         @param dest_height (int, optional, default = 0)                                    The length of the Y dimension of the transformed image
         @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                         tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                         tensor dtype for the augmentation output
+
+        @param inputs                                                                      the input image passed to the augmentation
+        @param dest_width (int, optional, default = 0)                                     The length of the X dimension of the transformed image
+        @param matrix (list of ints, optional, default = [0, 0, 0, 0, 0, 0])               Transformation matrix used to produce a new image
+        @param dest_height (int, optional, default = 0)                                    The length of the Y dimension of the transformed image
+        @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
         @param rocal_tensor_output_layout (int, optional, default = types.NHWC)            tensor layout for the augmentation output
         @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)         tensor dtype for the augmentation output
 
@@ -659,8 +719,9 @@ def vignette(*inputs, vignette=0.5, device=None, output_layout=types.NHWC, outpu
 
         @param inputs                                                                 the input image passed to the augmentation
         @param vignette (float, default = 0.5)                                        vignette value used for the augmentation output
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Images with Vignette effect
     """
@@ -687,8 +748,9 @@ def crop_mirror_normalize(*inputs, crop=[0, 0], crop_pos_x=0.5, crop_pos_y=0.5,
         @param mean (list of floats, optional, default = [0.0])                       mean used for normalization
         @param std (list of floats, optional, default = [1.0])                        standard deviation used for normalization
         @param mirror (int, optional, default = 1)                                    flag for the horizontal flip.
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Transformed Images after perform crop , normalize and flip operations
     """
@@ -719,6 +781,15 @@ def crop_mirror_normalize(*inputs, crop=[0, 0], crop_pos_x=0.5, crop_pos_y=0.5,
 def center_crop(*inputs, crop=[0, 0], crop_h=0, crop_w=0, crop_d=1,
                 device=None, output_layout=types.NHWC, output_dtype=types.UINT8):
     """!Crops images at the center
+
+        @param inputs                                                                 the input image passed to the augmentation
+        @param crop (list of ints, optional, default = [0, 0])                        list containing the crop dimensions of the cropped image
+        @param crop_h (int, optional, default = 0)                                    crop height
+        @param crop_w (int, optional, default = 0)                                    crop width
+        @param crop_d (int, optional, default = 0)                                    crop depth
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @param inputs                                                                 the input image passed to the augmentation
         @param crop (list of ints, optional, default = [0, 0])                        list containing the crop dimensions of the cropped image
@@ -764,8 +835,8 @@ def crop(*inputs, crop=[0, 0], crop_pos_x=0.5, crop_pos_y=0.5, crop_pos_z=0.5,
         @param crop_w (int, optional, default = 0)                                    crop width
         @param crop_h (int, optional, default = 0)                                    crop height
         @param crop_d (int, optional, default = 1)                                    crop depth
-        @pram rocal_tensor_output_layout (int, optional, default = types.NHWC)        tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @pram output_layout (int, optional, default = types.NHWC)                     tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Cropped Images
     """
@@ -806,8 +877,9 @@ def color_twist(*inputs, brightness=1.0, contrast=1.0, hue=0.0,
         @param contrast (float, optional, default = 1.0)                               contrast multiplier used for the augmentation. Values >= 0 are accepted. For example: 0 - gray image, 1 - no change, 2 - increase contrast twice
         @param hue (float, optional, default = 0.0)                                    hue change in degrees
         @param saturation (float, optional, default = 1.0)                             The saturation change factor. Values must be non-negative. Example values: 0 - Completely desaturated image, 1 - No change to image's saturation.
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)        tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8):    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                     tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8):                    tensor dtype for the augmentation output
 
         @return    Images with Adjusted Brightness, Hue and Saturation
     """
@@ -903,6 +975,7 @@ def box_encoder(*inputs, anchors, criteria=0.5, means=None,
         @param offset (bool, optional)             Returns normalized offsets ((encoded_bboxes * scale - anchors * scale) - mean) / stds in Encoded bboxes that use std and the mean and scale arguments. Default is False.
         @param scale (float, optional)             Rescales the box and anchor values before the offset is calculated (for example, to return to the absolute values). Default is 1.0.
         @param stds (list of float, optional)      Parameter unused for augmentation
+        
         @return    encoded bounding boxes.
     """
     means = means if means else [0.0, 0.0, 0.0, 0.0]
@@ -922,8 +995,9 @@ def color_temp(*inputs, adjustment_value=50, device=None, output_layout=types.NH
 
         @param inputs                                                                 the input image passed to the augmentation
         @param adjustment_value (int, default = 50)                                   value for adjusting the color temperature
-        @param rocal_tensor_output_layout (int, optional, default = types.NHWC)       tensor layout for the augmentation output
-        @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)    tensor dtype for the augmentation output
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                    tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                    tensor dtype for the augmentation output
 
         @return    Images with Adjusted Color temperature
     """
@@ -975,8 +1049,9 @@ def snp_noise(*inputs, p_noise=0.0, p_salt=0.0, noise_val=0.0, salt_val=0.0,
         @param noise_val (float, optional)                     Noise value to be added to the image. Default is 0.0.
         @param salt_val (float, optional)                      Salt value to be added to the image. Default is 0.0.
         @param seed (int, optional)                            Random seed. Default is 0.
-        @param rocal_tensor_output_layout (int, optional)      Tensor layout for the augmentation output. Default is types.NHWC.
-        @param rocal_tensor_output_datatype (int, optional)    Tensor dtype for the augmentation output. Default is types.UINT8.
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional)      Tensor layout for the augmentation output. Default is types.NHWC.
+        @param output_dtype (int, optional)    Tensor dtype for the augmentation output. Default is types.UINT8.
 
         @return    images with salt-and-pepper noise added.
     """

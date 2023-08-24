@@ -22,7 +22,6 @@
 # @file decoders.py
 #
 # @brief  File containing various decoder implementations for various readers
-# File containing various decoder implementations for various readers
 
 import amd.rocal.types as types
 import rocal_pybind as b
@@ -158,7 +157,7 @@ def image(*inputs, user_feature_key_map=None, path='', file_root='', annotations
 
 
 def image_raw(*inputs, user_feature_key_map=None, path='', random_shuffle=False, output_type=types.RGB, max_decoded_width=1000, max_decoded_height=1000):
-    """!Decodes raw images using different readers and decoders.
+    """!Decodes raw images for TF reader and decoder.
 
         @param inputs                  list of input images.
         @param user_feature_key_map    User-provided feature key mapping.
@@ -307,7 +306,7 @@ def image_random_crop(*inputs, user_feature_key_map=None, path='', file_root='',
 def image_slice(*inputs, file_root='', path='', annotations_file='', shard_id=0, num_shards=1, random_shuffle=False,
                 random_aspect_ratio=[0.75, 1.33333], random_area=[0.08, 1.0], num_attempts=100, output_type=types.RGB,
                 decode_size_policy=types.USER_GIVEN_SIZE_ORIG, max_decoded_width=1000, max_decoded_height=1000):
-    """!Slices images using different readers and decoders.
+    """!Slices images randomly using different readers and decoders.
 
         @param inputs                 list of input images.
         @param file_root              Root path for image files.

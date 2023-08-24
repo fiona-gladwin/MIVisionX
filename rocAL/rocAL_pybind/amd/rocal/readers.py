@@ -22,7 +22,6 @@
 # @file readers.py
 #
 # @brief File containing reader functions for multiple datasets and data formats
-# File containing reader functions for multiple datasets and data formats
 
 import rocal_pybind as b
 from amd.rocal.pipeline import Pipeline
@@ -34,16 +33,29 @@ def coco(annotations_file='', ltrb=True, masks=False, ratio=False, avoid_class_r
 
         @param annotations_file         Path to the COCO annotations file.
         @param ltrb                     Whether bounding box coordinates are provided in (left, top, right, bottom) format.
-        @param masks                    Whether masks are included in the annotations.
-        @param ratio                    Whether bounding box coordinates are provided in ratio format.
+        @param masks                    Whether to read polygon masks from COCO annotations.
+        @param ratio                    Whether bounding box coordinates are provided in normalized format.
         @param avoid_class_remapping    Specifies if class remapping should be avoided.
-        @param pixelwise_masks          Whether pixel-wise masks are included in the annotations.
-        @param is_box_encoder           Whether it's used as a box encoder.
-        @param is_box_iou_matcher       Whether it's used as a box IoU matcher.
-        @param stick_to_shard           Specifies if the reader should stick to a single shard.
-        @param pad_last_batch           Specifies if the last batch should be padded.
+        @param pixelwise_masks          Whether to read mask data and generate pixel-wise masks.
+        @param is_box_encoder           Whether to enable box encoder in the pipeline.
+        @param is_box_iou_matcher       Whether to enable box IOU matcher in the pipeline.
+        @param stick_to_shard           Determines whether the reader should stick to a data shard instead of going through the entire dataset.
+        @param pad_last_batch           If set to True, pads the shard by repeating the last sample.
 
-        @return    meta data, labels, and bounding boxes.
+    Args:
+        annotations_file: Path to the COCO annotations file.
+        ltrb: Whether bounding box coordinates are provided in (left, top, right, bottom) format.
+        masks: Whether masks are included in the annotations.
+        ratio: Whether bounding box coordinates are provided in ratio format.
+        avoid_class_remapping: Specifies if class remapping should be avoided.
+        pixelwise_masks:Whether pixel-wise masks are included in the annotations.
+        is_box_encoder: Whether it's used as a box encoder.
+        is_box_iou_matcher: Whether it's used as a box IoU matcher.
+        stick_to_shard: Specifies if the reader should stick to a single shard.
+        pad_last_batch: Specifies if the last batch should be padded.
+
+    Returns:
+        meta data, labels, and bounding boxes.
     """
     Pipeline._current_pipeline._reader = "COCOReader"
     # Output
@@ -55,27 +67,33 @@ def coco(annotations_file='', ltrb=True, masks=False, ratio=False, avoid_class_r
         "mask": masks,
         "ltrb": ltrb,
         "is_box_encoder": is_box_encoder}
-    meta_data = b.cocoReader(
-        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    meta_data = b.cocoReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (meta_data, labels, bboxes)
 
 def file(file_root, file_filters=None, file_list='', stick_to_shard=False, pad_last_batch=False):
-    """!Creates a labelReader node for loading label data from files.
+    """!Creates a labelReader node for reading files from folder or file_list.
 
-        @param file_root         Root directory containing label files.
-        @param file_filters      Filters to apply to the label files.
-        @param file_list         List of label files.
-        @param stick_to_shard    Specifies if the reader should stick to a single shard.
-        @param pad_last_batch    Specifies if the last batch should be padded.
+        @param file_root         Path to a directory that contains the data files.
+        @param file_filters      A list of glob strings to filter the list of files in the sub-directories of the file_root.
+        @param file_list         Path to a text file that contains one whitespace-separated filename label pair per line. The filenames are relative to the location of that file or to file_root, if specified.
+        @param stick_to_shard    Determines whether the reader should stick to a data shard instead of going through the entire dataset.
+        @param pad_last_batch    If set to True, pads the shard by repeating the last sample.
 
-        @return    label reader meta data and labels.
+    Args:
+        file_root: Root directory containing label files.
+        file_filters: Filters to apply to the label files.
+        file_list: List of label files.
+        stick_to_shard: Specifies if the reader should stick to a single shard.
+        pad_last_batch: Specifies if the last batch should be padded.
+
+    Returns:
+        label reader meta data and labels.
     """
     Pipeline._current_pipeline._reader = "labelReader"
     # Output
     labels = []
     kwargs_pybind = {"source_path": file_root}
-    label_reader_meta_data = b.labelReader(
-        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    label_reader_meta_data = b.labelReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (label_reader_meta_data, labels)
 
 def tfrecord(path, user_feature_key_map, features, reader_type=0, stick_to_shard=False, pad_last_batch=False):
@@ -85,10 +103,19 @@ def tfrecord(path, user_feature_key_map, features, reader_type=0, stick_to_shard
         @param user_feature_key_map    User-provided feature key mapping.
         @param features                Features to load from TFRecords.
         @param reader_type             Type of reader (0 for classification, 1 for detection).
-        @param stick_to_shard          Specifies if the reader should use only a single shard.
-        @param pad_last_batch          Specifies if the last batch should be padded.
+        @param stick_to_shard          Determines whether the reader should stick to a data shard instead of going through the entire dataset.
+        @param pad_last_batch          If set to True, pads the shard by repeating the last sample.
 
-        @return    Features loaded from TFRecords.
+    Args:
+        path: Path to the TFRecord dataset.
+        user_feature_key_map: User-provided feature key mapping.
+        features: Features to load from TFRecords.
+        reader_type: Type of reader (0 for classification, 1 for detection).
+        stick_to_shard: Specifies if the reader should use only a single shard.
+        pad_last_batch: Specifies if the last batch should be padded.
+
+    Returns:
+        Features loaded from TFRecords.
     """
     labels = []
     if reader_type == 1:
@@ -103,8 +130,7 @@ def tfrecord(path, user_feature_key_map, features, reader_type=0, stick_to_shard
                     "For Object Detection, ROCAL TFRecordReader needs all the following keys in the featureKeyMap:")
                 print("image/encoded\nimage/class/label\nimage/class/text\nimage/object/bbox/xmin\nimage/object/bbox/ymin\nimage/object/bbox/xmax\nimage/object/bbox/ymax\n")
                 exit()
-        tf_meta_data = b.tfReaderDetection(
-            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        tf_meta_data = b.tfReaderDetection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     else:
         Pipeline._current_pipeline._reader = "TFRecordReaderClassification"
         kwargs_pybind = {"path": path, "is_output": True, "user_key_for_label": user_feature_key_map["image/class/label"],
@@ -115,21 +141,22 @@ def tfrecord(path, user_feature_key_map, features, reader_type=0, stick_to_shard
                     "For Image Classification, ROCAL TFRecordReader needs all the following keys in the featureKeyMap:")
                 print("image/encoded\nimage/class/label\n")
                 exit()
-        tf_meta_data = b.tfReader(
-            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        tf_meta_data = b.tfReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     features["image/encoded"] = tf_meta_data
     features["image/class/label"] = labels
     return features
 
 def caffe(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
-    """!Creates a CaffeReader node for loading Caffe dataset.
+    """
+    Creates a CaffeReader node for loading Caffe dataset.
 
         @param path              Path to the Caffe dataset.
-        @param bbox              Specifies if bounding boxes are included in the dataset.
-        @param stick_to_shard    Specifies if the reader should use only single shard.
-        @param pad_last_batch    Specifies if the last batch should be padded.
+        @param bbox              Type of reader (False for classification, True for detection).
+        @param stick_to_shard    Determines whether the reader should stick to a data shard instead of going through the entire dataset
+        @param pad_last_batch    If set to True, pads the shard by repeating the last sample.
 
-        @return    caffe reader meta data, bboxes, and labels.
+    Returns:
+        caffe reader meta data, bboxes, and labels.
     """
     # Output
     bboxes = []
@@ -138,12 +165,10 @@ def caffe(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
     # Node Object
     if (bbox == True):
         Pipeline._current_pipeline._reader = "CaffeReaderDetection"
-        caffe_reader_meta_data = b.caffeReaderDetection(
-            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        caffe_reader_meta_data = b.caffeReaderDetection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     else:
         Pipeline._current_pipeline._reader = "CaffeReader"
-        caffe_reader_meta_data = b.caffeReader(
-            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        caffe_reader_meta_data = b.caffeReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
 
     if (bbox == True):
         return (caffe_reader_meta_data, bboxes, labels)
@@ -151,15 +176,17 @@ def caffe(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
         return (caffe_reader_meta_data, labels)
 
 def caffe2(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
-    """!Creates a Caffe2Reader node for loading Caffe2 dataset.
+    """
+    Creates a Caffe2Reader node for loading Caffe2 dataset.
 
     Args:
         @param path              Path to the Caffe2 dataset.
-        @param bbox              Specifies if bounding boxes are included in the dataset.
-        @param stick_to_shard    Specifies if the reader should stick to a single shard.
-        @param pad_last_batch    Specifies if the last batch should be padded.
+        @param bbox              Type of reader (False for classification, True for detection).
+        @param stick_to_shard    Determines whether the reader should stick to a data shard instead of going through the entire dataset.
+        @param pad_last_batch    If set to True, pads the shard by repeating the last sample.
 
-        @return    caffe2 reader meta data, bboxes, and labels.
+    Returns:
+        caffe2 reader meta data, bboxes, and labels.
     """
     # Output
     bboxes = []
@@ -167,12 +194,10 @@ def caffe2(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
     kwargs_pybind = {"source_path": path, "is_output": True}
     if (bbox == True):
         Pipeline._current_pipeline._reader = "Caffe2ReaderDetection"
-        caffe2_meta_data = b.caffe2ReaderDetection(
-            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        caffe2_meta_data = b.caffe2ReaderDetection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     else:
         Pipeline._current_pipeline._reader = "Caffe2Reader"
-        caffe2_meta_data = b.caffe2Reader(
-            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        caffe2_meta_data = b.caffe2Reader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     if (bbox == True):
         return (caffe2_meta_data, bboxes, labels)
     else:
@@ -182,7 +207,7 @@ def video(sequence_length, file_list_frame_num=False, file_root="", image_type=t
           random_shuffle=False, step=1, stride=1, decoder_mode=types.SOFTWARE_DECODE, enable_frame_num=False,
           enable_timestamps=False, file_list="", stick_to_shard=False, pad_last_batch=False,
           file_list_include_preceding_frame=False, normalized=False, skip_vfr_check=False):
-    """!Creates a VideoDecoder node for loading video sequences.
+    """!Creates a VideoDecoder node for reading video files.
 
     Args:
         @param sequence_length                      Number of frames in video sequence.
@@ -191,17 +216,17 @@ def video(sequence_length, file_list_frame_num=False, file_root="", image_type=t
         @param image_type                           Color format of the frames.
         @param num_shards                           Number of shards for data parallelism.
         @param random_shuffle                       Specifies if frames should be randomly shuffled.
-        @param step                                 Frame step size.
-        @param stride                               Frame stride size.
-        @param decoder_mode                         Mode of video decoding.
+        @param step                                 Distance between first frames of consecutive sequences.
+        @param stride                               Distance between consecutive frames in a sequence.
+        @param decoder_mode                         Device used for video decoding.
         @param enable_frame_num                     Specifies whether frame numbers are enabled.
         @param enable_timestamps                    Specifies whether timestamps are enabled.
         @param file_list                            List of video files.
-        @param stick_to_shard                       Specifies if the reader should stick to a single shard.
-        @param pad_last_batch                       Specifies if the last batch should be padded.
-        @param file_list_include_preceding_frame    Specifies if file list includes preceding frames.
-        @param normalized                           Specifies if video frames should be normalized.
-        @param skip_vfr_check                       Specifies whether to skip variable frame rate check.
+        @param stick_to_shard                       Determines whether the reader should stick to a data shard instead of going through the entire dataset.
+        @param pad_last_batch                       If set to True, pads the shard by repeating the last sample.
+        @param file_list_include_preceding_frame    Changes the behavior how file_list start and end frame timestamps are translated to a frame number.
+        @param normalized                           Gets the output as normalized data.
+        @param skip_vfr_check                       Skips the check for the variable frame rate (VFR) videos.
 
         @return   list of loaded video sequences.
     """
@@ -214,8 +239,7 @@ def video(sequence_length, file_list_frame_num=False, file_root="", image_type=t
         "frame_step": step,
         "frame_stride": stride,
         "file_list_frame_num": file_list_frame_num}  # VideoMetaDataReader
-    b.videoMetaDataReader(Pipeline._current_pipeline._handle,
-                          *(kwargs_pybind_reader.values()))
+    b.videoMetaDataReader(Pipeline._current_pipeline._handle, *(kwargs_pybind_reader.values()))
 
     kwargs_pybind_decoder = {
         "source_path": file_root,
@@ -229,8 +253,7 @@ def video(sequence_length, file_list_frame_num=False, file_root="", image_type=t
         "frame_step": step,
         "frame_stride": stride,
         "file_list_frame_num": file_list_frame_num}  # VideoDecoder
-    videos = b.videoDecoder(
-        Pipeline._current_pipeline._handle, *(kwargs_pybind_decoder.values()))
+    videos = b.videoDecoder(Pipeline._current_pipeline._handle, *(kwargs_pybind_decoder.values()))
     return (videos)
 
 def video_resize(sequence_length, resize_width, resize_height, file_list_frame_num=False,
@@ -241,7 +264,7 @@ def video_resize(sequence_length, resize_width, resize_height, file_list_frame_n
                  resize_longer=0, resize_shorter=0, max_size=[], enable_frame_num=False,
                  enable_timestamps=False, file_list="", stick_to_shard=False, pad_last_batch=False,
                  file_list_include_preceding_frame=False, normalized=False, skip_vfr_check=False):
-    """!Creates a VideoDecoderResize node in the pipeline for loading and resizing video sequences.
+    """!Creates a VideoDecoderResize node in the pipeline for loading and resizing video files.
 
         @param sequence_length                      Number of frames in video sequence.
         @param resize_width                         output width for resizing.
@@ -251,9 +274,9 @@ def video_resize(sequence_length, resize_width, resize_height, file_list_frame_n
         @param image_type                           Color format of the frames.
         @param num_shards                           Number of shards for data parallelism.
         @param random_shuffle                       Specifies if frames should be randomly shuffled.
-        @param step                                 Frame step size.
-        @param stride                               Frame stride size.
-        @param decoder_mode                         Mode of video decoding.
+        @param step                                 Distance between first frames of consecutive sequences.
+        @param stride                               Distance between consecutive frames in a sequence.
+        @param decoder_mode                         Device used for video decoding.
         @param scaling_mode                         Scaling mode for resizing.
         @param interpolation_type                   Interpolation type for resizing.
         @param resize_longer                        Target size for the longer dimension during resizing.
@@ -262,13 +285,40 @@ def video_resize(sequence_length, resize_width, resize_height, file_list_frame_n
         @param enable_frame_num                     Specifies whether frame numbers are enabled.
         @param enable_timestamps                    Specifies whether timestamps are enabled.
         @param file_list                            List of video files.
-        @param stick_to_shard                       Specifies if the reader should stick to a single shard.
-        @param pad_last_batch                       Specifies if the last batch should be padded.
+        @param stick_to_shard                       Determines whether the reader should stick to a data shard instead of going through the entire dataset.
+        @param pad_last_batch                       If set to True, pads the shard by repeating the last sample.
         @param file_list_include_preceding_frame    Specifies if file list includes preceding frames.
-        @param normalized                           Specifies if video frames should be normalized.
-        @param skip_vfr_check                       Specifies whether to skip variable frame rate check.
+        @param normalized                           Gets the output as normalized data.
+        @param skip_vfr_check                       Skips the check for the variable frame rate (VFR) videos.
 
-        @returns   loaded and resized video sequences and meta data.
+    Args:
+        sequence_length: Number of frames in video sequence.
+        resize_width: output width for resizing.
+        resize_height: output height for resizing.
+        file_list_frame_num: Specifies whether file list includes frame numbers.
+        file_root: Root directory containing video files.
+        image_type: Color format of the frames.
+        num_shards: Number of shards for data parallelism.
+        random_shuffle: Specifies if frames should be randomly shuffled.
+        step: Frame step size.
+        stride: Frame stride size.
+        decoder_mode: Mode of video decoding.
+        scaling_mode: Scaling mode for resizing.
+        interpolation_type: Interpolation type for resizing.
+        resize_longer: Target size for the longer dimension during resizing.
+        resize_shorter: Target size for the shorter dimension during resizing.
+        max_size: Maximum size for resizing.
+        enable_frame_num: Specifies whether frame numbers are enabled.
+        enable_timestamps: Specifies whether timestamps are enabled.
+        file_list: List of video files.
+        stick_to_shard: Specifies if the reader should stick to a single shard.
+        pad_last_batch: Specifies if the last batch should be padded.
+        file_list_include_preceding_frame: Specifies if file list includes preceding frames.
+        normalized: Specifies if video frames should be normalized.
+        skip_vfr_check: Specifies whether to skip variable frame rate check.
+
+    Returns:
+        loaded and resized video sequences and meta data.
     """
     Pipeline._current_pipeline._reader = "VideoDecoderResize"
     # Output
@@ -279,16 +329,14 @@ def video_resize(sequence_length, resize_width, resize_height, file_list_frame_n
         "frame_step": step,
         "frame_stride": stride,
         "file_list_frame_num": file_list_frame_num}  # VideoMetaDataReader
-    meta_data = b.videoMetaDataReader(
-        Pipeline._current_pipeline._handle, *(kwargs_pybind_reader.values()))
+    meta_data = b.videoMetaDataReader(Pipeline._current_pipeline._handle, *(kwargs_pybind_reader.values()))
 
     kwargs_pybind_decoder = {"source_path": file_root, "color_format": image_type, "decoder_mode": decoder_mode, "shard_count": num_shards,
                              "sequence_length": sequence_length, "resize_width": resize_width, "resize_height": resize_height,
                              "shuffle": random_shuffle, "is_output": False, "loop": False, "frame_step": step, "frame_stride": stride,
                              "file_list_frame_num": file_list_frame_num, "scaling_mode": scaling_mode, "max_size": max_size,
                              "resize_shorter": resize_shorter, "resize_longer": resize_longer, "interpolation_type": interpolation_type}
-    videos = b.videoDecoderResize(
-        Pipeline._current_pipeline._handle, *(kwargs_pybind_decoder.values()))
+    videos = b.videoDecoderResize(Pipeline._current_pipeline._handle, *(kwargs_pybind_decoder.values()))
     return (videos, meta_data)
 
 def sequence_reader(file_root, sequence_length, image_type=types.RGB, num_shards=1, random_shuffle=False, step=3, stride=1, stick_to_shard=False, pad_last_batch=False):
@@ -299,12 +347,24 @@ def sequence_reader(file_root, sequence_length, image_type=types.RGB, num_shards
         @param image_type           Color format of the frames.
         @param num_shards           Number of shards for data parallelism.
         @param random_shuffle       Specifies if frames should be randomly shuffled.
-        @param step                 Frame step size.
-        @param stride               Frame stride size.
-        @param stick_to_shard       Specifies if the reader should stick to a single shard.
-        @param pad_last_batch       Specifies if the last batch should be padded.
+        @param step                 Distance between first frames of consecutive sequences.
+        @param stride               Distance between consecutive frames in a sequence.
+        @param stick_to_shard       Determines whether the reader should stick to a data shard instead of going through the entire dataset.
+        @param pad_last_batch       If set to True, pads the shard by repeating the last sample.
 
-        @return    list of loaded image sequences.
+    Args:
+        file_root: Root directory containing image sequences.
+        sequence_length: Number of frames in each sequence.
+        image_type: Color format of the frames.
+        num_shards: Number of shards for data parallelism.
+        random_shuffle: Specifies if frames should be randomly shuffled.
+        step: Frame step size.
+        stride: Frame stride size.
+        stick_to_shard: Specifies if the reader should stick to a single shard.
+        pad_last_batch: Specifies if the last batch should be padded.
+
+    Returns:
+        list of loaded image sequences.
     """
     Pipeline._current_pipeline._reader = "SequenceReader"
     # Output
@@ -318,18 +378,18 @@ def sequence_reader(file_root, sequence_length, image_type=types.RGB, num_shards
         "loop": False,
         "frame_step": step,
         "frame_stride": stride}
-    frames = b.sequenceReader(
-        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    frames = b.sequenceReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (frames)
 
 def mxnet(path, stick_to_shard=False, pad_last_batch=False):
-    """!Creates an MXNETReader node for loading data from MXNet record files.
+    """!Creates an MXNETReader node for reading data from MXNet record files.
 
-        @param path              Path to the MXNet record file.
-        @param stick_to_shard    Specifies if the reader should stick to a single shard.
-        @param pad_last_batch    Specifies if the last batch should be padded.
+        @param path              Path to the MXNet record files.
+        @param stick_to_shard    Determines whether the reader should stick to a data shard instead of going through the entire dataset.
+        @param pad_last_batch    If set to True, pads the shard by repeating the last sample.
 
-        @return    Metadata and loaded data from the MXNet record file.
+    Returns:
+        Metadata and loaded data from the MXNet record file.
     """
     Pipeline._current_pipeline._reader = "MXNETReader"
     # Output
@@ -337,6 +397,5 @@ def mxnet(path, stick_to_shard=False, pad_last_batch=False):
         "source_path": path,
         "is_output": True
     }
-    mxnet_metadata = b.mxnetReader(
-        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    mxnet_metadata = b.mxnetReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return mxnet_metadata

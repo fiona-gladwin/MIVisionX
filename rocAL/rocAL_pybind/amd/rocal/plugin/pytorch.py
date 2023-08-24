@@ -21,7 +21,6 @@
 ##
 # @file pytorch.py
 # @brief File containing iterators to be used with pytorch trainings
-# File containing iterators to be used with pytorch trainings
 
 import torch
 import numpy as np
@@ -176,7 +175,7 @@ class ROCALGenericIterator(object):
 
 class ROCALClassificationIterator(ROCALGenericIterator):
     """!ROCAL iterator for classification tasks for PyTorch. It returns 2 outputs
-    (data and label) in the form of PyTorch's Tensor.
+    (data and label) in the form of PyTorch's Tensors.
 
     Calling
 
@@ -219,14 +218,14 @@ class ROCALClassificationIterator(ROCALGenericIterator):
                  last_batch_padded=False,
                  display=False,
                  device="cpu",
-                 device_id=0,):
+                 device_id=0):
         pipe = pipelines
         super(ROCALClassificationIterator, self).__init__(pipe, tensor_layout=pipe._tensor_layout, tensor_dtype=pipe._tensor_dtype,
                                                           multiplier=pipe._multiplier, offset=pipe._offset, display=display, device=device, device_id=device_id)
 
 
 def draw_patches(img, idx, bboxes):
-    """!Draws patches on an image and saves it as a PNG file.
+    """!Writes images to disk as a PNG file.
 
         @param img       The input image as a tensor.
         @param idx       Index used for naming the output file.
