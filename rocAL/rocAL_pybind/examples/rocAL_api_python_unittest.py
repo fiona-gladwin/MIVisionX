@@ -107,7 +107,7 @@ def main():
                     rocal_cpu=rocal_cpu,
                     tensor_layout=tensor_layout,
                     tensor_dtype=tensor_dtype,
-                    output_memory_type=types.CPU_MEMORY if rocal_cpu else types.GPU_MEMORY)
+                    output_memory_type=types.HOST_MEMORY if rocal_cpu else types.DEVICE_MEMORY)
     # Set Params
     output_set = 0
     rocal_device = 'cpu' if rocal_cpu else 'gpu'
@@ -286,8 +286,8 @@ def main():
                                interpolation_type=interpolation_type)
         elif augmentation_name == "brightness":
             output = fn.brightness(images,
-                                   alpha=1.9,
-                                   beta=20.0,
+                                   brightness=1.9,
+                                   brightness_shift=20.0,
                                    output_layout=tensor_layout,
                                    output_dtype=tensor_dtype)
         elif augmentation_name == "gamma_correction":
@@ -296,22 +296,22 @@ def main():
                                          output_dtype=tensor_dtype)
         elif augmentation_name == "contrast":
             output = fn.contrast(images,
-                                 contrast_factor=30.0,
+                                 contrast=30.0,
                                  contrast_center=80.0,
                                  output_layout=tensor_layout,
                                  output_dtype=tensor_dtype)
         elif augmentation_name == "flip":
             output = fn.flip(images,
-                             h_flip=1,
+                             horizontal=1,
                              output_layout=tensor_layout,
                              output_dtype=tensor_dtype)
         elif augmentation_name == "blur":
             output = fn.blur(images,
-                             kernel_size=5,
+                             window_size=5,
                              output_layout=tensor_layout,
                              output_dtype=tensor_dtype)
         elif augmentation_name == "warp_affine":
-            output = fn.warp_affine(images, dest_height=480, dest_width=640, transform_matrix=[1.0, 1.0, 0.5, 0.5, 7.0, 7.0],
+            output = fn.warp_affine(images, dest_height=480, dest_width=640, matrix=[1.0, 1.0, 0.5, 0.5, 7.0, 7.0],
                                     output_layout=tensor_layout, output_dtype=tensor_dtype, interpolation_type=types.LINEAR_INTERPOLATION)
         elif augmentation_name == "fish_eye":
             output = fn.fish_eye(images,
