@@ -65,13 +65,14 @@ void allocate_host_or_pinned_mem(void **ptr, size_t size, RocalMemType mem_type)
 struct ROI {
     unsigned *get_ptr() { return _roi_ptr.get(); }
     ROI2DCords* get_2D_roi() {
-        if (_dims != 2)
+        if (_roi_no_of_dims != 2)
             THROW("ROI has more than 2 dimensions. Cannot return ROI2DCords")
         return reinterpret_cast<ROI2DCords*>(_roi_ptr.get());
     }
-    void set_ptr(unsigned *ptr, RocalMemType mem_type, unsigned dims = 0) {
-        if(!_dims) _dims = dims;
-        _stride = _dims * 2;
+    void set_ptr(unsigned *ptr, RocalMemType mem_type, unsigned batch_size, unsigned no_of_dims = 0) {
+        if(!_roi_no_of_dims) _roi_no_of_dims = no_of_dims;
+        _stride = _roi_no_of_dims * 2;
+        _roi_buffer_size = batch_size * _roi_no_of_dims * 2 * sizeof(unsigned);
         _roi_buf = ptr;
         if (mem_type == RocalMemType::HIP) {
 #if ENABLE_HIP
@@ -85,18 +86,23 @@ struct ROI {
         auto deleter = [&](unsigned *ptr) {};   // Empty destructor used, since memory is handled by the pipeline
         _roi_ptr.reset(ptr, deleter);
     }
-    unsigned no_of_dims() { return _dims; }
+    void copy(void *roi_buffer) {
+        if(_roi_ptr.get() != nullptr && roi_buffer != nullptr)
+            memcpy((void *)roi_buffer, (const void *)_roi_ptr.get(), _roi_buffer_size);
+    }
+    unsigned no_of_dims() { return _roi_no_of_dims; }
     ROICords& operator[](const int i) {
         _roi_coords.begin = (_roi_buf + (i * _stride));
-        _roi_coords.shape = (_roi_buf + (i * _stride) + _dims);
+        _roi_coords.shape = (_roi_buf + (i * _stride) + _roi_no_of_dims);
         return _roi_coords;
     }
 private:
     unsigned *_roi_buf;
     std::shared_ptr<unsigned> _roi_ptr;
-    unsigned _dims = 0;
+    unsigned _roi_no_of_dims = 0;
     unsigned _stride = 0;
     ROICords _roi_coords;
+    size_t _roi_buffer_size = 0;
 };
 
 /*! \brief Holds the information about a Tensor */
@@ -245,7 +251,6 @@ public:
     RocalROIType roi_type() const { return _roi_type; }
     RocalTensorDataType data_type() const { return _data_type; }
     RocalTensorlayout layout() const { return _layout; }
-    // RocalROI *get_roi() const { return (RocalROI *)_roi_buf; }
     ROI roi() const { return _roi; }
     RocalColorFormat color_format() const { return _color_format; }
     Type type() const { return _type; }
@@ -256,13 +261,8 @@ public:
     bool is_image() const { return _is_image; }
     void set_metadata() { _is_metadata = true; }
     bool is_metadata() const { return _is_metadata; }
-    void set_roi_ptr(unsigned *roi_ptr) { 
-        _roi.reset_ptr(roi_ptr);
-    }
-    void copy_roi(void *roi_buffer) {
-        if(_roi.get_ptr() != nullptr && roi_buffer != nullptr)
-            memcpy((void *)roi_buffer, (const void *)_roi.get_ptr(), _batch_size * sizeof(unsigned) * _roi.no_of_dims());
-    }
+    void set_roi_ptr(unsigned *roi_ptr) { _roi.reset_ptr(roi_ptr); }
+    void copy_roi(void *roi_buffer) { _roi.copy(roi_buffer); }
 
 private:
     Type _type = Type::UNKNOWN;  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor

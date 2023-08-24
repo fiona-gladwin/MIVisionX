@@ -109,22 +109,18 @@ bool operator==(const TensorInfo &rhs, const TensorInfo &lhs) {
 
 void TensorInfo::reset_tensor_roi_buffers() {
     unsigned *roi_buf;
-    auto roi_dims = _is_image ? 2 : (_num_of_dims - 1);
-    allocate_host_or_pinned_mem((void **)&roi_buf, _batch_size * roi_dims * 2 * sizeof(unsigned), _mem_type);
-    _roi.set_ptr(roi_buf, _mem_type, roi_dims);
-    // if(!_roi_buf) {
-    //     size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
-    //     allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
-    // }
+    auto roi_no_of_dims = _is_image ? 2 : (_num_of_dims - 1);
+    auto roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
+    allocate_host_or_pinned_mem((void **)&roi_buf, roi_size * roi_no_of_dims * 2 * sizeof(unsigned), _mem_type);
+    _roi.set_ptr(roi_buf, _mem_type, roi_size, roi_no_of_dims);
     if (_is_image) {
-        ROI2DCords *roi = reinterpret_cast<ROI2DCords *>(_roi.get_ptr());
+        ROI2DCords *roi = _roi.get_2D_roi();
         for (unsigned i = 0; i < _batch_size; i++) {
             roi[i].x2 = _max_shape.at(0);
             roi[i].y2 = _max_shape.at(1);
         }
     } else {
         // TODO - For other tensor types
-        // ROI for numpy?
     }
 }
 
