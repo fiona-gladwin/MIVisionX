@@ -64,7 +64,11 @@ void allocate_host_or_pinned_mem(void **ptr, size_t size, RocalMemType mem_type)
 
 struct ROI {
     unsigned *get_ptr() { return _roi_ptr.get(); }
-    ROI2DCords* get_2D_roi() { return reinterpret_cast<ROI2DCords*>(_roi_ptr.get()); }
+    ROI2DCords* get_2D_roi() {
+        if (_dims != 2)
+            THROW("ROI has more than 2 dimensions. Cannot return ROI2DCords")
+        return reinterpret_cast<ROI2DCords*>(_roi_ptr.get());
+    }
     void set_ptr(unsigned *ptr, RocalMemType mem_type, unsigned dims = 0) {
         if(!_dims) _dims = dims;
         _stride = _dims * 2;

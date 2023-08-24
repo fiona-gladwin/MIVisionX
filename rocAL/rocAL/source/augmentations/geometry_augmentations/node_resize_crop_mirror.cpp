@@ -65,7 +65,7 @@ void ResizeCropMirrorNode::create_node() {
 }
 
 void ResizeCropMirrorNode::update_node() {
-    _crop_param->set_image_dimensions(reinterpret_cast<ROI2DCords *>(_inputs[0]->info().roi().get_ptr()));
+    _crop_param->set_image_dimensions(_inputs[0]->info().roi().get_2D_roi());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
     _crop_param->get_crop_dimensions(crop_w_dims, crop_h_dims);

@@ -184,7 +184,7 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
         auto max_shape = _info.max_shape();
         unsigned max_width = max_shape.at(0);
         unsigned max_height = max_shape.at(1);
-        ROI2DCords *roi = (ROI2DCords *)_info.roi().get_ptr();
+        ROI2DCords *roi = _info.roi().get_2D_roi();
         
         if (width.size() != height.size())
             THROW("Batch size of Tensor height and width info does not match")
