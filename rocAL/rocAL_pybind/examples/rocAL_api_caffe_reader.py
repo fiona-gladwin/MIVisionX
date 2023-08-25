@@ -35,7 +35,8 @@ def draw_patches(img, idx):
         image = img.cpu().numpy()
     else:
         image = img.detach().numpy()
-    image = image.transpose([1, 2, 0])
+    if not args.NHWC:
+        image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if args.classification:
         cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE_READER/CLASSIFICATION/" +
@@ -49,16 +50,15 @@ def main():
     args = parse_args()
     # Args
     image_path = args.image_dataset_path
-    _rocal_cpu = False if args.rocal_gpu else True
+    rocal_cpu = False if args.rocal_gpu else True
     batch_size = args.batch_size
-    _rocal_bbox = False if args.classification else True
+    rocal_bbox = False if args.classification else True
     num_threads = args.num_threads
     local_rank = args.local_rank
     world_size = args.world_size
     random_seed = args.seed
-    display = True if args.display else False
     device = "gpu" if args.rocal_gpu else "cpu"
-    crop_size_resize = 224
+    tensor_layout = types.NHWC if args.NHWC else types.NCHW
     num_classes = len(next(os.walk(image_path))[1])
     try:
         if args.classification:
@@ -72,8 +72,8 @@ def main():
         print(error)
     print("num_classes:: ", num_classes)
     # Create Pipeline instance
-    pipe = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=args.local_rank,
-                    seed=random_seed, rocal_cpu=_rocal_cpu)
+    pipe = Pipeline(batch_size=batch_size, num_threads=num_threads,
+                    device_id=args.local_rank, seed=random_seed, rocal_cpu=rocal_cpu)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
         if _rocal_bbox:
@@ -98,8 +98,8 @@ def main():
             images = fn.decoders.image(jpegs, path=image_path, output_type=types.RGB,
                                        shard_id=local_rank, num_shards=world_size, random_shuffle=True)
 
-        images = fn.resize(images, resize_x=crop_size_resize,
-                           resize_y=crop_size_resize)
+        images = fn.resize(images, resize_width=224,
+                           resize_height=224, output_layout=tensor_layout)
         pipe.set_outputs(images)
     # Build the pipeline
     pipe.build()
@@ -112,8 +112,8 @@ def main():
     # Enumerate over the Dataloader
     for epoch in range(args.num_epochs):  # loop over the dataset multiple times
         print("epoch:: ", epoch)
-        if not _rocal_bbox:
-            for i, (image_batch, labels) in enumerate(data_loader, 0):  # Classification
+        if not rocal_bbox:
+            for i, ([image_batch], labels) in enumerate(data_loader, 0):  # Classification
                 if args.print_tensor:
                     sys.stdout.write("\r Mini-batch " + str(i))
                     print("Images", image_batch)
@@ -132,9 +132,8 @@ def main():
                         print("Labels", labels)
                 for element in list(range(batch_size)):
                     cnt = cnt + 1
-                    draw_patches(image_batch[element], cnt)
+                    draw_patches(image_batch[element], cnt, bboxes[element])
             data_loader.reset()
-    print('Finished Training !!')
     print("##############################  CAFFE READER (CLASSIFCATION/ DETECTION)  SUCCESS  ############################")
 
 

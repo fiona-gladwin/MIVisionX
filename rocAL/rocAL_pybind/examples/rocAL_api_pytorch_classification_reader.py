@@ -38,15 +38,15 @@ def draw_patches(img, idx, layout="nchw", dtype="fp32", device="cpu"):
     if layout == "nchw":
         image = image.transpose([1, 2, 0])
     if dtype == "fp16":
-        image = image.astype('uint8')
+        image = image.astype("uint8")
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     cv2.imwrite("OUTPUT_IMAGES_PYTHON/FILE_READER/" +
-                str(idx)+"_"+"train"+".png", image * 255)
+                str(idx) + "_" + "train" + ".png", image * 255)
 
 
 def main():
     if len(sys.argv) < 3:
-        print('Please pass image_folder cpu/gpu batch_size')
+        print("Please pass image_folder cpu/gpu batch_size")
         exit(0)
     try:
         path = "OUTPUT_IMAGES_PYTHON/FILE_READER/"
@@ -56,7 +56,7 @@ def main():
     except OSError as error:
         print(error)
     data_path = sys.argv[1]
-    _rali_cpu = True if sys.argv[2] == "cpu" else False
+    rocal_cpu = True if sys.argv[2] == "cpu" else False
     batch_size = int(sys.argv[3])
     num_threads = 1
     device_id = 0
@@ -66,7 +66,7 @@ def main():
     world_size = 1
 
     image_classification_train_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id,
-                                                   seed=random_seed, rocal_cpu=_rali_cpu, tensor_layout=types.NHWC, tensor_dtype=types.FLOAT16)
+                                                   seed=random_seed, rocal_cpu=rocal_cpu, tensor_layout=types.NHWC, tensor_dtype=types.FLOAT16)
 
     with image_classification_train_pipeline:
         jpegs, labels = fn.readers.file(file_root=data_path)
@@ -80,7 +80,6 @@ def main():
                                         output_dtype=types.FLOAT16,
                                         crop=(224, 224),
                                         mirror=flip_coin,
-                                        image_type=types.RGB,
                                         mean=[0.485 * 255, 0.456 *
                                               255, 0.406 * 255],
                                         std=[0.229 * 255, 0.224 * 255, 0.225 * 255])
@@ -99,11 +98,11 @@ def main():
                 "************************************** i *************************************", i)
             for img in it[0]:
                 cnt = cnt + 1
-                draw_patches(img, cnt, layout="nhwc",
-                             dtype="fp16", device=_rali_cpu)
+                draw_patches(img[0], cnt, layout="nhwc",
+                             dtype="fp16", device=rocal_cpu)
         imageIteratorPipeline.reset()
     print("*********************************************************************")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

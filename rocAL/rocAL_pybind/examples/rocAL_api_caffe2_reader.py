@@ -35,7 +35,8 @@ def draw_patches(img, idx):
         image = img.cpu().numpy()
     else:
         image = img.detach().numpy()
-    image = image.transpose([1, 2, 0])
+    if not args.NHWC:
+        image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if args.classification:
         cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/CAFFE2_READER/CLASSIFICATION/" +
@@ -49,14 +50,15 @@ def main():
     args = parse_args()
     # Args
     image_path = args.image_dataset_path
-    _rocal_cpu = False if args.rocal_gpu else True
+    rocal_cpu = False if args.rocal_gpu else True
     batch_size = args.batch_size
-    _rocal_bbox = False if args.classification else True
+    rocal_bbox = False if args.classification else True
     num_threads = args.num_threads
     local_rank = args.local_rank
     random_seed = args.seed
     display = True if args.display else False
     device = "gpu" if args.rocal_gpu else "cpu"
+    tensor_layout = types.NHWC if args.NHWC else types.NCHW
     num_classes = len(next(os.walk(image_path))[1])
     print("num_classes:: ", num_classes)
     try:
@@ -70,11 +72,11 @@ def main():
     except OSError as error:
         print(error)
     pipe = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=local_rank,
-                    seed=random_seed, rocal_cpu=_rocal_cpu)
+                    seed=random_seed, rocal_cpu=rocal_cpu)
     with pipe:
-        if _rocal_bbox:
+        if rocal_bbox:
             jpegs, labels, bboxes = fn.readers.caffe2(
-                path=image_path, bbox=_rocal_bbox, random_shuffle=True)
+                path=image_path, bbox=rocal_bbox)
         else:
             jpegs, labels = fn.readers.caffe2(
                 path=image_path, bbox=_rocal_bbox, random_shuffle=True)
@@ -90,8 +92,8 @@ def main():
     cnt = 0
     for epoch in range(1):  # loop over the dataset multiple times
         print("epoch:: ", epoch)
-        if not _rocal_bbox:
-            for i, (image_batch, labels) in enumerate(data_loader, 0):  # Classification
+        if not rocal_bbox:
+            for i, ([image_batch], labels) in enumerate(data_loader, 0):  # Classification
                 if args.print_tensor:
                     sys.stdout.write("\r Mini-batch " + str(i))
                     print("Images", image_batch)
@@ -101,7 +103,7 @@ def main():
                     draw_patches(image_batch[element], cnt)
             data_loader.reset()
         else:
-            for i, (image_batch, bboxes, labels) in enumerate(data_loader, 0):  # Detection
+            for i, ([image_batch], bboxes, labels) in enumerate(data_loader, 0):  # Detection
                 if i == 0:
                     if args.print_tensor:
                         sys.stdout.write("\r Mini-batch " + str(i))

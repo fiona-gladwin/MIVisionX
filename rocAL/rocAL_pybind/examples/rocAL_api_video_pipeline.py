@@ -18,9 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 import torch
 from amd.rocal.pipeline import Pipeline
 import amd.rocal.fn as fn
@@ -55,10 +52,7 @@ class ROCALVideoIterator(object):
         self.reverse_channels = reverse_channels
         self.tensor_dtype = tensor_dtype
         self.batch_size = self.loader._batch_size
-        self.w = self.loader.getOutputWidth()
-        self.h = self.loader.getOutputHeight()
-        self.n = self.loader.getOutputImageCount()
-        self.rim = self.loader.getRemainingImages()
+        self.rim = self.loader.get_remaining_images()
         self.display = display
         self.iter_num = 0
         self.sequence_length = sequence_length
@@ -75,7 +69,8 @@ class ROCALVideoIterator(object):
         self.iter_num += 1
         if (self.loader.isEmpty()):
             raise StopIteration
-        if self.loader.run() != 0:
+
+        if self.loader.rocal_run() != 0:
             raise StopIteration
         # Copy output from buffer to numpy array
         self.loader.copyImage(self.out)
@@ -83,11 +78,11 @@ class ROCALVideoIterator(object):
         # Display Frames in a video sequence
         if self.display:
             for batch_i in range(self.batch_size):
-                draw_frames(img[batch_i], batch_i, self.iter_num)
+                draw_frames(img[batch_i], batch_i, self.iter_num, self.layout)
         return img
 
     def reset(self):
-        self.loader.rocalResetLoaders()
+        self.loader.rocal_reset_loaders()
 
     def __iter__(self):
         return self
@@ -101,8 +96,8 @@ def draw_frames(img, batch_idx, iter_idx):
     image = image.transpose([0, 1, 2])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     import os
-    if not os.path.exists("OUTPUT_IMAGES_PYTHON/NEW_API/VIDEO_READER"):
-        os.makedirs("OUTPUT_IMAGES_PYTHON/NEW_API/VIDEO_READER")
+    if not os.path.exists("OUTPUT_IMAGES_PYTHON/VIDEO_READER"):
+        os.makedirs("OUTPUT_IMAGES_PYTHON/VIDEO_READER")
     image = cv2.UMat(image).get()
     cv2.imwrite("OUTPUT_IMAGES_PYTHON/NEW_API/VIDEO_READER/" +
                 "iter_"+str(iter_idx)+"_batch_"+str(batch_idx)+".png", image)
@@ -112,13 +107,13 @@ def main():
     # Args
     args = parse_args()
     video_path = args.video_path
-    _rocal_cpu = False if args.rocal_gpu else True
+    rocal_cpu = False if args.rocal_gpu else True
     batch_size = args.batch_size
     user_sequence_length = args.sequence_length
     display = args.display
     num_threads = args.num_threads
     random_seed = args.seed
-    tensor_format = types.NHWC if args.NHWC else types.NCHW
+    tensor_format = types.NFHWC if args.NHWC else types.NFCHW
     tensor_dtype = types.FLOAT16 if args.fp16 else types.FLOAT
     # Create Pipeline instance
     pipe = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=args.local_rank, seed=random_seed, rocal_cpu=_rocal_cpu,
@@ -160,6 +155,8 @@ def main():
     stop = timeit.default_timer()
 
     print('\n Time: ', stop - start)
+    print("###############################################    VIDEO READER    ###############################################")
+    print("###############################################    SUCCESS         ###############################################")
 
 
 if __name__ == '__main__':
