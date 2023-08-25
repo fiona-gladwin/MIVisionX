@@ -88,8 +88,7 @@ class Pipeline(object):
         self._batch_size = batch_size
         self._num_threads = num_threads
         self._device_id = device_id
-        self._output_memory_type = output_memory_type if output_memory_type else (
-            types.HOST_MEMORY if rocal_cpu else types.DEVICE_MEMORY)
+        self._output_memory_type = output_memory_type if output_memory_type else (types.HOST_MEMORY if rocal_cpu else types.DEVICE_MEMORY)
         self._seed = seed
         self._exec_pipelined = exec_pipelined
         self._prefetch_queue_depth = prefetch_queue_depth

@@ -147,10 +147,8 @@ def brightness(*inputs, brightness=None, brightness_shift=None, device=None, out
 
         @return    Image with Adjusted Brightness
     """
-    brightness = b.createFloatParameter(brightness) if isinstance(
-        brightness, float) else brightness
-    brightness_shift = b.createFloatParameter(brightness_shift) if isinstance(
-        brightness_shift, float) else brightness_shift
+    brightness = b.createFloatParameter(brightness) if isinstance(brightness, float) else brightness
+    brightness_shift = b.createFloatParameter(brightness_shift) if isinstance(brightness_shift, float) else brightness_shift
 
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "brightness": brightness, "brightness_shift": brightness_shift,
@@ -216,8 +214,7 @@ def blur(*inputs, window_size=None, sigma=0.0, device=None, output_layout=types.
 
         @return    Image with Blur effect
     """
-    window_size = b.createIntParameter(window_size) if isinstance(
-        window_size, int) else window_size
+    window_size = b.createIntParameter(window_size) if isinstance(window_size, int) else window_size
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0], "is_output": False, "window_size": window_size,
                      "output_layout": output_layout, "output_dtype": output_dtype}
@@ -238,16 +235,13 @@ def contrast(*inputs, contrast=None, contrast_center=None, device=None, output_l
 
         @return    Image with adjusted contrast
     """
-    contrast = b.createFloatParameter(
-        contrast) if isinstance(contrast, float) else contrast
-    contrast_center = b.createFloatParameter(contrast_center) if isinstance(
-        contrast_center, float) else contrast_center
+    contrast = b.createFloatParameter(contrast) if isinstance(contrast, float) else contrast
+    contrast_center = b.createFloatParameter(contrast_center) if isinstance(contrast_center, float) else contrast_center
 
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "contrast": contrast, "contrast_center": contrast_center, "output_layout": output_layout, "output_dtype": output_dtype}
-    contrast_image = b.contrast(
-        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    contrast_image = b.contrast(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (contrast_image)
 
 
@@ -271,8 +265,7 @@ def flip(*inputs, horizontal=0, vertical=0, device=None, output_layout=types.NHW
     # pybind call arguments
     kwargs_pybind = {"input_image": inputs[0],
                      "is_output": False, "horizontal": horizontal, "vertical": vertical, "output_layout": output_layout, "output_dtype": output_dtype}
-    flip_image = b.flip(Pipeline._current_pipeline._handle,
-                        *(kwargs_pybind.values()))
+    flip_image = b.flip(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (flip_image)
 
 
