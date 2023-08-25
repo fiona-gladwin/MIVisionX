@@ -27,6 +27,7 @@ def coin_flip(*inputs, probability=0.5):
     output_array = b.createIntRand(values, frequencies)
     return output_array
 
+
 def uniform(*inputs, range=[-1, 1]):
     output_param = b.createFloatUniformRand(range[0], range[1])
     return output_param

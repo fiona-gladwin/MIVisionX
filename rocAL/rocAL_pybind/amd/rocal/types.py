@@ -19,7 +19,6 @@
 # THE SOFTWARE.
 
 
-
 # RocalStatus
 from rocal_pybind.types import OK
 from rocal_pybind.types import CONTEXT_INVALID
@@ -99,7 +98,7 @@ _known_types = {
     UINT8: ("UINT8", UINT8),
     FLOAT: ("FLOAT", FLOAT),
     FLOAT16: ("FLOAT16", FLOAT16),
-    UINT8 : ("UINT8", UINT8),
+    UINT8: ("UINT8", UINT8),
     HOST_MEMORY: ("HOST_MEMORY", HOST_MEMORY),
     DEVICE_MEMORY: ("DEVICE_MEMORY", DEVICE_MEMORY),
     PINNED_MEMORY: ("PINNED_MEMORY", PINNED_MEMORY),
@@ -142,9 +141,11 @@ _known_types = {
 
 }
 
+
 def data_type_function(dtype):
     if dtype in _known_types:
         ret = _known_types[dtype][0]
         return ret
     else:
-        raise RuntimeError(str(dtype) + " does not correspond to a known type.")
+        raise RuntimeError(
+            str(dtype) + " does not correspond to a known type.")

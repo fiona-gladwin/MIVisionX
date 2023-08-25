@@ -22,6 +22,7 @@ import rocal_pybind as b
 from amd.rocal.pipeline import Pipeline
 import amd.rocal.types as types
 
+
 def coco(annotations_file='', ltrb=True, masks=False, ratio=False, avoid_class_remapping=False,
          pixelwise_masks=False, is_box_encoder=False, is_box_iou_matcher=False, stick_to_shard=False, pad_last_batch=False):
     Pipeline._current_pipeline._reader = "COCOReader"
@@ -34,16 +35,20 @@ def coco(annotations_file='', ltrb=True, masks=False, ratio=False, avoid_class_r
         "mask": masks,
         "ltrb": ltrb,
         "is_box_encoder": is_box_encoder}
-    meta_data = b.cocoReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    meta_data = b.cocoReader(
+        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (meta_data, labels, bboxes)
+
 
 def file(file_root, file_filters=None, file_list='', stick_to_shard=False, pad_last_batch=False):
     Pipeline._current_pipeline._reader = "labelReader"
     # Output
     labels = []
     kwargs_pybind = {"source_path": file_root}
-    label_reader_meta_data = b.labelReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    label_reader_meta_data = b.labelReader(
+        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (label_reader_meta_data, labels)
+
 
 def tfrecord(path, user_feature_key_map, features, reader_type=0, stick_to_shard=False, pad_last_batch=False):
     labels = []
@@ -59,7 +64,8 @@ def tfrecord(path, user_feature_key_map, features, reader_type=0, stick_to_shard
                     "For Object Detection, ROCAL TFRecordReader needs all the following keys in the featureKeyMap:")
                 print("image/encoded\nimage/class/label\nimage/class/text\nimage/object/bbox/xmin\nimage/object/bbox/ymin\nimage/object/bbox/xmax\nimage/object/bbox/ymax\n")
                 exit()
-        tf_meta_data = b.tfReaderDetection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        tf_meta_data = b.tfReaderDetection(
+            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     else:
         Pipeline._current_pipeline._reader = "TFRecordReaderClassification"
         kwargs_pybind = {"path": path, "is_output": True, "user_key_for_label": user_feature_key_map["image/class/label"],
@@ -70,10 +76,12 @@ def tfrecord(path, user_feature_key_map, features, reader_type=0, stick_to_shard
                     "For Image Classification, ROCAL TFRecordReader needs all the following keys in the featureKeyMap:")
                 print("image/encoded\nimage/class/label\n")
                 exit()
-        tf_meta_data = b.tfReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        tf_meta_data = b.tfReader(
+            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     features["image/encoded"] = tf_meta_data
     features["image/class/label"] = labels
     return features
+
 
 def caffe(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
     # Output
@@ -83,15 +91,18 @@ def caffe(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
     # Node Object
     if (bbox == True):
         Pipeline._current_pipeline._reader = "CaffeReaderDetection"
-        caffe_reader_meta_data = b.caffeReaderDetection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        caffe_reader_meta_data = b.caffeReaderDetection(
+            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     else:
         Pipeline._current_pipeline._reader = "CaffeReader"
-        caffe_reader_meta_data = b.caffeReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        caffe_reader_meta_data = b.caffeReader(
+            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
 
     if (bbox == True):
         return (caffe_reader_meta_data, bboxes, labels)
     else:
         return (caffe_reader_meta_data, labels)
+
 
 def caffe2(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
     # Output
@@ -100,14 +111,17 @@ def caffe2(path, bbox=False, stick_to_shard=False, pad_last_batch=False):
     kwargs_pybind = {"source_path": path, "is_output": True}
     if (bbox == True):
         Pipeline._current_pipeline._reader = "Caffe2ReaderDetection"
-        caffe2_meta_data = b.caffe2ReaderDetection(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        caffe2_meta_data = b.caffe2ReaderDetection(
+            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     else:
         Pipeline._current_pipeline._reader = "Caffe2Reader"
-        caffe2_meta_data = b.caffe2Reader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+        caffe2_meta_data = b.caffe2Reader(
+            Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     if (bbox == True):
         return (caffe2_meta_data, bboxes, labels)
     else:
         return (caffe2_meta_data, labels)
+
 
 def video(sequence_length, file_list_frame_num=False, file_root="", image_type=types.RGB, num_shards=1,
           random_shuffle=False, step=1, stride=1, decoder_mode=types.SOFTWARE_DECODE, enable_frame_num=False,
@@ -122,7 +136,8 @@ def video(sequence_length, file_list_frame_num=False, file_root="", image_type=t
         "frame_step": step,
         "frame_stride": stride,
         "file_list_frame_num": file_list_frame_num}  # VideoMetaDataReader
-    b.videoMetaDataReader(Pipeline._current_pipeline._handle, *(kwargs_pybind_reader.values()))
+    b.videoMetaDataReader(Pipeline._current_pipeline._handle,
+                          *(kwargs_pybind_reader.values()))
 
     kwargs_pybind_decoder = {
         "source_path": file_root,
@@ -136,8 +151,10 @@ def video(sequence_length, file_list_frame_num=False, file_root="", image_type=t
         "frame_step": step,
         "frame_stride": stride,
         "file_list_frame_num": file_list_frame_num}  # VideoDecoder
-    videos = b.videoDecoder(Pipeline._current_pipeline._handle, *(kwargs_pybind_decoder.values()))
+    videos = b.videoDecoder(
+        Pipeline._current_pipeline._handle, *(kwargs_pybind_decoder.values()))
     return (videos)
+
 
 def video_resize(sequence_length, resize_width, resize_height, file_list_frame_num=False,
                  file_root="", image_type=types.RGB,
@@ -156,15 +173,18 @@ def video_resize(sequence_length, resize_width, resize_height, file_list_frame_n
         "frame_step": step,
         "frame_stride": stride,
         "file_list_frame_num": file_list_frame_num}  # VideoMetaDataReader
-    meta_data = b.videoMetaDataReader(Pipeline._current_pipeline._handle, *(kwargs_pybind_reader.values()))
+    meta_data = b.videoMetaDataReader(
+        Pipeline._current_pipeline._handle, *(kwargs_pybind_reader.values()))
 
     kwargs_pybind_decoder = {"source_path": file_root, "color_format": image_type, "decoder_mode": decoder_mode, "shard_count": num_shards,
                              "sequence_length": sequence_length, "resize_width": resize_width, "resize_height": resize_height,
                              "shuffle": random_shuffle, "is_output": False, "loop": False, "frame_step": step, "frame_stride": stride,
                              "file_list_frame_num": file_list_frame_num, "scaling_mode": scaling_mode, "max_size": max_size,
                              "resize_shorter": resize_shorter, "resize_longer": resize_longer, "interpolation_type": interpolation_type}
-    videos = b.videoDecoderResize(Pipeline._current_pipeline._handle, *(kwargs_pybind_decoder.values()))
+    videos = b.videoDecoderResize(
+        Pipeline._current_pipeline._handle, *(kwargs_pybind_decoder.values()))
     return (videos, meta_data)
+
 
 def sequence_reader(file_root, sequence_length, image_type=types.RGB, num_shards=1, random_shuffle=False, step=3, stride=1, stick_to_shard=False, pad_last_batch=False):
     Pipeline._current_pipeline._reader = "SequenceReader"
@@ -179,8 +199,10 @@ def sequence_reader(file_root, sequence_length, image_type=types.RGB, num_shards
         "loop": False,
         "frame_step": step,
         "frame_stride": stride}
-    frames = b.sequenceReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    frames = b.sequenceReader(
+        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return (frames)
+
 
 def mxnet(path, stick_to_shard=False, pad_last_batch=False):
     Pipeline._current_pipeline._reader = "MXNETReader"
@@ -189,5 +211,6 @@ def mxnet(path, stick_to_shard=False, pad_last_batch=False):
         "source_path": path,
         "is_output": True
     }
-    mxnet_metadata = b.mxnetReader(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
+    mxnet_metadata = b.mxnetReader(
+        Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     return mxnet_metadata

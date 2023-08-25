@@ -99,26 +99,28 @@ class Pipeline(object):
                  exec_pipelined=True, prefetch_queue_depth=2,
                  exec_async=True, bytes_per_sample=0,
                  rocal_cpu=False, max_streams=-1, default_cuda_stream_priority=0, tensor_layout=types.NCHW, reverse_channels=False, mean=None, std=None, tensor_dtype=types.FLOAT, output_memory_type=None):
-        if(rocal_cpu):
+        if (rocal_cpu):
             self._handle = b.rocalCreate(
                 batch_size, types.CPU, device_id, num_threads, prefetch_queue_depth, tensor_dtype)
         else:
             self._handle = b.rocalCreate(
                 batch_size, types.GPU, device_id, num_threads, prefetch_queue_depth, tensor_dtype)
 
-        if(b.getStatus(self._handle) == types.OK):
+        if (b.getStatus(self._handle) == types.OK):
             print("Pipeline has been created succesfully")
         else:
             raise Exception("Failed creating the pipeline")
         self._check_ops = ["CropMirrorNormalize"]
         self._check_crop_ops = ["Resize"]
-        self._check_ops_decoder = ["ImageDecoder", "ImageDecoderSlice" , "ImageDecoderRandomCrop", "ImageDecoderRaw"]
+        self._check_ops_decoder = [
+            "ImageDecoder", "ImageDecoderSlice", "ImageDecoderRandomCrop", "ImageDecoderRaw"]
         self._check_ops_reader = ["labelReader", "TFRecordReaderClassification", "TFRecordReaderDetection",
-            "COCOReader", "Caffe2Reader", "Caffe2ReaderDetection", "CaffeReader", "CaffeReaderDetection"]
+                                  "COCOReader", "Caffe2Reader", "Caffe2ReaderDetection", "CaffeReader", "CaffeReaderDetection"]
         self._batch_size = batch_size
         self._num_threads = num_threads
         self._device_id = device_id
-        self._output_memory_type = output_memory_type if output_memory_type else (types.HOST_MEMORY if rocal_cpu else types.DEVICE_MEMORY)
+        self._output_memory_type = output_memory_type if output_memory_type else (
+            types.HOST_MEMORY if rocal_cpu else types.DEVICE_MEMORY)
         self._seed = seed
         self._exec_pipelined = exec_pipelined
         self._prefetch_queue_depth = prefetch_queue_depth
@@ -129,8 +131,10 @@ class Pipeline(object):
         self._default_cuda_stream_priority = default_cuda_stream_priority
         self._tensor_layout = tensor_layout
         self._tensor_dtype = tensor_dtype
-        self._multiplier = list(map(lambda x: 1/x , std)) if std else [1.0,1.0,1.0]
-        self._offset = list(map(lambda x, y: -(x/y), mean, std)) if mean and std else [0.0, 0.0, 0.0]
+        self._multiplier = list(map(lambda x: 1/x, std)
+                                ) if std else [1.0, 1.0, 1.0]
+        self._offset = list(map(lambda x, y: -(x/y), mean, std)
+                            ) if mean and std else [0.0, 0.0, 0.0]
         self._reverse_channels = reverse_channels
         self._img_h = None
         self._img_w = None
@@ -152,7 +156,7 @@ class Pipeline(object):
         """Build the pipeline using rocalVerify call
         """
         status = b.rocalVerify(self._handle)
-        if(status != types.OK):
+        if (status != types.OK):
             print("Verify graph failed")
             exit(0)
         return self
@@ -176,13 +180,15 @@ class Pipeline(object):
     def get_one_hot_encoded_labels(self, array, device):
         if device == "cpu":
             if (isinstance(array, np.ndarray)):
-                b.getOneHotEncodedLabels(self._handle, array.ctypes.data_as(ctypes.c_void_p), self._num_classes, 0)
-            else: # torch tensor
+                b.getOneHotEncodedLabels(self._handle, array.ctypes.data_as(
+                    ctypes.c_void_p), self._num_classes, 0)
+            else:  # torch tensor
                 return b.getOneHotEncodedLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._num_classes, 0)
         else:
             if (isinstance(array, cp.ndarray)):
-                b.getCupyOneHotEncodedLabels(self._handle, array.data.ptr, self._num_classes, 1)
-            else: # torch tensor
+                b.getCupyOneHotEncodedLabels(
+                    self._handle, array.data.ptr, self._num_classes, 1)
+            else:  # torch tensor
                 return b.getOneHotEncodedLabels(self._handle, ctypes.c_void_p(array.data_ptr()), self._num_classes, 1)
 
     def set_outputs(self, *output_list):
@@ -401,7 +407,8 @@ def pipeline_def(fn=None, **pipeline_kwargs):
         @functools.wraps(func)
         def create_pipeline(*args, **kwargs):
             ctor_args, fn_kwargs = _discriminate_args(func, **kwargs)
-            pipe = Pipeline(**{**pipeline_kwargs, **ctor_args})  # Merge and overwrite dict
+            # Merge and overwrite dict
+            pipe = Pipeline(**{**pipeline_kwargs, **ctor_args})
             with pipe:
                 pipe_outputs = func(*args, **fn_kwargs)
                 if isinstance(pipe_outputs, tuple):

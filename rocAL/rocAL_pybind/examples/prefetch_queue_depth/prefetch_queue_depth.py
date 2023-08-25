@@ -26,6 +26,7 @@ import sys
 import datetime
 import time
 
+
 def HybridTrainPipe(batch_size, num_threads, device_id, data_dir, rocal_cpu=True, prefetch_queue_depth=2):
     world_size = 1
     local_rank = 0
@@ -40,10 +41,12 @@ def HybridTrainPipe(batch_size, num_threads, device_id, data_dir, rocal_cpu=True
         jpegs, _ = fn.readers.file(file_root=data_dir)
         images = fn.decoders.image(jpegs, file_root=data_dir, device=decoder_device,
                                    output_type=types.RGB, shard_id=local_rank, num_shards=world_size, random_shuffle=True)
-        images = fn.resize(images, resize_width=resize_width, resize_height=resize_height)
+        images = fn.resize(images, resize_width=resize_width,
+                           resize_height=resize_height)
         output = fn.rain(images, rain=0.5)
         pipe.set_outputs(output)
     return pipe
+
 
 def main():
     if len(sys.argv) < 5:
@@ -68,7 +71,9 @@ def main():
             time.sleep(1)
         imageIterator.reset()
     end = datetime.datetime.now()
-    print("Time taken (averaged over 10 runs) ", int((end - start).total_seconds() * 1000) / 10, "milli seconds")
+    print("Time taken (averaged over 10 runs) ", int(
+        (end - start).total_seconds() * 1000) / 10, "milli seconds")
+
 
 if __name__ == '__main__':
     main()
