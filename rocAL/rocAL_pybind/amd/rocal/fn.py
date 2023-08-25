@@ -588,6 +588,16 @@ def rotate(*inputs, angle=None, dest_width=0, dest_height=0, interpolation_type=
         @param dest_height (int, optional, default = 0)                                    The length of the Y dimension of the rotated image
         @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
         @param fill_value (float, optional, default = 0.0)                                 Parameter unused for augmentation
+        @param device (string, optional, default = None)                              Device used for the augmentation - either 'cpu' or 'gpu'
+        @param output_layout (int, optional, default = types.NHWC)                         tensor layout for the augmentation output
+        @param output_dtype (int, optional, default = types.UINT8)                         tensor dtype for the augmentation output
+
+        @param inputs                                                                      the input image passed to the augmentation
+        @param angle (float, optional, default = None)                                     angle used for rotating the image
+        @param dest_width (int, optional, default = 0)                                     The length of the X dimension of the rotated image
+        @param dest_height (int, optional, default = 0)                                    The length of the Y dimension of the rotated image
+        @param interpolation_type (int, optional, default = types.LINEAR_INTERPOLATION)    Type of interpolation to be used.
+        @param fill_value (float, optional, default = 0.0)                                 Parameter unused for augmentation
         @param rocal_tensor_output_layout (int, optional, default = types.NHWC)            tensor layout for the augmentation output
         @param rocal_tensor_output_datatype (int, optional, default = types.UINT8)         tensor dtype for the augmentation output
 
