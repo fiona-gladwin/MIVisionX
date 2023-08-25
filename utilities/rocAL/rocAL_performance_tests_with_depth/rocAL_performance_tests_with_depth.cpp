@@ -127,16 +127,16 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
 
 
     /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
-    RocalImage inputImage;
-    RocalImage image0;
-    RocalImage image0_b;
+    RocalTensor input_image;
+    RocalTensor image0;
+    RocalTensor image0_b;
 
     // The jpeg file loader can automatically select the best size to decode all images to that size
     // User can alternatively set the size or change the policy that is used to automatically find the size
     if (decode_max_height <= 0 || decode_max_width <= 0)
-        inputImage = rocalJpegFileSource(handle, path, color_format, num_threads, false, true);
+        input_image = rocalJpegFileSource(handle, path, color_format, num_threads, false, true);
     else
-        inputImage = rocalJpegFileSource(handle, path, color_format, num_threads, false, true,false,
+        input_image = rocalJpegFileSource(handle, path, color_format, num_threads, false, true,false,
                                     ROCAL_USE_USER_GIVEN_SIZE, decode_max_width, decode_max_height);
 
     if (rocalGetStatus(handle) != ROCAL_OK) {
@@ -152,7 +152,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
             std::cout << ">>>>>>> Running " << "rocalResize" << std::endl;
 
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalResize(handle, image0, resize_w, resize_h, true);
                 }
@@ -162,7 +162,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 1: {
             std::cout << ">>>>>>> Running " << "rocalCropResize" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalCropResize(handle, image0, resize_w, resize_h, true, rand_crop_area);
                 }
@@ -172,7 +172,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 2: {
             std::cout << ">>>>>>> Running " << "rocalCropResizeFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalCropResizeFixed(handle, image0, resize_w, resize_h, true, 0.25, 1.2, 0.6, 0.4);
 
@@ -183,7 +183,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 3: {
             std::cout << ">>>>>>> Running " << "rocalRotate" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalRotate(handle, image0, true, rand_angle);
                 }
@@ -193,7 +193,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 4: {
             std::cout << ">>>>>>> Running " << "rocalRotateFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalRotateFixed(handle, image0, 45, true, resize_w, resize_h);
                 }
@@ -203,7 +203,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 5: {
             std::cout << ">>>>>>> Running " << "rocalBrightness" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalBrightness(handle, image0, true);
                 }
@@ -213,7 +213,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 6: {
             std::cout << ">>>>>>> Running " << "rocalBrightnessFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalBrightnessFixed(handle, image0, 4, 50, true);
                 }
@@ -223,7 +223,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 7: {
             std::cout << ">>>>>>> Running " << "rocalGamma" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalGamma(handle, image0, true);
                 }
@@ -233,7 +233,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 8: {
             std::cout << ">>>>>>> Running " << "rocalGammaFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalGammaFixed(handle, image0, 0.5, true);
                 }
@@ -243,7 +243,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 9: {
             std::cout << ">>>>>>> Running " << "rocalContrast" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalContrast(handle, image0, true);
                 }
@@ -253,7 +253,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 10: {
             std::cout << ">>>>>>> Running " << "rocalContrastFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalContrastFixed(handle, image0, 30, 380, true);
                 }
@@ -263,7 +263,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 11: {
             std::cout << ">>>>>>> Running " << "rocalFlip horizontal" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalFlip(handle, image0, true);
                 }
@@ -273,7 +273,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 12: {
             std::cout << ">>>>>>> Running " << "rocalFlip vertical" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalFlip(handle, image0, true);
                 }
@@ -283,7 +283,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 13: {
             std::cout << ">>>>>>> Running " << "rocalBlur" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalBlur(handle, image0, true);
                 }
@@ -293,7 +293,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 14: {
             std::cout << ">>>>>>> Running " << "rocalBlurFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalBlurFixed(handle, image0, 17.25, true);
                 }
@@ -304,7 +304,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
             std::cout << ">>>>>>> Running " << "rocalBlend" << std::endl;
 
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 image0_b = rocalRotateFixed(handle, image0, 30, false);
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalBlend(handle, image0, image0_b, true);
@@ -314,10 +314,10 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
             break;
         case 16: {
             std::cout << ">>>>>>> Running " << "rocalBlendFixed" << std::endl;
-            image0 = inputImage;
+            image0 = input_image;
             image0_b = rocalRotateFixed(handle, image0, 30, false);
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 image0_b = rocalRotateFixed(handle, image0, 30, false);
                 for(int k = 0; k < graph_depth; k++){
                     rocalBlendFixed(handle, image0, image0_b, 0.5, true);
@@ -329,7 +329,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 17: {
             std::cout << ">>>>>>> Running " << "rocalWarpAffine" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalWarpAffine(handle, image0, true);
                 }
@@ -339,7 +339,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 18: {
             std::cout << ">>>>>>> Running " << "rocalWarpAffineFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalWarpAffineFixed(handle, image0, true, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
                 }
@@ -349,7 +349,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 19: {
             std::cout << ">>>>>>> Running " << "rocalFishEye" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalFishEye(handle, image0, true);
                 }
@@ -359,7 +359,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 20: {
             std::cout << ">>>>>>> Running " << "rocalVignette" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalVignette(handle, image0, true);
                 }
@@ -369,7 +369,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 21: {
             std::cout << ">>>>>>> Running " << "rocalVignetteFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalVignetteFixed(handle, image0, 40, true);
                 }
@@ -379,7 +379,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 22: {
             std::cout << ">>>>>>> Running " << "rocalJitter" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalJitter(handle, image0, true);
                 }
@@ -389,7 +389,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 23: {
             std::cout << ">>>>>>> Running " << "rocalJitterFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalJitterFixed(handle, image0, 3, true);
                 }
@@ -399,7 +399,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 24: {
             std::cout << ">>>>>>> Running " << "rocalSnPNoise" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalSnPNoise(handle, image0, true);
                 }
@@ -409,9 +409,9 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 25: {
             std::cout << ">>>>>>> Running " << "rocalSnPNoiseFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
-                    image0 = rocalSnPNoiseFixed(handle, image0, 0.5, true);
+                    image0 = rocalSnPNoiseFixed(handle, image0, true, 0.2, 0.2, 0.2, 0.5, 0);
                 }
             }
         }
@@ -419,7 +419,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 26: {
             std::cout << ">>>>>>> Running " << "rocalSnow" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalSnow(handle, image0, true);
                 }
@@ -429,7 +429,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 27: {
             std::cout << ">>>>>>> Running " << "rocalSnowFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalSnowFixed(handle, image0, 0.5, true);
                 }
@@ -439,7 +439,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 28: {
             std::cout << ">>>>>>> Running " << "rocalRain" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalRain(handle, image0, true);
                 }
@@ -449,7 +449,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 29: {
             std::cout << ">>>>>>> Running " << "rocalRainFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalRainFixed(handle, image0, 0.5, 2, 16, 0.25, true);
                 }
@@ -459,7 +459,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 30: {
             std::cout << ">>>>>>> Running " << "rocalColorTemp" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalColorTemp(handle, image0, true, color_temp_adj);
                 }
@@ -469,7 +469,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 31: {
             std::cout << ">>>>>>> Running " << "rocalColorTempFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalColorTempFixed(handle, image0, 70, true);
                 }
@@ -479,7 +479,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 32: {
             std::cout << ">>>>>>> Running " << "rocalFog" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalFog(handle, image0, true);
                 }
@@ -489,7 +489,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 33: {
             std::cout << ">>>>>>> Running " << "rocalFogFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalFogFixed(handle, image0, true, 2.5);
                 }
@@ -499,7 +499,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 34: {
             std::cout << ">>>>>>> Running " << "rocalLensCorrection" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalLensCorrection(handle, image0, true);
                 }
@@ -509,7 +509,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 35: {
             std::cout << ">>>>>>> Running " << "rocalLensCorrectionFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalLensCorrectionFixed(handle, image0, 2.9, 1.5, true);
                 }
@@ -519,7 +519,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 36: {
             std::cout << ">>>>>>> Running " << "rocalPixelate" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalPixelate(handle, image0, true);
                 }
@@ -529,7 +529,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 37: {
             std::cout << ">>>>>>> Running " << "rocalExposure" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalExposure(handle, image0, true);
                 }
@@ -539,7 +539,7 @@ int test(int test_case, const char* path, int rgb, int gpu, int width, int heigh
         case 38: {
             std::cout << ">>>>>>> Running " << "rocalExposureFixed" << std::endl;
             for(int j = 0; j < batch_size; j++){
-                image0 = inputImage;
+                image0 = input_image;
                 for(int k = 0; k < graph_depth; k++){
                     image0 = rocalExposureFixed(handle, image0, 1, true);
                 }

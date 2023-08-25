@@ -129,8 +129,8 @@ int test(int test_case, const char* path, int rgb, int processing_device, int wi
 
 
     /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
-    RocalImage image0;
-    RocalImage image0_b;
+    RocalTensor image0;
+    RocalTensor image0_b;
 
     // The jpeg file loader can automatically select the best size to decode all images to that size
     // User can alternatively set the size or change the policy that is used to automatically find the size
@@ -279,7 +279,7 @@ int test(int test_case, const char* path, int rgb, int processing_device, int wi
             std::cout << ">>>>>>> Running " << "rocalCropMirrorNormalize" << std::endl;
 	    std::vector<float> mean;
 	    std::vector<float> std_dev;
-            rocalCropMirrorNormalize(handle, image0, 3, 200, 200, 50, 50, 1, mean, std_dev, true);
+            rocalCropMirrorNormalize(handle, image0, 200, 200, 50, 50, mean, std_dev, true);
         }
             break;
         case 26: {
