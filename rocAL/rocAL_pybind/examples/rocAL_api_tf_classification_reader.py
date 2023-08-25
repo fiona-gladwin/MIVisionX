@@ -28,6 +28,7 @@ import numpy as np
 from parse_config import parse_args
 import cupy as cp
 
+
 def draw_patches(img, idx, device_type):
     import cv2
     args = parse_args()
@@ -36,7 +37,9 @@ def draw_patches(img, idx, device_type):
     if not args.NHWC:
         img = img.transpose([0, 1, 2])
     image = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    cv2.imwrite("OUTPUT_IMAGES_PYTHON/TF_READER/CLASSIFICATION/" + str(idx) + "_" + "train" + ".png", image)
+    cv2.imwrite("OUTPUT_IMAGES_PYTHON/TF_READER/CLASSIFICATION/" +
+                str(idx) + "_" + "train" + ".png", image)
+
 
 def main():
     args = parse_args()
@@ -62,19 +65,22 @@ def main():
     except OSError as error:
         print(error)
     # Create Pipeline instance
-    pipe = Pipeline(batch_size=batch_size, num_threads=num_threads,device_id=args.local_rank, seed=2, rocal_cpu=rocal_cpu)
+    pipe = Pipeline(batch_size=batch_size, num_threads=num_threads,
+                    device_id=args.local_rank, seed=2, rocal_cpu=rocal_cpu)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
         inputs = fn.readers.tfrecord(path=image_path, reader_type=tf_record_reader_type, user_feature_key_map=feature_key_map,
-            features={
-                "image/encoded": tf.io.FixedLenFeature((), tf.string, ""),
-                "image/class/label": tf.io.FixedLenFeature([1], tf.int64, -1),
-                "image/filename": tf.io.FixedLenFeature((), tf.string, "")
-            }
-        )
+                                     features={
+                                         "image/encoded": tf.io.FixedLenFeature((), tf.string, ""),
+                                         "image/class/label": tf.io.FixedLenFeature([1], tf.int64, -1),
+                                         "image/filename": tf.io.FixedLenFeature((), tf.string, "")
+                                     }
+                                     )
         jpegs = inputs["image/encoded"]
-        images = fn.decoders.image(jpegs, user_feature_key_map=feature_key_map, output_type=types.RGB, path=image_path)
-        resized = fn.resize(images, resize_width=300, resize_height=300, output_layout=tensor_layout)
+        images = fn.decoders.image(
+            jpegs, user_feature_key_map=feature_key_map, output_type=types.RGB, path=image_path)
+        resized = fn.resize(images, resize_width=300,
+                            resize_height=300, output_layout=tensor_layout)
         if one_hot_labels == 1:
             labels = inputs["image/class/label"]
             _ = fn.one_hot(labels, num_classes=1000)
@@ -98,6 +104,7 @@ def main():
 
     print("###############################################    TF CLASSIFICATION    ###############################################")
     print("###############################################    SUCCESS              ###############################################")
+
 
 if __name__ == "__main__":
     main()

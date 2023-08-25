@@ -28,6 +28,7 @@ import os
 import cupy as cp
 from parse_config import parse_args
 
+
 def get_onehot(image_labels_array, num_classes):
     one_hot_vector_list = []
     for label in image_labels_array:
@@ -40,11 +41,13 @@ def get_onehot(image_labels_array, num_classes):
 
     return one_hot_vector_array
 
+
 def get_weights(num_bboxes):
     weights_array = np.zeros(num_bboxes)
     for pos in list(range(num_bboxes)):
         np.put(weights_array, pos, 1)
     return weights_array
+
 
 def draw_patches(img, idx, bboxes, device_type):
     import cv2
@@ -54,7 +57,8 @@ def draw_patches(img, idx, bboxes, device_type):
     if not args.NHWC:
         img = img.transpose([0, 1, 2])
     image = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    image = cv2.normalize(image, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    image = cv2.normalize(image, None, alpha=0, beta=255,
+                          norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
     for (l, t, r, b) in bboxes:
         loc_ = [l, t, r, b]
         color = (255, 0, 0)
@@ -64,6 +68,7 @@ def draw_patches(img, idx, bboxes, device_type):
             (loc_[2])), int((loc_[3]))), color, thickness)
         cv2.imwrite("OUTPUT_IMAGES_PYTHON/TF_READER/DETECTION/" +
                     str(idx) + "_" + "train" + ".png", image)
+
 
 def main():
     args = parse_args()
@@ -112,10 +117,12 @@ def main():
         jpegs = inputs["image/encoded"]
         _ = inputs["image/class/label"]
         decoded_images = fn.decoders.image_random_crop(jpegs, user_feature_key_map=feature_key_map, output_type=types.RGB,
-                                                       random_aspect_ratio=[0.8, 1.25],
+                                                       random_aspect_ratio=[
+                                                           0.8, 1.25],
                                                        random_area=[0.1, 1.0],
                                                        num_attempts=100, path=image_path)
-        resized = fn.resize(decoded_images, resize_width=300, resize_height=300, output_layout=tensor_layout)
+        resized = fn.resize(decoded_images, resize_width=300,
+                            resize_height=300, output_layout=tensor_layout)
         pipe.set_outputs(resized)
     pipe.build()
     image_iterator = ROCALIterator(pipe, device=device)
@@ -141,13 +148,15 @@ def main():
             processed_tensors = (features_dict, labels_dict)
             if args.print_tensor:
                 print("\nPROCESSED_TENSORS:\n", processed_tensors)
-            draw_patches(images_array[element], cnt, bboxes_array[element], device)
+            draw_patches(images_array[element], cnt,
+                         bboxes_array[element], device)
         print("\n\nPrinted first batch with", (batch_size), "images!")
         break
     image_iterator.reset()
 
     print("###############################################    TF DETECTION    ###############################################")
     print("###############################################    SUCCESS         ###############################################")
+
 
 if __name__ == "__main__":
     main()

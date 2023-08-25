@@ -44,6 +44,7 @@ SCALING_MODES = {
     3: types.SCALING_MODE_NOT_LARGER
 }
 
+
 def draw_patches(img, idx, device):
     # image is expected as a tensor, bboxes as numpy
     args = parse_args()
@@ -61,7 +62,8 @@ def draw_patches(img, idx, device):
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     else:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    cv2.imwrite(args.output_file_name + ".png", img, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+    cv2.imwrite(args.output_file_name + ".png", img,
+                [cv2.IMWRITE_PNG_COMPRESSION, 9])
 
 
 def main():
@@ -118,28 +120,28 @@ def main():
         if reader_type == "file":
             jpegs, _ = fn.readers.file(file_root=data_path)
             images = fn.decoders.image(jpegs,
-                                   file_root=data_path,
-                                   device=decoder_device,
-                                   max_decoded_width=max_width,
-                                   max_decoded_height=max_height,
-                                   output_type=color_format,
-                                   shard_id=local_rank,
-                                   num_shards=world_size,
-                                   random_shuffle=False)
+                                       file_root=data_path,
+                                       device=decoder_device,
+                                       max_decoded_width=max_width,
+                                       max_decoded_height=max_height,
+                                       output_type=color_format,
+                                       shard_id=local_rank,
+                                       num_shards=world_size,
+                                       random_shuffle=False)
 
         elif reader_type == "coco":
             annotation_path = args.json_path
             jpegs, _, _ = fn.readers.coco(annotations_file=annotation_path)
             images = fn.decoders.image(jpegs,
-                                   file_root=data_path,
-                                   annotations_file=annotation_path,
-                                   device=decoder_device,
-                                   max_decoded_width=max_width,
-                                   max_decoded_height=max_height,
-                                   output_type=color_format,
-                                   shard_id=local_rank,
-                                   num_shards=world_size,
-                                   random_shuffle=False)
+                                       file_root=data_path,
+                                       annotations_file=annotation_path,
+                                       device=decoder_device,
+                                       max_decoded_width=max_width,
+                                       max_decoded_height=max_height,
+                                       output_type=color_format,
+                                       shard_id=local_rank,
+                                       num_shards=world_size,
+                                       random_shuffle=False)
 
         elif reader_type == "tf_classification":
             try:
@@ -148,16 +150,17 @@ def main():
                 print('Install tensorflow to run tf_classification tests')
                 exit()
             featureKeyMap = {
-                'image/encoded':'image/encoded',
-                'image/class/label':'image/class/label',
-                'image/filename':'image/filename'
+                'image/encoded': 'image/encoded',
+                'image/class/label': 'image/class/label',
+                'image/filename': 'image/filename'
             }
             features = {
-                'image/encoded':tf.io.FixedLenFeature((), tf.string, ""),
-                'image/class/label':tf.io.FixedLenFeature([1], tf.int64,  -1),
-                'image/filename':tf.io.FixedLenFeature((), tf.string, "")
+                'image/encoded': tf.io.FixedLenFeature((), tf.string, ""),
+                'image/class/label': tf.io.FixedLenFeature([1], tf.int64,  -1),
+                'image/filename': tf.io.FixedLenFeature((), tf.string, "")
             }
-            inputs = fn.readers.tfrecord(data_path, featureKeyMap, features, reader_type=0)
+            inputs = fn.readers.tfrecord(
+                data_path, featureKeyMap, features, reader_type=0)
             jpegs = inputs["image/encoded"]
             images = fn.decoders.image(jpegs, user_feature_key_map=featureKeyMap,
                                        output_type=color_format, path=data_path,
@@ -193,10 +196,11 @@ def main():
                 'image/object/bbox/ymax': tf.io.VarLenFeature(dtype=tf.float32),
                 'image/filename': tf.io.FixedLenFeature((), tf.string, "")
             }
-            inputs = fn.readers.tfrecord(path=data_path, reader_type=1, features=features, user_feature_key_map=featureKeyMap)
+            inputs = fn.readers.tfrecord(
+                path=data_path, reader_type=1, features=features, user_feature_key_map=featureKeyMap)
             jpegs = inputs["image/encoded"]
             _ = inputs["image/class/label"]
-            images = fn.decoders.image_random_crop(jpegs,user_feature_key_map=featureKeyMap,
+            images = fn.decoders.image_random_crop(jpegs, user_feature_key_map=featureKeyMap,
                                                    max_decoded_width=max_width,
                                                    max_decoded_height=max_height,
                                                    output_type=color_format,
@@ -474,7 +478,8 @@ def main():
     # build the pipeline
     pipe.build()
     # Dataloader
-    data_loader = ROCALClassificationIterator(pipe, device=device, device_id=local_rank)
+    data_loader = ROCALClassificationIterator(
+        pipe, device=device, device_id=local_rank)
     cnt = 0
     import timeit
     start = timeit.default_timer()
@@ -501,7 +506,8 @@ def main():
     print('\n Time: ', stop - start)
     print('Number of times loop iterates is:', cnt)
 
-    print(f'###############################################                             {augmentation_name.upper()}                         ############################################')
+    print(
+        f'###############################################                             {augmentation_name.upper()}                         ############################################')
     print("###############################################                             SUCCESS                             ###############################################")
 
 

@@ -80,23 +80,29 @@ def main():
         print(error)
     print("num_classes:: ", num_classes)
     # Create Pipeline instance
-    pipe = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=args.local_rank, seed=random_seed, rocal_cpu=rocal_cpu)
+    pipe = Pipeline(batch_size=batch_size, num_threads=num_threads,
+                    device_id=args.local_rank, seed=random_seed, rocal_cpu=rocal_cpu)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
         if rocal_bbox:
-            jpegs, labels, bboxes = fn.readers.caffe(path=image_path, bbox=rocal_bbox)
-            images = fn.decoders.image(jpegs, path=image_path, shard_id=local_rank, random_shuffle=True)
+            jpegs, labels, bboxes = fn.readers.caffe(
+                path=image_path, bbox=rocal_bbox)
+            images = fn.decoders.image(
+                jpegs, path=image_path, shard_id=local_rank, random_shuffle=True)
 
         else:
             jpegs, labels = fn.readers.caffe(path=image_path, bbox=rocal_bbox)
-            images = fn.decoders.image(jpegs, path=image_path, output_type=types.RGB, shard_id=local_rank, num_shards=world_size, random_shuffle=True)
+            images = fn.decoders.image(jpegs, path=image_path, output_type=types.RGB,
+                                       shard_id=local_rank, num_shards=world_size, random_shuffle=True)
 
-        images = fn.resize(images, resize_width=224, resize_height=224, output_layout=tensor_layout)
+        images = fn.resize(images, resize_width=224,
+                           resize_height=224, output_layout=tensor_layout)
         pipe.set_outputs(images)
     # Build the pipeline
     pipe.build()
     # Dataloader
-    data_loader = ROCALClassificationIterator(pipe, display=0, device=device, device_id=args.local_rank)
+    data_loader = ROCALClassificationIterator(
+        pipe, display=0, device=device, device_id=args.local_rank)
     # Training loop
     cnt = 0
     # Enumerate over the Dataloader
@@ -125,6 +131,7 @@ def main():
                     draw_patches(image_batch[element], cnt, bboxes[element])
             data_loader.reset()
     print("##############################  CAFFE READER (CLASSIFCATION/ DETECTION)  SUCCESS  ############################")
+
 
 if __name__ == "__main__":
     main()

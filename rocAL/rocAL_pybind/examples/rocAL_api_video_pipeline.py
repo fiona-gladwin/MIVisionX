@@ -25,6 +25,7 @@ import amd.rocal.types as types
 import numpy as np
 from parse_config import parse_args
 
+
 class ROCALVideoIterator(object):
     """
     ROCALVideoIterator for pyTorch.
@@ -139,7 +140,8 @@ def main():
     # Build the pipeline
     pipe.build()
     # Dataloader
-    data_loader = ROCALVideoIterator(pipe, multiplier=pipe._multiplier, offset=pipe._offset, display=display, sequence_length=user_sequence_length)
+    data_loader = ROCALVideoIterator(pipe, multiplier=pipe._multiplier,
+                                     offset=pipe._offset, display=display, sequence_length=user_sequence_length)
     import timeit
     start = timeit.default_timer()
     # Enumerate over the Dataloader

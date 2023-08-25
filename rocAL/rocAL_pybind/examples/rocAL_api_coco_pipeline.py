@@ -29,6 +29,7 @@ import amd.rocal.types as types
 import numpy as np
 from parse_config import parse_args
 
+
 class ROCALCOCOIterator(object):
     """
     COCO ROCAL iterator for pyTorch.
@@ -82,15 +83,19 @@ class ROCALCOCOIterator(object):
                 self.dimensions = self.output_tensor_list[i].dimensions()
                 self.torch_dtype = self.output_tensor_list[i].dtype()
                 if self.device == "cpu":
-                    self.output = torch.empty(self.dimensions, dtype=getattr(torch, self.torch_dtype))
+                    self.output = torch.empty(
+                        self.dimensions, dtype=getattr(torch, self.torch_dtype))
                 else:
                     torch_gpu_device = torch.device('cuda', self.device_id)
-                    self.output = torch.empty(self.dimensions, dtype=getattr(torch, self.torch_dtype), device=torch_gpu_device)
-                self.output_tensor_list[i].copy_data(ctypes.c_void_p(self.output.data_ptr()), self.output_memory_type)
+                    self.output = torch.empty(self.dimensions, dtype=getattr(
+                        torch, self.torch_dtype), device=torch_gpu_device)
+                self.output_tensor_list[i].copy_data(ctypes.c_void_p(
+                    self.output.data_ptr()), self.output_memory_type)
                 self.output_list.append(self.output)
         else:
             for i in range(len(self.output_tensor_list)):
-                self.output_tensor_list[i].copy_data(ctypes.c_void_p(self.output_list[i].data_ptr()), self.output_memory_type)
+                self.output_tensor_list[i].copy_data(ctypes.c_void_p(
+                    self.output_list[i].data_ptr()), self.output_memory_type)
 
         self.labels = self.loader.get_bounding_box_labels()
         # 1D bboxes array in a batch
@@ -111,6 +116,7 @@ class ROCALCOCOIterator(object):
 
     def __iter__(self):
         return self
+
 
 def draw_patches(img, idx, bboxes, device):
     args = parse_args()
@@ -165,15 +171,18 @@ def main():
                     seed=random_seed, rocal_cpu=rocal_cpu, tensor_layout=tensor_format, tensor_dtype=tensor_dtype)
     # Use pipeline instance to make calls to reader, decoder & augmentation's
     with pipe:
-        jpegs, bboxes, labels = fn.readers.coco(annotations_file=annotation_path)
+        jpegs, bboxes, labels = fn.readers.coco(
+            annotations_file=annotation_path)
         images_decoded = fn.decoders.image(jpegs, output_type=types.RGB, file_root=image_path,
                                            annotations_file=annotation_path, random_shuffle=False, shard_id=local_rank, num_shards=world_size)
-        res_images = fn.resize(images_decoded, resize_width=300, resize_height=300)
+        res_images = fn.resize(
+            images_decoded, resize_width=300, resize_height=300)
         saturation = fn.uniform(range=[0.1, 0.4])
         contrast = fn.uniform(range=[0.1, 25.0])
         brightness = fn.uniform(range=[0.875, 1.125])
         hue = fn.uniform(range=[5.0, 170.0])
-        ct_images = fn.color_twist(res_images, saturation=saturation, contrast=contrast, brightness=brightness, hue=hue)
+        ct_images = fn.color_twist(
+            res_images, saturation=saturation, contrast=contrast, brightness=brightness, hue=hue)
         flip_coin = fn.random.coin_flip(probability=0.5)
         cmn_images = fn.crop_mirror_normalize(ct_images,
                                               crop=(224, 224),
