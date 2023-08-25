@@ -1046,7 +1046,6 @@ extern "C"
 	 * \ingroup group_amd_rpp
 	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
 	 * \param [in] pSrcRoi The input tensor of batch size in <tt>unsigned int<tt> containing the roi values for the input in xywh/ltrb format.
->>>>>>> origin/PR_metanode_reader_changes
 	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8</tt> format data.
 	 * \param [in] pKernelSize The input array in <tt>\ref VX_TYPE_UINT32</tt> format containing the kernel size data.
 	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.

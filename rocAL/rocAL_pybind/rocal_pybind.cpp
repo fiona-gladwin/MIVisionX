@@ -20,20 +20,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/numpy.h>
-#include <iostream>
 #include <pybind11/embed.h>
 #include <pybind11/eval.h>
-#include "rocal_api_types.h"
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <iostream>
+
 #include "rocal_api.h"
-#include "rocal_api_tensor.h"
-#include "rocal_api_parameters.h"
-#include "rocal_api_data_loaders.h"
 #include "rocal_api_augmentation.h"
+#include "rocal_api_data_loaders.h"
 #include "rocal_api_data_transfer.h"
 #include "rocal_api_info.h"
+#include "rocal_api_parameters.h"
+#include "rocal_api_tensor.h"
+#include "rocal_api_types.h"
 namespace py = pybind11;
 
 using float16 = half_float::half;
@@ -281,8 +283,8 @@ PYBIND11_MODULE(rocal_pybind, m) {
         .value("UINT8", ROCAL_UINT8)
         .export_values();
     py::enum_<RocalOutputMemType>(types_m, "RocalOutputMemType", "Output memory types")
-        .value("CPU_MEMORY", ROCAL_MEMCPY_HOST)
-        .value("GPU_MEMORY", ROCAL_MEMCPY_GPU)
+        .value("HOST_MEMORY", ROCAL_MEMCPY_HOST)
+        .value("DEVICE_MEMORY", ROCAL_MEMCPY_GPU)
         .value("PINNED_MEMORY", ROCAL_MEMCPY_PINNED)
         .export_values();
     py::enum_<RocalResizeScalingMode>(types_m, "RocalResizeScalingMode", "Decode size policies")

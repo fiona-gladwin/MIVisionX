@@ -22,21 +22,19 @@ THE SOFTWARE.
 #if ENABLE_OPENCL
 #include <CL/cl.h>
 #endif
-#include <VX/vx_types.h>
-#include <sched.h>
 #include <vx_ext_amd.h>
-
+#include <VX/vx_types.h>
 #include <cstring>
+#include <sched.h>
 #include <half/half.hpp>
-
-#include "log.h"
 #include "master_graph.h"
-#include "meta_data_graph_factory.h"
-#include "meta_data_reader_factory.h"
-#include "node_copy.h"
-#include "ocl_setup.h"
 #include "parameter_factory.h"
+#include "ocl_setup.h"
+#include "log.h"
+#include "meta_data_reader_factory.h"
+#include "meta_data_graph_factory.h"
 #include "randombboxcrop_meta_data_reader_factory.h"
+#include "node_copy.h"
 
 using half_float::half;
 

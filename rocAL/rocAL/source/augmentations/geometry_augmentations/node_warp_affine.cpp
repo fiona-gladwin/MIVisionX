@@ -20,8 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <vx_ext_rpp.h>
 #include "node_warp_affine.h"
+
+#include <vx_ext_rpp.h>
+
 #include "exception.h"
 
 WarpAffineNode::WarpAffineNode(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs) : Node(inputs, outputs),
@@ -58,7 +60,7 @@ void WarpAffineNode::create_node() {
 
     _node = vxExtRppWarpAffine(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _affine_array,
                                interpolation_vx, input_layout_vx, output_layout_vx, roi_type_vx);
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the warp affine (vxExtRppWarpAffine) node failed: " + TOSTR(status))
 }
 

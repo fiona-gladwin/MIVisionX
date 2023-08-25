@@ -20,16 +20,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <vx_ext_rpp.h>
 #include "node_rain.h"
+
+#include <vx_ext_rpp.h>
+
 #include "exception.h"
 
 RainNode::RainNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
                                                                                                 _rain_value(RAIN_VALUE_RANGE[0], RAIN_VALUE_RANGE[1]),
                                                                                                 _rain_width(RAIN_WIDTH_RANGE[0], RAIN_WIDTH_RANGE[1]),
                                                                                                 _rain_height(RAIN_HEIGHT_RANGE[0], RAIN_HEIGHT_RANGE[0]),
-                                                                                                _rain_transparency(RAIN_TRANSPARENCY_RANGE[0], RAIN_TRANSPARENCY_RANGE[1]) {
-}
+                                                                                                _rain_transparency(RAIN_TRANSPARENCY_RANGE[0], RAIN_TRANSPARENCY_RANGE[1]) {}
 
 void RainNode::create_node() {
     if (_node)
@@ -49,7 +50,7 @@ void RainNode::create_node() {
     _node = vxExtRppRain(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _rain_value.default_array(), _rain_width.default_array(), _rain_height.default_array(), _rain_transparency.default_array(), input_layout_vx, output_layout_vx, roi_type_vx);
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the rain (vxExtrppNode_Rain) node failed: " + TOSTR(status))
+        THROW("Adding the rain (vxExtRppRain) node failed: " + TOSTR(status))
 }
 
 void RainNode::init(float rain_value, int rain_width, int rain_height, float rain_transparency) {

@@ -33,7 +33,7 @@ THE SOFTWARE.
 #include <vector>
 
 #include "caffe_protos.pb.h"
-#include "reader.h"
+#include "image_reader.h"
 #include "timing_debug.h"
 
 class CaffeLMDBRecordReader : public Reader {

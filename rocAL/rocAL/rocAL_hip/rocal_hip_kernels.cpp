@@ -20,11 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "rocal_hip_kernels.h"
 #include <half/half.hpp>
-#include "hip/hip_fp16.h"
-#include "hip/hip_runtime.h"
 #include "hip/hip_runtime_api.h"
+#include "hip/hip_runtime.h"
+#include "hip/hip_fp16.h"
+#include "rocal_hip_kernels.h"
 
 __global__ void __attribute__((visibility("default")))
 Hip_CopyInt8ToNHWC_fp32(

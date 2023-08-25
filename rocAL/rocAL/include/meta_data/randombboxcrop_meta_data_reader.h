@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "meta_data_reader.h"
 #include "parameter_factory.h"
 #include "randombboxcrop_meta_data.h"
-#include "reader.h"
+#include "image_reader.h"
 
 enum class RandomBBoxCrop_MetaDataReaderType {
     RandomBBoxCropReader = 0,

@@ -25,6 +25,14 @@ THE SOFTWARE.
 #include "rocal_api_types.h"
 
 /*!
+ * \file
+ * \brief The AMD rocAL Library - Tensor
+ *
+ * \defgroup group_rocal_tensor API: AMD rocAL - Tensor API
+ * \brief The AMD rocAL Tensor.
+ */
+
+/*!
  * \brief class representing rocal tensor
  */
 class rocalTensor {

@@ -32,7 +32,7 @@ THE SOFTWARE.
 #include <utility>
 
 #include "caffe2_protos.pb.h"
-#include "lmdb.h"
+#include <lmdb.h>
 
 using namespace std;
 

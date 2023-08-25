@@ -148,7 +148,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalSequenceReaderSingleShard(RocalContex
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSource(RocalContext context,
                                                               const char* source_path,
@@ -176,7 +176,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSource(RocalContext conte
  * \param [in] decode_size_policy
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourcePartial(RocalContext p_context,
                                                                      const char* source_path,
@@ -206,7 +206,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourcePartial(RocalContex
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] area_factor Determines how much area to be cropped. Ranges from from 0.08 - 1.
  * \param [in] aspect_ratio Determines the aspect ration of crop. Ranges from 0.75 to 1.33.
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourcePartialSingleShard(RocalContext p_context,
                                                                                 const char* source_path,
@@ -236,7 +236,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourcePartialSingleShard(
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourceSingleShard(RocalContext context,
                                                                          const char* source_path,
@@ -263,7 +263,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCOCOFileSourceSingleShard(RocalCo
  * \param [in] decode_size_policy
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSource(RocalContext context,
                                                                      const char* source_path,
@@ -290,7 +290,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSource(RocalContex
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourceSingleShard(RocalContext p_context,
                                                                                 const char* source_path,
@@ -317,7 +317,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourceSingleShard(
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSource(RocalContext context,
                                                                       const char* source_path,
@@ -344,7 +344,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSource(RocalConte
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourceSingleShard(RocalContext p_context,
                                                                                  const char* source_path,
@@ -371,7 +371,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourceSingleShard
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalMXNetRecordSource(RocalContext context,
                                                              const char* source_path,
@@ -398,7 +398,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalMXNetRecordSource(RocalContext contex
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalMXNetRecordSourceSingleShard(RocalContext p_context,
                                                                         const char* source_path,
@@ -427,7 +427,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalMXNetRecordSourceSingleShard(RocalCon
  * \param [in] decode_size_policy
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalFusedJpegCrop(RocalContext context,
                                                          const char* source_path,
@@ -456,7 +456,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalFusedJpegCrop(RocalContext context,
  * \param [in] decode_size_policy
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
- * \return
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalFusedJpegCropSingleShard(RocalContext context,
                                                                     const char* source_path,
@@ -514,7 +514,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegTFRecordSource(RocalContext conte
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
  * \param [in] rocal_decoder_type Determines the decoder_type, tjpeg or hwdec
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegTFRecordSourceSingleShard(RocalContext context,
                                                                          const char* source_path,
@@ -538,7 +538,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegTFRecordSourceSingleShard(RocalCo
  * \param [in] loop: repeat data loading
  * \param [in] out_width The output_width of raw image
  * \param [in] out_height The output height of raw image
- * \return
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalRawTFRecordSource(RocalContext p_context,
                                                              const char* source_path,
@@ -563,7 +563,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRawTFRecordSource(RocalContext p_cont
  * \param [in] out_width The output_width of raw image
  * \param [in] out_height The output height of raw image
  * \param [in] record_name_prefix : if nonempty reader will only read records with certain prefix
- * \return
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalContext p_context,
                                                                         const char* source_path,
@@ -576,7 +576,8 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalCon
                                                                         unsigned out_width = 0, unsigned out_height = 0,
                                                                         const char* record_name_prefix = "");
 
-/*! \brief  a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems.
+/*!
+ * \brief Creates a video reader and decoder as a source. It allocates the resources and objects required to read and decode mp4 videos stored on the file systems.
  * \ingroup group_rocal_data_loaders
  * \param [in] context Rocal context
  * \param [in] source_path A NULL terminated char string pointing to the location on the disk. source_path can be a video file, folder containing videos or a text file
@@ -590,7 +591,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalRawTFRecordSourceSingleShard(RocalCon
  * \param [in] step: Frame interval between each sequence.
  * \param [in] stride: Frame interval between frames in a sequence.
  * \param [in] file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
- * \return
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileSource(RocalContext context,
                                                            const char* source_path,
@@ -620,7 +621,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileSource(RocalContext context,
  * \param [in] step: Frame interval between each sequence.
  * \param [in] stride: Frame interval between frames in a sequence.
  * \param [in] file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
- * \return
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalContext context,
                                                                       const char* source_path,
@@ -652,7 +653,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileSourceSingleShard(RocalConte
  * \param [in] step: Frame interval between each sequence.
  * \param [in] stride: Frame interval between frames in a sequence.
  * \param [in] file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
- * \return
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileResize(RocalContext context,
                                                            const char* source_path,
@@ -691,7 +692,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileResize(RocalContext context,
  * \param [in] step: Frame interval between each sequence.
  * \param [in] stride: Frame interval between frames in a sequence.
  * \param [in] file_list_frame_num: Determines if the user wants to read frame number or timestamps if a text file is passed in the source_path.
- * \return
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileResizeSingleShard(RocalContext context,
                                                                       const char* source_path,
@@ -723,7 +724,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalVideoFileResizeSingleShard(RocalConte
  * \param [in] out_width output width
  * \param [in] out_height output_height
  * \param [in] filename_prefix if set loader will only load files with the given prefix name
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalRawCIFAR10Source(RocalContext context,
                                                             const char* source_path,
@@ -755,7 +756,7 @@ extern "C" RocalStatus ROCAL_API_CALL rocalResetLoaders(RocalContext context);
  * \param [in] decode_size_policy
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourcePartialSingleShard(RocalContext p_context,
                                                                                        const char* source_path,
@@ -784,7 +785,7 @@ extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffeLMDBRecordSourcePartialSingl
  * \param [in] decode_size_policy
  * \param [in] max_width The maximum width of the decoded images, larger or smaller will be resized to closest
  * \param [in] max_height The maximum height of the decoded images, larger or smaller will be resized to closest
- * \return Reference to the output image
+ * \return Reference to the output tensor
  */
 extern "C" RocalTensor ROCAL_API_CALL rocalJpegCaffe2LMDBRecordSourcePartialSingleShard(RocalContext p_context,
                                                                                         const char* source_path,

@@ -20,10 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <vx_ext_rpp.h>
-#include <graph.h>
-#include <cmath>
 #include "node_resize_mirror_normalize.h"
+
+#include <graph.h>
+#include <vx_ext_rpp.h>
+
+#include <cmath>
+
 #include "exception.h"
 
 ResizeMirrorNormalizeNode::ResizeMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs), _mirror(_mirror_range[0], _mirror_range[1]) {}
@@ -84,10 +87,10 @@ void ResizeMirrorNormalizeNode::create_node() {
     vx_scalar output_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
     vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
 
-   _node = vxExtRppResizeMirrorNormalize(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(),
-                                         _dst_roi_width, _dst_roi_height, interpolation_vx, _mean_vx_array, _std_dev_vx_array,
-                                         _mirror.default_array(), input_layout_vx, output_layout_vx, roi_type_vx);
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    _node = vxExtRppResizeMirrorNormalize(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(),
+                                          _dst_roi_width, _dst_roi_height, interpolation_vx, _mean_vx_array, _std_dev_vx_array,
+                                          _mirror.default_array(), input_layout_vx, output_layout_vx, roi_type_vx);
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the resize_mirror_normalize (vxExtRppResizeMirrorNormalize) node failed: " + TOSTR(status))
 }
 

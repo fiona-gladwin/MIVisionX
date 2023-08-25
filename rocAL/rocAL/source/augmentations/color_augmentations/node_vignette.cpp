@@ -25,8 +25,7 @@ THE SOFTWARE.
 #include "exception.h"
 
 VignetteNode::VignetteNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
-                                                                                                        _sdev(SDEV_RANGE[0], SDEV_RANGE[1]) {
-}
+                                                                                                        _sdev(SDEV_RANGE[0], SDEV_RANGE[1]) {}
 
 void VignetteNode::create_node() {
     if (_node)
@@ -40,10 +39,10 @@ void VignetteNode::create_node() {
     vx_scalar output_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
     vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
 
-    _node = vxExtRppVignette(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _sdev.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
+    _node = vxExtRppVignette(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _sdev.default_array(), input_layout_vx, output_layout_vx, roi_type_vx);
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the vignette (vxExtrppNode_VignettebatchPD) node failed: " + TOSTR(status))
+        THROW("Adding the vignette (vxExtRppVignette) node failed: " + TOSTR(status))
 }
 
 void VignetteNode::init(float sdev) {

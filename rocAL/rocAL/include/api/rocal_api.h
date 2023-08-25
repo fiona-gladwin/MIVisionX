@@ -41,37 +41,43 @@ THE SOFTWARE.
  * \brief The AMD rocAL is designed to efficiently decode and process images and videos from a variety of storage formats and modify them through a processing graph programmable by the user.
  */
 
-/*! \brief Creates the context for a new augmentation pipeline. Initializes all the required internals for the pipeline
+/*!
+ * \brief  rocalCreate creates the context for a new augmentation pipeline. Initializes all the required internals for the pipeline
  * \ingroup group_rocal
- * \param [in] batch_size batch size of the rocal context
- * \param [in] affinity affinity for the rocal context
- * \param [in] gpu_id GPU id associated with rocal context
+ * \param [in] batch_size batch size
+ * \param [in] affinity RocalProcessMode: Defines whether rocal data loading should be on the CPU or GPU.
+ * \param [in] gpu_id GPU id
  * \param [in] cpu_thread_count number of cpu threads
- * \param [in] prefetch_queue_depth The depth of the prefetch queue for the RocalContext (default is 3).
- * \param [in] output_tensor_data_type The output tensor data type (default is ROCAL_FP32).
- * \return
+ * \param [in] prefetch_queue_depth The depth of the prefetch queue.
+ * \param [in] output_tensor_data_type RocalTensorOutputType: Defines whether the output of rocal tensor is FP32 or FP16.
+ * \return A \ref RocalContext - The context for the pipeline
  */
 extern "C" RocalContext ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProcessMode affinity, int gpu_id = 0, size_t cpu_thread_count = 1, size_t prefetch_queue_depth = 3, RocalTensorOutputType output_tensor_data_type = RocalTensorOutputType::ROCAL_FP32);
-// extern "C"  RocalContext  ROCAL_API_CALL rocalCreate(size_t batch_size, RocalProcessMode affinity, int gpu_id = 0, size_t cpu_thread_count = 1);
 
-/*! \brief verifies the rocal context
+/*!
+ * \brief  rocalVerify function to verify the graph for all the inputs and outputs
  * \ingroup group_rocal
+ *
  * \param [in] context the rocal context
- * \return rocal status value
+ * \return A \ref RocalStatus - A status code indicating the success or failure
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalVerify(RocalContext context);
 
-/*! \brief executes the rocal context
+/*!
+ * \brief  rocalRun function to process and run the built and verified graph.
  * \ingroup group_rocal
+ *
  * \param [in] context the rocal context
- * \return rocal status value
+ * \return A \ref RocalStatus - A status code indicating the success or failure
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalRun(RocalContext context);
 
-/*! \brief releases the rocal context
+/*!
+ * \brief  rocalRelease function to free all the resources allocated during the graph creation process.
  * \ingroup group_rocal
- * \param [in] rocal_context the rocal context
- * \return rocal status value
+ *
+ * \param [in] context the rocal context
+ * \return A \ref RocalStatus - A status code indicating the success or failure.
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalRelease(RocalContext rocal_context);
 

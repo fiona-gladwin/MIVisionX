@@ -22,23 +22,21 @@ THE SOFTWARE.
 
 #pragma once
 #include <dirent.h>
-
-#include <boost/filesystem.hpp>
-#include <cstring>
-#include <iterator>
-#include <map>
-#include <memory>
-#include <tuple>
 #include <vector>
-
+#include <memory>
+#include <iterator>
+#include <cstring>
+#include <map>
+#include <tuple>
+#include <boost/filesystem.hpp>
 #include "commons.h"
 #include "ffmpeg_video_decoder.h"
-#include "loader_module.h"
-#include "reader.h"
+#include "video_reader_factory.h"
 #include "timing_debug.h"
+#include "loader_module.h"
 #include "video_properties.h"
 #include "video_reader.h"
-#include "video_reader_factory.h"
+
 #ifdef ROCAL_VIDEO
 extern "C" {
 #include <libavutil/pixdesc.h>

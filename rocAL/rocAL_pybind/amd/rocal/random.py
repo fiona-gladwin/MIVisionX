@@ -22,7 +22,6 @@
 # @file random.py
 #
 # @brief File containing randomization functions used for creating RNG generators
-# File containing randomization functions used for creating RNG generators
 
 import rocal_pybind as b
 

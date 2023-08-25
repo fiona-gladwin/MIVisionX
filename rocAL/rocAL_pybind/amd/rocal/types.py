@@ -21,8 +21,6 @@
 ##
 # @file types.py
 # @brief File containing various user defined types used in rocAL
-#
-# File containing various user defined types used in rocAL
 
 # RocalStatus
 from rocal_pybind.types import OK
@@ -42,8 +40,8 @@ from rocal_pybind.types import FLOAT16
 from rocal_pybind.types import UINT8
 
 #  RocalOutputMemType
-from rocal_pybind.types import CPU_MEMORY
-from rocal_pybind.types import GPU_MEMORY
+from rocal_pybind.types import HOST_MEMORY
+from rocal_pybind.types import DEVICE_MEMORY
 from rocal_pybind.types import PINNED_MEMORY
 
 # RocalImageSizeEvaluationPolicy
@@ -103,9 +101,9 @@ _known_types = {
     UINT8: ("UINT8", UINT8),
     FLOAT: ("FLOAT", FLOAT),
     FLOAT16: ("FLOAT16", FLOAT16),
-    UINT8: ("UINT8", UINT8),
-    CPU_MEMORY: ("CPU_MEMORY", CPU_MEMORY),
-    GPU_MEMORY: ("GPU_MEMORY", GPU_MEMORY),
+    UINT8 : ("UINT8", UINT8),
+    HOST_MEMORY: ("HOST_MEMORY", HOST_MEMORY),
+    DEVICE_MEMORY: ("DEVICE_MEMORY", DEVICE_MEMORY),
     PINNED_MEMORY: ("PINNED_MEMORY", PINNED_MEMORY),
 
     MAX_SIZE: ("MAX_SIZE", MAX_SIZE),

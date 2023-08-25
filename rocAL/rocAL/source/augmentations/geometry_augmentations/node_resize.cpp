@@ -20,12 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <vx_ext_rpp.h>
 #include "node_resize.h"
+
+#include <vx_ext_rpp.h>
+
 #include "exception.h"
 
-ResizeNode::ResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs) {
-}
+ResizeNode::ResizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs) {}
 
 void ResizeNode::create_node() {
     if (_node)
@@ -41,7 +42,7 @@ void ResizeNode::create_node() {
 
     width_status = vxAddArrayItems(_dst_roi_width, _batch_size, dst_roi_width.data(), sizeof(vx_uint32));
     height_status = vxAddArrayItems(_dst_roi_height, _batch_size, dst_roi_height.data(), sizeof(vx_uint32));
-     if(width_status != 0 || height_status != 0)
+    if (width_status != 0 || height_status != 0)
         THROW("vxAddArrayItems failed in the resize (vxExtRppResize) node: " + TOSTR(width_status) + "  " + TOSTR(height_status));
 
     vx_scalar interpolation_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &_interpolation_type);
@@ -52,11 +53,11 @@ void ResizeNode::create_node() {
     vx_scalar output_layout_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &output_layout);
     vx_scalar roi_type_vx = vxCreateScalar(vxGetContext((vx_reference)_graph->get()), VX_TYPE_INT32, &roi_type);
 
-    _node = vxExtRppResize(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _dst_roi_width, 
-                          _dst_roi_height, interpolation_vx, input_layout_vx, output_layout_vx,roi_type_vx);
+    _node = vxExtRppResize(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _dst_roi_width,
+                           _dst_roi_height, interpolation_vx, input_layout_vx, output_layout_vx, roi_type_vx);
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
-        THROW("Adding the resize (vxExtrppNode_Resizetensor) node failed: " + TOSTR(status))
+        THROW("Adding the resize (vxExtRppResize) node failed: " + TOSTR(status))
 }
 
 void ResizeNode::update_node() {

@@ -27,13 +27,13 @@ THE SOFTWARE.
 #include <map>
 #include <memory>
 #include <variant>
-
-#include "caffe_protos.pb.h"
+#include <lmdb.h>
 #include "commons.h"
 #include "lmdb.h"
 #include "meta_data.h"
 #include "meta_data_reader.h"
-#include "reader.h"
+#include "image_reader.h"
+#include "caffe_protos.pb.h"
 
 class CaffeMetaDataReaderDetection : public MetaDataReader {
    public:

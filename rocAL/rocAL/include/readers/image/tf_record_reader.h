@@ -33,7 +33,7 @@ THE SOFTWARE.
 
 #include "example.pb.h"
 #include "feature.pb.h"
-#include "reader.h"
+#include "image_reader.h"
 #include "timing_debug.h"
 
 class TFRecordReader : public Reader {

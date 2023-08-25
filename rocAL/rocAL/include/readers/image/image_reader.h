@@ -26,6 +26,7 @@ THE SOFTWARE.
 #include <tuple>
 #include <vector>
 
+#include <lmdb.h>
 #include "meta_data_reader.h"
 #include "video_properties.h"
 

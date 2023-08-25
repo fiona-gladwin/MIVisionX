@@ -20,14 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "parameter_random_crop.h"
-
+#include <cmath>
 #include <VX/vx.h>
 #include <VX/vx_compatibility.h>
 #include <graph.h>
-
-#include <cmath>
-
+#include "parameter_random_crop.h"
 #include "commons.h"
 
 void RocalRandomCropParam::set_area_factor(Parameter<float>* crop_area_factor) {

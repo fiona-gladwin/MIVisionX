@@ -27,7 +27,7 @@ THE SOFTWARE.
 #include <string>
 #include <vector>
 
-#include "reader.h"
+#include "image_reader.h"
 
 class CIFAR10DataReader : public Reader {
    public:

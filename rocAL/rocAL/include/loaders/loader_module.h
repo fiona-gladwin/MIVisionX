@@ -23,12 +23,12 @@ THE SOFTWARE.
 #pragma once
 #include <memory>
 
+#include "image_reader.h"
 #include "circular_buffer.h"
 #include "commons.h"
 #include "decoder.h"
 #include "meta_data_graph.h"
 #include "meta_data_reader.h"
-#include "reader.h"
 #include "tensor.h"
 
 enum class LoaderModuleStatus {

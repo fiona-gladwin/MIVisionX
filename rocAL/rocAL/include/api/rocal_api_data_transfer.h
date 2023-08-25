@@ -70,7 +70,7 @@ extern "C" RocalStatus ROCAL_API_CALL rocalToTensor(RocalContext rocal_context, 
  * \ingroup group_rocal_data_transfer
  * \param [in] p_context Rocal context
  * \param [in] num_of_outputs number of output images
- * \param [in] output_images The buffer that will be filled with output images with set_output = True
+ * \param [in] output_images output images
  */
 extern "C" void ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalTensor> &output_images);
 

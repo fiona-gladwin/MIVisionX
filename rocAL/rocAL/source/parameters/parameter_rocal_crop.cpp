@@ -20,14 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "parameter_rocal_crop.h"
-
+#include <cmath>
 #include <VX/vx.h>
 #include <VX/vx_compatibility.h>
 #include <graph.h>
-
-#include <cmath>
-
+#include "parameter_rocal_crop.h"
 #include "commons.h"
 
 void RocalCropParam::set_crop_height_factor(Parameter<float>* crop_h_factor) {

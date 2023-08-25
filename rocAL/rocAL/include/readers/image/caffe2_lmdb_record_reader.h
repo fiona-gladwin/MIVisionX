@@ -32,8 +32,8 @@ THE SOFTWARE.
 #include <vector>
 
 #include "caffe2_protos.pb.h"
-#include "lmdb.h"
-#include "reader.h"
+#include <lmdb.h>
+#include "image_reader.h"
 #include "timing_debug.h"
 
 class Caffe2LMDBRecordReader : public Reader {

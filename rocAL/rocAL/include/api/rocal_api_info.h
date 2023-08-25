@@ -33,7 +33,7 @@ THE SOFTWARE.
  */
 
 /*!
- * \brief Retrieves the width of the output from the RocalContext.
+ * \brief Retrieves the width of the output.
  * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
  * \return The width of the output.
@@ -60,7 +60,7 @@ extern "C" int ROCAL_API_CALL rocalGetOutputColorFormat(RocalContext rocal_conte
  * \brief Retrieves the number of remaining images.
  * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext.
- * \return The number of remaining images.
+ * \return The number of remaining images yet to be processed.
  */
 
 extern "C" size_t ROCAL_API_CALL rocalGetRemainingImages(RocalContext rocal_context);
@@ -101,7 +101,7 @@ extern "C" size_t ROCAL_API_CALL rocalIsEmpty(RocalContext rocal_context);
  * \brief Retrieves the number of augmentation branches.
  * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
- * \return The number of augmentation branches in the pipeline.
+ * \return Number of augmentation graph branches. Defined by number of calls to the augmentation API's with the is_output flag set to true.
  */
 extern "C" size_t ROCAL_API_CALL rocalGetAugmentationBranchCount(RocalContext rocal_context);
 
@@ -109,7 +109,7 @@ extern "C" size_t ROCAL_API_CALL rocalGetAugmentationBranchCount(RocalContext ro
  * \brief Retrieves the status.
   * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext from which to retrieve the status.
- * \return The status of the RocalContext
+ * \return The status of tha last API call
  */
 extern "C" RocalStatus ROCAL_API_CALL rocalGetStatus(RocalContext rocal_context);
 
@@ -125,7 +125,7 @@ extern "C" const char* ROCAL_API_CALL rocalGetErrorMessage(RocalContext rocal_co
  * \brief Retrieves timing information.
  * \ingroup group_rocal_info
  * \param [in] rocal_context The RocalContext
- * \return A TimingInfo struct containing timing data.
+ * \return The timing info associated with recent execution.
  */
 extern "C" TimingInfo ROCAL_API_CALL rocalGetTimingInfo(RocalContext rocal_context);
 

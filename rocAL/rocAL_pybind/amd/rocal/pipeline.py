@@ -20,9 +20,8 @@
 
 ##
 # @file pipeline.py
-# 
+#
 # @brief File containing the Pipeline class containing the pybind API functions
-# File containing the Pipeline class containing the pybind API functions
 
 import rocal_pybind as b
 import amd.rocal.types as types
@@ -32,11 +31,12 @@ import ctypes
 import functools
 import inspect
 
+
 class Pipeline(object):
 
     """!Pipeline class internally calls RocalCreate which returns context which will have all
     the info set by the user.
-                                      
+
     @param batch_size (int, optional, default = -1)                                                       Batch size of the pipeline. Negative values for this parameter are invalid - the default value may only be used with serialized pipeline (the value stored in serialized pipeline is used instead).
     @param num_threads (int, optional, default = -1)                                                      Number of CPU threads used by the pipeline. Negative values for this parameter are invalid - the default value may only be used with serialized pipeline (the value stored in serialized pipeline is used instead).
     @param device_id (int, optional, default = -1)                                                        Id of GPU used by the pipeline. Negative values for this parameter are invalid - the default value may only be used with serialized pipeline (the value stored in serialized pipeline is used instead).
@@ -45,9 +45,15 @@ class Pipeline(object):
     @param prefetch_queue_depth (int or {"cpu_size": int, "gpu_size": int}, optional, default = 2)        Depth of the executor pipeline. Deeper pipeline makes ROCAL more resistant to uneven execution time of each batch, but it also consumes more memory for internal buffers. Specifying a dict: ``{ "cpu_size": x, "gpu_size": y }`` instead of an integer will cause the pipeline to use separated queues executor, with buffer queue size `x` for cpu stage and `y` for mixed and gpu stages. It is not supported when both `exec_async` and `exec_pipelined` are set to `False`. Executor will buffer cpu and gpu stages separatelly, and will fill the buffer queues when the first :meth:`amd.rocal.pipeline.Pipeline.run` is issued.
     @param exec_async (bool, optional, default = True)                                                    Whether to execute the pipeline asynchronously. his makes :meth:`amd.rocal.pipeline.Pipeline.run` method run asynchronously with respect to the calling Python thread.
     @param bytes_per_sample  (int, optional, default = 0)                                                 A hint for ROCAL for how much memory to use for its tensors.
-    @param set_affinity (bool, optional, default = False)                                                 Whether to set CPU core affinity to the one closest to the GPU being used.
-    @param max_streams (int, optional, default = -1)                                                      Limit the number of CUDA streams used by the executor. Value of -1 does not impose a limit. This parameter is currently unused (and behavior of unrestricted number of streams is assumed).
-    @param default_cuda_stream_priority (int, optional, default = 0)                                      CUDA stream priority used by ROCAL. See `cudaStreamCreateWithPriority` in CUDA documentation
+    @param rocal_cpu (bool, optional, default = False)                                                    Whether to use CPU or GPU for the pipeline
+    @param max_streams (int, optional, default = -1)                                                      Limit the number of HIP streams used by the executor. Value of -1 does not impose a limit. This parameter is currently unused (and behavior of unrestricted number of streams is assumed).
+    @param default_cuda_stream_priority (int, optional, default = 0)                                      HIP stream priority used by ROCAL. See `cudaStreamCreateWithPriority` in HIP documentation
+    @param tensor_layout (int, optional, default = 0)                                                     Tensor layout used for the augmentations
+    @param reverse_channels (int, optional, default = 0)                                                  Whether to reverse channels for the output tensors
+    @param mean (int, optional, default = 0)                                                              Mean value used for the image normalization
+    @param std (int, optional, default = 0)                                                               Standard deviation value used for the image normalization
+    @param tensor_dtype (int, optional, default = 0)                                                      Tensor datatype used for the pipeline
+    @param output_memory_type (int, optional, default = 0)                                                Output memory type used for the output tensors
     """
     '''.
     Args: batch_size
@@ -61,7 +67,7 @@ class Pipeline(object):
     def __init__(self, batch_size=-1, num_threads=0, device_id=-1, seed=1,
                  exec_pipelined=True, prefetch_queue_depth=2,
                  exec_async=True, bytes_per_sample=0,
-                 rocal_cpu=False, max_streams=-1, default_cuda_stream_priority=0, tensor_layout=types.NCHW, reverse_channels=False, mean=None, std=None, tensor_dtype=types.FLOAT, output_memory_type=types.CPU_MEMORY):
+                 rocal_cpu=False, max_streams=-1, default_cuda_stream_priority=0, tensor_layout=types.NCHW, reverse_channels=False, mean=None, std=None, tensor_dtype=types.FLOAT, output_memory_type=None):
         if (rocal_cpu):
             self._handle = b.rocalCreate(
                 batch_size, types.CPU, device_id, num_threads, prefetch_queue_depth, tensor_dtype)
@@ -82,7 +88,8 @@ class Pipeline(object):
         self._batch_size = batch_size
         self._num_threads = num_threads
         self._device_id = device_id
-        self._output_memory_type = output_memory_type
+        self._output_memory_type = output_memory_type if output_memory_type else (
+            types.HOST_MEMORY if rocal_cpu else types.DEVICE_MEMORY)
         self._seed = seed
         self._exec_pipelined = exec_pipelined
         self._prefetch_queue_depth = prefetch_queue_depth
@@ -243,7 +250,7 @@ class Pipeline(object):
 
     def run(self):
         """
-        It rises StopIteration if data set reached its end.
+        It raises StopIteration if data set reached its end.
         return:
         :return:
         A list of `rocalTensorList` objects for respective pipeline outputs.
@@ -374,12 +381,12 @@ def pipeline_def(fn=None, **pipeline_kwargs):
             with pipe:
                 pipe_outputs = func(*args, **fn_kwargs)
                 if isinstance(pipe_outputs, tuple):
-                    outputs = pipe_outputs
+                    po = pipe_outputs
                 elif pipe_outputs is None:
-                    outputs = ()
+                    po = ()
                 else:
-                    outputs = (pipe_outputs, )
-                pipe.set_outputs(*outputs)
+                    po = (pipe_outputs, )
+                pipe.set_outputs(*po)
             return pipe
 
         # Add `is_pipeline_def` attribute to the function marked as `@pipeline_def`
