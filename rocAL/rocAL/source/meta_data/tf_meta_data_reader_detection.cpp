@@ -171,16 +171,10 @@ void TFMetaDataReaderDetection::read_record(std::ifstream &file_contents, uint f
     for(int i = 0; i < size_b_xmin; i++)
     {
       int label;
-      float bbox_xmin, bbox_ymin, bbox_xmax, bbox_ymax;
-      label = sf_label.int64_list().value()[i];
-      bbox_xmin = sf_xmin.float_list().value()[i];
-      bbox_ymin = sf_ymin.float_list().value()[i];
-      bbox_xmax = sf_xmax.float_list().value()[i];
-      bbox_ymax = sf_ymax.float_list().value()[i];
-      box.l = bbox_xmin * image_width;
-      box.t = bbox_ymin * image_height;
-      box.r = bbox_xmax * image_width;
-      box.b = bbox_ymax * image_height;
+      box.l = sf_xmin.float_list().value()[i] * image_width;
+      box.t = sf_ymin.float_list().value()[i] * image_height;
+      box.r = sf_xmax.float_list().value()[i] * image_width;
+      box.b = sf_ymax.float_list().value()[i] * image_height;
       bb_coords.push_back(box);
       bb_labels.push_back(label);
       add(fname, bb_coords, bb_labels, img_size);

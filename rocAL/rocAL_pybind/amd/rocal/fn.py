@@ -628,7 +628,7 @@ def saturation(*inputs, saturation=1.0, device=None, output_layout=types.NHWC, o
 
 
 def ssd_random_crop(*inputs, p_threshold=None, crop_area_factor=None, crop_aspect_ratio=None,
-                    crop_pos_x=None, crop_pos_y=None, num_attempts=1, device=None,
+                    crop_pos_x=None, crop_pos_y=None, num_attempts=20, device=None,
                     all_boxes_above_threshold=True, allow_no_crop=True, ltrb=True, output_layout=types.NHWC, output_dtype=types.UINT8):
     """
     inputs - the input image passed to the augmentation
@@ -643,7 +643,7 @@ def ssd_random_crop(*inputs, p_threshold=None, crop_area_factor=None, crop_aspec
 
     crop_pox_y (float, optional, default = None) - crop_y position used for crop generation
 
-    num_attempts (int, optional, default = 1) - number of attempts to get a crop window that matches the area factor and aspect ratio conditions
+    num_attempts (int, optional, default = 20) - number of attempts to get a crop window that matches the area factor and aspect ratio conditions
 
     device (string, optional, default = None) - Backend used for the augmentation - either 'cpu' or 'gpu'
     
@@ -651,10 +651,6 @@ def ssd_random_crop(*inputs, p_threshold=None, crop_area_factor=None, crop_aspec
 
     output_dtype (int, optional, default = types.UINT8) - tensor dtype for the augmentation output
     """
-    if (num_attempts == 1):
-        _num_attempts = 20
-    else:
-        _num_attempts = num_attempts
     p_threshold = b.createFloatParameter(p_threshold) if isinstance(p_threshold, float) else p_threshold
     crop_area_factor = b.createFloatParameter(crop_area_factor) if isinstance(crop_area_factor, float) else crop_area_factor
     crop_aspect_ratio = b.createFloatParameter(crop_aspect_ratio) if isinstance(crop_aspect_ratio, float) else crop_aspect_ratio
