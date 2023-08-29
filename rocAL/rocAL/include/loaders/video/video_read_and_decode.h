@@ -35,7 +35,6 @@ THE SOFTWARE.
 #include "timing_debug.h"
 #include "loader_module.h"
 #include "video_properties.h"
-#include "reader.h"
 #include "video_reader.h"
 #ifdef ROCAL_VIDEO
 extern "C"

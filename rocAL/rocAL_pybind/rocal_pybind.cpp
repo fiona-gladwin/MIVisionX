@@ -309,8 +309,8 @@ namespace rocal{
             .value("UINT8", ROCAL_UINT8)
             .export_values();
         py::enum_<RocalOutputMemType>(types_m, "RocalOutputMemType", "Output memory types")
-            .value("CPU_MEMORY", ROCAL_MEMCPY_HOST)
-            .value("GPU_MEMORY", ROCAL_MEMCPY_GPU)
+            .value("HOST_MEMORY", ROCAL_MEMCPY_HOST)
+            .value("DEVICE_MEMORY", ROCAL_MEMCPY_GPU)
             .value("PINNED_MEMORY", ROCAL_MEMCPY_PINNED)
             .export_values();
         py::enum_<RocalResizeScalingMode>(types_m, "RocalResizeScalingMode", "Decode size policies")
@@ -535,7 +535,8 @@ namespace rocal{
                             {batch_size * num_anchors * 4},
                             {sizeof(float)}));
                 return std::make_pair(labels_array, bboxes_array);
-        });
+        }
+        );
         // rocal_api_data_loaders.h
         m.def("cocoImageDecoderSlice", &rocalJpegCOCOFileSourcePartial,"Reads file from the source given and decodes it according to the policy",
             py::return_value_policy::reference);

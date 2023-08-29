@@ -381,11 +381,10 @@ void COCOMetaDataReader::read_all(const std::string &path)
         bb_coords = elem.second->get_bb_cords();
         bb_labels = elem.second->get_labels();
         Labels continuous_label_id;
-        int cnt_idx;
         for (unsigned int i = 0; i < bb_coords.size(); i++)
         {
             auto _it_label = _label_info.find(bb_labels[i]);
-            cnt_idx = _avoid_class_remapping ? _it_label->first : _it_label->second;
+            int cnt_idx = _avoid_class_remapping ? _it_label->first : _it_label->second;
             continuous_label_id.push_back(cnt_idx);
         }
         elem.second->set_labels(continuous_label_id);
