@@ -83,5 +83,5 @@ private:
     std::shared_ptr<RandomBBoxCrop_MetaDataReader> _randombboxcrop_meta_data_reader = nullptr;
     std::vector<std::vector <float>> _bbox_coords, _crop_coords_batch;
     crop_image_info _crop_image_info;
-    crop_image_info _output_cropped_img_info;
+    crop_image_info _output_cropped_image_info;
 };
