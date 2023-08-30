@@ -103,5 +103,6 @@ public:
     virtual bool set_timestamp_mode() = 0;
     void set_aspect_ratio_grouping(bool aspect_ratio_grouping) { _aspect_ratio_grouping = aspect_ratio_grouping; }
     bool aspect_ratio_grouping() const { return _aspect_ratio_grouping; }
+    virtual std::pair<uint32_t, uint32_t> get_max_size() { return std::pair<uint32_t, uint32_t>(); }
 };
 

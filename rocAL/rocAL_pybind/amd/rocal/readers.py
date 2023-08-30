@@ -22,7 +22,7 @@ import rocal_pybind as b
 from amd.rocal.pipeline import Pipeline
 import amd.rocal.types as types
 
-def coco(annotations_file='', ltrb=True, masks=False, ratio=False, avoid_class_remapping=False,
+def coco(annotations_file='', ltrb=True, polygon_masks=False, ratio=False, avoid_class_remapping=False,
          pixelwise_masks=False, is_box_encoder=False, is_box_iou_matcher=False, aspect_ratio_grouping=False, stick_to_shard=False, pad_last_batch=False):
     Pipeline._current_pipeline._reader = "COCOReader"
     # Output
@@ -31,7 +31,8 @@ def coco(annotations_file='', ltrb=True, masks=False, ratio=False, avoid_class_r
     kwargs_pybind = {
         "source_path": annotations_file,
         "is_output": True,
-        "mask": masks,
+        "polygon_masks": polygon_masks,
+        "pixelwise_masks": pixelwise_masks,
         "ltrb": ltrb,
         "is_box_encoder": is_box_encoder,
         "avoid_class_remapping": avoid_class_remapping,

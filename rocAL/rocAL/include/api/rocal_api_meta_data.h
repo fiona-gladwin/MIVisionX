@@ -66,7 +66,7 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContex
 /// \param avoid_class_remapping If set to True, classes are returned directly. Otherwise, classes are mapped to consecutive values
 /// \param aspect_ratio_grouping If set to True, images are sorted by their aspect ratio and returned
 /// \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
-extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool mask = false, bool ltrb = true, bool is_box_encoder = false, bool avoid_class_remapping = false, bool aspect_ratio_grouping = false);
+extern "C" RocalMetaData ROCAL_API_CALL rocalCreateCOCOReader(RocalContext rocal_context, const char* source_path, bool is_output, bool is_polygon_mask = false, bool is_pixelwise_mask = false, bool ltrb = true, bool is_box_encoder = false, bool avoid_class_remapping = false, bool aspect_ratio_grouping = false);
 
 ///
 /// \param rocal_context
@@ -150,7 +150,12 @@ extern "C" RocalTensorList ROCAL_API_CALL rocalGetMaskCoordinates(RocalContext p
 
 ///
 /// \param rocal_context
-/// \return The tensorlist with the bounding box labels
+/// \return The tensorlist with the pixelwise coordinates
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetPixelwiseMaskLabels(RocalContext p_context);
+
+///
+/// \param rocal_context
+/// \param buf The user's buffer that will be filled with bounding box label info for the images in the output batch. It needs to be of size returned by a call to the rocalGetBoundingBoxCount
 extern "C" RocalTensorList ROCAL_API_CALL rocalGetBoundingBoxLabel(RocalContext rocal_context);
 
 ///
