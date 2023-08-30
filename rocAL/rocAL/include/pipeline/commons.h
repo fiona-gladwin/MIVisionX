@@ -113,7 +113,12 @@ enum class RocalROIType
 typedef struct
 {
     unsigned x1, y1, x2, y2;
-} RocalROI;
+} ROI2DCords;
+
+typedef struct {
+    unsigned *begin;
+    unsigned *shape;
+} ROICords;
 
 struct Timing
 {
