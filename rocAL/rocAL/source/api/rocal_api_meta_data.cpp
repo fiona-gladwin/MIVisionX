@@ -425,6 +425,21 @@ void ROCAL_API_CALL rocalSetRandomPixelMaskConfig(RocalContext p_context, bool i
     context->master_graph->set_random_mask_pixel_config(is_foreground, value, is_threshold);
 }
 
+RocalTensorList
+ROCAL_API_CALL RocalRandomObjectBBox(RocalContext p_context, RocalRandomObjectBBoxFormat format)
+{
+    if (p_context == nullptr)
+        THROW("Invalid rocal context passed to rocalGetPixelwiseLabels")
+    auto context = static_cast<Context*>(p_context);
+    auto meta_data = context->master_graph->meta_data();
+    size_t meta_data_batch_size = meta_data.second->get_mask_cords_batch().size();
+    if(context->user_batch_size() != meta_data_batch_size)
+        THROW("meta data batch size is wrong " + TOSTR(meta_data_batch_size) + " != "+ TOSTR(context->user_batch_size() ))
+    if(!meta_data.second)
+        THROW("No mask has been loaded for this output image")
+    return context->master_graph->get_random_object_bbox(context->master_graph->mask_meta_data(false), (RandomObjectBBoxFormat)format);
+}
+
 void
 ROCAL_API_CALL rocalGetImageSizes(RocalContext p_context, int* buf)
 {

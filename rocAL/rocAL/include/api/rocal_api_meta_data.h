@@ -249,4 +249,9 @@ extern "C" RocalTensorList ROCAL_API_CALL rocalRandomMaskPixel(RocalContext p_co
 /// \param is_threshold Select pixel coordinate whose value is greater than given value param when bool is set as true
 extern "C" void ROCAL_API_CALL rocalSetRandomPixelMaskConfig(RocalContext p_context, bool is_foreground=false, unsigned int value=0, bool is_threshold=true);
 
+///
+/// \param rocal_context
+/// \param format RocalRandomObjectBBoxFormat  
+extern "C" RocalTensorList ROCAL_API_CALL RocalRandomObjectBBox(RocalContext p_context, RocalRandomObjectBBoxFormat format);
+
 #endif //MIVISIONX_ROCAL_API_META_DATA_H
