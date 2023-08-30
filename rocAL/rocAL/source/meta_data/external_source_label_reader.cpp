@@ -31,7 +31,6 @@ THE SOFTWARE.
 ExternalSourceLabelReader::ExternalSourceLabelReader() {}
 
 void ExternalSourceLabelReader::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch) {
-
     _output = meta_data_batch;
     _output->set_metadata_type(cfg.type());
 }
@@ -51,7 +50,10 @@ void ExternalSourceLabelReader::add(std::string image_name, int label) {
 }
 
 void  ExternalSourceLabelReader::add_labels(std::vector<std::string> image_name, std::vector<int> label) {
-    if(image_name.size() != label.size()) { THROW("ERROR: Image name and labels should have same size") }
+    if(image_name.size() != label.size()) { 
+        std::cerr << "Image Name Size : " << image_name.size();
+        std::cerr << "Label Size : " << label.size();
+        THROW("ERROR: Image name and labels should have same size") }
     for(uint i = 0; i < image_name.size(); i++)
         add(image_name[i], label[i]);
 }

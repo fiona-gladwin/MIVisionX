@@ -456,46 +456,27 @@ int main(int argc, const char **argv) {
     counter += inputBatchSize;
   }
 
-        // uint pipeline_type = 1;
-        // switch(pipeline_type)
-        // {
-        //     case 1: //classification pipeline
-        //     {
-        //         std::cerr << "\n Classification Pipeline called - Meta data call";
-        //         RocalTensorList labels = rocalGetImageLabels(handle);
+        uint pipeline_type = 1; // External Source Reader Support given for the classification pipeline only
+        switch(pipeline_type)
+        {
+            case 1: //classification pipeline
+            {
+                std::cerr << "\n Classification Pipeline called - Meta data call";
+                RocalTensorList labels = rocalGetImageLabels(handle);
 
-        //         for(int i = 0; i < labels->size(); i++)
-        //         {
-        //             int * labels_buffer = (int *)(labels->at(i)->buffer());
-        //             std::cerr << ">>>>> LABELS : " << labels_buffer[0] << "\t";
-        //         }
-        //     }
-        //     break;
-        //     case 2: //detection pipeline
-        //     {
-        //         RocalTensorList bbox_labels = rocalGetBoundingBoxLabel(handle);
-        //         RocalTensorList bbox_coords = rocalGetBoundingBoxCords(handle);
-        //         for(int i = 0; i < bbox_labels->size(); i++)
-        //         {
-        //             int * labels_buffer = (int *)(bbox_labels->at(i)->buffer());
-        //             float *bbox_buffer = (float *)(bbox_coords->at(i)->buffer());
-        //             std::cerr << "\n>>>>> BBOX LABELS : ";
-        //             for(int j = 0; j < bbox_labels->at(i)->dims().at(0); j++)
-        //                 std::cerr << labels_buffer[j] << " ";
-        //             std::cerr << "\n>>>>> BBOXX : " <<bbox_coords->at(i)->dims().at(0) << " : \n";
-        //             for(int j = 0, j4 = 0; j < bbox_coords->at(i)->dims().at(0); j++, j4 = j * 4)
-        //                 std::cerr << bbox_buffer[j4] << " " << bbox_buffer[j4 + 1] << " " << bbox_buffer[j4 + 2] << " " << bbox_buffer[j4 + 3] << "\n";
-
-        //         }
-        //     }
-        //     break;
-        //     // Cases for Mask & Keypoints is not added
-        //     default:
-        //     {
-        //         std::cerr << "Not a valid pipeline type ! Exiting!\n";
-        //         return -1;
-        //     }
-        // }
+                for(int i = 0; i < labels->size(); i++)
+                {
+                    int * labels_buffer = (int *)(labels->at(i)->buffer());
+                    std::cerr << ">>>>> LABELS : " << labels_buffer[0] << "\t";
+                }
+            }
+            break;
+            default:
+            {
+                std::cerr << "Not a valid pipeline type ! Exiting!\n";
+                return -1;
+            }
+        }
 
   high_resolution_clock::time_point t2 = high_resolution_clock::now();
   auto dur = duration_cast<microseconds>(t2 - t1).count();
