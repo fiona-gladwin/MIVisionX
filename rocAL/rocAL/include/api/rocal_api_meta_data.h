@@ -237,4 +237,16 @@ extern "C" RocalTensorList ROCAL_API_CALL rocalSelectMask(RocalContext p_context
                                                           std::vector<std::vector<int>> &sel_vertices_count,
                                                           std::vector<std::vector<int>> &sel_mask_ids,
                                                           bool reindex_mask=false);
+
+///
+/// \param rocal_context
+extern "C" RocalTensorList ROCAL_API_CALL rocalRandomMaskPixel(RocalContext p_context);
+
+///
+/// \param rocal_context
+/// \param is_foreground Select pixel from foreground if it is truw
+/// \param value Select pixel coordinate whose value is equal to it
+/// \param is_threshold Select pixel coordinate whose value is greater than given value param when bool is set as true
+extern "C" void ROCAL_API_CALL rocalSetRandomPixelMaskConfig(RocalContext p_context, bool is_foreground=false, unsigned int value=0, bool is_threshold=true);
+
 #endif //MIVISIONX_ROCAL_API_META_DATA_H
