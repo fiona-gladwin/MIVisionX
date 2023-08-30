@@ -59,7 +59,7 @@ int main(int argc, const char ** argv)
     int video_mode = 0;// 0 means no video decode, 1 means hardware, 2 means software decoding
     bool display = 1;// Display the images
     int aug_depth = 1;// how deep is the augmentation tree
-    int rgb = 0;// process color images
+    int rgb = 1;// process color images
     int decode_width = 0;
     int decode_height = 0;
     bool processing_device = 1;
