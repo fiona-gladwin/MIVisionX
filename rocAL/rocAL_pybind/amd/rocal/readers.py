@@ -22,12 +22,15 @@ import rocal_pybind as b
 from amd.rocal.pipeline import Pipeline
 import amd.rocal.types as types
 
-def coco(annotations_file='', ltrb=True, polygon_masks=False, ratio=False, avoid_class_remapping=False,
+def coco(annotations_file='', ltrb=True, polygon_masks=False, ratio=False, avoid_class_remapping=False, is_foreground=False, value=0, is_threshold=True,
          pixelwise_masks=False, is_box_encoder=False, is_box_iou_matcher=False, aspect_ratio_grouping=False, stick_to_shard=False, pad_last_batch=False):
     Pipeline._current_pipeline._reader = "COCOReader"
     # Output
     labels = []
-    bboxes = []
+    bboxes = []    
+    if pixelwise_masks:
+        kwargs_pybind = {"is_foreground": is_foreground, "value":value, "is_threshold":is_threshold}
+        b.setRandomPixelMaskConfig(Pipeline._current_pipeline._handle,*(kwargs_pybind.values()))
     kwargs_pybind = {
         "source_path": annotations_file,
         "is_output": True,
