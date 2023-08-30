@@ -107,7 +107,7 @@ def main():
                     rocal_cpu=rocal_cpu,
                     tensor_layout=tensor_layout,
                     tensor_dtype=tensor_dtype,
-                    output_memory_type=types.CPU_MEMORY if rocal_cpu else types.GPU_MEMORY)
+                    output_memory_type=types.HOST_MEMORY if rocal_cpu else types.DEVICE_MEMORY)
     # Set Params
     output_set = 0
     rocal_device = 'cpu' if rocal_cpu else 'gpu'

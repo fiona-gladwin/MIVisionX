@@ -405,12 +405,12 @@ def pipeline_def(fn=None, **pipeline_kwargs):
             with pipe:
                 pipe_outputs = func(*args, **fn_kwargs)
                 if isinstance(pipe_outputs, tuple):
-                    outputs = pipe_outputs
+                    po = pipe_outputs
                 elif pipe_outputs is None:
-                    outputs = ()
+                    po = ()
                 else:
-                    outputs = (pipe_outputs, )
-                pipe.set_outputs(*outputs)
+                    po = (pipe_outputs, )
+                pipe.set_outputs(*po)
             return pipe
 
         # Add `is_pipeline_def` attribute to the function marked as `@pipeline_def`
