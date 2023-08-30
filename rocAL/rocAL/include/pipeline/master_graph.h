@@ -110,6 +110,13 @@ public:
     std::vector<rocalTensorList *> create_mxnet_label_reader(const char *source_path, bool is_output);
     void box_encoder(std::vector<float> &anchors, float criteria, const std::vector<float> &means, const std::vector<float> &stds, bool offset, float scale);
     void create_randombboxcrop_reader(RandomBBoxCrop_MetaDataReaderType reader_type, RandomBBoxCrop_MetaDataType label_type, bool all_boxes_overlap, bool no_crop, FloatParam* aspect_ratio, bool has_shape, int crop_width, int crop_height, int num_attempts, FloatParam* scaling, int total_num_attempts, int64_t seed=0);
+    TensorList * get_select_mask_polygon(rocalTensorList* mask_data,
+                                         std::vector<std::vector<int>> polygon_counts,
+                                         std::vector<std::vector<std::vector<int>>> vertices_counts,
+                                         std::vector<int> mask_ids,
+                                         std::vector<std::vector<int>> &sel_vertices_counts,
+                                         std::vector<std::vector<int>> &sel_mask_ids,
+                                         bool reindex_mask);
     const std::pair<ImageNameBatch,pMetaDataBatch>& meta_data();
     TensorList * labels_meta_data();
     TensorList * bbox_meta_data();
@@ -159,6 +166,8 @@ private:
     TensorList _labels_tensor_list;
     TensorList _bbox_tensor_list;
     TensorList _mask_tensor_list;
+    TensorList _select_mask_polygon_list;
+    std::vector<std::vector<float>> output_select_mask_polygon;
     std::vector<size_t> _meta_data_buffer_size;
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU

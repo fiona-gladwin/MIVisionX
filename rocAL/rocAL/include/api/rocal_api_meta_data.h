@@ -226,4 +226,15 @@ extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext p_context,  int* buf
 /// \param joints_data The user's RocalJointsData pointer that will be pointed to JointsDataBatch pointer
 extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData **joints_data);
 
+///
+/// \param rocal_context
+/// \param mask_ids The list of polygon id provided by user
+/// \param sel_vertices_count List of vertices count for the selected polygons
+/// \param sel_mask_ids List of Polygons ids for the selected polygons
+/// \param reindex_mask If it is true, selected polygon id's reindexed from 0 to the count. If False, it will be same as mask_ids.
+extern "C" RocalTensorList ROCAL_API_CALL rocalSelectMask(RocalContext p_context,
+                                                          std::vector<int> mask_ids,
+                                                          std::vector<std::vector<int>> &sel_vertices_count,
+                                                          std::vector<std::vector<int>> &sel_mask_ids,
+                                                          bool reindex_mask=false);
 #endif //MIVISIONX_ROCAL_API_META_DATA_H
