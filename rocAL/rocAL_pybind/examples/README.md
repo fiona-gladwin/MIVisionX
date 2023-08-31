@@ -59,6 +59,9 @@ example: COCO Pipeline
     # By default : cpu backend, NCHW format , fp32
     # Annotation must be a json file
 
+    # For printing all the arguments that can be passed from user
+    python$ver rocAL_api_coco_pipeline.py -h
+
     python$ver rocAL_api_coco_pipeline.py --image-dataset-path $data_dir --json-path $json_path --batch-size $batch_size --display --rocal-gpu --NHWC \
         --local-rank 0 --world-size $gpus_per_node --num-threads 1 --num-epochs 1 2>&1 | tee -a run.log.rocAL_api_coco_pipeline.txt
 

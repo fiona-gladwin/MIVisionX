@@ -102,10 +102,10 @@ def draw_frames(img, batch_idx, iter_idx, layout):
         image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     import os
-    if not os.path.exists("OUTPUT_IMAGES_PYTHON/VIDEO_READER"):
-        os.makedirs("OUTPUT_IMAGES_PYTHON/VIDEO_READER")
+    if not os.path.exists("OUTPUT_FOLDER/VIDEO_READER"):
+        os.makedirs("OUTPUT_FOLDER/VIDEO_READER")
     image = cv2.UMat(image).get()
-    cv2.imwrite("OUTPUT_IMAGES_PYTHON/VIDEO_READER/" +
+    cv2.imwrite("OUTPUT_FOLDER/VIDEO_READER/" +
                 "iter_"+str(iter_idx)+"_batch_"+str(batch_idx)+".png", image)
 
 
@@ -157,8 +157,7 @@ def main():
     stop = timeit.default_timer()
 
     print('\n Time: ', stop - start)
-    print("###############################################    VIDEO READER    ###############################################")
-    print("###############################################    SUCCESS         ###############################################")
+    print("##############################  VIDEO READER  SUCCESS  ############################")
 
 
 if __name__ == '__main__':

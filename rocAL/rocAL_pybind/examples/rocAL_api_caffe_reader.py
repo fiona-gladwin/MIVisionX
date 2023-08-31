@@ -28,9 +28,8 @@ import cv2
 from parse_config import parse_args
 
 
-def draw_patches(img, idx, bboxes=None):
+def draw_patches(img, idx, bboxes=None, args=None):
     # image is expected as a tensor, bboxes as tensors
-    args = parse_args()
     if args.rocal_gpu:
         image = img.cpu().numpy()
     else:
@@ -39,7 +38,7 @@ def draw_patches(img, idx, bboxes=None):
         image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if args.classification:
-        cv2.imwrite("OUTPUT_IMAGES_PYTHON/CAFFE_READER/CLASSIFICATION/" +
+        cv2.imwrite("OUTPUT_FOLDER/CAFFE_READER/CLASSIFICATION/" +
                     str(idx)+"_"+"train"+".png", image)
     else:
         if bboxes is not None:
@@ -50,7 +49,7 @@ def draw_patches(img, idx, bboxes=None):
                 thickness = 2
                 image = cv2.rectangle(image, (int(loc_[0]), int(loc_[1])), (int(
                     (loc_[2])), int((loc_[3]))), color, thickness)
-        cv2.imwrite("OUTPUT_IMAGES_PYTHON/CAFFE_READER/DETECTION/" +
+        cv2.imwrite("OUTPUT_FOLDER/CAFFE_READER/DETECTION/" +
                     str(idx)+"_"+"train"+".png", image)
 
 
@@ -70,9 +69,9 @@ def main():
     num_classes = len(next(os.walk(image_path))[1])
     try:
         if args.classification:
-            path = "OUTPUT_IMAGES_PYTHON/CAFFE_READER/CLASSIFICATION/"
+            path = "OUTPUT_FOLDER/CAFFE_READER/CLASSIFICATION/"
         else:
-            path = "OUTPUT_IMAGES_PYTHON/CAFFE_READER/DETECTION/"
+            path = "OUTPUT_FOLDER/CAFFE_READER/DETECTION/"
         isExist = os.path.exists(path)
         if not isExist:
             os.makedirs(path)
@@ -110,7 +109,7 @@ def main():
                     print("Labels", labels)
                 for element in list(range(batch_size)):
                     cnt = cnt + 1
-                    draw_patches(image_batch[element], cnt)
+                    draw_patches(image_batch[element], cnt, args=args)
             data_loader.reset()
         else:
             for i, ([image_batch], bboxes, labels) in enumerate(data_loader, 0):  # Detection
@@ -122,7 +121,7 @@ def main():
                         print("Labels", labels)
                 for element in list(range(batch_size)):
                     cnt = cnt + 1
-                    draw_patches(image_batch[element], cnt, bboxes[element])
+                    draw_patches(image_batch[element], cnt, bboxes[element], args=args)
             data_loader.reset()
     print("##############################  CAFFE READER (CLASSIFCATION/ DETECTION)  SUCCESS  ############################")
 

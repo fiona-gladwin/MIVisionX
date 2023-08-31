@@ -46,9 +46,8 @@ def get_weights(num_bboxes):
         np.put(weights_array, pos, 1)
     return weights_array
 
-def draw_patches(img, idx, bboxes, device_type):
+def draw_patches(img, idx, bboxes, device_type, args=None):
     import cv2
-    args = parse_args()
     if device_type == "gpu":
         img = cp.asnumpy(img)
     if not args.NHWC:
@@ -62,7 +61,7 @@ def draw_patches(img, idx, bboxes, device_type):
         image = cv2.UMat(image).get()
         image = cv2.rectangle(image, (int(loc_[0]), int(loc_[1])), (int(
             (loc_[2])), int((loc_[3]))), color, thickness)
-        cv2.imwrite("OUTPUT_IMAGES_PYTHON/TF_READER/DETECTION/" +
+        cv2.imwrite("OUTPUT_FOLDER/TF_READER/DETECTION/" +
                     str(idx) + "_" + "train" + ".png", image)
 
 def main():
@@ -87,7 +86,7 @@ def main():
         'image/filename': 'image/filename'
     }
     try:
-        path = "OUTPUT_IMAGES_PYTHON/TF_READER/DETECTION"
+        path = "OUTPUT_FOLDER/TF_READER/DETECTION"
         is_exist = os.path.exists(path)
         if not is_exist:
             os.makedirs(path)
@@ -141,13 +140,12 @@ def main():
             processed_tensors = (features_dict, labels_dict)
             if args.print_tensor:
                 print("\nPROCESSED_TENSORS:\n", processed_tensors)
-            draw_patches(images_array[element], cnt, bboxes_array[element], device)
+            draw_patches(images_array[element], cnt, bboxes_array[element], device, args=args)
         print("\n\nPrinted first batch with", (batch_size), "images!")
         break
     image_iterator.reset()
 
-    print("###############################################    TF DETECTION    ###############################################")
-    print("###############################################    SUCCESS         ###############################################")
+    print("##############################  TF DETECTION  SUCCESS  ############################")
 
 if __name__ == "__main__":
     main()

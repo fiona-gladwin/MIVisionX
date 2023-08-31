@@ -103,7 +103,7 @@ class ROCALCOCOIterator(object):
             if self.display:
                 img = self.output
                 draw_patches(img[i], self.image_id[i],
-                             self.bboxes[i], self.device)
+                             self.bboxes[i], self.device, self.tensor_dtype, self.tensor_format)
         return (self.output), self.bboxes, self.labels, image_id_tensor, image_size_tensor
 
     def reset(self):
@@ -112,17 +112,16 @@ class ROCALCOCOIterator(object):
     def __iter__(self):
         return self
 
-def draw_patches(img, idx, bboxes, device):
-    args = parse_args()
+def draw_patches(img, idx, bboxes, device, dtype, layout):
     # image is expected as a tensor, bboxes as numpy
     import cv2
     if device == "cpu":
         image = img.detach().numpy()
     else:
         image = img.cpu().numpy()
-    if args.fp16:
+    if dtype == types.FLOAT16:
         image = (image).astype('uint8')
-    if not args.NHWC:
+    if layout == types.NCHW:
         image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     bboxes = np.reshape(bboxes, (-1, 4))
@@ -134,7 +133,7 @@ def draw_patches(img, idx, bboxes, device):
         image = cv2.UMat(image).get()
         image = cv2.rectangle(image, (int(loc_[0]), int(loc_[1])), (int(
             (loc_[2])), int((loc_[3]))), color, thickness)
-        cv2.imwrite("OUTPUT_IMAGES_PYTHON/COCO_READER/" +
+        cv2.imwrite("OUTPUT_FOLDER/COCO_READER/" +
                     str(idx)+"_"+"train"+".png", image)
 
 
@@ -153,7 +152,7 @@ def main():
     tensor_format = types.NHWC if args.NHWC else types.NCHW
     tensor_dtype = types.FLOAT16 if args.fp16 else types.FLOAT
     try:
-        path = "OUTPUT_IMAGES_PYTHON/COCO_READER/"
+        path = "OUTPUT_FOLDER/COCO_READER/"
         isExist = os.path.exists(path)
         if not isExist:
             os.makedirs(path)
@@ -217,8 +216,7 @@ def main():
 
     print('\n Time: ', stop - start)
 
-    print("###############################################    COCO READER    ###############################################")
-    print("###############################################    SUCCESS        ###############################################")
+    print("##############################  COCO READER  SUCCESS  ############################")
 
 
 if __name__ == '__main__':
