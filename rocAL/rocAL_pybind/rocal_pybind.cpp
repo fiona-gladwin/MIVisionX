@@ -358,6 +358,11 @@ namespace rocal{
             .value("DECODER_VIDEO_FFMPEG_SW", ROCAL_DECODER_VIDEO_FFMPEG_SW)
             .value("DECODER_VIDEO_FFMPEG_HW", ROCAL_DECODER_VIDEO_FFMPEG_HW)
             .export_values();
+        py::enum_<RocalRandomObjectBBoxFormat>(types_m, "RocalRandomObjectBBoxFormat",  "Rocal Random object bbox types")
+            .value("OUT_BOX", ROCAL_OUT_BOX)
+            .value("OUT_ANCHORSHAPE", ROCAL_OUT_ANCHORSHAPE)
+            .value("OUT_STARTEND", ROCAL_OUT_STARTEND)
+            .export_values();
         // rocal_api_info.h
         m.def("getRemainingImages", &rocalGetRemainingImages);
         m.def("getImageName", &wrapper_image_name);
