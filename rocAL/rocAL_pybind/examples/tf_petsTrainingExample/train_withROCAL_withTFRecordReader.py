@@ -127,48 +127,45 @@ def main():
 
 	trainPipe = Pipeline(batch_size=TRAIN_BATCH_SIZE, num_threads=1, rocal_cpu=RUN_ON_HOST, tensor_layout = types.NHWC, mean=[0,0,0], std=[255,255,255], tensor_dtype=types.FLOAT)
 	with trainPipe:
-		inputs = fn.readers.tfrecord(path=TRAIN_RECORDS_DIR, index_path = "", reader_type=TFRecordReaderType, user_feature_key_map=featureKeyMap,
+		inputs = fn.readers.tfrecord(path=TRAIN_RECORDS_DIR, reader_type=TFRecordReaderType, user_feature_key_map=featureKeyMap,
 		features={
 			'image/encoded':tf.io.FixedLenFeature((), tf.string, ""),
-			'image/class/label':tf.io.FixedLenFeature([1], tf.int64,  -1),
+			'image/class/label':tf.io.FixedLenFeature([1], tf.int64, -1),
 			'image/filename':tf.io.FixedLenFeature((), tf.string, "")
 			}
 			)
 		jpegs = inputs["image/encoded"]
 		images = fn.decoders.image(jpegs, user_feature_key_map=featureKeyMap, output_type=types.RGB, path=TRAIN_RECORDS_DIR)
-		resized = fn.resize(images, resize_x=crop_size[0], resize_y=crop_size[1])
+		resized = fn.resize(images, resize_width=crop_size[0], resize_height=crop_size[1])
 		flip_coin = fn.random.coin_flip(probability=0.5)
 		cmn_images = fn.crop_mirror_normalize(resized, crop=(crop_size[1], crop_size[0]),
                                               mean=[0,0,0],
                                               std=[255,255,255],
                                               mirror=flip_coin,
-                                              output_dtype=types.UINT8,
-                                              output_layout=types.NHWC,
-                                              pad_output=False)
+                                              output_dtype=types.FLOAT,
+                                              output_layout=types.NHWC)
 		trainPipe.set_outputs(cmn_images)
 	trainPipe.build()
 
-	valPipe = Pipeline(batch_size=TRAIN_BATCH_SIZE, num_threads=1, rocal_cpu=RUN_ON_HOST, tensor_layout = types.NHWC,
-		    			tensor_dtype=types.FLOAT)
+	valPipe = Pipeline(batch_size=TRAIN_BATCH_SIZE, num_threads=1, rocal_cpu=RUN_ON_HOST, tensor_layout = types.NHWC, tensor_dtype=types.FLOAT)
 	with valPipe:
-		inputs = fn.readers.tfrecord(path=VAL_RECORDS_DIR, index_path = "", reader_type=TFRecordReaderType, user_feature_key_map=featureKeyMap,
+		inputs = fn.readers.tfrecord(path=VAL_RECORDS_DIR, reader_type=TFRecordReaderType, user_feature_key_map=featureKeyMap,
 		features={
 			'image/encoded':tf.io.FixedLenFeature((), tf.string, ""),
-			'image/class/label':tf.io.FixedLenFeature([1], tf.int64,  -1),
+			'image/class/label':tf.io.FixedLenFeature([1], tf.int64, -1),
 			'image/filename':tf.io.FixedLenFeature((), tf.string, "")
 			}
 			)
 		jpegs = inputs["image/encoded"]
 		images = fn.decoders.image(jpegs, user_feature_key_map=featureKeyMap, output_type=types.RGB, path=VAL_RECORDS_DIR)
-		resized = fn.resize(images, resize_x=crop_size[0], resize_y=crop_size[1])
+		resized = fn.resize(images, resize_width=crop_size[0], resize_height=crop_size[1])
 		flip_coin = fn.random.coin_flip(probability=0.5)
 		cmn_images = fn.crop_mirror_normalize(resized, crop=(crop_size[1], crop_size[0]),
                                               mean=[0,0,0],
-                                              std=[1,1,1],
+                                              std=[255,255,255],
                                               mirror=flip_coin,
-                                              output_dtype=types.UINT8,
-                                              output_layout=types.NHWC,
-                                              pad_output=False)
+                                              output_dtype=types.FLOAT,
+                                              output_layout=types.NHWC)
 		valPipe.set_outputs(cmn_images)
 	valPipe.build()
 
@@ -181,7 +178,7 @@ def main():
 		sess.run(tf.compat.v1.global_variables_initializer())
 		while i < NUM_TRAIN_STEPS:
 
-			for t, (train_image_ndArray, train_label_ndArray) in enumerate(trainIterator, 0):
+			for t, ([train_image_ndArray], train_label_ndArray) in enumerate(trainIterator, 0):
 				train_label_one_hot_list = get_label_one_hot(train_label_ndArray)
 				train_loss, _, train_accuracy = sess.run(
 					[cross_entropy_mean, train_op, accuracy],
@@ -192,7 +189,7 @@ def main():
 					mean_acc = 0
 					mean_loss = 0
 					print("\n\n-------------------------------------------------------------------------------- BEGIN VALIDATION --------------------------------------------------------------------------------")
-					for j, (val_image_ndArray, val_label_ndArray) in enumerate(valIterator, 0):
+					for j, ([val_image_ndArray], val_label_ndArray) in enumerate(valIterator, 0):
 						val_label_one_hot_list = get_label_one_hot(val_label_ndArray)
 						val_loss, val_accuracy, val_prediction, val_target, correct_predicate = sess.run(
 							[cross_entropy_mean, accuracy, prediction, correct_label, correct_prediction],
@@ -204,17 +201,17 @@ def main():
 							if predicate == True:
 								num_correct_predicate += 1
 						print ("Step :: %s\tTarget :: %s\tPrediction :: %s\tCorrect Predictions :: %s/%s\tValidation Loss :: %.2f\tValidation Accuracy :: %.2f%%\t" % (j, val_target, val_prediction, num_correct_predicate, len(correct_predicate), val_loss, (val_accuracy * 100)))
+					valIterator.reset()
 					mean_acc = (mean_acc * 100) / j
 					print("\nSUMMARY:\nMean Loss :: %.2f\tMean Accuracy :: %.2f%%" % (mean_loss, mean_acc))
 					print("\n-------------------------------------------------------------------------------- END VALIDATION --------------------------------------------------------------------------------\n\n")
-
 				i = i + 1
 				if i >= NUM_TRAIN_STEPS:
 					break
+			trainIterator.reset()
 
 
 if __name__ == '__main__':
 	main()
 
 ######################################## NO CHANGES IN CODE NEEDED ########################################
-

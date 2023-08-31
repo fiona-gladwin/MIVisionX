@@ -1,6 +1,23 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 import random
 from amd.rocal.plugin.pytorch import ROCALClassificationIterator
 
@@ -21,21 +38,21 @@ def draw_patches(img, idx, device = True, layout = "NCHW"):
     if layout == "NCHW":
         image = image.transpose([1, 2, 0])
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    cv2.imwrite("OUTPUT_IMAGES_PYTHON/FILE_READER/" + str(idx)+"_"+"train"+".png", image * 255)
+    cv2.imwrite("OUTPUT_FOLDER/FILE_READER/" + str(idx)+"_"+"train"+".png", image * 255)
 
 def main():
     if  len(sys.argv) < 3:
         print ('Please pass image_folder cpu/gpu batch_size')
         exit(0)
     try:
-        path= "OUTPUT_IMAGES_PYTHON/FILE_READER/"
+        path= "OUTPUT_FOLDER/FILE_READER/"
         isExist = os.path.exists(path)
         if not isExist:
             os.makedirs(path)
     except OSError as error:
         print(error)
     data_path = sys.argv[1]
-    _rali_cpu = True if sys.argv[2] == "cpu" else False
+    rocal_cpu = True if sys.argv[2] == "cpu" else False
     batch_size = int(sys.argv[3])
     num_threads = 1
     device_id = 0
@@ -43,20 +60,19 @@ def main():
     local_rank = 0
     world_size = 1
 
-    image_classification_train_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=random_seed, rocal_cpu=_rali_cpu)
+    image_classification_train_pipeline = Pipeline(batch_size=batch_size, num_threads=num_threads, device_id=device_id, seed=random_seed, rocal_cpu=rocal_cpu)
 
     with image_classification_train_pipeline:
-        jpegs, labels = fn.readers.file(file_root=data_path)
+        jpegs, _ = fn.readers.file(file_root=data_path)
         decode = fn.decoders.image_slice(jpegs, output_type=types.RGB,
                                          file_root=data_path, shard_id=local_rank, num_shards=world_size, random_shuffle=True)
-        res = fn.resize(decode, resize_width=224, resize_height=224, rocal_tensor_output_layout = types.NCHW, rocal_tensor_output_dtype = types.UINT8)
+        res = fn.resize(decode, resize_width=224, resize_height=224, output_layout = types.NCHW, output_dtype = types.UINT8)
         flip_coin = fn.random.coin_flip(probability=0.5)
-        cmnp = fn.crop_mirror_normalize(res, device="gpu",
-                                        rocal_tensor_output_layout = types.NCHW,
-                                        rocal_tensor_output_dtype = types.FLOAT,
+        cmnp = fn.crop_mirror_normalize(res,
+                                        output_layout=types.NCHW,
+                                        output_dtype=types.FLOAT,
                                         crop=(224, 224),
                                         mirror=flip_coin,
-                                        image_type=types.RGB,
                                         mean=[0.485 * 255,0.456 * 255,0.406 * 255],
                                         std=[0.229 * 255,0.224 * 255,0.225 * 255])
         image_classification_train_pipeline.set_outputs(cmnp)
@@ -75,7 +91,7 @@ def main():
         print("************************************** i *************************************",i)
         for img in it[0]:
             cnt = cnt + 1
-            draw_patches(img, cnt, device=_rali_cpu, layout="NCHW")
+            draw_patches(img[0], cnt, device=rocal_cpu, layout="NCHW")
     imageIteratorPipeline.reset()
     print("*********************************************************************")
 
