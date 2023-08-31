@@ -24,6 +24,59 @@ import rocal_pybind as b
 import amd.rocal.types as types
 import ctypes
 
+class ROCALNumpyIterator(object):
+    def __init__(self, pipeline, tensor_dtype=types.FLOAT, device="cpu", device_id=0):
+        self.loader = pipeline
+        self.tensor_dtype = tensor_dtype
+        self.device = device
+        self.device_id = device_id
+        self.out = None
+        print("self.device", self.device)
+        self.len = b.getRemainingImages(self.loader._handle)
+
+
+    def next(self):
+        return self.__next__()
+
+    def __next__(self):
+        if(b.isEmpty(self.loader._handle)):
+            raise StopIteration
+
+        if self.loader.rocalRun() != 0:
+            raise StopIteration
+        else:
+            self.output_tensor_list = self.loader.rocalGetOutputTensors()
+
+        self.output_list = []
+        for i in range(len(self.output_tensor_list)):
+            dimensions = self.output_tensor_list[i].dimensions()
+            if self.device == "cpu":
+                torch_dtype = self.output_tensor_list[i].dtype()
+                output = torch.empty(dimensions, dtype=getattr(torch, torch_dtype))
+            else:
+                torch_gpu_device = torch.device('cuda', self.device_id)
+                torch_dtype = self.output_tensor_list[i].dtype()
+                output = torch.empty(dimensions, dtype=getattr(torch, torch_dtype), device=torch_gpu_device)
+
+            self.output_tensor_list[i].copy_data(ctypes.c_void_p(output.data_ptr()), self.output_memory_type)
+            self.output_list.append(output)
+        else:
+            for i in range(len(self.output_tensor_list)):
+                self.output_tensor_list[i].copy_data(ctypes.c_void_p(self.output_list[i].data_ptr()), self.output_memory_type)
+        return self.output_tensor_list
+
+    def reset(self):
+        b.rocalResetLoaders(self.loader._handle)
+
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return self.len
+
+    def __del__(self):
+        b.rocalRelease(self.loader._handle)
+
 class ROCALGenericIterator(object):
     def __init__(self, pipeline, tensor_layout=types.NCHW, reverse_channels=False, multiplier=[1.0, 1.0, 1.0], offset=[0.0, 0.0, 0.0], tensor_dtype=types.FLOAT, device="cpu", device_id=0, display=False):
         self.loader = pipeline
