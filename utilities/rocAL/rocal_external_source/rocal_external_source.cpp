@@ -451,32 +451,32 @@ int main(int argc, const char **argv) {
     mat_output.release();
 
     cv::waitKey(1);
+
+    uint pipeline_type = 1; // External Source Reader Support given for the classification pipeline only
+    switch(pipeline_type)
+    {
+        case 1: //classification pipeline
+        {
+            std::cerr << "\n Classification Pipeline called - Meta data call";
+            RocalTensorList labels = rocalGetImageLabels(handle);
+            std::cerr << " Labels size : " << labels->size() << "\n";
+            for(int i = 0; i < labels->size(); i++)
+            {
+              int * labels_buffer = (int *)(labels->at(i)->buffer());
+              std::cerr << ">>>>> LABELS : " << labels_buffer[0] << "\t";
+            }
+        }
+        break;
+        default:
+        {
+            std::cerr << "Not a valid pipeline type ! Exiting!\n";
+            return -1;
+        }
+    }
     col_counter = (col_counter + 1) % number_of_cols;
     index++;
     counter += inputBatchSize;
   }
-
-        uint pipeline_type = 1; // External Source Reader Support given for the classification pipeline only
-        switch(pipeline_type)
-        {
-            case 1: //classification pipeline
-            {
-                std::cerr << "\n Classification Pipeline called - Meta data call";
-                RocalTensorList labels = rocalGetImageLabels(handle);
-
-                for(int i = 0; i < labels->size(); i++)
-                {
-                    int * labels_buffer = (int *)(labels->at(i)->buffer());
-                    std::cerr << ">>>>> LABELS : " << labels_buffer[0] << "\t";
-                }
-            }
-            break;
-            default:
-            {
-                std::cerr << "Not a valid pipeline type ! Exiting!\n";
-                return -1;
-            }
-        }
 
   high_resolution_clock::time_point t2 = high_resolution_clock::now();
   auto dur = duration_cast<microseconds>(t2 - t1).count();

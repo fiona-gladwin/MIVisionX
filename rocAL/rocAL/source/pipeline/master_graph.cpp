@@ -1470,10 +1470,13 @@ TensorList * MasterGraph::labels_meta_data()
     if(_ring_buffer.level() == 0)
         THROW("No meta data has been loaded")
     auto meta_data_buffers = (unsigned char *)_ring_buffer.get_meta_read_buffers()[0]; // Get labels buffer from ring buffer
-    auto labels = _ring_buffer.get_meta_data().second->get_labels_batch();
+    std::vector<std::vector<int>> labels;
+    if (!_external_source_reader)   // Metadata batch is not used for external source reader
+        labels = _ring_buffer.get_meta_data().second->get_labels_batch();
     for(unsigned i = 0; i < _labels_tensor_list.size(); i++)
     {
-        _labels_tensor_list[i]->set_dims({labels[i].size()});
+        if (!_external_source_reader)
+            _labels_tensor_list[i]->set_dims({labels[i].size()});
         _labels_tensor_list[i]->set_mem_handle((void *)meta_data_buffers);
         meta_data_buffers += _labels_tensor_list[i]->info().data_size();
     }
@@ -1719,30 +1722,26 @@ void MasterGraph::feed_external_input(std::vector<std::string> input_images_name
     _external_source_eos = eos;
     _loader_module->feed_external_input(input_images_names, labels, input_buffer, roi_width, roi_height, max_width, max_height, channels, mode, eos);
 
-    if(!labels.empty() && !_meta_data_reader) {
-        MetaDataConfig config(MetaDataType::Label, MetaDataReaderType::EXTERNAL_SOURCE_LABEL_READER);
-        _meta_data_reader = create_meta_data_reader(config, _augmented_meta_data);
-        // if(input_images_names.size() > 0) // Mode0
-        _meta_data_reader->add_labels(input_images_names, labels);
+    if (!labels.empty()) {
+        if (_labels_tensor_list.size() == 0) {  // Labels tensor list is initialized only once for the pipeline
+            std::vector<size_t> dims = {1};
+            auto default_labels_info = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32);
+            default_labels_info.set_metadata();
+
+            _meta_data_buffer_size.emplace_back(_user_batch_size * sizeof(vx_int32));
+            for (unsigned i = 0; i < _user_batch_size; i++) {
+                auto info = default_labels_info;
+                _labels_tensor_list.push_back(new Tensor(info));
+            }
+
+            _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
+            _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
+        }
+
+        if (_labels_tensor_list.size() != labels.size()) {
+            THROW("The number os labels passed by the user is not same as the number of labels tensors allocated")
+        }
+        int *labels_buffer = static_cast<int *>(_ring_buffer.get_meta_write_buffers()[0]);  // Obtain labels buffer
+        memcpy(labels_buffer, labels.data(), labels.size() * sizeof(int));  // Copy external labels input to the ring buffer
     }
-    else if(!labels.empty() && _meta_data_reader) {
-        // if(input_images_names.size() > 0) // Mode0
-        _meta_data_reader->add_labels(input_images_names, labels);
-    }
-
-    std::vector<size_t> dims = {1};
-    auto default_labels_info = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32);
-    default_labels_info.set_metadata();
-
-    _meta_data_buffer_size.emplace_back(_user_batch_size * sizeof(vx_int32));
-
-    for(unsigned i = 0; i < _user_batch_size; i++) {
-        auto info = default_labels_info;
-        _labels_tensor_list.push_back(new Tensor(info));
-    }
-
-    _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
-    _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
-    // return _metadata_output_tensor_list;
-      
 }
