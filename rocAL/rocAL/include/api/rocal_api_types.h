@@ -205,10 +205,6 @@ enum class RocalROICordsType {
     ROCAL_XYWH = 1
 };
 
-typedef struct {
-    unsigned x1, y1, x2, y2;
-} RocalROICords;
-
 enum RocalLastBatchPolicy {
     ROCAL_LAST_BATCH_FILL = 0,
     ROCAL_LAST_BATCH_DROP = 1,

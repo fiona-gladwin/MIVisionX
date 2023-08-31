@@ -116,17 +116,13 @@ bool operator==(const TensorInfo &rhs, const TensorInfo &lhs) {
 
 
 void TensorInfo::reset_tensor_roi_buffers() {
-    size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
-    allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
-    if (_mem_type == RocalMemType::HIP) {
-#if ENABLE_HIP
-        _roi.reset(_roi_buf, hipHostFree);
-#endif
-    } else {
-        _roi.reset(_roi_buf, free);
-    }
+    unsigned *roi_buf;
+    auto roi_no_of_dims = _is_image ? 2 : (_num_of_dims - 1);
+    auto roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
+    allocate_host_or_pinned_mem((void **)&roi_buf, roi_size * roi_no_of_dims * 2 * sizeof(unsigned), _mem_type);
+    _roi.set_ptr(roi_buf, _mem_type, roi_size, roi_no_of_dims);
     if (_is_image) {
-        auto roi = get_roi();
+        ROI2DCords *roi = _roi.get_2D_roi();
         for (unsigned i = 0; i < _batch_size; i++) {
             roi[i].x2 = _max_shape.at(0);
             roi[i].y2 = _max_shape.at(1);
@@ -134,7 +130,7 @@ void TensorInfo::reset_tensor_roi_buffers() {
     } else {
         // TODO - For other tensor types
     }
-}
+}   
 
 void TensorInfo::reallocate_tensor_sample_rate_buffers() {
     if (_is_image)
@@ -198,7 +194,8 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
         auto max_shape = _info.max_shape();
         unsigned max_width = max_shape.at(0);
         unsigned max_height = max_shape.at(1);
-
+        ROI2DCords *roi = _info.roi().get_2D_roi();
+        
         if (width.size() != height.size())
             THROW("Batch size of Tensor height and width info does not match")
 
@@ -208,15 +205,36 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
         for (unsigned i = 0; i < info().batch_size(); i++) {
             if (width[i] > max_width) {
                 WRN("Given ROI width is larger than buffer width for tensor[" + TOSTR(i) + "] " + TOSTR(width[i]) + " > " + TOSTR(max_width))
-                _info.get_roi()[i].x2 = max_width;
+                roi[i].x2 = max_width;
             } else {
-                _info.get_roi()[i].x2 = width[i];
+                roi[i].x2 = width[i];
             }
             if (height[i] > max_height) {
                 WRN("Given ROI height is larger than buffer height for tensor[" + TOSTR(i) + "] " + TOSTR(height[i]) + " > " + TOSTR(max_height))
-                _info.get_roi()[i].y2 = max_height;
+                roi[i].y2 = max_height;
             } else {
-                _info.get_roi()[i].y2 = height[i];
+                roi[i].y2 = height[i];
+            }
+        }
+    }
+}
+
+void Tensor::update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape) {
+    auto max_shape = _info.max_shape();
+    if (shape.size() != info().batch_size())
+        THROW("The batch size of actual Tensor shape different from Tensor batch size " + TOSTR(shape.size()) + " != " + TOSTR(info().batch_size()))
+
+    for (unsigned i = 0; i < info().batch_size(); i++) {
+        if (shape[i].size() != (info().num_of_dims() - 1))
+            THROW("The number of dims to be updated and the num of dims of tensor info does not match")
+        
+        unsigned *tensor_shape = _info.roi()[i].shape;
+        for(unsigned d = 0; d < shape[i].size(); d++) {
+            if (shape[i][d] > max_shape[d]) {
+                WRN("Given ROI shape is larger than buffer shape for tensor[" + TOSTR(i) + "] " + TOSTR(shape[i][d]) + " > " + TOSTR(max_shape[d]))
+                tensor_shape[d] = max_shape[d];
+            } else {
+                tensor_shape[d] = shape[i][d];
             }
         }
     }
@@ -284,7 +302,7 @@ int Tensor::create_virtual(vx_context context, vx_graph graph) {
         THROW("Error: vxCreateVirtualTensor(input:[" + TOSTR(_info.max_shape().at(0)) + "W" + TOSTR(_info.max_shape().at(1)) + "H" + "]): failed " + TOSTR(status))
 
     _info._type = TensorInfo::Type::VIRTUAL;
-    void *roi_handle = reinterpret_cast<void *>(_info.get_roi());
+    void *roi_handle = reinterpret_cast<void *>(_info.roi().get_ptr());
     create_roi_tensor_from_handle(&roi_handle); // Create ROI tensor from handle
     return 0;
 }
@@ -310,7 +328,7 @@ int Tensor::create_from_handle(vx_context context) {
     if ((status = vxGetStatus((vx_reference)_vx_handle)) != VX_SUCCESS)
         THROW("Error: vxCreateTensorFromHandle(input: failed " + TOSTR(status))
     _info._type = TensorInfo::Type::HANDLE;
-    void *roi_handle = reinterpret_cast<void *>(_info.get_roi());
+    void *roi_handle = reinterpret_cast<void *>(_info.roi().get_ptr());
     create_roi_tensor_from_handle(&roi_handle); // Create ROI tensor from handle
     return 0;
 }

@@ -894,8 +894,9 @@ def uniform(*inputs, range=[-1, 1], device=None):
     return output_param
 
 
-def random_bbox_crop(*inputs, all_boxes_above_threshold=True, allow_no_crop=True, aspect_ratio=None,
-                     crop_shape=None, num_attempts=1, scaling=None, seed=1, total_num_attempts=0, device=None, ltrb=True):
+def random_bbox_crop(*inputs, all_boxes_above_threshold=True, allow_no_crop=True, aspect_ratio=None, bbox_layout="",
+                     threshold_type="iou", thresholds=None, crop_shape=None, num_attempts=1, scaling=None, seed=1,
+                     shape_layout="", input_shape=None, total_num_attempts=0, device=None, ltrb=True, labels=None):
     """
     inputs - the input image passed to the augmentation
 

@@ -93,9 +93,8 @@ void ResizeMirrorNormalizeNode::create_node()
         THROW("Adding the resize_mirror_normalize (vxExtRppResizeMirrorNormalize) node failed: " + TOSTR(status))
 }
 
-void ResizeMirrorNormalizeNode::update_node()
-{
-    RocalROI* src_roi = _inputs[0]->info().get_roi();   // Check if it needs to be similar to resize
+void ResizeMirrorNormalizeNode::update_node() {
+    ROI2DCords *src_roi = (_inputs[0]->info().roi().get_2D_roi());
     for (unsigned i = 0; i < _batch_size; i++) {
         _src_width = src_roi[i].x2;
         _src_height = src_roi[i].y2;
