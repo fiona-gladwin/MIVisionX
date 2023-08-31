@@ -48,6 +48,8 @@ VideoLoader::~VideoLoader()
 
 void VideoLoader::shut_down()
 {
+    if(_internal_thread_running)
+        stop_internal_thread();
     _circ_buff.release();
 }
 
