@@ -44,9 +44,8 @@ SCALING_MODES = {
     3: types.SCALING_MODE_NOT_LARGER
 }
 
-def draw_patches(img, idx, device):
+def draw_patches(img, idx, device, args=None):
     # image is expected as a tensor, bboxes as numpy
-    args = parse_args()
     if device == "gpu":
         img = cp.asnumpy(img)
     if args.fp16:
@@ -93,7 +92,7 @@ def main():
         sys.exit(0)
 
     try:
-        path = "OUTPUT_IMAGES_PYTHON/FILE_READER/" + args.augmentation_name
+        path = "OUTPUT_FOLDER/FILE_READER/" + args.augmentation_name
         isExist = os.path.exists(path)
         if not isExist:
             os.makedirs(path)
@@ -491,7 +490,7 @@ def main():
                     print("\nLABELS:\n", labels)
                     print("**************ends*******************")
                     print("**************", i, "*******************")
-                draw_patches(output_list[j], cnt, rocal_device)
+                draw_patches(output_list[j], cnt, rocal_device, args=args)
                 cnt += len(output_list[j])
 
         data_loader.reset()
@@ -501,8 +500,7 @@ def main():
     print('\n Time: ', stop - start)
     print('Number of times loop iterates is:', cnt)
 
-    print(f'###############################################                             {augmentation_name.upper()}                         ############################################')
-    print("###############################################                             SUCCESS                             ###############################################")
+    print("##############################  {augmentation_name.upper()}  SUCCESS  ############################")
 
 
 if __name__ == '__main__':

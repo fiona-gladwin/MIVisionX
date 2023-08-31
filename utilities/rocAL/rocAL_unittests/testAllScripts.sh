@@ -84,10 +84,20 @@ do
         ./rocAL_unittests 0 "$image_path" "${output_path}Exposure_${rgb_name[$rgb]}_${device_name}" $width $height 46 $device $rgb 0 $display
         ./rocAL_unittests 0 "$image_path" "${output_path}Flip_${rgb_name[$rgb]}_${device_name}" $width $height 47 $device $rgb 0 $display
 
+        # FileSource Reader + partial decoder
+        ./rocAL_unittests 1 "$image_path" "${output_path}Snow_${rgb_name[$rgb]}_${device_name}_FileReader_partial" $width $height 41 $device $rgb 0 $display
+        ./rocAL_unittests 1 "$image_path" "${output_path}Rain_${rgb_name[$rgb]}_${device_name}_FileReader_partial" $width $height 42 $device $rgb 0 $display
+        ./rocAL_unittests 1 "$image_path" "${output_path}SNPNoise_${rgb_name[$rgb]}_${device_name}_FileReader_partial" $width $height 40 $device $rgb 0 $display
+
         # coco detection
         ./rocAL_unittests 2 "$coco_detection_path" "${output_path}Gamma_${rgb_name[$rgb]}_${device_name}" $width $height 33 $device $rgb 0 $display
         ./rocAL_unittests 2 "$coco_detection_path" "${output_path}Contrast_${rgb_name[$rgb]}_${device_name}" $width $height 34 $device $rgb 0 $display
         ./rocAL_unittests 2 "$coco_detection_path" "${output_path}Vignette_${rgb_name[$rgb]}_${device_name}" $width $height 38 $device $rgb 0 $display
+
+        # coco detection + partial decoder
+        ./rocAL_unittests 3 "$coco_detection_path" "${output_path}Snow_${rgb_name[$rgb]}_${device_name}_coco_partial" $width $height 41 $device $rgb 0 $display
+        ./rocAL_unittests 3 "$coco_detection_path" "${output_path}Rain_${rgb_name[$rgb]}_${device_name}_coco_partial" $width $height 42 $device $rgb 0 $display
+        ./rocAL_unittests 3 "$coco_detection_path" "${output_path}SNPNoise_${rgb_name[$rgb]}_${device_name}_coco_partial" $width $height 40 $device $rgb 0 $display
 
         # tf classification
         ./rocAL_unittests 4 "$tf_classification_path" "${output_path}Blend_${rgb_name[$rgb]}_${device_name}" $width $height 36 $device $rgb 0 $display
