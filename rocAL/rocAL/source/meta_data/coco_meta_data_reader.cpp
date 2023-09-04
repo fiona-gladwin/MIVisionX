@@ -569,7 +569,7 @@ void COCOMetaDataReader::read_all(const std::string &path)
                     bb_coords.clear();
                     bb_labels.clear();
                 }
-                if (rle_flag && _output->get_metadata_type() == MetaDataType::PixelwiseMask) {
+                if (rle_flag && (_output->get_metadata_type() == MetaDataType::PixelwiseMask) && iscrowd == 0) {
                     generate_pixelwise_mask(itr->second, R);
                     rleFree(R);
                     rle_flag = false;
