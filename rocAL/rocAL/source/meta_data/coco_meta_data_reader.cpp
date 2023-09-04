@@ -165,18 +165,19 @@ void COCOMetaDataReader::print_map_contents()
 }
 
 void COCOMetaDataReader::generate_pixelwise_mask(std::string filename, RLE *rle_in) {
+    BoundingBoxCords bb_coords;
+    Labels bb_labels;
     std::map<int, std::vector<RLE>> FromPoly;
     auto it = _map_content.find(filename);
-    BoundingBoxCords bb_coords = it->second->get_bb_cords();
-    Labels bb_labels = it->second->get_labels();
+    bb_coords = it->second->get_bb_cords();
+    bb_labels = it->second->get_labels();
     ImgSize img_size = it->second->get_img_size();
     MaskCords mask_cords = it->second->get_mask_cords();
     std::vector<int> polygon_size = it->second->get_polygon_count();
     std::vector<std::vector<int>> vertices_count = it->second->get_vertices_count();
-    ImgSize imgsize = it->second->get_img_size();
     auto &pixelwise_labels = it->second->get_pixelwise_label();
-    int h = imgsize.h;
-    int w = imgsize.w;
+    int h = img_size.h;
+    int w = img_size.w;
     pixelwise_labels.resize(h * w);
     if (rle_in) {
         for (unsigned int i = 0; i < bb_coords.size(); i++) {
