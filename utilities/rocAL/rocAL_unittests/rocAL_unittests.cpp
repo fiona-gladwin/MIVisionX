@@ -340,7 +340,14 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
             decoded_output = rocalMXNetRecordSource(handle, path, color_format, num_threads, false, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
         }
         break;
-        default:
+        case 12: //Numpy reader
+        {
+            std::cout << ">>>>>>> Running Numpy reader" << std::endl;
+            pipeline_type = 4;
+            decoded_output = rocalNumpyFileSource(handle, path, num_threads, true, false, false, ROCAL_USE_MAX_SIZE);
+        }
+        break;
+        default: //image pipeline
         {
             std::cout << ">>>>>>> Running IMAGE READER" << std::endl;
             pipeline_type = 1;
@@ -785,7 +792,7 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
 
     default:
         std::cout << "Not a valid option! Exiting!\n";
-        return -1;
+        // return -1;
     }
 
     // Calling the API to verify and build the augmentation graph
@@ -912,6 +919,59 @@ int test(int test_case, int reader_type, const char *path, const char *outName, 
                     std::cout << "x : " << joints_data->joints_batch[i][k][0] << " , y : " << joints_data->joints_batch[i][k][1] << " , v : " << joints_data->joints_visibility_batch[i][k][0] << std::endl;
                     }
                 }
+            }
+            break;
+            case 4: // numpy reader pipeline
+            {
+                RocalTensorList output_tensor_list;
+                for(int idx = 0; idx < output_tensor_list->size(); idx++)
+                {
+                    int h = output_tensor_list->at(idx)->shape().at(1) * output_tensor_list->at(idx)->dims().at(0);
+                    int w = output_tensor_list->at(idx)->shape().at(0);
+                    unsigned char *out_buffer;
+                    if(output_tensor_list->at(idx)->data_type() == RocalTensorOutputType::ROCAL_FP32)
+                    {
+                        float * out_f_buffer;
+                        std::cout << "Creating float buffer of " << w << " x " << h << "shape\n";
+                        if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_GPU)
+                        {
+                            out_f_buffer = (float *)malloc(output_tensor_list->at(idx)->data_size());
+                            output_tensor_list->at(idx)->copy_data(out_f_buffer);
+                        }
+                        else if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_CPU)
+                            out_f_buffer = (float *)output_tensor_list->at(idx)->buffer();
+
+                        out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size() / 4);
+                        // convert_float_to_uchar_buffer(out_f_buffer, out_buffer, output_tensor_list->at(idx)->data_size() / 4);
+                    }
+                    if(output_tensor_list->at(idx)->data_type() == RocalTensorOutputType::ROCAL_FP16)
+                    {
+                        half * out_f16_buffer;
+                        std::cout << "Creating float16 buffer of " << w << " x " << h << "shape\n";
+                        if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_GPU)
+                        {
+                            out_f16_buffer = (half *)malloc(output_tensor_list->at(idx)->data_size());
+                            output_tensor_list->at(idx)->copy_data(out_f16_buffer);
+                        }
+                        else if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_CPU)
+                            out_f16_buffer = (half *)output_tensor_list->at(idx)->buffer();
+
+                        out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size() / 2);
+                        // convert_float_to_uchar_buffer(out_f16_buffer, out_buffer, output_tensor_list->at(idx)->data_size() / 2);
+                    }
+                    else
+                    {
+                        std::cout << "Creating uchar buffer of " << w << " x " << h << " shape\n";
+                        if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_GPU)
+                        {
+                            out_buffer = (unsigned char *)malloc(output_tensor_list->at(idx)->data_size());
+                            output_tensor_list->at(idx)->copy_data(out_buffer);
+                        }
+                        else if(output_tensor_list->at(idx)->backend() == RocalTensorBackend::ROCAL_CPU)
+                            out_buffer = (unsigned char *)(output_tensor_list->at(idx)->buffer());
+                    }
+                }
+                std::cout << "Copied numpy data to buffers\n";
             }
             break;
             default:
