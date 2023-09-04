@@ -216,6 +216,34 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
                 roi[i].y2 = height[i];
             }
         }
+    } else if(!_info.is_metadata()) {
+        auto max_dims = _info.max_shape();
+        unsigned max_samples = max_dims.at(0);
+        unsigned max_channels = max_dims.at(1);
+        ROI2DCords *roi = _info.roi().get_2D_roi();
+        
+        auto samples = width;
+        auto channels = height;
+        if (samples.size() != channels.size())
+            THROW("Batch size of Tensor height and width info does not match")
+        if (samples.size() != info().batch_size())
+            THROW("The batch size of actual Tensor height and width different from Tensor batch size " + TOSTR(samples.size()) + " != " + TOSTR(info().batch_size()))
+        for (unsigned i = 0; i < info().batch_size(); i++) {
+            if (samples[i] > max_samples) {
+                ERR("Given ROI width is larger than buffer width for tensor[" + TOSTR(i) + "] " + TOSTR(samples[i]) + " > " + TOSTR(max_samples))
+                roi[i].x1 = max_samples;
+            }
+            else {
+                roi[i].x1 = samples[i];
+            }
+            if (channels[i] > max_channels) {
+                ERR("Given ROI height is larger than buffer with for tensor[" + TOSTR(i) + "] " + TOSTR(channels[i]) + " > " + TOSTR(max_channels))
+                roi[i].y1 = max_channels;
+            }
+            else {
+                roi[i].y1 = channels[i];
+            }
+        }
     }
 }
 
@@ -235,33 +263,6 @@ void Tensor::update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape) 
                 tensor_shape[d] = max_shape[d];
             } else {
                 tensor_shape[d] = shape[i][d];
-            }
-        }
-    }
-    else if(!_info.is_metadata()) {
-        auto max_dims = _info.max_shape();
-        unsigned max_samples = max_dims.at(0);
-        unsigned max_channels = max_dims.at(1);
-        auto samples = width;
-        auto channels = height;
-        if (samples.size() != channels.size())
-            THROW("Batch size of Tensor height and width info does not match")
-        if (samples.size() != info().batch_size())
-            THROW("The batch size of actual Tensor height and width different from Tensor batch size " + TOSTR(samples.size()) + " != " + TOSTR(info().batch_size()))
-        for (unsigned i = 0; i < info().batch_size(); i++) {
-            if (samples[i] > max_samples) {
-                ERR("Given ROI width is larger than buffer width for tensor[" + TOSTR(i) + "] " + TOSTR(samples[i]) + " > " + TOSTR(max_samples))
-                _info.get_roi()[i].x1 = max_samples;
-            }
-            else {
-                _info.get_roi()[i].x1 = samples[i];
-            }
-            if (channels[i] > max_channels) {
-                ERR("Given ROI height is larger than buffer with for tensor[" + TOSTR(i) + "] " + TOSTR(channels[i]) + " > " + TOSTR(max_channels))
-                _info.get_roi()[i].y1 = max_channels;
-            }
-            else {
-                _info.get_roi()[i].y1 = channels[i];
             }
         }
     }
