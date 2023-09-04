@@ -105,10 +105,10 @@ void CropMirrorNormalizeNode::update_node() {
     auto y1 = _crop_param->get_y1_arr_val();
     RocalROI *src_roi = static_cast<RocalROI *>(_crop_coordinates);
     for(unsigned i = 0; i < _batch_size; i++) {
-        src_roi[i].x1 = x1[i];
-        src_roi[i].y1 = y1[i];
-        src_roi[i].x2 = crop_w_dims[i];
-        src_roi[i].y2 = crop_h_dims[i];
+        src_roi[i].xywh.x = x1[i];
+        src_roi[i].xywh.y = y1[i];
+        src_roi[i].xywh.w = crop_w_dims[i];
+        src_roi[i].xywh.h = crop_h_dims[i];
     }
 }
 
