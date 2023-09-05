@@ -185,10 +185,10 @@ private:
     TensorList _mask_tensor_list;
     TensorList _random_mask_pixel_list;
     TensorList _select_mask_polygon_list;
-    std::vector<std::vector<float>> output_select_mask_polygon;
+    std::vector<std::vector<float>> _output_select_mask_polygon;
     TensorList _random_object_bbox_list;
     std::vector<size_t> _meta_data_buffer_size;
-    std::vector<std::vector<unsigned>> output_random_object_bbox;
+    std::vector<std::vector<unsigned>> _output_random_object_bbox;
 #if ENABLE_HIP
     DeviceManagerHip   _device;//!< Keeps the device related constructs needed for running on GPU
 #elif ENABLE_OPENCL

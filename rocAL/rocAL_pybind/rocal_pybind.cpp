@@ -570,6 +570,23 @@ namespace rocal{
                 }
                 return per_image_select_mask;
             });
+        m.def("getRandomObjectBBox", [](RocalContext context, RocalRandomObjectBBoxFormat format) {
+            rocalTensorList *boxes = RocalRandomObjectBBox(context, format);
+            py::list boxes_list;
+            py::array_t<unsigned> boxes_array;
+            for (int i = 0; i < boxes->size(); i++) {
+                unsigned *box_buffer = static_cast<unsigned *>(boxes->at(i)->buffer());
+                boxes_array = py::array(py::buffer_info(
+                            static_cast<unsigned *>(boxes->at(i)->buffer()),
+                            sizeof(unsigned),
+                            py::format_descriptor<unsigned>::format(),
+                            1,
+                            {4},
+                            {sizeof(unsigned)}));
+                boxes_list.append(boxes_array);
+            }
+            return boxes_list;
+        });
         // Will be enabled when IOU matcher changes are introduced in C++
         // m.def("getMatchedIndices", [](RocalContext context) {
         //     rocalTensorList *matches = rocalGetMatchedIndices(context);

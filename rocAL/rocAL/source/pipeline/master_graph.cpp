@@ -638,13 +638,13 @@ void MasterGraph::get_label_boundingboxes(std::vector<std::vector<std::pair<unsi
 
 TensorList*  MasterGraph::get_random_object_bbox(rocalTensorList* input, RandomObjectBBoxFormat format) {
     SeededRNG<std::mt19937, 4> rngs(_user_batch_size);
-    if (output_random_object_bbox.size() != 0) {
+    if (_output_random_object_bbox.size() != 0) {
         for (unsigned i  = 0; i < _user_batch_size; i++) {
-            output_random_object_bbox[i].clear();
+            _output_random_object_bbox[i].clear();
         }
     }
-    output_random_object_bbox.clear();
-    output_random_object_bbox.resize(_user_batch_size,std::vector<unsigned> (4, 0));
+    _output_random_object_bbox.clear();
+    _output_random_object_bbox.resize(_user_batch_size,std::vector<unsigned> (4, 0));
     for (unsigned id = 0; id < _user_batch_size; id++) {
         int *in_mask_buffer = (int *)(input->at(id)->buffer());
         std::set<int> unique_labels; 
@@ -694,22 +694,22 @@ TensorList*  MasterGraph::get_random_object_bbox(rocalTensorList* input, RandomO
         auto pick_box = boxes[pick_box_id];
         switch (format) {
             case RandomObjectBBoxFormat::OUT_BOX:
-                output_random_object_bbox[id][0] = pick_box[0].first;
-                output_random_object_bbox[id][2] = pick_box[1].first;
-                output_random_object_bbox[id][1] = pick_box[0].second;
-                output_random_object_bbox[id][3] = pick_box[1].second;
+                _output_random_object_bbox[id][0] = pick_box[0].first;
+                _output_random_object_bbox[id][2] = pick_box[1].first;
+                _output_random_object_bbox[id][1] = pick_box[0].second;
+                _output_random_object_bbox[id][3] = pick_box[1].second;
                 break;
             case RandomObjectBBoxFormat::OUT_ANCHORSHAPE:
-                output_random_object_bbox[id][0] = pick_box[0].first;
-                output_random_object_bbox[id][2] = pick_box[1].first - pick_box[0].first;
-                output_random_object_bbox[id][1] = pick_box[0].second;
-                output_random_object_bbox[id][3] = pick_box[1].second - pick_box[0].second;
+                _output_random_object_bbox[id][0] = pick_box[0].first;
+                _output_random_object_bbox[id][2] = pick_box[1].first - pick_box[0].first;
+                _output_random_object_bbox[id][1] = pick_box[0].second;
+                _output_random_object_bbox[id][3] = pick_box[1].second - pick_box[0].second;
                 break;
             case RandomObjectBBoxFormat::OUT_STARTEND:
-                output_random_object_bbox[id][0] = pick_box[0].first;
-                output_random_object_bbox[id][2] = pick_box[1].first;
-                output_random_object_bbox[id][1] = pick_box[0].second;
-                output_random_object_bbox[id][3] = pick_box[1].second;
+                _output_random_object_bbox[id][0] = pick_box[0].first;
+                _output_random_object_bbox[id][2] = pick_box[1].first;
+                _output_random_object_bbox[id][1] = pick_box[0].second;
+                _output_random_object_bbox[id][3] = pick_box[1].second;
                 break;
             default:
                 assert(!"Unreachable code");
@@ -722,7 +722,7 @@ TensorList*  MasterGraph::get_random_object_bbox(rocalTensorList* input, RandomO
     for(unsigned i = 0; i < _user_batch_size; i++)
     {
         _random_object_bbox_list[i]->set_dims(random_tensor_dims);
-        auto random_data_buffers = (unsigned int *)output_random_object_bbox[i].data();
+        auto random_data_buffers = (unsigned int *)_output_random_object_bbox[i].data();
         _random_object_bbox_list[i]->set_mem_handle((void *)random_data_buffers);
     }
 
@@ -1977,12 +1977,12 @@ TensorList*  MasterGraph::get_select_mask_polygon(rocalTensorList* mask_data,
                                                         std::vector<std::vector<int>> &sel_mask_ids,
                                                         bool reindex_mask)
 { 
-    if (output_select_mask_polygon.size() != 0) {
+    if (_output_select_mask_polygon.size() != 0) {
         for (unsigned i = 0; i < _user_batch_size; i++)
-            output_select_mask_polygon[i].clear();
+            _output_select_mask_polygon[i].clear();
     }
-    output_select_mask_polygon.clear();
-    output_select_mask_polygon.resize(_user_batch_size);
+    _output_select_mask_polygon.clear();
+    _output_select_mask_polygon.resize(_user_batch_size);
     sel_vertices_counts.resize(_user_batch_size);
     sel_mask_ids.resize(_user_batch_size);
     for(unsigned i = 0; i < _user_batch_size; i++)
@@ -1996,7 +1996,7 @@ TensorList*  MasterGraph::get_select_mask_polygon(rocalTensorList* mask_data,
                 for (unsigned l = 0; l < vertices_counts[i][k].size(); l++) {
                         if (pc == mask_ids[j]) {
                             for (unsigned m = vc; m < vc+vertices_counts[i][k][l]; m++) {
-                                output_select_mask_polygon[i].push_back(mask_buffer[m]);
+                                _output_select_mask_polygon[i].push_back(mask_buffer[m]);
                             }
                             sel_vertices_counts[i].push_back(vertices_counts[i][k][l]);
                             if (reindex_mask == true)
@@ -2015,8 +2015,8 @@ TensorList*  MasterGraph::get_select_mask_polygon(rocalTensorList* mask_data,
     }
     for(unsigned i = 0; i < _user_batch_size; i++)
     {
-        auto select_mask_buffers = (float*)output_select_mask_polygon[i].data();
-        _select_mask_polygon_list[i]->set_dims({output_select_mask_polygon[i].size(),1});
+        auto select_mask_buffers = (float*)_output_select_mask_polygon[i].data();
+        _select_mask_polygon_list[i]->set_dims({_output_select_mask_polygon[i].size(),1});
         _select_mask_polygon_list[i]->set_mem_handle((void *)select_mask_buffers);
     }
     return &_select_mask_polygon_list;

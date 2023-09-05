@@ -94,17 +94,17 @@ class ROCALCOCOIterator(object):
         self.labels = self.loader.get_bounding_box_labels()
         # 1D bboxes array in a batch
         self.bboxes = self.loader.get_bounding_box_cords()
+        self.loader.get_image_id(self.image_id)
         pixelwise_labels = self.loader.get_pixelwise_labels()
-        for label in pixelwise_labels:
-            print(np.unique(label))
         random_mask_pixel = self.loader.get_random_mask_pixel()
+        random_object_bbox = self.loader.get_random_object_bbox(types.OUT_BOX)
 
         for i in range(self.bs):
             if self.display:
                 img = self.output
                 draw_patches(img[i], self.image_id[i],
                              self.bboxes[i], self.device, self.tensor_dtype, self.tensor_format)
-        return (self.output), self.bboxes, self.labels, pixelwise_labels, random_mask_pixel
+        return (self.output), self.bboxes, self.labels, pixelwise_labels, random_mask_pixel, random_object_bbox
 
     def reset(self):
         self.loader.rocal_reset_loaders()
@@ -167,18 +167,8 @@ def main():
         jpegs, bboxes, labels = fn.readers.coco(annotations_file=annotation_path, pixelwise_masks=True)
         images_decoded = fn.decoders.image(jpegs, output_type=types.RGB, file_root=image_path,
                                            annotations_file=annotation_path, random_shuffle=False, shard_id=local_rank, num_shards=world_size)
-        res_images = fn.resize(images_decoded, resize_width=300, resize_height=300)
-        flip_coin = fn.random.coin_flip(probability=0.5)
-        cmn_images = fn.crop_mirror_normalize(res_images,
-                                              crop=(224, 224),
-                                              crop_pos_x=0.0,
-                                              crop_pos_y=0.0,
-                                              mean=[0, 0, 0],
-                                              std=[1, 1, 1],
-                                              mirror=flip_coin,
-                                              output_layout=tensor_format,
-                                              output_dtype=tensor_dtype)
-        pipe.set_outputs(cmn_images)
+        brightened_images = fn.brightness(images_decoded)
+        pipe.set_outputs(brightened_images)
     # Build the pipeline
     pipe.build()
     # Dataloader
@@ -201,8 +191,9 @@ def main():
                 print("\nIMAGES : \n", it[0])
                 print("\nBBOXES:\n", it[1])
                 print("\nLABELS:\n", it[2])
-                print("\nPIXELWISE MASKS:\n", it[3])
+                print("\nPIXELWISE MASKS:\n", [np.unique(label) for label in it[3]])
                 print("\nRANDOM MASK PIXEL:\n", it[4])
+                print("\nRANDOM OBJECT BBOX:\n", it[5])
                 print("**************ends*******************")
                 print("**************", i, "*******************")
         data_loader.reset()

@@ -87,6 +87,11 @@ from rocal_pybind.types import LANCZOS_INTERPOLATION
 from rocal_pybind.types import GAUSSIAN_INTERPOLATION
 from rocal_pybind.types import TRIANGULAR_INTERPOLATION
 
+#     RocalRandomObjectBBoxFormat
+from rocal_pybind.types import OUT_BOX
+from rocal_pybind.types import OUT_ANCHORSHAPE
+from rocal_pybind.types import OUT_STARTEND
+
 _known_types = {
 
     OK: ("OK", OK),
@@ -141,6 +146,10 @@ _known_types = {
     SCALING_MODE_NOT_SMALLER: ("SCALING_MODE_NOT_SMALLER", SCALING_MODE_NOT_SMALLER),
     SCALING_MODE_NOT_LARGER: ("SCALING_MODE_NOT_LARGER", SCALING_MODE_NOT_LARGER),
     SCALING_MODE_MIN_MAX: ("SCALING_MODE_MIN_MAX", SCALING_MODE_MIN_MAX),
+
+    OUT_BOX: ("OUT_BOX", OUT_BOX),
+    OUT_ANCHORSHAPE: ("OUT_ANCHORSHAPE", OUT_ANCHORSHAPE),
+    OUT_STARTEND: ("OUT_STARTEND", OUT_STARTEND),
 
 }
 
