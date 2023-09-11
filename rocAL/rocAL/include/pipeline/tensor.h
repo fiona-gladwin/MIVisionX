@@ -275,7 +275,6 @@ private:
     RocalTensorDataType _data_type = RocalTensorDataType::FP32;  //!< tensor data type
     RocalTensorlayout _layout = RocalTensorlayout::NONE;     //!< layout of the tensor
     RocalColorFormat _color_format;  //!< color format of the image
-    void *_roi_buf = nullptr;
     ROI _roi;
     uint64_t _data_type_size = tensor_data_size(_data_type);
     uint64_t _data_size = 0;
