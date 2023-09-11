@@ -231,17 +231,17 @@ void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
         for (unsigned i = 0; i < info().batch_size(); i++) {
             if (samples[i] > max_samples) {
                 ERR("Given ROI width is larger than buffer width for tensor[" + TOSTR(i) + "] " + TOSTR(samples[i]) + " > " + TOSTR(max_samples))
-                roi[i].x1 = max_samples;
+                roi[i].xywh.x = max_samples;
             }
             else {
-                roi[i].x1 = samples[i];
+                roi[i].xywh.x = samples[i];
             }
             if (channels[i] > max_channels) {
                 ERR("Given ROI height is larger than buffer with for tensor[" + TOSTR(i) + "] " + TOSTR(channels[i]) + " > " + TOSTR(max_channels))
-                roi[i].y1 = max_channels;
+                roi[i].xywh.y = max_channels;
             }
             else {
-                roi[i].y1 = channels[i];
+                roi[i].xywh.y = channels[i];
             }
         }
     }
