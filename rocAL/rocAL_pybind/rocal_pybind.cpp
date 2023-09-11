@@ -175,17 +175,22 @@ namespace rocal{
                 )code"
             )
             .def(
-                "get_rois",
+                "roi_dims_size",
                 [](rocalTensor &output_tensor) {
-                    auto roi = py::array_t<int>(output_tensor.dims().at(0) * output_tensor.get_roi_dims_size() * 2);
-                    void *ptr = static_cast<void *>(roi.request().ptr);
-                    output_tensor.copy_roi(ptr);
-                    return roi;
+                    return output_tensor.get_roi_dims_size();
                 },
                 R"code(
-                Returns a tensor ROI
-                ex : width, height in case of an image data
-                ex : samples, channels in case of an audio data
+                Returns the number of dims for ROI data
+                )code"
+            )
+            .def(
+                "copy_roi",
+                [](rocalTensor &output_tensor, py::array array) {
+                auto buf = array.request();
+                output_tensor.copy_roi(static_cast<void *>(buf.ptr));               
+                },  py::return_value_policy::reference,
+                R"code(
+                Copies ROI data into the python array
                 )code"
             )
             .def("layout", [](rocalTensor &output_tensor) {
