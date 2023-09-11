@@ -91,6 +91,7 @@ struct ROI {
             memcpy((void *)roi_buffer, (const void *)_roi_ptr.get(), _roi_buffer_size);
     }
     unsigned no_of_dims() { return _roi_no_of_dims; }
+    size_t roi_buffer_size() { return _roi_buffer_size; }
     ROICords& operator[](const int i) {
         _roi_coords.begin = (_roi_buf + (i * _stride));
         _roi_coords.shape = (_roi_buf + (i * _stride) + _roi_no_of_dims);
@@ -276,7 +277,6 @@ private:
     RocalTensorDataType _data_type = RocalTensorDataType::FP32;  //!< tensor data type
     RocalTensorlayout _layout = RocalTensorlayout::NONE;     //!< layout of the tensor
     RocalColorFormat _color_format;  //!< color format of the image
-    void *_roi_buf = nullptr;
     ROI _roi;
     uint64_t _data_type_size = tensor_data_size(_data_type);
     uint64_t _data_size = 0;
@@ -365,8 +365,10 @@ public:
     void push_back(Tensor* tensor) {
         _tensor_list.emplace_back(tensor);
         _tensor_data_size.emplace_back(tensor->info().data_size());
+        _tensor_roi_size.emplace_back(tensor->info().roi().roi_buffer_size());
     }
     std::vector<uint64_t> &data_size() { return _tensor_data_size; }
+    std::vector<uint64_t> &roi_size() { return _tensor_roi_size; }
     void release() {
         for (auto& tensor : _tensor_list) delete tensor;
     }
@@ -384,6 +386,7 @@ public:
 private:
     std::vector<Tensor*> _tensor_list;
     std::vector<uint64_t> _tensor_data_size;
+    std::vector<uint64_t> _tensor_roi_size;
 };
 
 
