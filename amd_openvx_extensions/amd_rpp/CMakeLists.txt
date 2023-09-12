@@ -171,6 +171,7 @@ list(APPEND SOURCES
         source/tensor/TensorMulScalar.cpp
         source/tensor/TensorAddTensor.cpp
         source/tensor/SequenceRearrange.cpp
+        source/tensor/Downmix.cpp
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp
     )

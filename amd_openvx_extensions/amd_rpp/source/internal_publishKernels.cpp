@@ -170,6 +170,7 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(Resample_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(TensorMulScalar_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(TensorAddTensor_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Downmix_Register));
     return status;
 }
 

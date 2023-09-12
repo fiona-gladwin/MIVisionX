@@ -166,6 +166,7 @@ vx_status Resample_Register(vx_context);
 vx_status TensorMulScalar_Register(vx_context);
 vx_status TensorAddTensor_Register(vx_context);
 vx_status SequenceRearrange_Register(vx_context);
+vx_status Downmix_Register(vx_context);
 
 // kernel names
 #define VX_KERNEL_RPP_NOPBATCHPD_NAME                           "org.rpp.NopbatchPD"
@@ -294,12 +295,13 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_RESAMPLE_NAME                             "org.rpp.Resample"
 #define VX_KERNEL_RPP_TENSORMULSCALAR_NAME                      "org.rpp.TensorMulScalar"
 #define VX_KERNEL_RPP_TENSORADDTENSOR_NAME                      "org.rpp.TensorAddTensor"
-#define VX_KERNEL_RPP_BRIGHTNESS_NAME                            "org.rpp.Brightness"
-#define VX_KERNEL_RPP_COPY_NAME                                  "org.rpp.Copy"
-#define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                   "org.rpp.CropMirrorNormalize"
-#define VX_KERNEL_RPP_NOP_NAME                                   "org.rpp.Nop"
-#define VX_KERNEL_RPP_RESIZE_NAME                                "org.rpp.Resize"
-#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                     "org.rpp.SequenceRearrange"
+#define VX_KERNEL_RPP_BRIGHTNESS_NAME                           "org.rpp.Brightness"
+#define VX_KERNEL_RPP_COPY_NAME                                 "org.rpp.Copy"
+#define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                  "org.rpp.CropMirrorNormalize"
+#define VX_KERNEL_RPP_NOP_NAME                                  "org.rpp.Nop"
+#define VX_KERNEL_RPP_RESIZE_NAME                               "org.rpp.Resize"
+#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                    "org.rpp.SequenceRearrange"
+#define VX_KERNEL_RPP_DOWNMIX_NAME                              "org.rpp.Downmix"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
 
