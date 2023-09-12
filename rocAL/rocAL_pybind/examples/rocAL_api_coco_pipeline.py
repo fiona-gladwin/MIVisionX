@@ -41,7 +41,7 @@ class ROCALCOCOIterator(object):
            Epoch size.
     """
 
-    def __init__(self, pipelines, tensor_layout=types.NCHW, reverse_channels=False, multiplier=None, offset=None, tensor_dtype=types.FLOAT, device="cpu", display=False, num_anchors_coco=8732):
+    def __init__(self, pipelines, tensor_layout=types.NCHW, reverse_channels=False, multiplier=None, offset=None, tensor_dtype=types.FLOAT, device="cpu", display=False):
 
         try:
             assert pipelines is not None, "Number of provided pipelines has to be at least 1"
@@ -56,7 +56,6 @@ class ROCALCOCOIterator(object):
         self.device = device
         self.device_id = self.loader._device_id
         self.bs = self.loader._batch_size
-        self.num_anchors_coco = num_anchors_coco
         self.output_list = self.dimensions = self.torch_dtype = None
         self.display = display
         # Image id of a batch of images
