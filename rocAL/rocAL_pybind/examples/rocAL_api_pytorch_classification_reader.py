@@ -88,7 +88,7 @@ def main():
             print(it)
             print("************************************** i *************************************",i)
             for img in it[0]:
-                cnt = cnt + 1
+                cnt += 1
                 draw_patches(img[0], cnt, layout="nhwc", dtype="fp16", device=rocal_cpu)
         imageIteratorPipeline.reset()
     print("*********************************************************************")

@@ -124,7 +124,7 @@ def main():
         print("ROCAL augmentation pipeline - Processing batch %d....." % i)
 
         for element in list(range(batch_size)):
-            cnt = cnt + 1
+            cnt += 1
             if args.print_tensor:
                 print("Processing image %d....." % element)
             features_dict = {

@@ -205,7 +205,7 @@ def main():
 					mean_acc = (mean_acc * 100) / j
 					print("\nSUMMARY:\nMean Loss :: %.2f\tMean Accuracy :: %.2f%%" % (mean_loss, mean_acc))
 					print("\n-------------------------------------------------------------------------------- END VALIDATION --------------------------------------------------------------------------------\n\n")
-				i = i + 1
+				i += 1
 				if i >= NUM_TRAIN_STEPS:
 					break
 			trainIterator.reset()
