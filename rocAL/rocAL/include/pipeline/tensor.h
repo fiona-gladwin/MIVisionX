@@ -326,8 +326,8 @@ public:
     void update_audio_tensor_sample_rate(const std::vector<float>& sample_rate);
     void reset_audio_sample_rate() { _info.reallocate_tensor_sample_rate_buffers(); }
     void set_roi(unsigned *roi_ptr) { _info.set_roi_ptr(roi_ptr); }
-    void copy_roi(void *roi_buffer) override { _info.copy_roi(roi_buffer); }
-    size_t get_roi_dims_size() override { return _info.roi().no_of_dims(); }
+    void copy_roi(void *roi_buffer) { _info.copy_roi(roi_buffer); }
+    // size_t get_roi_dims_size() override { return 2; }
     vx_tensor get_roi_tensor() { return _vx_roi_handle; }
     // create_from_handle() no internal memory allocation is done here since
     // tensor's handle should be swapped with external buffers before usage
@@ -343,6 +343,7 @@ public:
     RocalTensorOutputType data_type() override { return (RocalTensorOutputType)_info.data_type(); }
     size_t data_size() override { return _info.data_size(); }
     RocalROICordsType roi_type() override { return (RocalROICordsType)_info.roi_type(); }
+    RocalROICords *get_roi() override { return (RocalROICords *)_info.roi().get_ptr(); }
     std::vector<size_t> shape() override { return _info.max_shape(); }
     RocalImageColor color_format() const { return (RocalImageColor)_info.color_format(); }
     RocalTensorBackend backend() override {
