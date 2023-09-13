@@ -174,24 +174,6 @@ namespace rocal{
                 Returns a tensor batch size.
                 )code"
             )
-            .def(
-                "get_rois",
-                [](rocalTensor &output_tensor)
-                {
-                    return py::array(py::buffer_info(
-                            (int *)(output_tensor.get_roi()),
-                            sizeof(int),
-                            py::format_descriptor< int>::format(),
-                            1,
-                            {output_tensor.dims().at(0) * 4},
-                            {sizeof(int) }));
-                },
-                R"code(
-                Returns a tensor ROI
-                ex : width, height in case of an image data
-                ex : samples , channels in case of an audio data
-                )code"
-            )
             .def("layout", [](rocalTensor &output_tensor) {
                 return rocalToPybindLayout[(int)output_tensor.layout()];
             },
@@ -211,6 +193,25 @@ namespace rocal{
             },
                 R"code(
                 Returns dims of tensor.
+                )code"
+            )
+            .def(
+                "roi_dims_size",
+                [](rocalTensor &output_tensor) {
+                    return output_tensor.get_roi_dims_size();
+                },
+                R"code(
+                Returns the number of dims for ROI data
+                )code"
+            )
+            .def(
+                "copy_roi",
+                [](rocalTensor &output_tensor, py::array array) {
+                auto buf = array.request();
+                output_tensor.copy_roi(static_cast<void *>(buf.ptr));               
+                },
+                R"code(
+                Copies the ROI data to numpy arrays.
                 )code"
             )
             .def(

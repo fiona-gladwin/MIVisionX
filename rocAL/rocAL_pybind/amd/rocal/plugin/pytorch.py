@@ -323,6 +323,7 @@ class ROCALAudioIterator(object):
         self.samples = None
         self.channels = None
         self.max_shape = None
+        self.roi_list = []
         self.batch_size = self.loader._batch_size
         self.output_list = self.torch_dtype = None
         self.labels_size = self.batch_size
@@ -351,8 +352,10 @@ class ROCALAudioIterator(object):
 
         self.output_list = []
         for i in range(len(self.output_tensor_list)):
-            roi = self.output_tensor_list[i].get_rois().reshape(self.batch_size,4)
-            max_x1, max_y1 = np.max(roi[...,0:1]), np.max(roi[...,1:2])
+            if len(self.roi_list) != len(self.output_tensor_list):
+                self.roi_list.append(np.empty((self.batch_size, self.output_tensor_list[i].roi_dims_size() * 2), dtype='int32'))
+            self.output_tensor_list[i].copy_roi(self.roi_list[i])
+            max_x1, max_y1 = np.max(self.roi_list[i][...,0:1]), np.max(self.roi_list[i][...,1:2])
             if self.device == "cpu":
                 self.torch_dtype = self.output_tensor_list[i].dtype()
                 self.output = torch.empty((self.batch_size, max_y1, max_x1), dtype = getattr(torch, self.torch_dtype))
@@ -369,9 +372,9 @@ class ROCALAudioIterator(object):
         self.labels = self.loader.get_image_labels()
         self.labels_tensor = self.labels_tensor.copy_(torch.from_numpy(self.labels)).long()
         if (self.last_batch_policy is (types.LAST_BATCH_PARTIAL)) and b.getRemainingImages(self.loader._handle) <= 0 :
-            return [inner_list[0:self.last_batch_size,:] for inner_list in self.output_list], self.labels_tensor[0:self.last_batch_size], torch.tensor(self.output_tensor_list[0].get_rois().reshape(self.batch_size,4)[...,0:2][0:self.last_batch_size,:])
+            return [inner_list[0:self.last_batch_size,:] for inner_list in self.output_list], self.labels_tensor[0:self.last_batch_size], [torch.tensor(roi[0:self.last_batch_size,0:2]) for roi in self.roi_list]
         else:
-            return self.output_list, self.labels_tensor, torch.tensor(self.output_tensor_list[0].get_rois().reshape(self.batch_size,4)[...,0:2])
+            return self.output_list, self.labels_tensor, [torch.tensor(roi[...,0:2]) for roi in self.roi_list]
 
 
 
