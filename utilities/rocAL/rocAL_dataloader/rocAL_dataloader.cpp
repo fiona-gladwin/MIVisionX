@@ -60,7 +60,6 @@ int main(int argc, const char ** argv)
     const char * folderPath1 = argv[++argIdx];
     bool display = 0;// Display the images
     //int aug_depth = 1;// how deep is the augmentation tree
-    int rgb = 2;// process color images
     int decode_width = 32;
     int decode_height = 32;
     int inputBatchSize = 4;
@@ -111,8 +110,8 @@ int main(int argc, const char ** argv)
     /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
     // create Cifar10 meta data reader
     rocalCreateTextCifar10LabelReader(handle, folderPath1, "data_batch");
-    RocalTensor image0;
-    image0 = rocalRawCIFAR10Source(handle, folderPath1,  color_format, false, decode_width, decode_height, "data_batch_", false);
+    RocalTensor input0;
+    input0 = rocalRawCIFAR10Source(handle, folderPath1,  color_format, false, decode_width, decode_height, "data_batch_", false);
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
@@ -126,36 +125,36 @@ int main(int argc, const char ** argv)
 
     RocalFloatParam rand_angle =   rocalCreateFloatRand( values , frequencies, num_values);
     // Creating successive blur nodes to simulate a deep branch of augmentations
-    RocalTensor image2 = rocalCropResize(handle, image0, resize_w, resize_h, false, rand_crop_area);
+    RocalTensor input2 = rocalCropResize(handle, input0, resize_w, resize_h, false, rand_crop_area);
     for(int i = 0 ; i < aug_depth; i++)
     {
-        image2 = rocalBlurFixed(handle, image2, 17.25, (i == (aug_depth -1)) ? true:false );
+        input2 = rocalBlurFixed(handle, input2, 17.25, (i == (aug_depth -1)) ? true:false );
     }
 
 
-    RocalTensor image4 = rocalColorTemp(handle, image0, false, color_temp_adj);
+    RocalTensor input4 = rocalColorTemp(handle, input0, false, color_temp_adj);
 
-    RocalTensor image5 = rocalWarpAffine(handle, image4, false);
+    RocalTensor input5 = rocalWarpAffine(handle, input4, false);
 
-    RocalTensor image6 = rocalJitter(handle, image5, false);
+    RocalTensor input6 = rocalJitter(handle, input5, false);
 
-    rocalVignette(handle, image6, true);
+    rocalVignette(handle, input6, true);
 
 
 
-    RocalTensor image7 = rocalPixelate(handle, image0, false);
+    RocalTensor input7 = rocalPixelate(handle, input0, false);
 
-    RocalTensor image8 = rocalSnow(handle, image0, false);
+    RocalTensor input8 = rocalSnow(handle, input0, false);
 
-    RocalTensor image9 = rocalBlend(handle, image7, image8, false);
+    RocalTensor input9 = rocalBlend(handle, input7, input8, false);
 
-    RocalTensor image10 = rocalLensCorrection(handle, image9, false);
+    RocalTensor input10 = rocalLensCorrection(handle, input9, false);
 
-    rocalExposure(handle, image10, true);
+    rocalExposure(handle, input10, true);
 #else
     // uncomment the following to add augmentation if needed
     // just do one augmentation to test
-    rocalRain(handle, image0, true);
+    rocalRain(handle, input0, true);
 #endif
 
     if(rocalGetStatus(handle) != ROCAL_OK)
