@@ -45,7 +45,7 @@ public:
     Timing timing() override;
     void set_prefetch_queue_depth(size_t prefetch_queue_depth)  override;
     void shut_down() override;
-    std::vector<std::vector <float>> get_batch_random_bbox_crop_coords();
+    std::vector<std::vector <float>>& get_batch_random_bbox_crop_coords();
     void set_batch_random_bbox_crop_coords(std::vector<std::vector <float>> batch_crop_coords);
 private:
     void increment_loader_idx();
