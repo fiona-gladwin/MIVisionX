@@ -162,46 +162,46 @@ int main(int argc, const char ** argv)
         return -1;
     }
 
-    RocalTensor image0;
+    RocalTensor tensor0;
     int resize_w = 112, resize_h = 112;
     if(video_mode)
     {
         resize_h = decode_height;
         resize_w = decode_width;
-        image0 = input1;
+        tensor0 = input1;
     }
     else
     {
-        image0 = rocalResize(handle, input1, resize_w, resize_h, true);
+        tensor0 = rocalResize(handle, input1, resize_w, resize_h, true);
     }
-    RocalTensor image1 = rocalRain(handle, image0, false);
+    RocalTensor tensor1 = rocalRain(handle, tensor0, false);
 
-    RocalTensor image11 = rocalFishEye(handle, image1, false);
+    RocalTensor tensor11 = rocalFishEye(handle, tensor1, false);
 
-    rocalRotate(handle, image11, true, rand_angle);
+    rocalRotate(handle, tensor11, true, rand_angle);
 
     // Creating successive blur nodes to simulate a deep branch of augmentations
-    RocalTensor image2 = rocalCropResize(handle, image0, resize_w, resize_h, false, rand_crop_area);;
+    RocalTensor tensor2 = rocalCropResize(handle, tensor0, resize_w, resize_h, false, rand_crop_area);;
     for(int i = 0 ; i < aug_depth; i++)
     {
-        image2 = rocalBlurFixed(handle, image2, 17.25, (i == (aug_depth -1)) ? true:false );
+        tensor2 = rocalBlurFixed(handle, tensor2, 17.25, (i == (aug_depth -1)) ? true:false );
     }
     // Commenting few augmentations out until tensor support is added in rpp
-    // RocalTensor image4 = rocalColorTemp(handle, image0, true, color_temp_adj);
+    // RocalTensor tensor4 = rocalColorTemp(handle, tensor0, true, color_temp_adj);
 
-    // RocalTensor image6 = rocalJitter(handle, image5, true);
+    // RocalTensor tensor6 = rocalJitter(handle, tensor5, true);
 
-    // rocalVignette(handle, image5, true);
+    // rocalVignette(handle, tensor5, true);
 
-    // RocalTensor image7 = rocalPixelate(handle, image0, true);
+    // RocalTensor tensor7 = rocalPixelate(handle, tensor0, true);
 
-    RocalTensor image8 = rocalSnow(handle, image0, true);
+    RocalTensor tensor8 = rocalSnow(handle, tensor0, true);
 
-    RocalTensor image9 = rocalBlend(handle, image0, image8, true);
+    RocalTensor tensor9 = rocalBlend(handle, tensor0, tensor8, true);
 
-    RocalTensor image10 = rocalLensCorrection(handle, image9, true);
+    RocalTensor tensor10 = rocalLensCorrection(handle, tensor9, true);
 
-    rocalExposure(handle, image10, true);
+    rocalExposure(handle, tensor10, true);
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
