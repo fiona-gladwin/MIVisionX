@@ -188,7 +188,7 @@ int main(int argc, const char ** argv)
             for(int i = 0; i < inputBatchSize; i++) {
                 names[i] = imageNamesStr.substr(pos, ImageNameLen[i]);
                 pos += ImageNameLen[i];
-                std::cout << "\n name: " << names[i] << " label: "<< labels_buffer[i] << " - ";
+                std::cout << "name: " << names[i] << " label: "<< labels_buffer[i] << " - " << std::endl;
             }
             std::cout << std::endl;
 
