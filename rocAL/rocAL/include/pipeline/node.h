@@ -21,31 +21,31 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <set>
 #include <memory>
+#include <set>
+
 #include "graph.h"
-#include "tensor.h"
 #include "meta_data_graph.h"
-class Node
-{
-public:
-    Node(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        _inputs(inputs),
-        _outputs(outputs),
-        _batch_size(outputs[0]->info().batch_size()) {}
+#include "tensor.h"
+class Node {
+   public:
+    Node(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : _inputs(inputs),
+                                                                                      _outputs(outputs),
+                                                                                      _batch_size(outputs[0]->info().batch_size()) {}
     virtual ~Node();
     void create(std::shared_ptr<Graph> graph);
     void update_parameters();
     std::vector<Tensor *> input() { return _inputs; };
     std::vector<Tensor *> output() { return _outputs; };
-    void add_next(const std::shared_ptr<Node>& node) {} // To be implemented
-    void add_previous(const std::shared_ptr<Node>& node) {} //To be implemented
+    void add_next(const std::shared_ptr<Node> &node) {}      // To be implemented
+    void add_previous(const std::shared_ptr<Node> &node) {}  // To be implemented
     std::shared_ptr<Graph> graph() { return _graph; }
     void set_meta_data(pMetaDataBatch meta_data_info) { _meta_data_info = meta_data_info; }
     bool _is_ssd = false;
     RocalROI *get_src_roi() { return _inputs[0]->info().get_roi(); }
     RocalROI *get_dst_roi() { return _outputs[0]->info().get_roi(); }
-protected:
+
+   protected:
     virtual void create_node() = 0;
     virtual void update_node() = 0;
     const std::vector<Tensor *> _inputs;

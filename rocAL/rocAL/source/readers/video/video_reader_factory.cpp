@@ -20,24 +20,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <stdexcept>
-#include <memory>
 #include "video_reader_factory.h"
+
+#include <memory>
+#include <stdexcept>
+
 #include "video_file_source_reader.h"
 
 #ifdef ROCAL_VIDEO
 std::shared_ptr<VideoReader> create_video_reader(ReaderConfig config) {
-    switch(config.type()) {
-        case StorageType::VIDEO_FILE_SYSTEM:
-        {
+    switch (config.type()) {
+        case StorageType::VIDEO_FILE_SYSTEM: {
             auto ret = std::make_shared<VideoFileSourceReader>();
-            if(ret->initialize(config) !=  VideoReader::Status::OK)
+            if (ret->initialize(config) != VideoReader::Status::OK)
                 throw std::runtime_error("VideoReader cannot access the storage");
             return ret;
-        }
-        break;
+        } break;
         default:
-            throw std::runtime_error (" VideoReader type is unsupported");
+            throw std::runtime_error(" VideoReader type is unsupported");
     }
 }
 #endif

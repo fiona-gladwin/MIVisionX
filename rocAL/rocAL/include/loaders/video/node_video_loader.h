@@ -21,16 +21,16 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include "node.h"
-#include "video_loader_sharded.h"
-#include "graph.h"
 #include <tuple>
 
+#include "graph.h"
+#include "node.h"
+#include "video_loader_sharded.h"
+
 #ifdef ROCAL_VIDEO
-class VideoLoaderNode : public Node
-{
-public:
-    VideoLoaderNode(Tensor *output, void * device_resources);
+class VideoLoaderNode : public Node {
+   public:
+    VideoLoaderNode(Tensor *output, void *device_resources);
     ~VideoLoaderNode() override;
     VideoLoaderNode() = delete;
     ///
@@ -42,10 +42,12 @@ public:
     void init(unsigned internal_shard_count, const std::string &source_path, StorageType storage_type, DecoderType decoder_type, DecodeMode decoder_mode,
               unsigned sequence_length, unsigned step, unsigned stride, VideoProperties &video_prop, bool shuffle, bool loop, size_t load_batch_count, RocalMemType mem_type);
     std::shared_ptr<LoaderModule> get_loader_module();
-protected:
+
+   protected:
     void create_node() override{};
     void update_node() override{};
-private:
+
+   private:
     DecodeMode _decode_mode = DecodeMode::CPU;
     std::shared_ptr<VideoLoaderSharded> _loader_module = nullptr;
 };

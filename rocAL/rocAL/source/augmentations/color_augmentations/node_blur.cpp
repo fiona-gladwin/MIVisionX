@@ -24,12 +24,11 @@ THE SOFTWARE.
 #include "node_blur.h"
 #include "exception.h"
 
-BlurNode::BlurNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _kernel_size(KERNEL_SIZE_RANGE[0], KERNEL_SIZE_RANGE[1]) {}
+BlurNode::BlurNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                _kernel_size(KERNEL_SIZE_RANGE[0], KERNEL_SIZE_RANGE[1]) {}
 
 void BlurNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _kernel_size.create_array(_graph, VX_TYPE_UINT32, _batch_size);
@@ -42,7 +41,7 @@ void BlurNode::create_node() {
 
     _node = vxExtRppBlur(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _kernel_size.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the blur (vxExtRppBlur) node failed: " + TOSTR(status))
 }
 

@@ -24,11 +24,10 @@ THE SOFTWARE.
 #include "node_fisheye.h"
 #include "exception.h"
 
-FisheyeNode::FisheyeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {}
+FisheyeNode::FisheyeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs) {}
 
 void FisheyeNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     int input_layout = static_cast<int>(_inputs[0]->info().layout());
@@ -40,7 +39,7 @@ void FisheyeNode::create_node() {
 
     _node = vxExtRppFishEye(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the FishEye (vxExtRppFishEye) node failed: " + TOSTR(status))
 }
 

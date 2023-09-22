@@ -22,12 +22,12 @@ THE SOFTWARE.
 
 #pragma once
 #include <map>
+
 #include "commons.h"
 #include "meta_data.h"
 #include "meta_data_reader.h"
-class TextFileMetaDataReader: public MetaDataReader
-{
-public:
+class TextFileMetaDataReader : public MetaDataReader {
+   public:
     void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     void read_all(const std::string& path) override;
@@ -35,12 +35,13 @@ public:
     void release() override;
     bool set_timestamp_mode() override { return false; }
 
-    const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override{ return _map_content;}
+    const std::map<std::string, std::shared_ptr<MetaData>>& get_map_content() override { return _map_content; }
     TextFileMetaDataReader();
-private:
+
+   private:
     pMetaDataBatch _output;
     void read_files(const std::string& _path);
-    bool exists(const std::string &image_name) override;
+    bool exists(const std::string& image_name) override;
     void add(std::string image_name, int label);
     std::map<std::string, std::shared_ptr<MetaData>> _map_content;
     std::string _path;

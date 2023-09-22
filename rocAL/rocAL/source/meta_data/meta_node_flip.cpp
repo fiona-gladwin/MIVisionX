@@ -21,16 +21,13 @@ THE SOFTWARE.
 */
 
 #include "meta_node_flip.h"
-void FlipMetaNode::initialize()
-{
+void FlipMetaNode::initialize() {
     _h_flip_val.resize(_batch_size);
     _v_flip_val.resize(_batch_size);
 }
-void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
-{
+void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) {
     initialize();
-    if(_batch_size != input_meta_data->size())
-    {
+    if (_batch_size != input_meta_data->size()) {
         _batch_size = input_meta_data->size();
     }
     auto input_roi = _node->get_src_roi();
@@ -38,27 +35,23 @@ void FlipMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBa
     auto v_flag = _node->get_vertical_flip();
     vxCopyArrayRange((vx_array)h_flag, 0, _batch_size, sizeof(int), _h_flip_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)v_flag, 0, _batch_size, sizeof(int), _v_flip_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    for(int i = 0; i < _batch_size; i++)
-    {
+    for (int i = 0; i < _batch_size; i++) {
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
         Labels bb_labels = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords bb_coords;
-        for (uint j = 0; j < bb_count; j++)
-        {
-            if(_h_flip_val[i])
-            {
+        for (uint j = 0; j < bb_count; j++) {
+            if (_h_flip_val[i]) {
                 auto l = coords_buf[j].l;
                 coords_buf[j].l = input_roi[i].x2 - coords_buf[j].r;
                 coords_buf[j].r = input_roi[i].x2 - l;
             }
-            if(_v_flip_val[i])
-            {
+            if (_v_flip_val[i]) {
                 auto t = coords_buf[j].t;
                 coords_buf[j].t = input_roi[i].y2 - coords_buf[j].b;
                 coords_buf[j].b = input_roi[i].y2 - t;
             }
-            
+
             bb_coords.push_back(coords_buf[j]);
         }
         output_meta_data->get_bb_cords_batch()[i] = bb_coords;

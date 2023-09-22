@@ -21,22 +21,23 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <set>
 #include <memory>
+#include <set>
+
 #include "bounding_box_graph.h"
 #include "meta_data.h"
 #include "node.h"
 #include "node_resize_mirror_normalize.h"
 #include "parameter_vx.h"
 
-class ResizeMirrorNormalizeMetaNode:public MetaNode
-{
-    public:
-        ResizeMirrorNormalizeMetaNode() {};
-        void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
-        std::shared_ptr<ResizeMirrorNormalizeNode> _node = nullptr;
-    private:
-        void initialize();
-        vx_array _mirror;
-        std::vector<uint> _mirror_val;
+class ResizeMirrorNormalizeMetaNode : public MetaNode {
+   public:
+    ResizeMirrorNormalizeMetaNode(){};
+    void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
+    std::shared_ptr<ResizeMirrorNormalizeNode> _node = nullptr;
+
+   private:
+    void initialize();
+    vx_array _mirror;
+    std::vector<uint> _mirror_val;
 };

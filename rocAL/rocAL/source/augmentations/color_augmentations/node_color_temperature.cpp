@@ -24,12 +24,11 @@ THE SOFTWARE.
 #include "node_color_temperature.h"
 #include "exception.h"
 
-ColorTemperatureNode::ColorTemperatureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _adj_value_param(ADJUSTMENT_RANGE[0], ADJUSTMENT_RANGE[1]) {}
+ColorTemperatureNode::ColorTemperatureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                                        _adj_value_param(ADJUSTMENT_RANGE[0], ADJUSTMENT_RANGE[1]) {}
 
 void ColorTemperatureNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _adj_value_param.create_array(_graph, VX_TYPE_UINT32, _batch_size);
@@ -42,7 +41,7 @@ void ColorTemperatureNode::create_node() {
 
     _node = vxExtRppColorTemperature(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _adj_value_param.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the ColorTemperature (vxExtRppColorTemperature) node failed: " + TOSTR(status))
 }
 
@@ -50,7 +49,7 @@ void ColorTemperatureNode::init(int adjustment) {
     _adj_value_param.set_param(adjustment);
 }
 
-void ColorTemperatureNode::init(IntParam* adjustment) {
+void ColorTemperatureNode::init(IntParam *adjustment) {
     _adj_value_param.set_param(core(adjustment));
 }
 void ColorTemperatureNode::update_node() {

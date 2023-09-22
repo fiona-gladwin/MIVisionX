@@ -21,15 +21,16 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <map>
 #include <dirent.h>
+
+#include <map>
+
 #include "commons.h"
 #include "meta_data.h"
 #include "meta_data_reader.h"
 
-class LabelReaderFolders: public MetaDataReader
-{
-public :
+class LabelReaderFolders : public MetaDataReader {
+   public:
     void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     void read_all(const std::string& path) override;
@@ -37,19 +38,20 @@ public :
     void release() override;
     void print_map_contents();
     bool set_timestamp_mode() override { return false; }
-    const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content() override { return _map_content;}
+    const std::map<std::string, std::shared_ptr<MetaData>>& get_map_content() override { return _map_content; }
 
     LabelReaderFolders();
-private:
+
+   private:
     void read_files(const std::string& _path);
-    bool exists(const std::string &image_name) override;
+    bool exists(const std::string& image_name) override;
     void add(std::string image_name, int label);
     std::map<std::string, std::shared_ptr<MetaData>> _map_content;
     std::map<std::string, std::shared_ptr<MetaData>>::iterator _itr;
     std::string _path;
     pMetaDataBatch _output;
     DIR *_src_dir, *_sub_dir;
-    struct dirent *_entity;
+    struct dirent* _entity;
     std::vector<std::string> _file_names;
     std::vector<std::string> _subfolder_file_names;
 };
