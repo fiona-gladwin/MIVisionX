@@ -45,7 +45,8 @@ public:
     Timing timing() override;
     void set_prefetch_queue_depth(size_t prefetch_queue_depth)  override;
     void shut_down() override;
-
+    std::vector<std::vector <float>>& get_batch_random_bbox_crop_coords();
+    void set_batch_random_bbox_crop_coords(std::vector<std::vector <float>> batch_crop_coords);
 private:
     void increment_loader_idx();
     bool is_out_of_data();
@@ -80,4 +81,7 @@ private:
     size_t _remaining_image_count;//!< How many images are there yet to be loaded
     Tensor *_output_tensor;
     std::shared_ptr<RandomBBoxCrop_MetaDataReader> _randombboxcrop_meta_data_reader = nullptr;
+    std::vector<std::vector <float>> _bbox_coords, _crop_coords_batch;
+    crop_image_info _crop_image_info;
+    crop_image_info _output_cropped_image_info;
 };

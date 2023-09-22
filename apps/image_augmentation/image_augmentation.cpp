@@ -66,6 +66,7 @@ int main(int argc, const char ** argv)
     size_t shard_count = 2;
     int shuffle = 0;
     int dec_mode = 0;
+    const char *outName = "image_augmentation_app.png";
 
     if(argc >= argIdx+MIN_ARG_COUNT)
         processing_device = atoi(argv[++argIdx]);
@@ -94,7 +95,10 @@ int main(int argc, const char ** argv)
     if(argc >= argIdx+MIN_ARG_COUNT)
         dec_mode = atoi(argv[++argIdx]);
 
-    int inputBatchSize = 2;
+    if (argc >= argIdx + MIN_ARG_COUNT)
+        outName = argv[++argIdx];
+
+    int inputBatchSize = 4;
 
     std::cout << ">>> Running on " << (processing_device?"GPU":"CPU") << std::endl;
 
@@ -125,7 +129,7 @@ int main(int argc, const char ** argv)
 
 
     /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
-    RocalImage input1;
+    RocalTensor input1;
 
 
     if(video_mode != 0)
@@ -148,7 +152,7 @@ int main(int argc, const char ** argv)
          if(decode_height <= 0 || decode_width <= 0)
              input1 = rocalJpegFileSource(handle, folderPath1,  color_format, shard_count, false, shuffle, false);
         else
-             input1 = rocalJpegFileSource(handle, folderPath1,  color_format, shard_count, false, shuffle, false,  ROCAL_USE_USER_GIVEN_SIZE, decode_width, decode_height, dec_type);
+             input1 = rocalJpegFileSource(handle, folderPath1, color_format, shard_count, false, shuffle, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_width, decode_height, dec_type);
 
     }
 
@@ -158,48 +162,46 @@ int main(int argc, const char ** argv)
         return -1;
     }
 
-    RocalImage image0;
+    RocalTensor tensor0;
     int resize_w = 112, resize_h = 112;
     if(video_mode)
     {
         resize_h = decode_height;
         resize_w = decode_width;
-        image0 = input1;
+        tensor0 = input1;
     }
     else
     {
-        image0 = rocalResize(handle, input1, resize_w, resize_h, true);
+        tensor0 = rocalResize(handle, input1, resize_w, resize_h, true);
     }
-    RocalImage image1 = rocalRain(handle, image0, false);
+    RocalTensor tensor1 = rocalRain(handle, tensor0, false);
 
-    RocalImage image11 = rocalFishEye(handle, image1, false);
+    RocalTensor tensor11 = rocalFishEye(handle, tensor1, false);
 
-    rocalRotate(handle, image11, true, rand_angle);
+    rocalRotate(handle, tensor11, true, rand_angle);
 
     // Creating successive blur nodes to simulate a deep branch of augmentations
-    RocalImage image2 = rocalCropResize(handle, image0, resize_w, resize_h, false, rand_crop_area);;
+    RocalTensor tensor2 = rocalCropResize(handle, tensor0, resize_w, resize_h, false, rand_crop_area);;
     for(int i = 0 ; i < aug_depth; i++)
     {
-        image2 = rocalBlurFixed(handle, image2, 17.25, (i == (aug_depth -1)) ? true:false );
+        tensor2 = rocalBlurFixed(handle, tensor2, 17.25, (i == (aug_depth -1)) ? true:false );
     }
+    // Commenting few augmentations out until tensor support is added in rpp
+    // RocalTensor tensor4 = rocalColorTemp(handle, tensor0, true, color_temp_adj);
 
-    RocalImage image4 = rocalColorTemp(handle, image0, false, color_temp_adj);
+    // RocalTensor tensor6 = rocalJitter(handle, tensor5, true);
 
-    RocalImage image5 = rocalWarpAffine(handle, image4, false);
+    // rocalVignette(handle, tensor5, true);
 
-    RocalImage image6 = rocalJitter(handle, image5, false);
+    // RocalTensor tensor7 = rocalPixelate(handle, tensor0, true);
 
-    rocalVignette(handle, image6, true);
+    RocalTensor tensor8 = rocalSnow(handle, tensor0, true);
 
-    RocalImage image7 = rocalPixelate(handle, image0, false);
+    RocalTensor tensor9 = rocalBlend(handle, tensor0, tensor8, true);
 
-    RocalImage image8 = rocalSnow(handle, image0, false);
+    RocalTensor tensor10 = rocalLensCorrection(handle, tensor9, true);
 
-    RocalImage image9 = rocalBlend(handle, image7, image8, false);
-
-    RocalImage image10 = rocalLensCorrection(handle, image9, false);
-
-    rocalExposure(handle, image10, true);
+    rocalExposure(handle, tensor10, true);
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
@@ -226,7 +228,7 @@ int main(int argc, const char ** argv)
     int thickness = 1.3;
     std::string bufferName = "MIVisionX Image Augmentation";
 
-    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle);
+    int h = rocalGetAugmentationBranchCount(handle) * rocalGetOutputHeight(handle) * inputBatchSize;
     int w = rocalGetOutputWidth(handle);
     int p = ((color_format ==  RocalImageColor::ROCAL_COLOR_RGB24 ) ? 3 : 1);
     std::cout << "output width "<< w << " output height "<< h << " color planes "<< p << std::endl;
@@ -236,8 +238,6 @@ int main(int argc, const char ** argv)
     cv::Mat mat_input(h, w, cv_color_format);
     cv::Mat mat_color;
     int col_counter = 0;
-    if (display)
-        cv::namedWindow( "output", CV_WINDOW_AUTOSIZE );
 
     //adding heading to output display
     cv::Rect roi = Rect(0,0,w*number_of_cols,AMD_Epyc_Black_resize.rows);
@@ -262,21 +262,27 @@ int main(int argc, const char ** argv)
             color_temp_increment *= -1;
 
         rocalUpdateIntParameter(rocalGetIntValue(color_temp_adj)+color_temp_increment, color_temp_adj);
-
-        rocalCopyToOutput(handle, mat_input.data, h*w*p);
+        auto ouput_tensor_list = rocalGetOutputTensors(handle);
+        unsigned char* output = mat_input.data;
+        for (uint i = 0; i < ouput_tensor_list->size(); i++)
+        {
+            ouput_tensor_list->at(i)->copy_data(output);
+            output += ouput_tensor_list->at(i)->data_size();
+        }
         counter += inputBatchSize;
         if(!display)
             continue;
 
-        mat_input.copyTo(mat_output(cv::Rect(  col_counter*w, AMD_ROCm_Black_resize.rows, w, h)));
+        std::string out_filename = std::string(outName) + ".png"; 
+        mat_input.copyTo(mat_output(cv::Rect(col_counter * w, AMD_ROCm_Black_resize.rows, w, h)));
         if(color_format ==  RocalImageColor::ROCAL_COLOR_RGB24 )
         {
             cv::cvtColor(mat_output, mat_color, CV_RGB2BGR);
-            cv::imshow("output",mat_color);
+            cv::imwrite(out_filename, mat_color);
         }
         else
         {
-            cv::imshow("output",mat_output);
+            cv::imwrite(out_filename, mat_output);
         }
         cv::waitKey(1);
         col_counter = (col_counter+1)%number_of_cols;

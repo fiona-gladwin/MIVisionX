@@ -1,6 +1,5 @@
 import csv
 import os
-from os import listdir
 import shutil
 import sys
 import warnings

@@ -108,7 +108,7 @@ def main():
                     print("Images", image_batch)
                     print("Labels", labels)
                 for element in list(range(batch_size)):
-                    cnt = cnt + 1
+                    cnt += 1
                     draw_patches(image_batch[element], cnt, args=args)
             data_loader.reset()
         else:
@@ -120,7 +120,7 @@ def main():
                         print("Bboxes", bboxes)
                         print("Labels", labels)
                 for element in list(range(batch_size)):
-                    cnt = cnt + 1
+                    cnt += 1
                     draw_patches(image_batch[element], cnt, bboxes[element], args=args)
             data_loader.reset()
     print("##############################  CAFFE READER (CLASSIFCATION/ DETECTION)  SUCCESS  ############################")

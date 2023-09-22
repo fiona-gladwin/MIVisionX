@@ -103,14 +103,14 @@ int main(int argc, const char ** argv)
 
 
     /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
-    RocalImage input1;
+    RocalTensor decoded_output;
     //hardcoding the following for mnist tfrecords
     std::string feature_map_image = "image/encoded";
     std::string feature_map_filename = "image/filename";
     std::string feature_map_label = "image/class/label";
 
     rocalCreateTFReader(handle, folderPath1, 1, feature_map_label.c_str(), feature_map_filename.c_str());
-    input1 = rocalJpegTFRecordSource(handle, folderPath1, ROCAL_COLOR_RGB24, 1, false, feature_map_image.c_str(), feature_map_filename.c_str(), false, false, ROCAL_USE_USER_GIVEN_SIZE, decode_width, decode_height);
+    decoded_output = rocalJpegTFRecordSource(handle, folderPath1, color_format, 1, false, feature_map_image.c_str(), feature_map_filename.c_str(), false, false, ROCAL_USE_USER_GIVEN_SIZE, decode_width, decode_height);
 
     if(rocalGetStatus(handle) != ROCAL_OK)
     {
@@ -125,39 +125,36 @@ int main(int argc, const char ** argv)
 
     RocalFloatParam rand_angle =   rocalCreateFloatRand( values , frequencies, num_values);
     // Creating successive blur nodes to simulate a deep branch of augmentations
-    RocalImage image2 = rocalCropResize(handle, image0, resize_w, resize_h, false, rand_crop_area);;
+    RocalTensor input2 = rocalCropResize(handle, decoded_output, resize_w, resize_h, false, rand_crop_area);;
     for(int i = 0 ; i < aug_depth; i++)
     {
-        image2 = rocalBlurFixed(handle, image2, 17.25, (i == (aug_depth -1)) ? true:false );
+        input2 = rocalBlurFixed(handle, input2, 17.25, (i == (aug_depth -1)) ? true:false );
     }
 
 
-    RocalImage image4 = rocalColorTemp(handle, image0, false, color_temp_adj);
+    RocalTensor input4 = rocalColorTemp(handle, decoded_output, false, color_temp_adj);
 
-    RocalImage image5 = rocalWarpAffine(handle, image4, false);
+    RocalTensor input5 = rocalWarpAffine(handle, input4, false);
 
-    RocalImage image6 = rocalJitter(handle, image5, false);
+    RocalTensor input6 = rocalJitter(handle, input5, false);
 
-    rocalVignette(handle, image6, true);
+    rocalVignette(handle, input6, true);
 
 
 
-    RocalImage image7 = rocalPixelate(handle, image0, false);
+    RocalTensor input7 = rocalPixelate(handle, decoded_output, false);
 
-    RocalImage image8 = rocalSnow(handle, image0, false);
+    RocalTensor input8 = rocalSnow(handle, decoded_output, false);
 
-    RocalImage image9 = rocalBlend(handle, image7, image8, false);
+    RocalTensor input9 = rocalBlend(handle, input7, input8, false);
 
-    RocalImage image10 = rocalLensCorrection(handle, image9, false);
+    RocalTensor image10 = rocalLensCorrection(handle, input9, false);
 
     rocalExposure(handle, image10, true);
 #else
     // uncomment the following to add augmentation if needed
-    RocalImage image0;
-    image0 = input1;
     // just do one augmentation to test
-    // rocalResize(handle, image0, true);
-    rocalResize(handle, image0, 300, 300, true);
+    rocalResize(handle, decoded_output, 300, 300, true);
 #endif
 
     if(rocalGetStatus(handle) != ROCAL_OK)
@@ -179,7 +176,7 @@ int main(int argc, const char ** argv)
 
     /*>>>>>>>>>>>>>>>>>>> Diplay using OpenCV <<<<<<<<<<<<<<<<<*/
     int n = rocalGetAugmentationBranchCount(handle);
-    int h = n * rocalGetOutputHeight(handle);
+    int h = n * rocalGetOutputHeight(handle) * inputBatchSize ;
     int w = rocalGetOutputWidth(handle);
     int p = (((color_format ==  RocalImageColor::ROCAL_COLOR_RGB24 ) ||
               (color_format ==  RocalImageColor::ROCAL_COLOR_RGB_PLANAR )) ? 3 : 1);
@@ -194,10 +191,10 @@ int main(int argc, const char ** argv)
     int col_counter = 0;
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     int counter = 0;
-    std::vector<std::vector<char>> names;
-    std::vector<int> labels;
+    std::vector<std::string> names;
     names.resize(inputBatchSize);
-    labels.resize(inputBatchSize);
+    int ImageNameLen[inputBatchSize];
+
     int iter_cnt = 0;
     while (!rocalIsEmpty(handle) && (iter_cnt < 100))
     {
@@ -210,21 +207,21 @@ int main(int argc, const char ** argv)
 
             rocalCopyToOutput(handle, mat_input.data, h*w*p);
         counter += inputBatchSize;
-#if 0
-        rocalGetImageLabels(handle, labels.data());
-        int img_name_size = rocalGetImageNameLen(handle, image_name_length);
+
+        RocalTensorList labels = rocalGetImageLabels(handle);
+        unsigned img_name_size = rocalGetImageNameLen(handle, ImageNameLen);
         char img_name[img_name_size];
-        rocalGetImageName(handle, img_name);
+        rocalGetImageName(handle,img_name);
         std::string imageNamesStr(img_name);
         int pos = 0;
-        for(int i = 0; i < inputBatchSize; i++)
-        {
+        int *labels_buffer = reinterpret_cast<int *>(labels->at(0)->buffer());
+        for(int i = 0; i < inputBatchSize; i++) {
             names[i] = imageNamesStr.substr(pos, ImageNameLen[i]);
             pos += ImageNameLen[i];
-            std::cout << "name: " << names[i] << " label: "<< labels[i] << " - ";
+            std::cout << "\n name: " << names[i] << " label: "<< labels_buffer[i] << std::endl;
         }
         std::cout << std::endl;
-#endif
+
         iter_cnt ++;
         if(!display)
             continue;

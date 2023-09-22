@@ -50,7 +50,7 @@ public:
     void create(ReaderConfig reader_config, DecoderConfig decoder_config, int batch_size, int device_id=0);
     void set_bbox_vector(std::vector<std::vector <float>> bbox_coords) { _bbox_coords = bbox_coords;};
     void set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader);
-    std::vector<std::vector <float>> get_batch_random_bbox_crop_coords();
+    std::vector<std::vector <float>>& get_batch_random_bbox_crop_coords();
     void set_batch_random_bbox_crop_coords(std::vector<std::vector <float>> batch_crop_coords);
 
     //! Loads a decompressed batch of images into the buffer indicated by buff
