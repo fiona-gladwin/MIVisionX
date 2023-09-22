@@ -23,6 +23,7 @@ THE SOFTWARE.
 #pragma once
 
 #include <exception>
+
 #include "video_reader.h"
 
 #ifdef ROCAL_VIDEO

@@ -28,7 +28,7 @@ void ResizeMirrorNormalizeMetaNode::initialize() {
 
 void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) {
     initialize();
-    if(_batch_size != input_meta_data->size()) {
+    if (_batch_size != input_meta_data->size()) {
         _batch_size = input_meta_data->size();
     }
     _mirror = _node->get_mirror();
@@ -42,18 +42,17 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
 
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
-        Labels labels_buf = input_meta_data->get_labels_batch()[i];        
+        Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords bb_coords;
         Labels bb_labels;
         if (input_meta_data->get_metadata_type() == MetaDataType::PolygonMask) {
             auto mask_data_ptr = input_meta_data->get_mask_cords_batch()[i].data();
             int mask_size = input_meta_data->get_mask_cords_batch()[i].size();
             for (int idx = 0; idx < mask_size; idx += 2) {
-                if(_mirror_val[i] == 1) {
+                if (_mirror_val[i] == 1) {
                     mask_data_ptr[idx] = output_roi[i].x2 - (mask_data_ptr[idx] * _dst_to_src_width_ratio) - 1;
                     mask_data_ptr[idx + 1] = mask_data_ptr[idx + 1] * _dst_to_src_height_ratio;
-                }
-                else {
+                } else {
                     mask_data_ptr[idx] = mask_data_ptr[idx] * _dst_to_src_width_ratio;
                     mask_data_ptr[idx + 1] = mask_data_ptr[idx + 1] * _dst_to_src_height_ratio;
                 }
@@ -68,7 +67,7 @@ void ResizeMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_
             coords_buf[j].t *= _dst_to_src_height_ratio;
             coords_buf[j].r *= _dst_to_src_width_ratio;
             coords_buf[j].b *= _dst_to_src_height_ratio;
-            if(_mirror_val[i] == 1) {
+            if (_mirror_val[i] == 1) {
                 auto l = coords_buf[j].l;
                 coords_buf[j].l = output_roi[i].x2 - coords_buf[j].r - 1;
                 coords_buf[j].r = output_roi[i].x2 - l - 1;

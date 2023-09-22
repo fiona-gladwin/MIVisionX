@@ -24,16 +24,14 @@ THE SOFTWARE.
 #include "node_snp_noise.h"
 #include "exception.h"
 
-
-SnPNoiseNode::SnPNoiseNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _noise_prob(NOISE_PROB_RANGE[0], NOISE_PROB_RANGE[1]),
-        _salt_prob (SALT_PROB_RANGE[0], SALT_PROB_RANGE[1]),
-        _salt_value(SALT_RANGE[0], SALT_RANGE[1]),
-        _pepper_value(PEPPER_RANGE[0], PEPPER_RANGE[1]) {}
+SnPNoiseNode::SnPNoiseNode(const std::vector<Tensor*>& inputs, const std::vector<Tensor*>& outputs) : Node(inputs, outputs),
+                                                                                                      _noise_prob(NOISE_PROB_RANGE[0], NOISE_PROB_RANGE[1]),
+                                                                                                      _salt_prob(SALT_PROB_RANGE[0], SALT_PROB_RANGE[1]),
+                                                                                                      _salt_value(SALT_RANGE[0], SALT_RANGE[1]),
+                                                                                                      _pepper_value(PEPPER_RANGE[0], PEPPER_RANGE[1]) {}
 
 void SnPNoiseNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _noise_prob.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
@@ -51,7 +49,7 @@ void SnPNoiseNode::create_node() {
     _node = vxExtRppNoise(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _noise_prob.default_array(), _salt_prob.default_array(),
                           _salt_value.default_array(), _pepper_value.default_array(), seed, input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the Noise (vxExtRppNoise) node failed: " + TOSTR(status))
 }
 
@@ -78,4 +76,3 @@ void SnPNoiseNode::update_node() {
     _salt_value.update_array();
     _pepper_value.update_array();
 }
-

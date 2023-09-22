@@ -20,21 +20,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-
 #include "meta_node_crop_mirror_normalize.h"
-void CropMirrorNormalizeMetaNode::initialize()
-{
+void CropMirrorNormalizeMetaNode::initialize() {
     _width_val.resize(_batch_size);
     _height_val.resize(_batch_size);
     _x1_val.resize(_batch_size);
     _y1_val.resize(_batch_size);
     _mirror_val.resize(_batch_size);
 }
-void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
-{
+void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) {
     initialize();
-    if(_batch_size != input_meta_data->size())
-    {
+    if (_batch_size != input_meta_data->size()) {
         _batch_size = input_meta_data->size();
     }
     _mirror = _node->return_mirror();
@@ -48,8 +44,7 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
     vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint), _x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint), _y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     vxCopyArrayRange((vx_array)_mirror, 0, _batch_size, sizeof(uint), _mirror_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    for(int i = 0; i < _batch_size; i++)
-    {
+    for (int i = 0; i < _batch_size; i++) {
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
@@ -61,10 +56,8 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
         crop_box.t = (_y1_val[i]);
         crop_box.r = (_x1_val[i] + _width_val[i]);
         crop_box.b = (_y1_val[i] + _height_val[i]);
-        for(uint j = 0; j < bb_count; j++)
-        {
-            if (BBoxIntersectionOverUnion(coords_buf[j], crop_box) >= _iou_threshold)
-            {
+        for (uint j = 0; j < bb_count; j++) {
+            if (BBoxIntersectionOverUnion(coords_buf[j], crop_box) >= _iou_threshold) {
                 float xA = std::max(crop_box.l, coords_buf[j].l);
                 float yA = std::max(crop_box.t, coords_buf[j].t);
                 float xB = std::min(crop_box.r, coords_buf[j].r);
@@ -75,7 +68,7 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
                 coords_buf[j].b = (yB - crop_box.t);
                 if (_mirror_val[i] == 1) {
                     auto l = coords_buf[j].l;
-                    coords_buf[j].l =  _width_val[i] - coords_buf[j].r;
+                    coords_buf[j].l = _width_val[i] - coords_buf[j].r;
                     coords_buf[j].r = _width_val[i] - l;
                 }
                 bb_coords.push_back(coords_buf[j]);
@@ -83,9 +76,8 @@ void CropMirrorNormalizeMetaNode::update_parameters(pMetaDataBatch input_meta_da
             }
         }
         // the following shouldn't happen since all crops should atleast have one bbox
-        if(bb_coords.size() == 0)
-        {
-            std::cerr <<"Crop mirror Normalize - Zero Bounding boxes" << std::endl;
+        if (bb_coords.size() == 0) {
+            std::cerr << "Crop mirror Normalize - Zero Bounding boxes" << std::endl;
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }

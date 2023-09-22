@@ -26,17 +26,19 @@ THE SOFTWARE.
 #include "parameter_vx.h"
 
 class ResizeMirrorNormalizeNode : public Node {
-public:
+   public:
     ResizeMirrorNormalizeNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ResizeMirrorNormalizeNode() = delete;
     void init(unsigned dest_width, unsigned dest_height, RocalResizeScalingMode scaling_mode, std::vector<unsigned> max_size,
-              RocalResizeInterpolationType interpolation_type, std::vector<float>& mean,  std::vector<float>& std_dev, IntParam *mirror);
+              RocalResizeInterpolationType interpolation_type, std::vector<float> &mean, std::vector<float> &std_dev, IntParam *mirror);
     void adjust_out_roi_size();
     vx_array get_mirror() { return _mirror.default_array(); }
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     vx_array _mean_vx_array, _std_dev_vx_array, _mirror_vx_array, _dst_roi_width, _dst_roi_height;
     std::vector<float> _mean, _std_dev;
     int _interpolation_type;

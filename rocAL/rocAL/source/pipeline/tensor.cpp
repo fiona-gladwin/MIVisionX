@@ -86,10 +86,10 @@ void allocate_host_or_pinned_mem(void **ptr, size_t size, RocalMemType mem_type)
     if (mem_type == RocalMemType::HIP) {
 #if ENABLE_HIP
         hipError_t err = hipHostMalloc((void **)ptr, size, hipHostMallocDefault);
-        if(err != hipSuccess || !*ptr)
+        if (err != hipSuccess || !*ptr)
             THROW("hipHostMalloc of size " + TOSTR(size) + " failed " + TOSTR(err))
         err = hipMemset((void *)*ptr, 0, size);
-        if(err != hipSuccess)
+        if (err != hipSuccess)
             THROW("hipMemset of size " + TOSTR(size) + " failed " + TOSTR(err))
 #endif
     } else {
@@ -106,9 +106,8 @@ bool operator==(const TensorInfo &rhs, const TensorInfo &lhs) {
             rhs.layout() == lhs.layout());
 }
 
-
 void TensorInfo::reset_tensor_roi_buffers() {
-    size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
+    size_t roi_size = (_layout == RocalTensorlayout::NFCHW || _layout == RocalTensorlayout::NFHWC) ? _dims[0] * _dims[1] : _batch_size;  // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions
     allocate_host_or_pinned_mem((void **)&_roi_buf, roi_size * 4 * sizeof(unsigned), _mem_type);
     if (_mem_type == RocalMemType::HIP) {
 #if ENABLE_HIP
@@ -178,9 +177,8 @@ TensorInfo::TensorInfo(std::vector<size_t> dims,
     set_max_shape();
 }
 
-
 void Tensor::update_tensor_roi(const std::vector<uint32_t> &width,
-                                    const std::vector<uint32_t> &height) {
+                               const std::vector<uint32_t> &height) {
     if (_info.is_image()) {
         auto max_shape = _info.max_shape();
         unsigned max_width = max_shape.at(0);
@@ -235,7 +233,7 @@ int Tensor::create_virtual(vx_context context, vx_graph graph) {
 
     _info._type = TensorInfo::Type::VIRTUAL;
     void *roi_handle = reinterpret_cast<void *>(_info.get_roi());
-    create_roi_tensor_from_handle(&roi_handle); // Create ROI tensor from handle
+    create_roi_tensor_from_handle(&roi_handle);  // Create ROI tensor from handle
     return 0;
 }
 
@@ -261,7 +259,7 @@ int Tensor::create_from_handle(vx_context context) {
         THROW("Error: vxCreateTensorFromHandle(input: failed " + TOSTR(status))
     _info._type = TensorInfo::Type::HANDLE;
     void *roi_handle = reinterpret_cast<void *>(_info.get_roi());
-    create_roi_tensor_from_handle(&roi_handle); // Create ROI tensor from handle
+    create_roi_tensor_from_handle(&roi_handle);  // Create ROI tensor from handle
     return 0;
 }
 
@@ -286,7 +284,7 @@ void Tensor::create_roi_tensor_from_handle(void **handle) {
         WRN("ROI Tensor object is already created")
         return;
     }
-    
+
     if (*handle == nullptr) {
         THROW("Empty ROI handle is passed")
     }
@@ -294,20 +292,19 @@ void Tensor::create_roi_tensor_from_handle(void **handle) {
     vx_size num_of_dims = 2;
     vx_size stride[num_of_dims];
     std::vector<size_t> roi_dims = {_info.batch_size(), 4};
-    if(_info.layout() == RocalTensorlayout::NFCHW || _info.layout() == RocalTensorlayout::NFHWC)
-        roi_dims = {_info.dims()[0] * _info.dims()[1], 4}; // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions        stride[0] = sizeof(vx_uint32);
+    if (_info.layout() == RocalTensorlayout::NFCHW || _info.layout() == RocalTensorlayout::NFHWC)
+        roi_dims = {_info.dims()[0] * _info.dims()[1], 4};  // For Sequences pre allocating the ROI to N * F to replicate in OpenVX extensions        stride[0] = sizeof(vx_uint32);
     stride[0] = sizeof(vx_uint32);
     stride[1] = stride[0] * roi_dims[0];
     vx_enum mem_type = VX_MEMORY_TYPE_HOST;
     if (_info.mem_type() == RocalMemType::HIP)
         mem_type = VX_MEMORY_TYPE_HIP;
-        
-    _vx_roi_handle = vxCreateTensorFromHandle(_context, num_of_dims, roi_dims.data(), 
+
+    _vx_roi_handle = vxCreateTensorFromHandle(_context, num_of_dims, roi_dims.data(),
                                               VX_TYPE_UINT32, 0, stride, *handle, mem_type);
     vx_status status;
     if ((status = vxGetStatus((vx_reference)_vx_roi_handle)) != VX_SUCCESS)
         THROW("Error: vxCreateTensorFromHandle(src tensor roi: failed " + TOSTR(status))
-
 }
 
 #if ENABLE_OPENCL
@@ -317,8 +314,8 @@ unsigned Tensor::copy_data(cl_command_queue queue, unsigned char *user_buffer, b
     if (_info._mem_type == RocalMemType::OCL) {
         cl_int status;
         if ((status = clEnqueueReadBuffer(
-                queue, (cl_mem)_mem_handle, sync ? (CL_TRUE) : CL_FALSE, 0,
-                _info.data_size(), user_buffer, 0, nullptr, nullptr)) != CL_SUCCESS) {
+                 queue, (cl_mem)_mem_handle, sync ? (CL_TRUE) : CL_FALSE, 0,
+                 _info.data_size(), user_buffer, 0, nullptr, nullptr)) != CL_SUCCESS) {
             THROW("clEnqueueReadBuffer failed: " + TOSTR(status))
         }
     } else {
@@ -349,7 +346,7 @@ unsigned Tensor::copy_data(hipStream_t stream, void *host_memory, bool sync) {
 unsigned Tensor::copy_data(void *user_buffer, RocalOutputMemType external_mem_type) {
     if (_mem_handle == nullptr) return 0;
 
-    if(external_mem_type == RocalOutputMemType::ROCAL_MEMCPY_GPU) {
+    if (external_mem_type == RocalOutputMemType::ROCAL_MEMCPY_GPU) {
 #if ENABLE_HIP
         if (_info._mem_type == RocalMemType::HIP) {
             // copy from device to device
@@ -365,8 +362,8 @@ unsigned Tensor::copy_data(void *user_buffer, RocalOutputMemType external_mem_ty
 #else
         THROW("copy_data failed as HIP is not supported")
 #endif
-    } else if(external_mem_type == RocalOutputMemType::ROCAL_MEMCPY_HOST) {
-        if(_info._mem_type == RocalMemType::HIP) {
+    } else if (external_mem_type == RocalOutputMemType::ROCAL_MEMCPY_HOST) {
+        if (_info._mem_type == RocalMemType::HIP) {
 #if ENABLE_HIP
             // copy from device to host
             hipError_t status;

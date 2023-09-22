@@ -26,15 +26,17 @@ THE SOFTWARE.
 #include "parameter_vx.h"
 
 class ColorTwistNode : public Node {
-public:
+   public:
     ColorTwistNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ColorTwistNode() = delete;
     void init(float alpha, float beta, float hue, float sat);
     void init(FloatParam *alpha_param, FloatParam *beta_param, FloatParam *hue_param, FloatParam *sat_param);
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     ParameterVX<float> _alpha;
     ParameterVX<float> _beta;
     ParameterVX<float> _hue;

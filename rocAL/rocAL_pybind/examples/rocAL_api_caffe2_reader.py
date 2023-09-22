@@ -82,11 +82,14 @@ def main():
                     seed=random_seed, rocal_cpu=rocal_cpu)
     with pipe:
         if rocal_bbox:
-            jpegs, labels, bboxes = fn.readers.caffe2(path=image_path, bbox=rocal_bbox)
+            jpegs, labels, bboxes = fn.readers.caffe2(
+                path=image_path, bbox=rocal_bbox)
         else:
             jpegs, labels = fn.readers.caffe2(path=image_path, bbox=rocal_bbox)
-        images = fn.decoders.image(jpegs, output_type=types.RGB, path=image_path, random_shuffle=True)
-        images = fn.resize(images, resize_width=224, resize_height=224, output_layout=tensor_layout)
+        images = fn.decoders.image(
+            jpegs, output_type=types.RGB, path=image_path, random_shuffle=True)
+        images = fn.resize(images, resize_width=224,
+                           resize_height=224, output_layout=tensor_layout)
         pipe.set_outputs(images)
     pipe.build()
     data_loader = ROCALClassificationIterator(pipe, display=0, device=device)
@@ -115,10 +118,12 @@ def main():
                         print("Labels", labels)
                 for element in list(range(batch_size)):
                     cnt += 1
-                    draw_patches(image_batch[element], cnt, bboxes[element], args=args)
+                    draw_patches(image_batch[element],
+                                 cnt, bboxes[element], args=args)
             data_loader.reset()
 
     print("##############################  CAFFE2 READER (CLASSIFCATION/ DETECTION)  SUCCESS  ############################")
+
 
 if __name__ == "__main__":
     main()

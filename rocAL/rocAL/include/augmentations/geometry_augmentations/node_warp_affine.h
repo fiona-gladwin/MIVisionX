@@ -21,22 +21,24 @@ THE SOFTWARE.
 */
 
 #pragma once
+#include "graph.h"
 #include "node.h"
 #include "parameter_factory.h"
 #include "parameter_vx.h"
-#include "graph.h"
 
 class WarpAffineNode : public Node {
-public:
+   public:
     WarpAffineNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     WarpAffineNode() = delete;
     void init(float x0, float x1, float y0, float y1, float o0, float o1, RocalResizeInterpolationType interpolation_type);
     void init(FloatParam *x0, FloatParam *x1, FloatParam *y0, FloatParam *y1,
               FloatParam *o0, FloatParam *o1, RocalResizeInterpolationType interpolation_type);
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     ParameterVX<float> _x0;
     ParameterVX<float> _x1;
     ParameterVX<float> _y0;

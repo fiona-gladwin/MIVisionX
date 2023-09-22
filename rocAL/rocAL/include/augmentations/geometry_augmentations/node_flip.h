@@ -22,21 +22,23 @@ THE SOFTWARE.
 
 #pragma once
 #include "node.h"
-#include "parameter_vx.h"
 #include "parameter_factory.h"
+#include "parameter_vx.h"
 
 class FlipNode : public Node {
-public:
+   public:
     FlipNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     FlipNode() = delete;
     void init(int h_flag, int v_flag);
     void init(IntParam *h_flag_param, IntParam *v_flag_param);
     vx_array get_horizontal_flip() { return _horizontal.default_array(); }
     vx_array get_vertical_flip() { return _vertical.default_array(); }
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     ParameterVX<int> _horizontal, _vertical;
     constexpr static int HORIZONTAL_RANGE[2] = {0, 1};
     constexpr static int VERTICAL_RANGE[2] = {0, 1};

@@ -24,11 +24,10 @@ THE SOFTWARE.
 #include "node_pixelate.h"
 #include "exception.h"
 
-PixelateNode::PixelateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {}
+PixelateNode::PixelateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs) {}
 
 void PixelateNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     int input_layout = static_cast<int>(_inputs[0]->info().layout());
@@ -40,9 +39,8 @@ void PixelateNode::create_node() {
 
     _node = vxExtRppPixelate(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the pixelate (vxExtRppPixelate) node failed: " + TOSTR(status))
 }
 
 void PixelateNode::update_node() {}
-

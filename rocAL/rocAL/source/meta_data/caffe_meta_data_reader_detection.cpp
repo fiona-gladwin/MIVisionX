@@ -34,21 +34,17 @@ THE SOFTWARE.
 
 using namespace std;
 
-void CaffeMetaDataReaderDetection::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch)
-{
+void CaffeMetaDataReaderDetection::init(const MetaDataConfig &cfg, pMetaDataBatch meta_data_batch) {
     _path = cfg.path();
     _output = meta_data_batch;
 }
 
-bool CaffeMetaDataReaderDetection::exists(const std::string &_image_name)
-{
+bool CaffeMetaDataReaderDetection::exists(const std::string &_image_name) {
     return _map_content.find(_image_name) != _map_content.end();
 }
 
-void CaffeMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size)
-{
-    if (exists(image_name))
-    {
+void CaffeMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords bb_coords, Labels bb_labels, ImgSize image_size) {
+    if (exists(image_name)) {
         auto it = _map_content.find(image_name);
         it->second->get_bb_cords().push_back(bb_coords[0]);
         it->second->get_labels().push_back(bb_labels[0]);
@@ -58,18 +54,15 @@ void CaffeMetaDataReaderDetection::add(std::string image_name, BoundingBoxCords 
     _map_content.insert(pair<std::string, std::shared_ptr<BoundingBox>>(image_name, info));
 }
 
-void CaffeMetaDataReaderDetection::lookup(const std::vector<std::string> &_image_names)
-{
-    if (_image_names.empty())
-    {
+void CaffeMetaDataReaderDetection::lookup(const std::vector<std::string> &_image_names) {
+    if (_image_names.empty()) {
         WRN("No image names passed")
         return;
     }
     if (_image_names.size() != (unsigned)_output->size())
         _output->resize(_image_names.size());
 
-    for (unsigned i = 0; i < _image_names.size(); i++)
-    {
+    for (unsigned i = 0; i < _image_names.size(); i++) {
         auto image_name = _image_names[i];
         auto it = _map_content.find(image_name);
         if (_map_content.end() == it)
@@ -80,28 +73,24 @@ void CaffeMetaDataReaderDetection::lookup(const std::vector<std::string> &_image
     }
 }
 
-void CaffeMetaDataReaderDetection::print_map_contents()
-{
+void CaffeMetaDataReaderDetection::print_map_contents() {
     BoundingBoxCords bb_coords;
     Labels bb_labels;
 
     std::cerr << "\nMap contents: \n";
-    for (auto &elem : _map_content)
-    {
+    for (auto &elem : _map_content) {
         std::cerr << "Name :\t " << elem.first;
         bb_coords = elem.second->get_bb_cords();
         bb_labels = elem.second->get_labels();
         std::cerr << "\nsize of the element  : " << bb_coords.size() << std::endl;
-        for (unsigned int i = 0; i < bb_coords.size(); i++)
-        {
+        for (unsigned int i = 0; i < bb_coords.size(); i++) {
             std::cerr << " l : " << bb_coords[i].l << " t: :" << bb_coords[i].t << " r : " << bb_coords[i].r << " b: :" << bb_coords[i].b << std::endl;
             std::cerr << "Label Id : " << bb_labels[i] << std::endl;
         }
     }
 }
 
-void CaffeMetaDataReaderDetection::read_all(const std::string &path)
-{
+void CaffeMetaDataReaderDetection::read_all(const std::string &path) {
     string tmp1 = path + "/data.mdb";
     string tmp2 = path + "/lock.mdb";
     uint file_size, file_size1, file_bytes;
@@ -117,8 +106,7 @@ void CaffeMetaDataReaderDetection::read_all(const std::string &path)
     // print_map_contents();
 }
 
-void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint file_byte_size)
-{
+void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint file_byte_size) {
     int rc;
     // Creating an LMDB environment handle
     CHECK_LMDB_RETURN_STATUS(mdb_env_create(&_mdb_env));
@@ -136,8 +124,7 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
     CHECK_LMDB_RETURN_STATUS(mdb_cursor_open(_mdb_txn, _mdb_dbi, &_mdb_cursor));
 
     // Retrieve by cursor. It retrieves key/data pairs from the database
-    while ((rc = mdb_cursor_get(_mdb_cursor, &_mdb_key, &_mdb_value, MDB_NEXT)) == 0)
-    {
+    while ((rc = mdb_cursor_get(_mdb_cursor, &_mdb_key, &_mdb_value, MDB_NEXT)) == 0) {
         std::string file_name = string((char *)_mdb_key.mv_data);
 
         caffe_protos::AnnotatedDatum annotatedDatum_protos;
@@ -151,10 +138,8 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
         BoundingBoxCord box;
         ImgSize img_size;
 
-        if (boundBox_size > 0)
-        {
-            for (int i = 0; i < boundBox_size; i++)
-            {
+        if (boundBox_size > 0) {
+            for (int i = 0; i < boundBox_size; i++) {
                 caffe_protos::Annotation annot_protos = annotGrp_protos.annotation(i);
                 caffe_protos::NormalizedBBox bbox_protos = annot_protos.bbox();
 
@@ -172,9 +157,7 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
                 bb_coords.clear();
                 bb_labels.clear();
             }
-        }
-        else
-        {
+        } else {
             box.l = box.t = 0;
             box.r = box.b = 1;
             bb_coords.push_back(box);
@@ -189,21 +172,17 @@ void CaffeMetaDataReaderDetection::read_lmdb_record(std::string file_name, uint 
     mdb_env_close(_mdb_env);
 }
 
-void CaffeMetaDataReaderDetection::release(std::string _image_name)
-{
-    if (!exists(_image_name))
-    {
+void CaffeMetaDataReaderDetection::release(std::string _image_name) {
+    if (!exists(_image_name)) {
         WRN("ERROR: Given not present in the map" + _image_name);
         return;
     }
     _map_content.erase(_image_name);
 }
 
-void CaffeMetaDataReaderDetection::release()
-{
+void CaffeMetaDataReaderDetection::release() {
     _map_content.clear();
 }
 
-CaffeMetaDataReaderDetection::CaffeMetaDataReaderDetection()
-{
+CaffeMetaDataReaderDetection::CaffeMetaDataReaderDetection() {
 }
