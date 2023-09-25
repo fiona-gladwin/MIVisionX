@@ -4,6 +4,7 @@ from amd.rocal.plugin.pytorch import ROCALClassificationIterator
 import amd.rocal.fn as fn
 import amd.rocal.types as types
 import os
+import numpy as np
 
 def main():
     batch_size = 3
@@ -17,12 +18,12 @@ def main():
     except OSError as error:
         print(error)
 
-    def image_dump(image, idx, device="cpu"):
+    def image_dump(img, idx, device="cpu"):
         import cv2
         if device == "gpu":
-            image = image.cpu().detach().numpy()
+            image = img.cpu().detach().numpy()
         else:
-            image = image.detach().numpy()
+            image = img.detach().numpy()
         image = image.transpose([1, 2, 0]) # NCHW
         image = (image).astype('uint8')
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
@@ -46,13 +47,16 @@ def main():
 
         def __next__(self):
             batch = []
-            label = []
+            labels = []
+            label = 1
             for _ in range(self.batch_size):
                 jpeg_filename = self.files[self.i]
                 batch.append(jpeg_filename)
-                label.append(1) # Label is some random variable for testing - user can modify acording to use case
+                labels.append(label)
+                label = label + 1
                 self.i = (self.i + 1) % self.n
-            return batch, label
+            labels = np.array(labels).astype('int32')
+            return batch, labels
 
     # Mode 0
     external_input_source = ExternalInputIteratorMode0(batch_size)
@@ -77,7 +81,7 @@ def main():
             print("\nImages:\n", output_list)
             print("**************ends*******************")
             print("**************", i, "*******************")
-            for img in output_list[0]:
+            for img in output_list[0][0]:
                 cnt = cnt + 1
                 image_dump(img, cnt, device=device)
 

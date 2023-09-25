@@ -97,33 +97,17 @@ namespace rocal{
         std::vector<unsigned> roi_width, std::vector<unsigned> roi_height,
         unsigned int max_width, unsigned int max_height, int channels,
         RocalExtSourceMode mode, RocalTensorLayout layout, bool eos) {
-        size_t numArrays = py::len(arrays);
         std::vector<unsigned char *> uchar_arrays;
-        for (size_t i = 0; i < numArrays; i++) {
-            py::array_t<unsigned char> arr(arrays[i]);
-            py::buffer_info buf = arr.request();
-            uchar_arrays.push_back(static_cast<unsigned char *>(buf.ptr));
+        if (input_images_names.size() == 0) {   // Used for mode 1 and mode 2 for passing decoded buffers 
+            size_t numArrays = py::len(arrays);
+            for (size_t i = 0; i < numArrays; i++) {
+                py::array_t<unsigned char> arr(arrays[i]);
+                py::buffer_info buf = arr.request();
+                uchar_arrays.push_back(static_cast<unsigned char *>(buf.ptr));
+            }
         }
 
         int status = rocalExternalSourceFeedInput(context, input_images_names, {1}, uchar_arrays, roi_width, roi_height, max_width, max_height, channels, mode, layout, eos);
-        auto labels_tensor_list = rocalGetImageLabels(context);
-        int *labels_ptr = static_cast<int *>(labels.request().ptr);
-        for (size_t i = 0; i < labels.size(); i++) {
-            labels_tensor_list->at(i)->set_mem_handle(labels_ptr);
-            labels_ptr++;
-        }
-        return py::cast<py::none>(Py_None);
-    }
-    
-    py::object wrapperRocalExternalSourceFeedInputNames(
-        RocalContext context, std::vector<std::string> input_images_names,
-        py::array& labels, py::list arrays,
-        std::vector<unsigned> roi_width, std::vector<unsigned> roi_height,
-        unsigned int max_width, unsigned int max_height, int channels,
-        RocalExtSourceMode mode, RocalTensorLayout layout, bool eos) {
-
-        int status = rocalExternalSourceFeedInput(context, input_images_names, {1}, {}, roi_width, roi_height, max_width, max_height, channels, mode, layout, eos);
-
         auto labels_tensor_list = rocalGetImageLabels(context);
         int *labels_ptr = static_cast<int *>(labels.request().ptr);
         for (size_t i = 0; i < labels.size(); i++) {
@@ -574,9 +558,7 @@ namespace rocal{
             py::return_value_policy::reference);
         m.def("ExternalFileSource",&rocalJpegExternalFileSource,
             py::return_value_policy::reference);
-        m.def("ExternalSourceFeedInput",&wrapperRocalExternalSourceFeedInputNames,
-            py::return_value_policy::reference);
-        m.def("ExternalSourceFeedInputWrapper",&wrapperRocalExternalSourceFeedInput);
+        m.def("ExternalSourceFeedInput",&wrapperRocalExternalSourceFeedInput);
         m.def("Resize",&rocalResize, "Resizes the image ",py::return_value_policy::reference);
         m.def("ColorTwist",&rocalColorTwist, py::return_value_policy::reference);
         m.def("rocalResetLoaders", &rocalResetLoaders);

@@ -60,10 +60,11 @@ class ROCALGenericIterator(object):
                 self.eos = True
             if (self.index + 1) <= self.num_batches:
                 if self.loader._external_source_mode == types.EXTSOURCE_FNAME:
+                    data_loader_source = next(self.loader._external_source)
                     kwargs_pybind = {
                         "handle":self.loader._handle,
-                        "source_input_images":next(self.loader._external_source)[0],
-                        "labels":next(self.loader._external_source)[1],
+                        "source_input_images":data_loader_source[0],
+                        "labels":data_loader_source[1],
                         "input_batch_buffer":[],
                         "roi_width":[],
                         "roi_height":[],
@@ -89,7 +90,7 @@ class ROCALGenericIterator(object):
                         "external_source_mode":self.loader._external_source_mode, 
                         "rocal_tensor_layout":types.NCHW, 
                         "eos":self.eos }
-                    b.ExternalSourceFeedInputWrapper(*(kwargs_pybind.values()))
+                    b.ExternalSourceFeedInput(*(kwargs_pybind.values()))
                 if self.loader._external_source_mode == types.EXTSOURCE_RAW_UNCOMPRESSED:
                     data_loader_source = next(self.loader._external_source)
                     kwargs_pybind = {
@@ -105,7 +106,7 @@ class ROCALGenericIterator(object):
                         "external_source_mode":self.loader._external_source_mode, 
                         "rocal_tensor_layout":types.NCHW, 
                         "eos":self.eos }
-                    b.ExternalSourceFeedInputWrapper(*(kwargs_pybind.values()))
+                    b.ExternalSourceFeedInput(*(kwargs_pybind.values()))
             self.index = self.index + 1
 
         if self.loader.rocal_run() != 0:
