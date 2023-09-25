@@ -176,7 +176,9 @@ class ROCALGenericIterator(object):
             return self.output_list, self.bb_padded, self.labels_padded
 
         elif self.loader._external_source_operator:
-            return self.output_list
+            self.labels = self.loader.get_image_labels()
+            self.labels_tensor = self.labels_tensor.copy_(torch.from_numpy(self.labels)).long()
+            return self.output_list, self.labels_tensor
         else:
             if self.loader._one_hot_encoding:
                 self.loader.get_one_hot_encoded_labels(self.labels_tensor, self.device)

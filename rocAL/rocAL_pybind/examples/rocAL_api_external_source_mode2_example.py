@@ -68,12 +68,12 @@ def main():
             batch = []
             batch_of_numpy = []
             labels = []
+            label = 1
             roi_height = []
             roi_width = []
             self.out_image = np.zeros((self.batch_size, self.maxHeight, self.maxWidth, 3), dtype = "uint8")
             for x in range(self.batch_size):
                 jpeg_filename = self.files[self.i]
-                label = 1
                 image = cv2.imread(jpeg_filename, cv2.IMREAD_COLOR)
                 # Check if the image was loaded successfully
                 if image is None:
@@ -86,8 +86,10 @@ def main():
                 roi_width.append(width)
                 self.out_image[x][:roi_height[x],:roi_width[x], :] = batch[x]
                 batch_of_numpy.append(self.out_image[x])
-                labels.append(1)
+                labels.append(label)
+                label = label + 1
                 self.i = (self.i + 1) % self.n
+            labels = np.array(labels).astype('int32')
             return (batch_of_numpy, labels, roi_height, roi_width, self.maxHeight, self.maxWidth)
 
 
@@ -115,7 +117,7 @@ def main():
             print("\nImages:\n", output_list)
             print("**************ends*******************")
             print("**************", i, "*******************")
-            for img in output_list[0]:
+            for img in output_list[0][0]:
                 cnt = cnt+1
                 draw_patches(img, cnt, device=device)
 

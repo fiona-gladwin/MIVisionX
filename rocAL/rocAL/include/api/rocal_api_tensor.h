@@ -40,6 +40,8 @@ public:
     virtual RocalROICordsType roi_type() = 0;
     virtual RocalROICords *get_roi() = 0;
     virtual std::vector<size_t> shape() = 0;
+    virtual void set_dims(std::vector<size_t> dims) = 0;
+    virtual void set_mem_handle(void* buffer) = 0;
 };
 
 class rocalTensorList {
