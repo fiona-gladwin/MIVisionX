@@ -22,18 +22,18 @@ THE SOFTWARE.
 
 #pragma once
 
-#include <string>
-#include <memory>
 #include <map>
+#include <memory>
+#include <string>
+
 #include "meta_data.h"
 
-enum class MetaDataReaderType
-{
-    FOLDER_BASED_LABEL_READER = 0,// Used for imagenet-like dataset
-    TEXT_FILE_META_DATA_READER,// Used when metadata is stored in a text file
+enum class MetaDataReaderType {
+    FOLDER_BASED_LABEL_READER = 0,  // Used for imagenet-like dataset
+    TEXT_FILE_META_DATA_READER,     // Used when metadata is stored in a text file
     COCO_META_DATA_READER,
     COCO_KEY_POINTS_META_DATA_READER,
-    CIFAR10_META_DATA_READER,    // meta_data for cifar10 data which is store as part of bin file
+    CIFAR10_META_DATA_READER,  // meta_data for cifar10 data which is store as part of bin file
     TF_META_DATA_READER,
     CAFFE_META_DATA_READER,
     CAFFE_DETECTION_META_DATA_READER,
@@ -44,14 +44,13 @@ enum class MetaDataReaderType
     MXNET_META_DATA_READER
 };
 
-struct MetaDataConfig
-{
-private:
+struct MetaDataConfig {
+   private:
     MetaDataType _type;
     MetaDataReaderType _reader_type;
     std::string _path;
     std::map<std::string, std::string> _feature_key_map;
-    std::string _file_prefix;           // if we want to read only filenames with prefix (needed for cifar10 meta data)
+    std::string _file_prefix;  // if we want to read only filenames with prefix (needed for cifar10 meta data)
     unsigned _sequence_length;
     unsigned _frame_step;
     unsigned _frame_stride;
@@ -60,15 +59,15 @@ private:
     bool _avoid_class_remapping;
     bool _aspect_ratio_grouping;
 
-public:
-    MetaDataConfig(const MetaDataType& type, const MetaDataReaderType& reader_type, const std::string& path, const std::map<std::string, std::string> &feature_key_map=std::map<std::string, std::string>(), const std::string file_prefix=std::string(), const unsigned& sequence_length = 3, const unsigned& frame_step = 3, const unsigned& frame_stride = 1, bool avoid_class_remapping = false)
-                    :_type(type), _reader_type(reader_type),  _path(path), _feature_key_map(feature_key_map), _file_prefix(file_prefix), _sequence_length(sequence_length), _frame_step(frame_step), _frame_stride(frame_stride), _avoid_class_remapping(avoid_class_remapping){}
+   public:
+    MetaDataConfig(const MetaDataType& type, const MetaDataReaderType& reader_type, const std::string& path, const std::map<std::string, std::string>& feature_key_map = std::map<std::string, std::string>(), const std::string file_prefix = std::string(), const unsigned& sequence_length = 3, const unsigned& frame_step = 3, const unsigned& frame_stride = 1, bool avoid_class_remapping = false)
+        : _type(type), _reader_type(reader_type), _path(path), _feature_key_map(feature_key_map), _file_prefix(file_prefix), _sequence_length(sequence_length), _frame_step(frame_step), _frame_stride(frame_stride), _avoid_class_remapping(avoid_class_remapping) {}
     MetaDataConfig() = delete;
     MetaDataType type() const { return _type; }
     MetaDataReaderType reader_type() const { return _reader_type; }
-    std::string path() const { return  _path; }
-    std::map<std::string, std::string> feature_key_map() const {return _feature_key_map; }
-    std::string file_prefix() const { return  _file_prefix; }
+    std::string path() const { return _path; }
+    std::map<std::string, std::string> feature_key_map() const { return _feature_key_map; }
+    std::string file_prefix() const { return _file_prefix; }
     bool class_remapping() const { return _avoid_class_remapping; }
     bool aspect_ratio_grouping() const { return _aspect_ratio_grouping; }
     unsigned sequence_length() const { return _sequence_length; }
@@ -82,26 +81,23 @@ public:
     void set_aspect_ratio_grouping(bool aspect_ratio_grouping) { _aspect_ratio_grouping = aspect_ratio_grouping; }
 };
 
-
-class MetaDataReader
-{
-private:
+class MetaDataReader {
+   private:
     bool _aspect_ratio_grouping = false;
-public:
-    enum class Status
-    {
+
+   public:
+    enum class Status {
         OK = 0
     };
-    virtual ~MetaDataReader()= default;
+    virtual ~MetaDataReader() = default;
     virtual void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) = 0;
-    virtual void read_all(const std::string& path) = 0;// Reads all the meta data information
-    virtual void lookup(const std::vector<std::string>& image_names) = 0;// finds meta_data info associated with given names and fills the output
-    virtual ImgSize lookup_image_size(const std::string& image_name) { return {}; }
-    virtual void release() = 0; // Deletes the loaded information
-    virtual const std::map<std::string, std::shared_ptr<MetaData>> & get_map_content()=0;
-    virtual bool exists(const std::string &image_name) = 0;
+    virtual void read_all(const std::string& path) = 0;                    // Reads all the meta data information
+    virtual void lookup(const std::vector<std::string>& image_names) = 0;  // finds meta_data info associated with given names and fills the output
+    virtual void release() = 0;                                            // Deletes the loaded information
+    virtual const std::map<std::string, std::shared_ptr<MetaData>>& get_map_content() = 0;
+    virtual bool exists(const std::string& image_name) = 0;
     virtual bool set_timestamp_mode() = 0;
+    virtual ImgSize lookup_image_size(const std::string& image_name) { return {}; }
     void set_aspect_ratio_grouping(bool aspect_ratio_grouping) { _aspect_ratio_grouping = aspect_ratio_grouping; }
     bool aspect_ratio_grouping() const { return _aspect_ratio_grouping; }
 };
-

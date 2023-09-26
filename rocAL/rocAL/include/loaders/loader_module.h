@@ -20,18 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#pragma  once
+#pragma once
 #include <memory>
-#include "reader.h"
-#include "decoder.h"
-#include "commons.h"
-#include "tensor.h"
-#include "circular_buffer.h"
-#include "meta_data_reader.h"
-#include "meta_data_graph.h"
 
-enum class LoaderModuleStatus
-{
+#include "image_reader.h"
+#include "circular_buffer.h"
+#include "commons.h"
+#include "decoder.h"
+#include "meta_data_graph.h"
+#include "meta_data_reader.h"
+#include "tensor.h"
+
+enum class LoaderModuleStatus {
     OK = 0,
     DEVICE_BUFFER_SWAP_FAILED,
     HOST_BUFFER_SWAP_FAILED,
@@ -42,18 +42,17 @@ enum class LoaderModuleStatus
 };
 
 /*! \class LoaderModule The interface defining the API and requirements of loader modules*/
-class LoaderModule
-{
-public:
+class LoaderModule {
+   public:
     virtual void initialize(ReaderConfig reader_config, DecoderConfig decoder_config, RocalMemType mem_type, unsigned batch_size, bool keep_orig_size) = 0;
     virtual void set_output(Tensor* output_tensor) = 0;
-    virtual LoaderModuleStatus load_next() = 0; // Loads the next image data into the Image's buffer set by calling into the set_output
-    virtual void reset() = 0; // Resets the loader to load from the beginning of the media
-    virtual size_t remaining_count() = 0; // Returns the number of available images to be loaded
-    virtual ~LoaderModule()= default;
-    virtual Timing timing() = 0;// Returns timing info
-    virtual std::vector<std::string> get_id() = 0; // returns the id of the last batch of images/frames loaded
-    virtual void start_loading() = 0; // starts internal loading thread
+    virtual LoaderModuleStatus load_next() = 0;     // Loads the next image data into the Image's buffer set by calling into the set_output
+    virtual void reset() = 0;                       // Resets the loader to load from the beginning of the media
+    virtual size_t remaining_count() = 0;           // Returns the number of available images to be loaded
+    virtual ~LoaderModule() = default;
+    virtual Timing timing() = 0;                    // Returns timing info
+    virtual std::vector<std::string> get_id() = 0;  // returns the id of the last batch of images/frames loaded
+    virtual void start_loading() = 0;               // starts internal loading thread
     virtual decoded_image_info get_decode_image_info() = 0;
     virtual crop_image_info get_crop_image_info() = 0;
     virtual void set_prefetch_queue_depth(size_t prefetch_queue_depth) = 0;

@@ -18,12 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+##
+# @file tf.py
+# @brief File containing iterators to be used with TF trainings
+
 import numpy as np
 import cupy as cp
 import rocal_pybind as b
 import amd.rocal.types as types
 
+
 class ROCALGenericImageIterator(object):
+    """!Generic iterator for rocAL pipelines that process images
+
+        @param pipeline: The rocAL pipeline to use for processing data.
+    """
+
     def __init__(self, pipeline):
         self.loader = pipeline
         self.output_list = None
@@ -43,7 +53,7 @@ class ROCALGenericImageIterator(object):
             for i in range(len(self.output_tensor_list)):
                 self.dimensions = self.output_tensor_list[i].dimensions()
                 self.dtype = self.output_tensor_list[i].dtype()
-                self.output = np.empty(self.dimensions, dtype = self.dtype)
+                self.output = np.empty(self.dimensions, dtype=self.dtype)
 
                 self.output_tensor_list[i].copy_data(self.output)
                 self.output_list.append(self.output)
@@ -61,7 +71,20 @@ class ROCALGenericImageIterator(object):
     def __del__(self):
         b.rocalRelease(self.loader._handle)
 
+
 class ROCALGenericIteratorDetection(object):
+    """!Iterator for processing data
+
+        @param pipeline            The rocAL pipeline to use for processing data.
+        @param tensor_layout       The layout of the output tensors
+        @param reverse_channels    Whether to reverse the order of color channels.
+        @param multiplier          Multiplier values for color normalization.
+        @param offset              Offset values for color normalization.
+        @param tensor_dtype        Data type of the output tensors.
+        @param device              The device to use for processing
+        @param device_id           The ID of the device to use
+    """
+
     def __init__(self, pipeline, tensor_layout=types.NCHW, reverse_channels=False, multiplier=None, offset=None, tensor_dtype=types.FLOAT, device=None, device_id=0):
         self.loader = pipeline
         self.tensor_format = tensor_layout
@@ -82,10 +105,10 @@ class ROCALGenericIteratorDetection(object):
     def __next__(self):
         if self.loader.rocal_run() != 0:
             timing_info = self.loader.timing_info()
-            print("Load     time ::",timing_info.load_time)
-            print("Decode   time ::",timing_info.decode_time)
-            print("Process  time ::",timing_info.process_time)
-            print("Transfer time ::",timing_info.transfer_time)
+            print("Load     time ::", timing_info.load_time)
+            print("Decode   time ::", timing_info.decode_time)
+            print("Process  time ::", timing_info.process_time)
+            print("Transfer time ::", timing_info.transfer_time)
             raise StopIteration
         self.output_tensor_list = self.loader.get_output_tensors()
 
@@ -100,14 +123,15 @@ class ROCALGenericIteratorDetection(object):
                     self.output_tensor_list[i].copy_data(self.output)
                 else:
                     self.output = cp.empty(self.dimensions, dtype=self.dtype)
-                    self.output_tensor_list[i].copy_data(self.output.data.ptr) 
+                    self.output_tensor_list[i].copy_data(self.output.data.ptr)
                 self.output_list.append(self.output)
         else:
             for i in range(len(self.output_tensor_list)):
                 if self.device == "cpu":
                     self.output_tensor_list[i].copy_data(self.output_list[i])
                 else:
-                    self.output_tensor_list[i].copy_data(self.output_list[i].data.ptr)
+                    self.output_tensor_list[i].copy_data(
+                        self.output_list[i].data.ptr)
 
         if self.loader._name == "TFRecordReaderDetection":
             self.bbox_list = []
@@ -121,7 +145,8 @@ class ROCALGenericIteratorDetection(object):
             self.num_bboxes_list = []
             self.loader.get_img_sizes(self.img_size)
             for i in range(self.bs):
-                self.label_2d_numpy = np.reshape(self.labels[i], (-1, 1)).tolist()
+                self.label_2d_numpy = np.reshape(
+                    self.labels[i], (-1, 1)).tolist()
                 self.bb_2d_numpy = np.reshape(self.bboxes[i], (-1, 4)).tolist()
                 self.num_bboxes_list.append(len(self.bboxes[i]))
                 self.label_list.append(self.label_2d_numpy)
@@ -129,18 +154,24 @@ class ROCALGenericIteratorDetection(object):
 
             self.target = self.bbox_list
             self.target1 = self.label_list
-            max_cols = max([len(row) for batch in self.target for row in batch])
+            max_cols = max([len(row)
+                           for batch in self.target for row in batch])
             # max_rows = max([len(batch) for batch in self.target])
             max_rows = 100
-            bb_padded = [batch + [[0] * (max_cols)] * (max_rows - len(batch)) for batch in self.target]
-            bb_padded_1 = [row + [0] * (max_cols - len(row)) for batch in bb_padded for row in batch]
+            bb_padded = [
+                batch + [[0] * (max_cols)] * (max_rows - len(batch)) for batch in self.target]
+            bb_padded_1 = [row + [0] * (max_cols - len(row))
+                           for batch in bb_padded for row in batch]
             arr = np.asarray(bb_padded_1)
             self.res = np.reshape(arr, (-1, max_rows, max_cols))
-            max_cols = max([len(row) for batch in self.target1 for row in batch])
+            max_cols = max([len(row)
+                           for batch in self.target1 for row in batch])
             # max_rows = max([len(batch) for batch in self.target1])
             max_rows = 100
-            lab_padded = [batch + [[0] * (max_cols)] * (max_rows - len(batch)) for batch in self.target1]
-            lab_padded_1 = [row + [0] * (max_cols - len(row)) for batch in lab_padded for row in batch]
+            lab_padded = [
+                batch + [[0] * (max_cols)] * (max_rows - len(batch)) for batch in self.target1]
+            lab_padded_1 = [row + [0] * (max_cols - len(row))
+                            for batch in lab_padded for row in batch]
             labarr = np.asarray(lab_padded_1)
             self.l = np.reshape(labarr, (-1, max_rows, max_cols))
             self.num_bboxes_arr = np.array(self.num_bboxes_list)
@@ -149,13 +180,19 @@ class ROCALGenericIteratorDetection(object):
         elif (self.loader._name == "TFRecordReaderClassification"):
             if (self.loader._one_hot_encoding == True):
                 if self.device == "cpu":
-                    self.labels = np.zeros((self.bs) * (self.loader._num_classes), dtype="int32")
-                    self.loader.get_one_hot_encoded_labels(self.labels, device="cpu")
-                    self.labels = np.reshape(self.labels, (-1, self.bs, self.loader._num_classes))
+                    self.labels = np.zeros(
+                        (self.bs) * (self.loader._num_classes), dtype="int32")
+                    self.loader.get_one_hot_encoded_labels(
+                        self.labels, device="cpu")
+                    self.labels = np.reshape(
+                        self.labels, (-1, self.bs, self.loader._num_classes))
                 else:
-                    self.labels = cp.zeros((self.bs) * (self.loader._num_classes), dtype="int32")
-                    self.loader.get_one_hot_encoded_labels(self.labels, device="gpu")
-                    self.labels = cp.reshape(self.labels, (-1, self.bs, self.loader._num_classes))
+                    self.labels = cp.zeros(
+                        (self.bs) * (self.loader._num_classes), dtype="int32")
+                    self.loader.get_one_hot_encoded_labels(
+                        self.labels, device="gpu")
+                    self.labels = cp.reshape(
+                        self.labels, (-1, self.bs, self.loader._num_classes))
             else:
                 self.labels = self.loader.get_image_labels()
 
@@ -170,10 +207,10 @@ class ROCALGenericIteratorDetection(object):
     def __del__(self):
         b.rocalRelease(self.loader._handle)
 
+
 class ROCALIterator(ROCALGenericIteratorDetection):
-    """
-    ROCAL iterator for detection and classification tasks for PyTorch. It returns 2 or 3 outputs
-    (data and label) or (data , bbox , labels) in the form of PyTorch's Tensor.
+    """!ROCAL iterator for detection and classification tasks for TF reader. It returns 2 or 3 outputs
+    (data and label) or (data , bbox , labels) in the form of numpy or cupy arrays.
     Calling
     .. code-block:: python
        ROCALIterator(pipelines, size)
@@ -181,8 +218,16 @@ class ROCALIterator(ROCALGenericIteratorDetection):
     .. code-block:: python
        ROCALGenericIteratorDetection(pipelines, ["data", "label"], size)
 
+        @param pipelines            The rocAL pipelines to use for processing data.
+        @param size                 The size of the iterator.
+        @param auto_reset           Whether to automatically reset the iterator after an epoch.
+        @param fill_last_batch      Whether to fill the last batch with repeated data to match the batch size.
+        @param dynamic_shape        Whether the iterator supports dynamic shapes.
+        @param last_batch_padded    Whether the last batch should be padded to match the batch size.
+
 
     """
+
     def __init__(self,
                  pipelines,
                  size=0,
@@ -194,13 +239,18 @@ class ROCALIterator(ROCALGenericIteratorDetection):
                  device_id=0):
         pipe = pipelines
         super(ROCALIterator, self).__init__(pipe, tensor_layout=pipe._tensor_layout, tensor_dtype=pipe._tensor_dtype,
-                                                            multiplier=pipe._multiplier, offset=pipe._offset, device=device, device_id=device_id)
+                                            multiplier=pipe._multiplier, offset=pipe._offset, device=device, device_id=device_id)
+
 
 class ROCAL_iterator(ROCALGenericImageIterator):
-    """
-    ROCAL iterator for classification tasks for PyTorch. It returns 2 outputs
-    (data and label) in the form of PyTorch's Tensor.
+    """! ROCAL iterator for processing images for TF reader. It returns outputs in the form of numpy or cupy arrays.
 
+        @param pipelines            The rocAL pipelines to use for processing data.
+        @param size                 The size of the iterator.
+        @param auto_reset           Whether to automatically reset the iterator after an epoch.
+        @param fill_last_batch      Whether to fill the last batch with repeated data to match the batch size.
+        @param dynamic_shape        Whether the iterator supports dynamic shapes.
+        @param last_batch_padded    Whether the last batch should be padded to match the batch size.
     """
 
     def __init__(self,

@@ -23,7 +23,7 @@ THE SOFTWARE.
 #include "meta_node_resize.h"
 
 void ResizeMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) {
-    if(_batch_size != input_meta_data->size()) {
+    if (_batch_size != input_meta_data->size()) {
         _batch_size = input_meta_data->size();
     }
     auto input_roi = _node->get_src_roi();

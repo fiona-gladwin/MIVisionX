@@ -20,19 +20,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <vx_ext_rpp.h>
-#include <graph.h>
 #include "node_random_crop.h"
+
+#include <graph.h>
+#include <vx_ext_rpp.h>
+
 #include "exception.h"
 
-RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        CropNode(inputs, outputs) {
+RandomCropNode::RandomCropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : CropNode(inputs, outputs) {
     _crop_param = std::make_shared<RocalRandomCropParam>(_batch_size);
 }
 
-void RandomCropNode::create_node()
-{
-    if(_node)
+void RandomCropNode::create_node() {
+    if (_node)
         return;
 
     _crop_param->create_array(_graph);
@@ -47,12 +47,11 @@ void RandomCropNode::create_node()
     _node = vxExtRppCrop(_graph->get(), _inputs[0]->handle(), _crop_tensor, _outputs[0]->handle(),
                          input_layout_vx, output_layout_vx, roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Error adding the random crop node (vxExtRppCrop) failed: " + TOSTR(status))
 }
 
-void RandomCropNode::update_node()
-{
+void RandomCropNode::update_node() {
     _crop_param->set_image_dimensions(_inputs[0]->info().get_roi());
     _crop_param->update_array();
     std::vector<uint32_t> crop_h_dims, crop_w_dims;
@@ -63,7 +62,7 @@ void RandomCropNode::update_node()
     auto x1 = _crop_param->get_x1_arr_val();
     auto y1 = _crop_param->get_y1_arr_val();
     RocalROI *crop_dims = static_cast<RocalROI *>(_crop_coordinates);
-    for(unsigned i = 0; i < _batch_size; i++) {
+    for (unsigned i = 0; i < _batch_size; i++) {
         crop_dims[i].x1 = x1[i];
         crop_dims[i].y1 = y1[i];
         crop_dims[i].x2 = crop_w_dims[i];

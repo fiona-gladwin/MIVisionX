@@ -24,13 +24,11 @@ THE SOFTWARE.
 #include "node_snow.h"
 #include "exception.h"
 
-
-SnowNode::SnowNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _snow_value(SNOW_VALUE_RANGE[0], SNOW_VALUE_RANGE[1]) {}
+SnowNode::SnowNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                _snow_value(SNOW_VALUE_RANGE[0], SNOW_VALUE_RANGE[1]) {}
 
 void SnowNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _snow_value.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
@@ -43,18 +41,17 @@ void SnowNode::create_node() {
 
     _node = vxExtRppSnow(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _snow_value.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the snow (vxExtRppSnow) node failed: " + TOSTR(status))
 }
 
-void SnowNode::init( float snow_value) {
+void SnowNode::init(float snow_value) {
     _snow_value.set_param(snow_value);
 }
 
-void SnowNode::init( FloatParam *snow_value_param) {
+void SnowNode::init(FloatParam *snow_value_param) {
     _snow_value.set_param(core(snow_value_param));
 }
-
 
 void SnowNode::update_node() {
     _snow_value.update_array();

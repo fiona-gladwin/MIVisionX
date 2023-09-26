@@ -24,8 +24,19 @@ THE SOFTWARE.
 #define MIVISIONX_ROCAL_API_TENSOR_H
 #include "rocal_api_types.h"
 
+/*!
+ * \file
+ * \brief The AMD rocAL Library - Tensor
+ *
+ * \defgroup group_rocal_tensor API: AMD rocAL - Tensor API
+ * \brief The AMD rocAL Tensor.
+ */
+
+/*!
+ * \brief class representing rocal tensor
+ */
 class rocalTensor {
-public:
+   public:
     virtual ~rocalTensor() = default;
     virtual void* buffer() = 0;
     virtual unsigned copy_data(void* user_buffer, RocalOutputMemType external_mem_type = ROCAL_MEMCPY_HOST) = 0;
@@ -38,20 +49,22 @@ public:
     virtual RocalTensorOutputType data_type() = 0;
     virtual size_t data_size() = 0;
     virtual RocalROICordsType roi_type() = 0;
-    virtual RocalROICords *get_roi() = 0;
+    virtual RocalROICords* get_roi() = 0;
     virtual std::vector<size_t> shape() = 0;
 };
 
+/*!
+ * \brief class representing rocal tensor list
+ */
 class rocalTensorList {
-public:
+   public:
     virtual uint64_t size() = 0;
     virtual rocalTensor* at(size_t index) = 0;
     // isDenseTensor
 };
 
-typedef rocalTensor * RocalTensor;
-typedef rocalTensorList * RocalTensorList;
-typedef std::vector<rocalTensorList *> RocalMetaData;
+typedef rocalTensor* RocalTensor;
+typedef rocalTensorList* RocalTensorList;
+typedef std::vector<rocalTensorList*> RocalMetaData;
 
-#endif //MIVISIONX_ROCAL_API_TENSOR_H
-
+#endif  // MIVISIONX_ROCAL_API_TENSOR_H
