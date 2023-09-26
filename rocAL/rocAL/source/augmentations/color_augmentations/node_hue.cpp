@@ -24,13 +24,11 @@ THE SOFTWARE.
 #include "node_hue.h"
 #include "exception.h"
 
-
-HueNode::HueNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _hue(HUE_RANGE[0], HUE_RANGE[1]) {}
+HueNode::HueNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                              _hue(HUE_RANGE[0], HUE_RANGE[1]) {}
 
 void HueNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _hue.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
@@ -43,7 +41,7 @@ void HueNode::create_node() {
 
     _node = vxExtRppHue(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _hue.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the hue (vxExtRppHue) node failed: " + TOSTR(status))
 }
 

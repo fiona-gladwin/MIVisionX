@@ -22,12 +22,12 @@ THE SOFTWARE.
 
 #pragma once
 #include "node.h"
-#include "parameter_factory.h"
 #include "parameter_crop_factory.h"
+#include "parameter_factory.h"
 #include "parameter_rocal_crop.h"
 
 class CropNode : public Node {
-public:
+   public:
     CropNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     CropNode() = delete;
     ~CropNode();
@@ -37,12 +37,14 @@ public:
     unsigned int get_dst_width() { return _outputs[0]->info().max_shape()[0]; }
     unsigned int get_dst_height() { return _outputs[0]->info().max_shape()[1]; }
     std::shared_ptr<RocalCropParam> get_crop_param() { return _crop_param; }
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
     void create_crop_tensor();
     void *_crop_coordinates = nullptr;
     vx_tensor _crop_tensor = nullptr;
-private:
+
+   private:
     std::shared_ptr<RocalCropParam> _crop_param;
 };

@@ -26,15 +26,17 @@ THE SOFTWARE.
 #include "parameter_vx.h"
 
 class SaturationNode : public Node {
-public:
+   public:
     SaturationNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     SaturationNode() = delete;
     void init(float sat);
     void init(FloatParam *sat);
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     ParameterVX<float> _saturation;
     constexpr static float SAT_RANGE[2] = {-0.5, 0.5};
 };

@@ -21,18 +21,15 @@ THE SOFTWARE.
 */
 
 #include "meta_node_ssd_random_crop.h"
-void SSDRandomCropMetaNode::initialize()
-{
+void SSDRandomCropMetaNode::initialize() {
     _crop_width_val.resize(_batch_size);
     _crop_height_val.resize(_batch_size);
     _x1_val.resize(_batch_size);
     _y1_val.resize(_batch_size);
 }
-void SSDRandomCropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
-{
+void SSDRandomCropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) {
     initialize();
-    if(_batch_size != input_meta_data->size())
-    {
+    if (_batch_size != input_meta_data->size()) {
         _batch_size = input_meta_data->size();
     }
     std::vector<std::pair<float, float>> iou_range = _node->get_iou_range();
@@ -44,12 +41,11 @@ void SSDRandomCropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pM
     _crop_height = _meta_crop_param->croph_arr;
     _x1 = _meta_crop_param->x1_arr;
     _y1 = _meta_crop_param->y1_arr;
-    vxCopyArrayRange((vx_array)_crop_width, 0, _batch_size, sizeof(uint),_crop_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_crop_height, 0, _batch_size, sizeof(uint),_crop_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint),_x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint),_y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    for(int i = 0; i < _batch_size; i++)
-    {
+    vxCopyArrayRange((vx_array)_crop_width, 0, _batch_size, sizeof(uint), _crop_width_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_crop_height, 0, _batch_size, sizeof(uint), _crop_height_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_x1, 0, _batch_size, sizeof(uint), _x1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_y1, 0, _batch_size, sizeof(uint), _y1_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    for (int i = 0; i < _batch_size; i++) {
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         Labels labels_buf = input_meta_data->get_labels_batch()[i];
         BoundingBoxCords box_coords_buf = input_meta_data->get_bb_cords_batch()[i];
@@ -60,14 +56,12 @@ void SSDRandomCropMetaNode::update_parameters(pMetaDataBatch input_meta_data, pM
         crop_box.t = _y1_val[i];
         crop_box.r = _x1_val[i] + _crop_width_val[i];
         crop_box.b = _y1_val[i] + _crop_height_val[i];
-        for(uint j = 0; j < bb_count; j++)
-        {
+        for (uint j = 0; j < bb_count; j++) {
             auto x_c = 0.5f * (box_coords_buf[j].l + box_coords_buf[j].r);
             auto y_c = 0.5f * (box_coords_buf[j].t + box_coords_buf[j].b);
             bool is_center_in_crop = (x_c >= crop_box.l && x_c <= crop_box.r) && (y_c >= crop_box.t && y_c <= crop_box.b);
             float bb_iou = BBoxIntersectionOverUnion(box_coords_buf[j], crop_box, entire_iou);
-            if (bb_iou >= iou_range[j].first && bb_iou <= iou_range[j].second && is_center_in_crop)
-            {
+            if (bb_iou >= iou_range[j].first && bb_iou <= iou_range[j].second && is_center_in_crop) {
                 float xA = std::max(crop_box.l, box_coords_buf[j].l);
                 float yA = std::max(crop_box.t, box_coords_buf[j].t);
                 float xB = std::min(crop_box.r, box_coords_buf[j].r);

@@ -28,26 +28,22 @@ THE SOFTWARE.
 #endif
 
 RocalStatus ROCAL_API_CALL
-rocalToTensor(RocalContext p_context, void *out_ptr, RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type, float multiplier0,
-                       float multiplier1, float multiplier2, float offset0, float offset1, float offset2,
-                       bool reverse_channels, RocalOutputMemType output_mem_type)
-{
+rocalToTensor(RocalContext p_context, void* out_ptr, RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type, float multiplier0,
+              float multiplier1, float multiplier2, float offset0, float offset1, float offset2,
+              bool reverse_channels, RocalOutputMemType output_mem_type) {
     auto context = static_cast<Context*>(p_context);
-    try
-    {
-        if(tensor_format != ROCAL_NHWC && tensor_format != ROCAL_NCHW)
+    try {
+        if (tensor_format != ROCAL_NHWC && tensor_format != ROCAL_NCHW)
             THROW("Supported only for NHWC and NCHW tensor layout")
 
-        if(tensor_output_type != ROCAL_FP32 && tensor_output_type != ROCAL_FP16)
+        if (tensor_output_type != ROCAL_FP32 && tensor_output_type != ROCAL_FP16)
             THROW("Supported only for FP32 and FP16 tensor data types")
 
-        auto tensor_layout = (tensor_format == ROCAL_NHWC) ?  RocalTensorlayout::NHWC : RocalTensorlayout::NCHW;
+        auto tensor_layout = (tensor_format == ROCAL_NHWC) ? RocalTensorlayout::NHWC : RocalTensorlayout::NCHW;
         auto tensor_output_data_type = (tensor_output_type == ROCAL_FP32) ? RocalTensorDataType::FP32 : RocalTensorDataType::FP16;
         context->master_graph->to_tensor(out_ptr, tensor_layout, multiplier0, multiplier1, multiplier2,
-                offset0, offset1, offset2, reverse_channels, tensor_output_data_type, output_mem_type);
-    }
-    catch(const std::exception& e)
-    {
+                                         offset0, offset1, offset2, reverse_channels, tensor_output_data_type, output_mem_type);
+    } catch (const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
         return ROCAL_RUNTIME_ERROR;
@@ -55,20 +51,15 @@ rocalToTensor(RocalContext p_context, void *out_ptr, RocalTensorLayout tensor_fo
     return ROCAL_OK;
 }
 
-
 RocalStatus ROCAL_API_CALL
 rocalCopyToOutput(
-        RocalContext p_context,
-        unsigned char * out_ptr,
-        size_t out_size)
-{
+    RocalContext p_context,
+    unsigned char* out_ptr,
+    size_t out_size) {
     auto context = static_cast<Context*>(p_context);
-    try
-    {
+    try {
         context->master_graph->copy_output(out_ptr, out_size);
-    }
-    catch(const std::exception& e)
-    {
+    } catch (const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
         return ROCAL_RUNTIME_ERROR;
@@ -77,13 +68,13 @@ rocalCopyToOutput(
 }
 
 void
-ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalTensor> &output_tensors)
-{
+    ROCAL_API_CALL
+    rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalTensor>& output_tensors) {
     if (!p_context)
         THROW("Invalid rocal context passed to rocalSetOutputs")
-    auto context = static_cast<Context *>(p_context);
+    auto context = static_cast<Context*>(p_context);
     for (auto& it : output_tensors) {
-        auto tensor = static_cast<Tensor *>(it);
+        auto tensor = static_cast<Tensor*>(it);
         context->master_graph->set_output(tensor);
     }
 }
@@ -93,7 +84,7 @@ rocalGetOutputTensors(RocalContext p_context) {
     auto context = static_cast<Context*>(p_context);
     try {
         return context->master_graph->get_output_tensors();
-    } catch(const std::exception& e) {
+    } catch (const std::exception& e) {
         context->capture_error(e.what());
         ERR(e.what())
         return nullptr;

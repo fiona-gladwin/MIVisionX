@@ -24,13 +24,11 @@ THE SOFTWARE.
 #include "node_rotate.h"
 #include "exception.h"
 
-
-RotateNode::RotateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _angle(ROTATE_ANGLE_RANGE[0], ROTATE_ANGLE_RANGE[1]) {}
+RotateNode::RotateNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                    _angle(ROTATE_ANGLE_RANGE[0], ROTATE_ANGLE_RANGE[1]) {}
 
 void RotateNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _angle.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
@@ -45,7 +43,7 @@ void RotateNode::create_node() {
     _node = vxExtRppRotate(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _angle.default_array(),
                            interpolation_vx, input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the rotate (vxExtRppRotate) node failed: " + TOSTR(status))
 }
 
@@ -54,7 +52,7 @@ void RotateNode::init(float angle, RocalResizeInterpolationType interpolation_ty
     _interpolation_type = static_cast<int>(interpolation_type);
 }
 
-void RotateNode::init(FloatParam* angle, RocalResizeInterpolationType interpolation_type) {
+void RotateNode::init(FloatParam *angle, RocalResizeInterpolationType interpolation_type) {
     _angle.set_param(core(angle));
     _interpolation_type = static_cast<int>(interpolation_type);
 }

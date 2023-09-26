@@ -20,16 +20,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 #include "video_decoder_factory.h"
-#include <video_decoder.h>
+
 #include <ffmpeg_video_decoder.h>
 #include <hardware_video_decoder.h>
+#include <video_decoder.h>
+
 #include "commons.h"
 
 #ifdef ROCAL_VIDEO
-std::shared_ptr<VideoDecoder> create_video_decoder(DecoderConfig config)
-{
-    switch (config.type())
-    {
+std::shared_ptr<VideoDecoder> create_video_decoder(DecoderConfig config) {
+    switch (config.type()) {
         case DecoderType::FFMPEG_SOFTWARE_DECODE:
             return std::make_shared<FFmpegVideoDecoder>();
         case DecoderType::FFMPEG_HARDWARE_DECODE:
