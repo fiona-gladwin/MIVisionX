@@ -21,19 +21,20 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <map>
 #include <dirent.h>
-#include <memory>
+
 #include <list>
+#include <map>
+#include <memory>
 #include <variant>
+
 #include "commons.h"
 #include "meta_data.h"
 #include "meta_data_reader.h"
 #include "image_reader.h"
 
-class Caffe2MetaDataReader: public MetaDataReader
-{
-public :
+class Caffe2MetaDataReader : public MetaDataReader {
+   public:
     void init(const MetaDataConfig& cfg, pMetaDataBatch meta_data_batch) override;
     void lookup(const std::vector<std::string>& image_names) override;
     void read_all(const std::string& path) override;
@@ -41,11 +42,12 @@ public :
     void release() override;
     void print_map_contents();
     bool set_timestamp_mode() override { return false; }
-    std::map<std::string, std::shared_ptr<MetaData>> &get_map_content() override { return (_map_content);}
+    std::map<std::string, std::shared_ptr<MetaData>>& get_map_content() override { return (_map_content); }
     Caffe2MetaDataReader();
-private:
+
+   private:
     void read_files(const std::string& _path);
-    bool exists(const std::string &image_name) override;
+    bool exists(const std::string& image_name) override;
     void add(std::string image_name, int label);
     bool _last_rec;
     void read_lmdb_record(std::string file_name, uint file_size);
@@ -53,8 +55,8 @@ private:
     std::map<std::string, std::shared_ptr<MetaData>>::iterator _itr;
     std::string _path;
     pMetaDataBatch _output;
-    DIR *_src_dir;
-    struct dirent *_entity;
+    DIR* _src_dir;
+    struct dirent* _entity;
     std::vector<std::string> _file_names;
     std::vector<std::string> _image_name;
 };

@@ -21,27 +21,25 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <memory>
 #include <map>
-#include "turbo_jpeg_decoder.h"
+#include <memory>
+
+#include "loader_module.h"
 #include "reader_factory.h"
 #include "timing_debug.h"
-#include "loader_module.h"
-enum class ImageSourceEvaluatorStatus
-{
+#include "turbo_jpeg_decoder.h"
+enum class ImageSourceEvaluatorStatus {
     OK = 0,
-    UNSUPPORTED_DECODER_TYPE, 
+    UNSUPPORTED_DECODER_TYPE,
     UNSUPPORTED_STORAGE_TYPE,
 };
-enum class MaxSizeEvaluationPolicy
-{
+enum class MaxSizeEvaluationPolicy {
     MAXIMUM_FOUND_SIZE,
     MOST_FREQUENT_SIZE
 };
 
-class ImageSourceEvaluator
-{
-public:
+class ImageSourceEvaluator {
+   public:
     ImageSourceEvaluatorStatus create(ReaderConfig reader_cfg, DecoderConfig decoder_cfg);
     ImageSourceEvaluatorStatus create(ReaderConfig reader_cfg);
     void find_max_dimension();
@@ -52,20 +50,20 @@ public:
     std::vector<size_t> max_numpy_dims() { return _max_numpy_dims; };
     RocalTensorDataType get_numpy_dtype() { return _numpy_dtype; };
 
-private:
-    class FindMaxSize
-    {
-    public:
+   private:
+    class FindMaxSize {
+       public:
         void set_policy(MaxSizeEvaluationPolicy arg) { _policy = arg; }
         void process_sample(unsigned val);
         unsigned get_max() { return _max; };
-    private:
+
+       private:
         MaxSizeEvaluationPolicy _policy = MaxSizeEvaluationPolicy::MOST_FREQUENT_SIZE;
-        std::map<unsigned,unsigned> _hist;
+        std::map<unsigned, unsigned> _hist;
         unsigned _max = 0;
         unsigned _max_count = 0;
-    }; 
-    FindMaxSize _width_max; 
+    };
+    FindMaxSize _width_max;
     FindMaxSize _height_max;
     FindMaxSize _channel_max;
     std::vector<size_t> _max_numpy_dims;
@@ -75,6 +73,5 @@ private:
     std::shared_ptr<Reader> _reader;
     std::shared_ptr<MetaDataReader> _meta_data_reader;
     std::vector<unsigned char> _header_buff;
-    static const size_t COMPRESSED_SIZE = 1024 * 1024; // 1 MB
+    static const size_t COMPRESSED_SIZE = 1024 * 1024;  // 1 MB
 };
-

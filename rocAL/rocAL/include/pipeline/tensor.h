@@ -60,17 +60,17 @@ vx_uint64 tensor_data_size(RocalTensorDataType data_type);
  * @param RocalMemType For HIP memType pinned memory is allocated
  *        else HOST memory is allocated
  */
-void allocate_host_or_pinned_mem(void **ptr, size_t size, RocalMemType mem_type);
+void allocate_host_or_pinned_mem(void** ptr, size_t size, RocalMemType mem_type);
 
 struct ROI {
-    unsigned *get_ptr() { return _roi_ptr.get(); }
+    unsigned* get_ptr() { return _roi_ptr.get(); }
     ROI2DCords* get_2D_roi() {
         if (_roi_no_of_dims != 2)
             THROW("ROI has more than 2 dimensions. Cannot return ROI2DCords")
         return reinterpret_cast<ROI2DCords*>(_roi_ptr.get());
     }
-    void set_ptr(unsigned *ptr, RocalMemType mem_type, unsigned batch_size, unsigned no_of_dims = 0) {
-        if(!_roi_no_of_dims) _roi_no_of_dims = no_of_dims;
+    void set_ptr(unsigned* ptr, RocalMemType mem_type, unsigned batch_size, unsigned no_of_dims = 0) {
+        if (!_roi_no_of_dims) _roi_no_of_dims = no_of_dims;
         _stride = _roi_no_of_dims * 2;
         _roi_buffer_size = batch_size * _roi_no_of_dims * 2 * sizeof(unsigned);
         _roi_buf = ptr;
@@ -82,13 +82,13 @@ struct ROI {
             _roi_ptr.reset(_roi_buf, free);
         }
     }
-    void reset_ptr(unsigned *ptr) {
-        auto deleter = [&](unsigned *ptr) {};   // Empty destructor used, since memory is handled by the pipeline
+    void reset_ptr(unsigned* ptr) {
+        auto deleter = [&](unsigned* ptr) {};  // Empty destructor used, since memory is handled by the pipeline
         _roi_ptr.reset(ptr, deleter);
     }
-    void copy(void *roi_buffer) {
-        if(_roi_ptr.get() != nullptr && roi_buffer != nullptr)
-            memcpy((void *)roi_buffer, (const void *)_roi_ptr.get(), _roi_buffer_size);
+    void copy(void* roi_buffer) {
+        if (_roi_ptr.get() != nullptr && roi_buffer != nullptr)
+            memcpy((void*)roi_buffer, (const void*)_roi_ptr.get(), _roi_buffer_size);
     }
     unsigned no_of_dims() { return _roi_no_of_dims; }
     ROICords& operator[](const int i) {
@@ -96,8 +96,9 @@ struct ROI {
         _roi_coords.shape = (_roi_buf + (i * _stride) + _roi_no_of_dims);
         return _roi_coords;
     }
-private:
-    unsigned *_roi_buf = nullptr;
+
+   private:
+    unsigned* _roi_buf = nullptr;
     std::shared_ptr<unsigned> _roi_ptr;
     unsigned _roi_no_of_dims = 0;
     unsigned _stride = 0;
@@ -107,7 +108,7 @@ private:
 
 /*! \brief Holds the information about a Tensor */
 class TensorInfo {
-public:
+   public:
     friend class Tensor;
     enum class Type {
         UNKNOWN = -1,
@@ -122,7 +123,7 @@ public:
 
     //! Initializer constructor with only fields common to all types (Image/ Video / Audio)
     TensorInfo(std::vector<size_t> dims, RocalMemType mem_type,
-                    RocalTensorDataType data_type);
+               RocalTensorDataType data_type);
     TensorInfo(std::vector<size_t> dims, RocalMemType mem_type,
                RocalTensorDataType data_type, RocalTensorlayout layout,
                RocalColorFormat color_format);
@@ -130,13 +131,13 @@ public:
     // Setting properties required for Image / Video
     void set_roi_type(RocalROIType roi_type) { _roi_type = roi_type; }
     void set_data_type(RocalTensorDataType data_type) {
-        if(_data_type == data_type)
+        if (_data_type == data_type)
             return;
         _data_type = data_type;
         _data_size = (_data_size / _data_type_size);
         _data_size *= data_type_size();
     }
-    void get_modified_dims_from_layout(RocalTensorlayout input_layout, RocalTensorlayout output_layout, std::vector<size_t> &new_dims) {
+    void get_modified_dims_from_layout(RocalTensorlayout input_layout, RocalTensorlayout output_layout, std::vector<size_t>& new_dims) {
         std::vector<size_t> dims_mapping;
         if (input_layout == RocalTensorlayout::NHWC && output_layout == RocalTensorlayout::NCHW) {
             dims_mapping = {0, 3, 1, 2};
@@ -148,8 +149,8 @@ public:
             dims_mapping = {0, 1, 3, 4, 2};
         } else {
             THROW("Invalid layout conversion")
-        }   
-        for(unsigned i = 0; i < _num_of_dims; i++)
+        }
+        for (unsigned i = 0; i < _num_of_dims; i++)
             new_dims[i] = _dims.at(dims_mapping[i]);
     }
     void set_max_shape() {
@@ -174,8 +175,8 @@ public:
                 _max_shape[1] = _dims.at(3);
                 _channels = _dims.at(2);
             }
-        } else {  // For other tensors
-            if (!_max_shape.size()) _max_shape.resize(_num_of_dims - 1, 0);       // Since 2 values will be stored in the vector
+        } else {                                                             // For other tensors
+            if (!_max_shape.size()) _max_shape.resize(_num_of_dims - 1, 0);  // Since 2 values will be stored in the vector
             _max_shape.assign(_dims.begin() + 1, _dims.end());
         }
         reset_tensor_roi_buffers();
@@ -201,7 +202,7 @@ public:
         }
     }
     void modify_dims_width_and_height(RocalTensorlayout layout, size_t width, size_t height) {
-        switch(_layout) {
+        switch (_layout) {
             case RocalTensorlayout::NHWC: {
                 _max_shape[1] = _dims[1] = height;
                 _max_shape[0] = _dims[2] = width;
@@ -211,7 +212,7 @@ public:
             case RocalTensorlayout::NFHWC: {
                 _max_shape[1] = _dims[2] = height;
                 _max_shape[0] = _dims[3] = width;
-                break;   
+                break;
             }
             case RocalTensorlayout::NFCHW: {
                 _max_shape[1] = _dims[3] = height;
@@ -223,9 +224,9 @@ public:
             }
         }
         modify_strides();
-        _data_size = _strides[0] * _dims[0];    // Modify data size wrt latest width and height
-        set_tensor_layout(layout);              // Modify the layout and dims based on the layout input
-        reset_tensor_roi_buffers();             // Reset ROI buffers to reflect the modified width and height
+        _data_size = _strides[0] * _dims[0];  // Modify data size wrt latest width and height
+        set_tensor_layout(layout);            // Modify the layout and dims based on the layout input
+        reset_tensor_roi_buffers();           // Reset ROI buffers to reflect the modified width and height
     }
     void modify_strides() {
         _strides[_num_of_dims - 1] = _data_type_size;
@@ -261,21 +262,21 @@ public:
     bool is_image() const { return _is_image; }
     void set_metadata() { _is_metadata = true; }
     bool is_metadata() const { return _is_metadata; }
-    void set_roi_ptr(unsigned *roi_ptr) { _roi.reset_ptr(roi_ptr); }
-    void copy_roi(void *roi_buffer) { _roi.copy(roi_buffer); }
+    void set_roi_ptr(unsigned* roi_ptr) { _roi.reset_ptr(roi_ptr); }
+    void copy_roi(void* roi_buffer) { _roi.copy(roi_buffer); }
 
-private:
-    Type _type = Type::UNKNOWN;  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor
-    unsigned _num_of_dims;  //!< denotes the number of dimensions in the tensor
-    std::vector<size_t> _dims;  //!< denotes the dimensions of the tensor
-    std::vector<size_t> _strides; //!< stores the stride for each dimension in the tensor
-    unsigned _batch_size;       //!< the batch size
-    RocalMemType _mem_type;     //!< memory type, currently either OpenCL or Host
-    RocalROIType _roi_type = RocalROIType::XYWH;     //!< ROI type, currently either XYWH or LTRB
+   private:
+    Type _type = Type::UNKNOWN;                                  //!< tensor type, whether is virtual tensor, created from handle or is a regular tensor
+    unsigned _num_of_dims;                                       //!< denotes the number of dimensions in the tensor
+    std::vector<size_t> _dims;                                   //!< denotes the dimensions of the tensor
+    std::vector<size_t> _strides;                                //!< stores the stride for each dimension in the tensor
+    unsigned _batch_size;                                        //!< the batch size
+    RocalMemType _mem_type;                                      //!< memory type, currently either OpenCL or Host
+    RocalROIType _roi_type = RocalROIType::XYWH;                 //!< ROI type, currently either XYWH or LTRB
     RocalTensorDataType _data_type = RocalTensorDataType::FP32;  //!< tensor data type
-    RocalTensorlayout _layout = RocalTensorlayout::NONE;     //!< layout of the tensor
-    RocalColorFormat _color_format;  //!< color format of the image
-    void *_roi_buf = nullptr;
+    RocalTensorlayout _layout = RocalTensorlayout::NONE;         //!< layout of the tensor
+    RocalColorFormat _color_format;                              //!< color format of the image
+    void* _roi_buf = nullptr;
     ROI _roi;
     uint64_t _data_type_size = tensor_data_size(_data_type);
     uint64_t _data_size = 0;
@@ -283,16 +284,16 @@ private:
     void reset_tensor_roi_buffers();
     bool _is_image = false;
     bool _is_metadata = false;
-    size_t _channels = 3;   //!< stores the channel dimensions in the tensor
+    size_t _channels = 3;  //!< stores the channel dimensions in the tensor
 };
 
 bool operator==(const TensorInfo& rhs, const TensorInfo& lhs);
 /*! \brief Holds an OpenVX tensor and it's info
-* Keeps the information about the tensor that can be queried using OVX API as
-* well, but for simplicity and ease of use, they are kept in separate fields
-*/
+ * Keeps the information about the tensor that can be queried using OVX API as
+ * well, but for simplicity and ease of use, they are kept in separate fields
+ */
 class Tensor : public rocalTensor {
-public:
+   public:
     int swap_handle(void* handle);
     const TensorInfo& info() { return _info; }
     //! Default constructor
@@ -315,12 +316,12 @@ public:
     //! Constructor accepting the tensor information as input
     explicit Tensor(const TensorInfo& tensor_info);
     int create(vx_context context);
-    void create_roi_tensor_from_handle(void **handle);
+    void create_roi_tensor_from_handle(void** handle);
     void update_tensor_roi(const std::vector<uint32_t>& width, const std::vector<uint32_t>& height);
-    void update_tensor_roi(const std::vector<std::vector<uint32_t>> &shape);
+    void update_tensor_roi(const std::vector<std::vector<uint32_t>>& shape);
     void reset_tensor_roi() { _info.reset_tensor_roi_buffers(); }
-    void set_roi(unsigned *roi_ptr) { _info.set_roi_ptr(roi_ptr); }
-    void copy_roi(void *roi_buffer) override { _info.copy_roi(roi_buffer); }
+    void set_roi(unsigned* roi_ptr) { _info.set_roi_ptr(roi_ptr); }
+    void copy_roi(void* roi_buffer) override { _info.copy_roi(roi_buffer); }
     size_t get_roi_dims_size() override { return _info.roi().no_of_dims(); }
     vx_tensor get_roi_tensor() { return _vx_roi_handle; }
     // create_from_handle() no internal memory allocation is done here since
@@ -339,20 +340,21 @@ public:
     RocalROICordsType roi_type() override { return (RocalROICordsType)_info.roi_type(); }
     std::vector<size_t> shape() override { return _info.max_shape(); }
     RocalImageColor color_format() const { return (RocalImageColor)_info.color_format(); }
-    RocalTensorBackend backend() override { 
+    RocalTensorBackend backend() override {
         return (_info.mem_type() == RocalMemType::HOST ? ROCAL_CPU : ROCAL_GPU);
     }
-private:
+
+   private:
     vx_tensor _vx_handle = nullptr;  //!< The OpenVX tensor
-    void* _mem_handle = nullptr;  //!< Pointer to the tensor's internal buffer (opencl or host)
-    TensorInfo _info;  //!< The structure holding the info related to the stored OpenVX tensor
+    void* _mem_handle = nullptr;     //!< Pointer to the tensor's internal buffer (opencl or host)
+    TensorInfo _info;                //!< The structure holding the info related to the stored OpenVX tensor
     vx_context _context = nullptr;
     vx_tensor _vx_roi_handle = nullptr;  //!< The OpenVX tensor for ROI
 };
 
 /*! \brief Contains a list of rocalTensors */
 class TensorList : public rocalTensorList {
-public:
+   public:
     uint64_t size() override { return _tensor_list.size(); }
     bool empty() { return _tensor_list.empty(); }
     Tensor* front() { return _tensor_list.front(); }
@@ -360,7 +362,7 @@ public:
         _tensor_list.emplace_back(tensor);
         _tensor_data_size.emplace_back(tensor->info().data_size());
     }
-    std::vector<uint64_t> &data_size() { return _tensor_data_size; }
+    std::vector<uint64_t>& data_size() { return _tensor_data_size; }
     void release() {
         for (auto& tensor : _tensor_list) delete tensor;
     }
@@ -375,7 +377,7 @@ public:
         }
     }
 
-private:
+   private:
     std::vector<Tensor*> _tensor_list;
     std::vector<uint64_t> _tensor_data_size;
 };

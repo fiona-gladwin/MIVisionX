@@ -20,21 +20,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <memory>
-#include <sstream>
-#include <numeric>
 #include "node_video_loader.h"
+
+#include <memory>
+#include <numeric>
+#include <sstream>
 #ifdef ROCAL_VIDEO
 
-VideoLoaderNode::VideoLoaderNode(Tensor *output, void *device_resources):
-	Node({}, {output})
-{
+VideoLoaderNode::VideoLoaderNode(Tensor *output, void *device_resources) : Node({}, {output}) {
     _loader_module = std::make_shared<VideoLoaderSharded>(device_resources);
 }
 
 void VideoLoaderNode::init(unsigned internal_shard_count, const std::string &source_path, StorageType storage_type, DecoderType decoder_type, DecodeMode decoder_mode,
-                           unsigned sequence_length, unsigned step, unsigned stride, VideoProperties &video_prop, bool shuffle, bool loop, size_t load_batch_count, RocalMemType mem_type)
-{
+                           unsigned sequence_length, unsigned step, unsigned stride, VideoProperties &video_prop, bool shuffle, bool loop, size_t load_batch_count, RocalMemType mem_type) {
     _decode_mode = decoder_mode;
     if (!_loader_module)
         THROW("ERROR: loader module is not set for VideoLoaderNode, cannot initialize")
@@ -53,15 +51,13 @@ void VideoLoaderNode::init(unsigned internal_shard_count, const std::string &sou
     _loader_module->start_loading();
 }
 
-std::shared_ptr<LoaderModule> VideoLoaderNode::get_loader_module()
-{
+std::shared_ptr<LoaderModule> VideoLoaderNode::get_loader_module() {
     if (!_loader_module)
         WRN("VideoLoaderNode's loader module is null, not initialized")
     return _loader_module;
 }
 
-VideoLoaderNode::~VideoLoaderNode()
-{
+VideoLoaderNode::~VideoLoaderNode() {
     _loader_module = nullptr;
 }
 

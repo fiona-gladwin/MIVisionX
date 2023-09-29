@@ -21,21 +21,18 @@ THE SOFTWARE.
 */
 
 #include "node_numpy_loader.h"
+
 #include "exception.h"
 
-NumpyLoaderNode::NumpyLoaderNode(Tensor *output, void *device_resources):
-        Node({}, {output})
-{
+NumpyLoaderNode::NumpyLoaderNode(Tensor *output, void *device_resources) : Node({}, {output}) {
     _loader_module = std::make_shared<NumpyLoaderSharded>(device_resources);
 }
 
-
 void NumpyLoaderNode::init(unsigned internal_shard_count, const std::string &source_path, const std::string &json_path, StorageType storage_type, DecoderType decoder_type, bool shuffle, bool loop,
-                           size_t load_batch_count, RocalMemType mem_type, bool decoder_keep_orig, const std::map<std::string, std::string> feature_key_map, const char* file_prefix, unsigned sequence_length, unsigned step, unsigned stride)
-{
-    if(!_loader_module)
+                           size_t load_batch_count, RocalMemType mem_type, bool decoder_keep_orig, const std::map<std::string, std::string> feature_key_map, const char *file_prefix, unsigned sequence_length, unsigned step, unsigned stride) {
+    if (!_loader_module)
         THROW("ERROR: loader module is not set for NumpyLoaderNode, cannot initialize")
-    if(internal_shard_count < 1)
+    if (internal_shard_count < 1)
         THROW("Shard count should be greater than or equal to one")
     _loader_module->set_output(_outputs[0]);
     // Set reader and decoder config accordingly for the NumpyLoaderNode
@@ -48,19 +45,17 @@ void NumpyLoaderNode::init(unsigned internal_shard_count, const std::string &sou
     reader_cfg.set_frame_step(step);
     reader_cfg.set_frame_stride(stride);
     _loader_module->initialize(reader_cfg, DecoderConfig(DecoderType::SKIP_DECODE),
-                              mem_type,
-                              _batch_size, decoder_keep_orig);
+                               mem_type,
+                               _batch_size, decoder_keep_orig);
     _loader_module->start_loading();
 }
 
-std::shared_ptr<LoaderModule> NumpyLoaderNode::get_loader_module()
-{
-    if(!_loader_module)
+std::shared_ptr<LoaderModule> NumpyLoaderNode::get_loader_module() {
+    if (!_loader_module)
         WRN("NumpyLoaderNode's loader module is null, not initialized")
     return _loader_module;
 }
 
-NumpyLoaderNode::~NumpyLoaderNode()
-{
+NumpyLoaderNode::~NumpyLoaderNode() {
     _loader_module = nullptr;
 }

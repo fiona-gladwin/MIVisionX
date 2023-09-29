@@ -21,23 +21,24 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <set>
-#include <memory>
 #include <algorithm>
+#include <memory>
+#include <set>
+
 #include "bounding_box_graph.h"
 #include "meta_data.h"
 #include "node.h"
 #include "node_flip.h"
 #include "parameter_vx.h"
 
-class FlipMetaNode:public MetaNode
-{
-    public:
-        FlipMetaNode() {};
-        void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
-        std::shared_ptr<FlipNode> _node = nullptr;
-    private:
-        void initialize();
-        vx_array _src_width, _src_height;
-        std::vector<int> _h_flip_val, _v_flip_val;
+class FlipMetaNode : public MetaNode {
+   public:
+    FlipMetaNode(){};
+    void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
+    std::shared_ptr<FlipNode> _node = nullptr;
+
+   private:
+    void initialize();
+    vx_array _src_width, _src_height;
+    std::vector<int> _h_flip_val, _v_flip_val;
 };

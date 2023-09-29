@@ -21,17 +21,18 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <vector>
-#include <string>
-#include <memory>
 #include <dirent.h>
-#include "image_reader.h"
+
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "commons.h"
+#include "image_reader.h"
 #include "timing_debug.h"
 
-
 class NumpyDataReader : public Reader {
-public:
+   public:
     //! Looks up the folder which contains the files, amd loads the image names
     /*!
      \param desc  User provided descriptor containing the files' path.
@@ -64,26 +65,26 @@ public:
     ~NumpyDataReader() override;
 
     int close() override;
-    
+
     NumpyDataReader();
 
-private:
+   private:
     //! opens the folder containnig the images
     Reader::Status open_folder();
     Reader::Status subfolder_reading();
     std::string _folder_path;
-    DIR *_src_dir;
-    DIR *_sub_dir;
-    struct dirent *_entity;
+    DIR* _src_dir;
+    DIR* _sub_dir;
+    struct dirent* _entity;
     std::vector<std::string> _file_names;
     std::vector<NumpyHeaderData> _file_headers;
-    unsigned  _curr_file_idx;
+    unsigned _curr_file_idx;
     FILE* _current_fPtr;
     unsigned _current_file_size;
     std::string _last_id;
     std::string _last_file_name;
     size_t _shard_id = 0;
-    size_t _shard_count = 1;// equivalent of batch size
+    size_t _shard_count = 1;  // equivalent of batch size
     //!< _batch_count Defines the quantum count of the images to be read. It's usually equal to the user's batch size.
     /// The loader will repeat images if necessary to be able to have images available in multiples of the load_batch_count,
     /// for instance if there are 10 images in the dataset and _batch_count is 3, the loader repeats 2 images as if there are 12 images available.
@@ -94,10 +95,10 @@ private:
     bool _shuffle;
     int _read_counter = 0;
     //!< _file_count_all_shards total_number of files in to figure out the max_batch_size (usually needed for distributed training).
-    size_t  _file_count_all_shards;
-    const RocalTensorDataType TypeFromNumpyStr(const std::string &format);
+    size_t _file_count_all_shards;
+    const RocalTensorDataType TypeFromNumpyStr(const std::string& format);
     inline void SkipSpaces(const char*& ptr);
-    void ParseHeaderContents(NumpyHeaderData& target, const std::string &header);
+    void ParseHeaderContents(NumpyHeaderData& target, const std::string& header);
     template <size_t N>
     void Skip(const char*& ptr, const char (&what)[N]);
     template <size_t N>
@@ -107,7 +108,7 @@ private:
     template <typename T = int64_t>
     T ParseInteger(const char*& ptr);
     std::string ParseStringValue(const char*& input, char delim_start = '\'', char delim_end = '\'');
-    void ParseHeader(NumpyHeaderData &parsed_header, std::string file_path);
+    void ParseHeader(NumpyHeaderData& parsed_header, std::string file_path);
     void incremenet_read_ptr();
     int release();
     size_t get_file_shard_id();
@@ -116,4 +117,3 @@ private:
     void replicate_last_batch_to_pad_partial_shard();
     TimingDBG _shuffle_time;
 };
-

@@ -21,12 +21,12 @@ THE SOFTWARE.
 */
 
 #pragma once
+#include "graph.h"
 #include "node.h"
 #include "numpy_loader_sharded.h"
-#include "graph.h"
 
 class NumpyLoaderNode : public Node {
-public:
+   public:
     /// \param device_resources shard count from user
 
     /// internal_shard_count number of loader/decoders are created and each shard is loaded and decoded using separate and independent resources increasing the parallelism and performance.
@@ -43,9 +43,11 @@ public:
               size_t load_batch_count, RocalMemType mem_type, bool decoder_keep_orig = false, const std::map<std::string, std::string> feature_key_map = std::map<std::string, std::string>(), const char *prefix = "", unsigned sequence_length = 0, unsigned step = 0, unsigned stride = 0);
 
     std::shared_ptr<LoaderModule> get_loader_module();
-protected:
+
+   protected:
     void create_node() override{};
     void update_node() override{};
-private:
+
+   private:
     std::shared_ptr<NumpyLoaderSharded> _loader_module = nullptr;
 };

@@ -25,22 +25,25 @@ import sys
 if sys.version_info < (3, 0):
     sys.exit('rocal Python Package requires Python > 3.0')
 
+
 class BinaryDistribution(Distribution):
     """Distribution which always forces a binary package with platform name"""
     @classmethod
     def has_ext_modules(self):
         return True
 
+
 setup(
-      name='amd-rocal',
-      description='AMD ROCm Augmentation Library',
-      url='https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX/rocAL',
-      version='1.0.0',
-      author='AMD',
-      license='Apache License 2.0',
-      packages=find_packages(where='@TARGET_NAME@'),
-      package_dir={'amd':'@TARGET_NAME@/amd'},
-      include_package_data=True,
-      ext_modules=[Extension('rocal_pybind',sources=['rocal_pybind.cpp'], include_dirs=['@pybind11_INCLUDE_DIRS@', '@PROJECT_SOURCE_DIR@/../rocAL/include/api'])],
-      distclass=BinaryDistribution
-      )
+    name='amd-rocal',
+    description='AMD ROCm Augmentation Library',
+    url='https://github.com/GPUOpen-ProfessionalCompute-Libraries/MIVisionX/rocAL',
+    version='1.0.0',
+    author='AMD',
+    license='Apache License 2.0',
+    packages=find_packages(where='@TARGET_NAME@'),
+    package_dir={'amd': '@TARGET_NAME@/amd'},
+    include_package_data=True,
+    ext_modules=[Extension('rocal_pybind', sources=['rocal_pybind.cpp'], include_dirs=[
+                           '@pybind11_INCLUDE_DIRS@', '@PROJECT_SOURCE_DIR@/../rocAL/include/api'])],
+    distclass=BinaryDistribution
+)

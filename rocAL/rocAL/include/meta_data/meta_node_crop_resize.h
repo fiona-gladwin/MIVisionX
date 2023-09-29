@@ -21,22 +21,23 @@ THE SOFTWARE.
 */
 
 #pragma once
-#include <set>
 #include <memory>
+#include <set>
+
 #include "bounding_box_graph.h"
 #include "meta_data.h"
 #include "node.h"
 #include "node_crop_resize.h"
 #include "parameter_vx.h"
-class CropResizeMetaNode:public MetaNode
-{
-    public:
-        CropResizeMetaNode() {};
-        void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
-        std::shared_ptr<CropResizeNode> _node = nullptr;
-    private:
-        void initialize();
-        std::shared_ptr<RocalRandomCropParam> _meta_crop_param;
-        vx_array _x1, _y1, _x2, _y2;
-        std::vector<uint> _x1_val, _y1_val, _x2_val, _y2_val;
+class CropResizeMetaNode : public MetaNode {
+   public:
+    CropResizeMetaNode(){};
+    void update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) override;
+    std::shared_ptr<CropResizeNode> _node = nullptr;
+
+   private:
+    void initialize();
+    std::shared_ptr<RocalRandomCropParam> _meta_crop_param;
+    vx_array _x1, _y1, _x2, _y2;
+    std::vector<uint> _x1_val, _y1_val, _x2_val, _y2_val;
 };

@@ -24,13 +24,11 @@ THE SOFTWARE.
 #include "node_saturation.h"
 #include "exception.h"
 
-
-SaturationNode::SaturationNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _saturation(SAT_RANGE[0], SAT_RANGE[1]) {}
+SaturationNode::SaturationNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                            _saturation(SAT_RANGE[0], SAT_RANGE[1]) {}
 
 void SaturationNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _saturation.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
@@ -43,7 +41,7 @@ void SaturationNode::create_node() {
 
     _node = vxExtRppSaturation(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _saturation.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the saturation (vxExtRppSaturation) node failed: " + TOSTR(status))
 }
 

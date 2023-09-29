@@ -20,17 +20,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <cassert>
-#include <algorithm>
-#include <commons.h>
 #include "numpy_data_reader.h"
+
+#include <commons.h>
+
+#include <algorithm>
 #include <boost/filesystem.hpp>
+#include <cassert>
 
 namespace filesys = boost::filesystem;
 
-NumpyDataReader::NumpyDataReader():
-_shuffle_time("shuffle_time", DBG_TIMING)
-{
+NumpyDataReader::NumpyDataReader() : _shuffle_time("shuffle_time", DBG_TIMING) {
     _src_dir = nullptr;
     _sub_dir = nullptr;
     _entity = nullptr;
@@ -43,17 +43,15 @@ _shuffle_time("shuffle_time", DBG_TIMING)
     _file_count_all_shards = 0;
 }
 
-unsigned NumpyDataReader::count_items()
-{
-    if(_loop)
+unsigned NumpyDataReader::count_items() {
+    if (_loop)
         return _file_names.size();
 
-    int ret = ((int)_file_names.size() -_read_counter);
+    int ret = ((int)_file_names.size() - _read_counter);
     return ((ret < 0) ? 0 : ret);
 }
 
-Reader::Status NumpyDataReader::initialize(ReaderConfig desc)
-{
+Reader::Status NumpyDataReader::initialize(ReaderConfig desc) {
     auto ret = Reader::Status::OK;
     _file_id = 0;
     _folder_path = desc.path();
@@ -66,46 +64,41 @@ Reader::Status NumpyDataReader::initialize(ReaderConfig desc)
     // the following code is required to make every shard the same size:: required for multi-gpu training
     if (_shard_count > 1 && _batch_count > 1) {
         int _num_batches = _file_names.size() / _batch_count;
-        int max_batches_per_shard = (_file_count_all_shards + _shard_count-1) / _shard_count;
-        max_batches_per_shard = (max_batches_per_shard + _batch_count-1) / _batch_count;
+        int max_batches_per_shard = (_file_count_all_shards + _shard_count - 1) / _shard_count;
+        max_batches_per_shard = (max_batches_per_shard + _batch_count - 1) / _batch_count;
         if (_num_batches < max_batches_per_shard) {
             replicate_last_batch_to_pad_partial_shard();
         }
     }
-    //shuffle dataset if set
+    // shuffle dataset if set
     _shuffle_time.start();
-    if( ret==Reader::Status::OK && _shuffle)
+    if (ret == Reader::Status::OK && _shuffle)
         std::random_shuffle(_file_names.begin(), _file_names.end());
     _shuffle_time.end();
     return ret;
-
 }
 
-void NumpyDataReader::incremenet_read_ptr()
-{
+void NumpyDataReader::incremenet_read_ptr() {
     _read_counter++;
     _curr_file_idx = (_curr_file_idx + 1) % _file_names.size();
 }
 
-size_t NumpyDataReader::open()
-{
-    auto file_path = _file_names[_curr_file_idx];// Get next file name
+size_t NumpyDataReader::open() {
+    auto file_path = _file_names[_curr_file_idx];  // Get next file name
     incremenet_read_ptr();
-    _last_id= file_path;
+    _last_id = file_path;
     auto last_slash_idx = _last_id.find_last_of("\\/");
-    if (std::string::npos != last_slash_idx)
-    {
+    if (std::string::npos != last_slash_idx) {
         _last_id.erase(0, last_slash_idx + 1);
     }
 
     ParseHeader(_file_headers[_curr_file_idx], file_path);
-    fseek(_current_fPtr, 0 , SEEK_SET);// Take the file pointer back to the start
+    fseek(_current_fPtr, 0, SEEK_SET);  // Take the file pointer back to the start
 
     return _file_headers[_curr_file_idx].nbytes();
 }
 
-const RocalTensorDataType NumpyDataReader::TypeFromNumpyStr(const std::string &format) 
-{
+const RocalTensorDataType NumpyDataReader::TypeFromNumpyStr(const std::string& format) {
     if (format == "u1") return RocalTensorDataType::UINT8;
     // if (format == "u2") return TypeTable::GetTypeInfo<uint16_t>();   // Currently not supported in rocAL
     if (format == "u4") return RocalTensorDataType::UINT32;
@@ -114,7 +107,7 @@ const RocalTensorDataType NumpyDataReader::TypeFromNumpyStr(const std::string &f
     // if (format == "i2") return TypeTable::GetTypeInfo<int16_t>();    // Currently not supported in rocAL
     if (format == "i4") return RocalTensorDataType::INT32;
     // if (format == "i8") return TypeTable::GetTypeInfo<int64_t>();    // Currently not supported in rocAL
-    if (format == "f2") 
+    if (format == "f2")
 #if defined(AMD_FP16_SUPPORT)
         return RocalTensorDataType::FP16;
 #else
@@ -125,24 +118,21 @@ const RocalTensorDataType NumpyDataReader::TypeFromNumpyStr(const std::string &f
     THROW("Unknown Numpy type string");
 }
 
-inline void NumpyDataReader::SkipSpaces(const char*& ptr) 
-{
+inline void NumpyDataReader::SkipSpaces(const char*& ptr) {
     while (::isspace(*ptr))
         ptr++;
 }
 
 template <size_t N>
-void NumpyDataReader::Skip(const char*& ptr, const char (&what)[N]) 
-{
-    if(strncmp(ptr, what, N - 1))
+void NumpyDataReader::Skip(const char*& ptr, const char (&what)[N]) {
+    if (strncmp(ptr, what, N - 1))
         THROW("Found wrong symbol during parsing");
     ptr += N - 1;
 }
 
 template <size_t N>
-bool NumpyDataReader::TrySkip(const char*& ptr, const char (&what)[N]) 
-{
-    if (!strncmp(ptr, what, N-1)) {
+bool NumpyDataReader::TrySkip(const char*& ptr, const char (&what)[N]) {
+    if (!strncmp(ptr, what, N - 1)) {
         ptr += N - 1;
         return true;
     } else {
@@ -151,8 +141,7 @@ bool NumpyDataReader::TrySkip(const char*& ptr, const char (&what)[N])
 }
 
 template <size_t N>
-void NumpyDataReader::SkipFieldName(const char*& ptr, const char (&name)[N]) 
-{
+void NumpyDataReader::SkipFieldName(const char*& ptr, const char (&name)[N]) {
     SkipSpaces(ptr);
     Skip(ptr, "'");
     Skip(ptr, name);
@@ -163,9 +152,8 @@ void NumpyDataReader::SkipFieldName(const char*& ptr, const char (&name)[N])
 }
 
 template <typename T = int64_t>
-T NumpyDataReader::ParseInteger(const char*& ptr) 
-{
-    char *out_ptr = const_cast<char*>(ptr);  // strtol takes a non-const pointer
+T NumpyDataReader::ParseInteger(const char*& ptr) {
+    char* out_ptr = const_cast<char*>(ptr);  // strtol takes a non-const pointer
     T value = static_cast<T>(strtol(ptr, &out_ptr, 10));
     if (out_ptr == ptr)
         THROW("Parse error: expected a number.");
@@ -173,44 +161,36 @@ T NumpyDataReader::ParseInteger(const char*& ptr)
     return value;
 }
 
-std::string NumpyDataReader::ParseStringValue(const char*& input, char delim_start, char delim_end) 
-{
-    if(*input++ != delim_start)
+std::string NumpyDataReader::ParseStringValue(const char*& input, char delim_start, char delim_end) {
+    if (*input++ != delim_start)
         THROW("Expected \'" + std::to_string(delim_start) + "\'");
     std::string out;
-    for (; *input != '\0'; input++) 
-    {
-        if (*input == '\\') 
-        {
-            switch (*++input) 
-            {
+    for (; *input != '\0'; input++) {
+        if (*input == '\\') {
+            switch (*++input) {
                 case '\\':
-                out += '\\';
-                break;
+                    out += '\\';
+                    break;
                 case '\'':
-                out += '\'';
-                break;
+                    out += '\'';
+                    break;
                 case '\t':
-                out += '\t';
-                break;
+                    out += '\t';
+                    break;
                 case '\n':
-                out += '\n';
-                break;
+                    out += '\n';
+                    break;
                 case '\"':
-                out += '\"';
-                break;
+                    out += '\"';
+                    break;
                 default:
-                out += '\\';
-                out += *input;
-                break;
+                    out += '\\';
+                    out += *input;
+                    break;
             }
-        } 
-        else if (*input == delim_end)
-        {
+        } else if (*input == delim_end) {
             break;
-        } 
-        else
-        {
+        } else {
             out += *input;
         }
     }
@@ -219,8 +199,7 @@ std::string NumpyDataReader::ParseStringValue(const char*& input, char delim_sta
     return out;
 }
 
-void NumpyDataReader::ParseHeaderContents(NumpyHeaderData& target, const std::string &header) 
-{
+void NumpyDataReader::ParseHeaderContents(NumpyHeaderData& target, const std::string& header) {
     const char* hdr = header.c_str();
     SkipSpaces(hdr);
     Skip(hdr, "{");
@@ -235,16 +214,11 @@ void NumpyDataReader::ParseHeaderContents(NumpyHeaderData& target, const std::st
     SkipSpaces(hdr);
     Skip(hdr, ",");
     SkipFieldName(hdr, "fortran_order");
-    if (TrySkip(hdr, "True")) 
-    {
+    if (TrySkip(hdr, "True")) {
         target._fortran_order = true;
-    }
-    else if (TrySkip(hdr, "False")) 
-    {
+    } else if (TrySkip(hdr, "False")) {
         target._fortran_order = false;
-    }
-    else
-    {
+    } else {
         THROW("Failed to parse fortran_order field.");
     }
     SkipSpaces(hdr);
@@ -253,42 +227,39 @@ void NumpyDataReader::ParseHeaderContents(NumpyHeaderData& target, const std::st
     Skip(hdr, "(");
     SkipSpaces(hdr);
     target._shape.clear();
-    while (*hdr != ')') 
-    {
+    while (*hdr != ')') {
         // ParseInteger already skips the leading spaces (strtol does).
         target._shape.push_back(static_cast<unsigned>(ParseInteger<int64_t>(hdr)));
         SkipSpaces(hdr);
         if (!(TrySkip(hdr, ",")) && (target._shape.size() <= 1))
             THROW("The first number in a tuple must be followed by a comma.");
     }
-    if (target._fortran_order) 
-    {
+    if (target._fortran_order) {
         // cheapest thing to do is to define the tensor in an reversed way
         std::reverse(target._shape.begin(), target._shape.end());
     }
 }
 
-void NumpyDataReader::ParseHeader(NumpyHeaderData &parsed_header, std::string file_path) 
-{
+void NumpyDataReader::ParseHeader(NumpyHeaderData& parsed_header, std::string file_path) {
     // check if the file is actually a numpy file
     std::vector<char> token(128);
     _current_fPtr = std::fopen(file_path.c_str(), "rb");
-    if(_current_fPtr == nullptr)
+    if (_current_fPtr == nullptr)
         THROW("Could not open file " + file_path + ": " + std::strerror(errno));
     int64_t n_read = std::fread(token.data(), 1, 10, _current_fPtr);
-    if(n_read != 10)
+    if (n_read != 10)
         THROW("Can not read header.");
     token[n_read] = '\0';
 
     // check if heqder is too short
     std::string header = std::string(token.data());
-    if(header.find_first_of("NUMPY") == std::string::npos)
+    if (header.find_first_of("NUMPY") == std::string::npos)
         THROW("File is not a numpy file.");
 
     // extract header length
     uint16_t header_len = 0;
     memcpy(&header_len, &token[8], 2);
-    if((header_len + 10) % 16 != 0)
+    if ((header_len + 10) % 16 != 0)
         THROW("Error extracting header length.");
 
     // read header: the offset is a magic number
@@ -296,81 +267,73 @@ void NumpyDataReader::ParseHeader(NumpyHeaderData &parsed_header, std::string fi
     // the header_len can be 4GiB according to the NPYv2 file format
     // specification: https://numpy.org/neps/nep-0001-npy-format.html
     // while this allocation could be sizable, it is performed on the host.
-    token.resize(header_len+1);
-    if(std::fseek(_current_fPtr, offset, SEEK_SET))
+    token.resize(header_len + 1);
+    if (std::fseek(_current_fPtr, offset, SEEK_SET))
         THROW("Seek operation failed: " + std::strerror(errno));
     n_read = std::fread(token.data(), 1, header_len, _current_fPtr);
-    if(n_read != header_len)
+    if (n_read != header_len)
         THROW("Can not read header.");
     token[header_len] = '\0';
     header = std::string(token.data());
-    if(header.find('{') == std::string::npos)
+    if (header.find('{') == std::string::npos)
         THROW("Header is corrupted.");
     offset += header_len;
-    if(std::fseek(_current_fPtr, offset, SEEK_SET))
+    if (std::fseek(_current_fPtr, offset, SEEK_SET))
         THROW("Seek operation failed: " + std::strerror(errno));
 
     ParseHeaderContents(parsed_header, header);
     parsed_header._data_offset = offset;
 }
 
-size_t NumpyDataReader::read_numpy_data(void* buf, size_t read_size)
-{
-    if(!_current_fPtr)
+size_t NumpyDataReader::read_numpy_data(void* buf, size_t read_size) {
+    if (!_current_fPtr)
         THROW("Null file pointer");
 
     // Requested read size bigger than the file size? just read as many bytes as the file size
     read_size = (read_size > _current_file_size) ? _current_file_size : read_size;
 
-    if(std::fseek(_current_fPtr, _file_headers[_curr_file_idx]._data_offset, SEEK_SET))
+    if (std::fseek(_current_fPtr, _file_headers[_curr_file_idx]._data_offset, SEEK_SET))
         THROW("Seek operation failed: " + std::strerror(errno));
-    
+
     size_t actual_read_size = std::fread(buf, 1, _file_headers[_curr_file_idx].nbytes(), _current_fPtr);
     return actual_read_size;
 }
 
-const NumpyHeaderData NumpyDataReader::get_numpy_header_data()
-{
+const NumpyHeaderData NumpyDataReader::get_numpy_header_data() {
     return _file_headers[_curr_file_idx];
 }
 
-size_t NumpyDataReader::read_data(unsigned char* buf, size_t read_size)
-{
-    if(!_current_fPtr)
+size_t NumpyDataReader::read_data(unsigned char* buf, size_t read_size) {
+    if (!_current_fPtr)
         return 0;
 
     // Requested read size bigger than the file size? just read as many bytes as the file size
     read_size = (read_size > _current_file_size) ? _current_file_size : read_size;
 
-    if(std::fseek(_current_fPtr, _file_headers[_curr_file_idx]._data_offset, SEEK_SET))
+    if (std::fseek(_current_fPtr, _file_headers[_curr_file_idx]._data_offset, SEEK_SET))
         THROW("Seek operation failed: " + std::strerror(errno));
-    
+
     size_t actual_read_size = std::fread(buf, 1, _file_headers[_curr_file_idx].nbytes(), _current_fPtr);
     return actual_read_size;
 }
 
-int NumpyDataReader::close()
-{
+int NumpyDataReader::close() {
     return release();
 }
 
-NumpyDataReader::~NumpyDataReader()
-{
+NumpyDataReader::~NumpyDataReader() {
     release();
 }
 
-int
-NumpyDataReader::release()
-{
-    if(!_current_fPtr)
+int NumpyDataReader::release() {
+    if (!_current_fPtr)
         return 0;
     fclose(_current_fPtr);
     _current_fPtr = nullptr;
     return 0;
 }
 
-void NumpyDataReader::reset()
-{
+void NumpyDataReader::reset() {
     _shuffle_time.start();
     if (_shuffle) std::random_shuffle(_file_names.begin(), _file_names.end());
     _shuffle_time.end();
@@ -378,16 +341,14 @@ void NumpyDataReader::reset()
     _curr_file_idx = 0;
 }
 
-Reader::Status NumpyDataReader::subfolder_reading()
-{
-    if ((_sub_dir = opendir (_folder_path.c_str())) == nullptr)
-        THROW("NumpyDataReader ShardID ["+ TOSTR(_shard_id)+ "] ERROR: Failed opening the directory at " + _folder_path);
+Reader::Status NumpyDataReader::subfolder_reading() {
+    if ((_sub_dir = opendir(_folder_path.c_str())) == nullptr)
+        THROW("NumpyDataReader ShardID [" + TOSTR(_shard_id) + "] ERROR: Failed opening the directory at " + _folder_path);
 
     std::vector<std::string> entry_name_list;
     std::string _full_path = _folder_path;
 
-    while((_entity = readdir (_sub_dir)) != nullptr)
-    {
+    while ((_entity = readdir(_sub_dir)) != nullptr) {
         std::string entry_name(_entity->d_name);
         if (strcmp(_entity->d_name, ".") == 0 || strcmp(_entity->d_name, "..") == 0) continue;
         entry_name_list.push_back(entry_name);
@@ -399,70 +360,59 @@ Reader::Status NumpyDataReader::subfolder_reading()
     for (unsigned dir_count = 0; dir_count < entry_name_list.size(); ++dir_count) {
         std::string subfolder_path = _full_path + "/" + entry_name_list[dir_count];
         filesys::path pathObj(subfolder_path);
-        if(filesys::exists(pathObj) && filesys::is_regular_file(pathObj))
-        {
+        if (filesys::exists(pathObj) && filesys::is_regular_file(pathObj)) {
             // ignore files with extensions .tar, .zip, .7z
             auto file_extension_idx = subfolder_path.find_last_of(".");
-            if (file_extension_idx  != std::string::npos) {
-                std::string file_extension = subfolder_path.substr(file_extension_idx+1);
+            if (file_extension_idx != std::string::npos) {
+                std::string file_extension = subfolder_path.substr(file_extension_idx + 1);
                 if (file_extension != "npy")
                     continue;
             }
             ret = open_folder();
             break;  // assume directory has only files.
-        }
-        else if(filesys::exists(pathObj) && filesys::is_directory(pathObj))
-        {
+        } else if (filesys::exists(pathObj) && filesys::is_directory(pathObj)) {
             _folder_path = subfolder_path;
-            if(open_folder() != Reader::Status::OK)
-                WRN("NumpyDataReader ShardID ["+ TOSTR(_shard_id)+ "] File reader cannot access the storage at " + _folder_path);
+            if (open_folder() != Reader::Status::OK)
+                WRN("NumpyDataReader ShardID [" + TOSTR(_shard_id) + "] File reader cannot access the storage at " + _folder_path);
         }
     }
-    if(_in_batch_read_count > 0 && _in_batch_read_count < _batch_count)
-    {
+    if (_in_batch_read_count > 0 && _in_batch_read_count < _batch_count) {
         replicate_last_image_to_fill_last_shard();
-        LOG("NumpyDataReader ShardID [" + TOSTR(_shard_id) + "] Replicated " + _folder_path+_last_file_name + " " + TOSTR((_batch_count - _in_batch_read_count) ) + " times to fill the last batch")
+        LOG("NumpyDataReader ShardID [" + TOSTR(_shard_id) + "] Replicated " + _folder_path + _last_file_name + " " + TOSTR((_batch_count - _in_batch_read_count)) + " times to fill the last batch")
     }
     _file_headers.resize(_file_names.size());
-    if(!_file_names.empty())
-        LOG("NumpyDataReader ShardID ["+ TOSTR(_shard_id)+ "] Total of " + TOSTR(_file_names.size()) + " images loaded from " + _full_path )
+    if (!_file_names.empty())
+        LOG("NumpyDataReader ShardID [" + TOSTR(_shard_id) + "] Total of " + TOSTR(_file_names.size()) + " images loaded from " + _full_path)
     return ret;
 }
 
-void NumpyDataReader::replicate_last_image_to_fill_last_shard()
-{
-    for(size_t i = _in_batch_read_count; i < _batch_count; i++)
+void NumpyDataReader::replicate_last_image_to_fill_last_shard() {
+    for (size_t i = _in_batch_read_count; i < _batch_count; i++)
         _file_names.push_back(_last_file_name);
 }
 
-void NumpyDataReader::replicate_last_batch_to_pad_partial_shard()
-{
-    if (_file_names.size() >=  _batch_count) {
+void NumpyDataReader::replicate_last_batch_to_pad_partial_shard() {
+    if (_file_names.size() >= _batch_count) {
         for (size_t i = 0; i < _batch_count; i++)
             _file_names.push_back(_file_names[i - _batch_count]);
     }
 }
 
+Reader::Status NumpyDataReader::open_folder() {
+    if ((_src_dir = opendir(_folder_path.c_str())) == nullptr)
+        THROW("NumpyDataReader ShardID [" + TOSTR(_shard_id) + "] ERROR: Failed opening the directory at " + _folder_path);
 
-Reader::Status NumpyDataReader::open_folder()
-{
-    if ((_src_dir = opendir (_folder_path.c_str())) == nullptr)
-        THROW("NumpyDataReader ShardID ["+ TOSTR(_shard_id)+ "] ERROR: Failed opening the directory at " + _folder_path);
-
-
-    while((_entity = readdir (_src_dir)) != nullptr)
-    {
-        if(_entity->d_type != DT_REG)
+    while ((_entity = readdir(_src_dir)) != nullptr) {
+        if (_entity->d_type != DT_REG)
             continue;
 
-        if(get_file_shard_id() != _shard_id )
-        {
+        if (get_file_shard_id() != _shard_id) {
             _file_count_all_shards++;
             incremenet_file_id();
             continue;
         }
         _in_batch_read_count++;
-        _in_batch_read_count = (_in_batch_read_count%_batch_count == 0) ? 0 : _in_batch_read_count;
+        _in_batch_read_count = (_in_batch_read_count % _batch_count == 0) ? 0 : _in_batch_read_count;
         std::string file_path = _folder_path;
         file_path.append("/");
         file_path.append(_entity->d_name);
@@ -471,17 +421,16 @@ Reader::Status NumpyDataReader::open_folder()
         _file_count_all_shards++;
         incremenet_file_id();
     }
-    if(_file_names.empty())
-        WRN("NumpyDataReader ShardID ["+ TOSTR(_shard_id)+ "] Did not load any file from " + _folder_path)
+    if (_file_names.empty())
+        WRN("NumpyDataReader ShardID [" + TOSTR(_shard_id) + "] Did not load any file from " + _folder_path)
 
     closedir(_src_dir);
     return Reader::Status::OK;
 }
 
-size_t NumpyDataReader::get_file_shard_id()
-{
-    if(_batch_count == 0 || _shard_count == 0)
+size_t NumpyDataReader::get_file_shard_id() {
+    if (_batch_count == 0 || _shard_count == 0)
         THROW("Shard (Batch) size cannot be set to 0")
-    //return (_file_id / (_batch_count)) % _shard_count;
-    return _file_id  % _shard_count;
+    // return (_file_id / (_batch_count)) % _shard_count;
+    return _file_id % _shard_count;
 }

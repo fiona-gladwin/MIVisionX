@@ -20,16 +20,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <thread>
-#include <chrono>
 #include "numpy_loader.h"
+
+#include <chrono>
+#include <thread>
+
 #include "vx_ext_amd.h"
 
-NumpyLoader::NumpyLoader(void *dev_resources):
-      _circ_buff(dev_resources),
-      _file_load_time("file load time", DBG_TIMING),
-      _swap_handle_time("Swap_handle_time", DBG_TIMING)
-{
+NumpyLoader::NumpyLoader(void *dev_resources) : _circ_buff(dev_resources),
+                                                _file_load_time("file load time", DBG_TIMING),
+                                                _swap_handle_time("Swap_handle_time", DBG_TIMING) {
     _output_tensor = nullptr;
     _mem_type = RocalMemType::HOST;
     _internal_thread_running = false;
@@ -40,41 +40,34 @@ NumpyLoader::NumpyLoader(void *dev_resources):
     _device_id = 0;
 }
 
-NumpyLoader::~NumpyLoader()
-{
+NumpyLoader::~NumpyLoader() {
     de_init();
 }
 
-void NumpyLoader::shut_down()
-{
-    if(_internal_thread_running)
+void NumpyLoader::shut_down() {
+    if (_internal_thread_running)
         stop_internal_thread();
     _circ_buff.release();
 }
 
-
-void NumpyLoader::set_prefetch_queue_depth(size_t prefetch_queue_depth)
-{
-    if(prefetch_queue_depth <= 0)
+void NumpyLoader::set_prefetch_queue_depth(size_t prefetch_queue_depth) {
+    if (prefetch_queue_depth <= 0)
         THROW("Prefetch quque depth value cannot be zero or negative");
     _prefetch_queue_depth = prefetch_queue_depth;
 }
 
-void NumpyLoader::set_gpu_device_id(int device_id)
-{
-    if(device_id < 0)
+void NumpyLoader::set_gpu_device_id(int device_id) {
+    if (device_id < 0)
         THROW("invalid device_id passed to loader");
     _device_id = device_id;
 }
 
 size_t
-NumpyLoader::remaining_count()
-{
+NumpyLoader::remaining_count() {
     return _remaining_image_count;
 }
 
-void NumpyLoader::reset()
-{
+void NumpyLoader::reset() {
     // stop the writer thread and empty the internal circular buffer
     _internal_thread_running = false;
     _circ_buff.unblock_writer();
@@ -93,8 +86,7 @@ void NumpyLoader::reset()
     start_loading();
 }
 
-void NumpyLoader::de_init()
-{
+void NumpyLoader::de_init() {
     // Set running to 0 and wait for the internal thread to join
     stop_internal_thread();
     _output_mem_size = 0;
@@ -104,25 +96,21 @@ void NumpyLoader::de_init()
 }
 
 LoaderModuleStatus
-NumpyLoader::load_next()
-{
+NumpyLoader::load_next() {
     return update_output_image();
 }
 
-void NumpyLoader::set_output (Tensor* output_tensor)
-{
+void NumpyLoader::set_output(Tensor *output_tensor) {
     _output_tensor = output_tensor;
-    _output_mem_size = ((_output_tensor->info().data_size()/ 8) * 8 + 8);
+    _output_mem_size = ((_output_tensor->info().data_size() / 8) * 8 + 8);
 }
 
-void NumpyLoader::set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader)
-{
+void NumpyLoader::set_random_bbox_data_reader(std::shared_ptr<RandomBBoxCrop_MetaDataReader> randombboxcrop_meta_data_reader) {
     _randombboxcrop_meta_data_reader = randombboxcrop_meta_data_reader;
     _circ_buff.random_bbox_crop_flag = true;
 }
 
-void NumpyLoader::stop_internal_thread()
-{
+void NumpyLoader::stop_internal_thread() {
     _internal_thread_running = false;
     _stopped = true;
     _circ_buff.unblock_reader();
@@ -132,8 +120,7 @@ void NumpyLoader::stop_internal_thread()
         _load_thread.join();
 }
 
-void NumpyLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool decoder_keep_original)
-{
+void NumpyLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg, RocalMemType mem_type, unsigned batch_size, bool decoder_keep_original) {
     if (_is_initialized)
         WRN("initialize() function is already called and loader module is initialized")
 
@@ -145,25 +132,21 @@ void NumpyLoader::initialize(ReaderConfig reader_cfg, DecoderConfig decoder_cfg,
     _loop = reader_cfg.loop();
     _image_size = _output_mem_size / batch_size;
     _output_names.resize(batch_size);
-    try
-    {
+    try {
         _reader = create_reader(reader_cfg);
-    }
-    catch (const std::exception &e)
-    {
+    } catch (const std::exception &e) {
         de_init();
         throw;
     }
     _decoded_img_info._image_names.resize(_batch_size);
     _crop_image_info._crop_image_coords.resize(_batch_size);
     _tensor_roi.resize(_batch_size);
-    _circ_buff.init(_mem_type, _output_mem_size,_prefetch_queue_depth );
+    _circ_buff.init(_mem_type, _output_mem_size, _prefetch_queue_depth);
     _is_initialized = true;
     LOG("Loader module initialized");
 }
 
-void NumpyLoader::start_loading()
-{
+void NumpyLoader::start_loading() {
     if (!_is_initialized)
         THROW("start_loading() should be called after initialize() function is called")
 
@@ -173,14 +156,12 @@ void NumpyLoader::start_loading()
 }
 
 LoaderModuleStatus
-NumpyLoader::load_routine()
-{
+NumpyLoader::load_routine() {
     LOG("Started the internal loader thread");
     LoaderModuleStatus last_load_status = LoaderModuleStatus::OK;
     // Initially record number of all the images that are going to be loaded, this is used to know how many still there
 
-    while (_internal_thread_running)
-    {
+    while (_internal_thread_running) {
         auto data = _circ_buff.get_write_buffer();
         if (!_internal_thread_running)
             break;
@@ -188,10 +169,9 @@ NumpyLoader::load_routine()
         auto load_status = LoaderModuleStatus::NO_MORE_DATA_TO_READ;
         {
             unsigned file_counter = 0;
-            _file_load_time.start();// Debug timing
+            _file_load_time.start();  // Debug timing
 
-            while ((file_counter != _batch_size) && _reader->count_items() > 0)
-            {
+            while ((file_counter != _batch_size) && _reader->count_items() > 0) {
                 auto read_ptr = data + _image_size * file_counter;
                 size_t readSize = _reader->open();
                 if (readSize == 0) {
@@ -206,23 +186,18 @@ NumpyLoader::load_routine()
                 _reader->close();
                 file_counter++;
             }
-            _file_load_time.end();// Debug timing
+            _file_load_time.end();  // Debug timing
             _circ_buff.set_image_info(_decoded_img_info);
             _circ_buff.push();
             _image_counter += _output_tensor->info().batch_size();
             load_status = LoaderModuleStatus::OK;
         }
-        if (load_status != LoaderModuleStatus::OK)
-        {
-            if (last_load_status != load_status)
-            {
+        if (load_status != LoaderModuleStatus::OK) {
+            if (last_load_status != load_status) {
                 if (load_status == LoaderModuleStatus::NO_MORE_DATA_TO_READ ||
-                    load_status == LoaderModuleStatus::NO_FILES_TO_READ)
-                {
+                    load_status == LoaderModuleStatus::NO_FILES_TO_READ) {
                     LOG("Cycled through all images, count " + TOSTR(_image_counter));
-                }
-                else
-                {
+                } else {
                     ERR("ERROR: Detected error in reading the images");
                 }
                 last_load_status = load_status;
@@ -241,13 +216,11 @@ NumpyLoader::load_routine()
     return LoaderModuleStatus::OK;
 }
 
-bool NumpyLoader::is_out_of_data()
-{
+bool NumpyLoader::is_out_of_data() {
     return (remaining_count() < _batch_size);
 }
 LoaderModuleStatus
-NumpyLoader::update_output_image()
-{
+NumpyLoader::update_output_image() {
     LoaderModuleStatus status = LoaderModuleStatus::OK;
 
     if (is_out_of_data())
@@ -256,19 +229,16 @@ NumpyLoader::update_output_image()
         return LoaderModuleStatus::OK;
 
     // _circ_buff.get_read_buffer_x() is blocking and puts the caller on sleep until new images are written to the _circ_buff
-    if((_mem_type== RocalMemType::OCL) || (_mem_type== RocalMemType::HIP))
-    {
+    if ((_mem_type == RocalMemType::OCL) || (_mem_type == RocalMemType::HIP)) {
         auto data_buffer = _circ_buff.get_read_buffer_dev();
         _swap_handle_time.start();
-        if(_output_tensor->swap_handle(data_buffer) != 0)
+        if (_output_tensor->swap_handle(data_buffer) != 0)
             return LoaderModuleStatus ::DEVICE_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
-    }
-    else
-    {
+    } else {
         auto data_buffer = _circ_buff.get_read_buffer_host();
         _swap_handle_time.start();
-        if(_output_tensor->swap_handle(data_buffer) != 0)
+        if (_output_tensor->swap_handle(data_buffer) != 0)
             return LoaderModuleStatus::HOST_BUFFER_SWAP_FAILED;
         _swap_handle_time.end();
     }
@@ -277,7 +247,7 @@ NumpyLoader::update_output_image()
 
     _output_decoded_img_info = _circ_buff.get_image_info();
     if (_randombboxcrop_meta_data_reader) {
-      _output_cropped_img_info = _circ_buff.get_cropped_image_info();
+        _output_cropped_img_info = _circ_buff.get_cropped_image_info();
     }
     _output_names = _output_decoded_img_info._image_names;
     _output_tensor->update_tensor_roi(_tensor_roi);
@@ -290,16 +260,14 @@ NumpyLoader::update_output_image()
     return status;
 }
 
-Timing NumpyLoader::timing()
-{
+Timing NumpyLoader::timing() {
     Timing t;
     t.image_read_time = _file_load_time.get_timing();
     t.image_process_time = _swap_handle_time.get_timing();
     return t;
 }
 
-LoaderModuleStatus NumpyLoader::set_cpu_affinity(cpu_set_t cpu_mask)
-{
+LoaderModuleStatus NumpyLoader::set_cpu_affinity(cpu_set_t cpu_mask) {
     if (!_internal_thread_running)
         THROW("set_cpu_affinity() should be called after start_loading function is called")
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -312,8 +280,7 @@ LoaderModuleStatus NumpyLoader::set_cpu_affinity(cpu_set_t cpu_mask)
     return LoaderModuleStatus::OK;
 }
 
-LoaderModuleStatus NumpyLoader::set_cpu_sched_policy(struct sched_param sched_policy)
-{
+LoaderModuleStatus NumpyLoader::set_cpu_sched_policy(struct sched_param sched_policy) {
     if (!_internal_thread_running)
         THROW("set_cpu_sched_policy() should be called after start_loading function is called")
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -325,17 +292,14 @@ LoaderModuleStatus NumpyLoader::set_cpu_sched_policy(struct sched_param sched_po
     return LoaderModuleStatus::OK;
 }
 
-std::vector<std::string> NumpyLoader::get_id()
-{
+std::vector<std::string> NumpyLoader::get_id() {
     return _output_names;
 }
 
-decoded_image_info NumpyLoader::get_decode_image_info()
-{
+decoded_image_info NumpyLoader::get_decode_image_info() {
     return _output_decoded_img_info;
 }
 
-crop_image_info NumpyLoader::get_crop_image_info()
-{
+crop_image_info NumpyLoader::get_crop_image_info() {
     return _output_cropped_img_info;
 }
