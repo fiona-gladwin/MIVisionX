@@ -22,20 +22,23 @@ THE SOFTWARE.
 
 #pragma once
 #include <list>
+
+#include "graph.h"
 #include "node.h"
 #include "parameter_vx.h"
-#include "graph.h"
 
 class ContrastNode : public Node {
-public:
+   public:
     ContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ContrastNode() = delete;
     void init(float contrast_factor, float contrast_center);
     void init(FloatParam *contrast_factor_param, FloatParam *contrast_center_param);
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     ParameterVX<float> _factor, _center;
     constexpr static float CONTRAST_FACTOR_RANGE[2] = {0.1, 1.95};
     constexpr static float CONTRAST_CENTER_RANGE[2] = {60, 90};

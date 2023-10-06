@@ -21,25 +21,21 @@ THE SOFTWARE.
 */
 
 #include "meta_node_rotate.h"
-void RotateMetaNode::initialize()
-{
+void RotateMetaNode::initialize() {
     _angle_val.resize(_batch_size);
 }
-void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data)
-{
+void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaDataBatch output_meta_data) {
     initialize();
-    if(_batch_size != input_meta_data->size())
-    {
+    if (_batch_size != input_meta_data->size()) {
         _batch_size = input_meta_data->size();
     }
     auto input_roi = _node->get_src_roi();
     _dst_width = _node->get_dst_width();
     _dst_height = _node->get_dst_height();
     _angle = _node->get_angle();
-    vxCopyArrayRange((vx_array)_angle, 0, _batch_size, sizeof(float),_angle_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    vxCopyArrayRange((vx_array)_angle, 0, _batch_size, sizeof(float), _angle_val.data(), VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
     BoundingBoxCord temp_box = {0, 0, static_cast<float>(_dst_width), static_cast<float>(_dst_height)};
-    for(int i = 0; i < _batch_size; i++)
-    {
+    for (int i = 0; i < _batch_size; i++) {
         auto bb_count = input_meta_data->get_labels_batch()[i].size();
         BoundingBoxCords coords_buf = input_meta_data->get_bb_cords_batch()[i];
         Labels labels_buf = input_meta_data->get_labels_batch()[i];
@@ -49,8 +45,7 @@ void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaData
         dest_image.l = dest_image.t = 0;
         dest_image.r = _dst_width;
         dest_image.b = _dst_height;
-        for(uint j = 0; j < bb_count; j++)
-        {
+        for (uint j = 0; j < bb_count; j++) {
             BoundingBoxCord box;
             float src_bb_x, src_bb_y, bb_w, bb_h;
             float dest_cx, dest_cy, src_cx, src_cy;
@@ -71,20 +66,19 @@ void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaData
             bb_h = coords_buf[j].b - coords_buf[j].t;
             x1 = (rotate[0] * (src_bb_x - src_cx)) + (rotate[1] * (src_bb_y - src_cy)) + dest_cx;
             y1 = (rotate[2] * (src_bb_x - src_cx)) + (rotate[3] * (src_bb_y - src_cy)) + dest_cy;
-            x2 = (rotate[0] * ((src_bb_x + bb_w) - src_cx)) + ( rotate[1] * (src_bb_y - src_cy)) + dest_cx;
-            y2 = (rotate[2] * ((src_bb_x + bb_w) - src_cx)) + ( rotate[3] * (src_bb_y - src_cy)) + dest_cy;
+            x2 = (rotate[0] * ((src_bb_x + bb_w) - src_cx)) + (rotate[1] * (src_bb_y - src_cy)) + dest_cx;
+            y2 = (rotate[2] * ((src_bb_x + bb_w) - src_cx)) + (rotate[3] * (src_bb_y - src_cy)) + dest_cy;
             x3 = (rotate[0] * (src_bb_x - src_cx)) + (rotate[1] * ((src_bb_y + bb_h) - src_cy)) + dest_cx;
             y3 = (rotate[2] * (src_bb_x - src_cx)) + (rotate[3] * ((src_bb_y + bb_h) - src_cy)) + dest_cy;
-            x4 = (rotate[0] * ((src_bb_x + bb_w) - src_cx)) + ( rotate[1] * ((src_bb_y + bb_h) - src_cy)) + dest_cx;
-            y4 = (rotate[2] * ((src_bb_x + bb_w) - src_cx)) + ( rotate[3] * ((src_bb_y + bb_h) - src_cy)) + dest_cy;
+            x4 = (rotate[0] * ((src_bb_x + bb_w) - src_cx)) + (rotate[1] * ((src_bb_y + bb_h) - src_cy)) + dest_cx;
+            y4 = (rotate[2] * ((src_bb_x + bb_w) - src_cx)) + (rotate[3] * ((src_bb_y + bb_h) - src_cy)) + dest_cy;
             min_x = std::min(x1, std::min(x2, std::min(x3, x4)));
             min_y = std::min(y1, std::min(y2, std::min(y3, y4)));
             box.l = std::min(0.0f, min_x);
             box.t = std::min(0.0f, min_y);
             box.r = std::max(x1, std::max(x2, std::max(x3, x4)));
             box.b = std::max(y1, std::max(y2, std::max(y3, y4)));
-            if (BBoxIntersectionOverUnion(box, dest_image) >= _iou_threshold)
-            {
+            if (BBoxIntersectionOverUnion(box, dest_image) >= _iou_threshold) {
                 box.l = std::max(dest_image.l, box.l);
                 box.t = std::max(dest_image.t, box.t);
                 box.r = std::min(dest_image.r, box.r);
@@ -93,8 +87,7 @@ void RotateMetaNode::update_parameters(pMetaDataBatch input_meta_data, pMetaData
                 bb_labels.push_back(labels_buf[j]);
             }
         }
-        if(bb_coords.size() == 0)
-        {
+        if (bb_coords.size() == 0) {
             bb_coords.push_back(temp_box);
             bb_labels.push_back(0);
         }

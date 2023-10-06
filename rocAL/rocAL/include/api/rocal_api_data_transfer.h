@@ -24,21 +24,63 @@ THE SOFTWARE.
 #define MIVISIONX_ROCAL_API_DATA_TRANSFER_H
 #include "rocal_api_types.h"
 
-extern "C"  RocalStatus   ROCAL_API_CALL rocalCopyToOutput(RocalContext context, unsigned char * out_ptr, size_t out_size);
+/*!
+ * \file
+ * \brief The AMD rocAL Library - Data Transfer
+ *
+ * \defgroup group_rocal_data_transfer API: AMD rocAL - Data Transfer API
+ * \brief The AMD rocAL data transfer functions.
+ */
 
-extern "C"  RocalStatus   ROCAL_API_CALL rocalToTensor(RocalContext rocal_context, void *out_ptr,
-                                                              RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type,
-                                                              float multiplier0, float multiplier1, float multiplier2, float offset0,
-                                                              float offset1, float offset2,
-                                                              bool reverse_channels, RocalOutputMemType output_mem_type);
-///
-/// \param rocal_context
-/// \param output_images The buffer that will be filled with output images with set_output = True
+/*!
+ * \brief copies data to output buffer
+ * \ingroup group_rocal_data_transfer
+ * \param [in] context Rocal context
+ * \param [in] out_ptr pointer to output buffer
+ * \param [in] out_size size of output buffer
+ * \return Rocal status indicating success or failure
+ */
+extern "C" RocalStatus ROCAL_API_CALL rocalCopyToOutput(RocalContext context, unsigned char *out_ptr, size_t out_size);
+
+/*!
+ * \brief converts data to a tensor
+ * \ingroup group_rocal_data_transfer
+ * \param [in] rocal_context Rocal context
+ * \param [in] out_ptr pointer to output buffer
+ * \param [in] tensor_format the layout of the tensor data
+ * \param [in] tensor_output_type the output type of the tensor data
+ * \param [in] multiplier0 the multiplier for channel 0
+ * \param [in] multiplier1 the multiplier for channel 1
+ * \param [in] multiplier2 the multiplier for channel 2
+ * \param [in] offset0 the offset for channel 0
+ * \param [in] offset1 the offset for channel 1
+ * \param [in] offset2 the offset for channel 2
+ * \param [in] reverse_channels flag to reverse the channel orders
+ * \param [in] output_mem_type the memory type of output tensor buffer
+ * \return Rocal status indicating success or failure
+ */
+extern "C" RocalStatus ROCAL_API_CALL rocalToTensor(RocalContext rocal_context, void *out_ptr,
+                                                    RocalTensorLayout tensor_format, RocalTensorOutputType tensor_output_type,
+                                                    float multiplier0, float multiplier1, float multiplier2, float offset0,
+                                                    float offset1, float offset2,
+                                                    bool reverse_channels, RocalOutputMemType output_mem_type);
+
+/*!
+ * \brief Sets the output images in the RocalContext
+ * \ingroup group_rocal_data_transfer
+ * \param [in] p_context Rocal context
+ * \param [in] num_of_outputs number of output images
+ * \param [in] output_images output images
+ */
 extern "C" void ROCAL_API_CALL rocalSetOutputs(RocalContext p_context, unsigned int num_of_outputs, std::vector<RocalTensor> &output_images);
 
-///
-/// \param rocal_context
-/// \param output_tensor_list Returns a list of the tensor (decoder/augmentation outputs) with set_output = True
-extern "C"  RocalTensorList ROCAL_API_CALL rocalGetOutputTensors(RocalContext p_context);
 
-#endif //MIVISIONX_ROCAL_API_DATA_TRANSFER_H
+/*!
+ * \brief gives the list of output tensors from rocal context
+ * \ingroup group_rocal_data_transfer
+ * \param [in] p_context Rocal Context
+ * \return A RocalTensorList containing the list of output tensors
+ */
+extern "C" RocalTensorList ROCAL_API_CALL rocalGetOutputTensors(RocalContext p_context);
+
+#endif  // MIVISIONX_ROCAL_API_DATA_TRANSFER_H

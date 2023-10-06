@@ -24,15 +24,14 @@ THE SOFTWARE.
 #include "node_color_twist.h"
 #include "exception.h"
 
-ColorTwistNode::ColorTwistNode(const std::vector<Tensor *> &inputs,const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
-        _beta (BETA_RANGE[0], BETA_RANGE[1]),
-        _hue(HUE_RANGE[0], HUE_RANGE[1]),
-        _sat(SAT_RANGE[0], SAT_RANGE[1]) {}
+ColorTwistNode::ColorTwistNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                            _alpha(ALPHA_RANGE[0], ALPHA_RANGE[1]),
+                                                                                                            _beta(BETA_RANGE[0], BETA_RANGE[1]),
+                                                                                                            _hue(HUE_RANGE[0], HUE_RANGE[1]),
+                                                                                                            _sat(SAT_RANGE[0], SAT_RANGE[1]) {}
 
 void ColorTwistNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _alpha.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
@@ -49,7 +48,7 @@ void ColorTwistNode::create_node() {
     _node = vxExtRppColorTwist(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _alpha.default_array(),
                                _beta.default_array(), _hue.default_array(), _sat.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the Colortwist (vxExtRppColorTwist) node failed: " + TOSTR(status))
 }
 

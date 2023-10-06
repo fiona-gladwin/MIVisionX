@@ -24,12 +24,11 @@ THE SOFTWARE.
 #include "node_exposure.h"
 #include "exception.h"
 
-ExposureNode::ExposureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _exposure_factor(EXPOSURE_FACTOR_RANGE[0], EXPOSURE_FACTOR_RANGE[1]) {}
+ExposureNode::ExposureNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                        _exposure_factor(EXPOSURE_FACTOR_RANGE[0], EXPOSURE_FACTOR_RANGE[1]) {}
 
 void ExposureNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _exposure_factor.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
@@ -42,7 +41,7 @@ void ExposureNode::create_node() {
 
     _node = vxExtRppExposure(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _exposure_factor.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the exposure (vxExtRppExposure) node failed: " + TOSTR(status))
 }
 

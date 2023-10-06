@@ -24,13 +24,12 @@ THE SOFTWARE.
 #include "node_contrast.h"
 #include "exception.h"
 
-ContrastNode::ContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs),
-        _factor(CONTRAST_FACTOR_RANGE[0], CONTRAST_FACTOR_RANGE[1]),
-        _center(CONTRAST_CENTER_RANGE[0], CONTRAST_CENTER_RANGE[1]) {}
+ContrastNode::ContrastNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs),
+                                                                                                        _factor(CONTRAST_FACTOR_RANGE[0], CONTRAST_FACTOR_RANGE[1]),
+                                                                                                        _center(CONTRAST_CENTER_RANGE[0], CONTRAST_CENTER_RANGE[1]) {}
 
 void ContrastNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _factor.create_array(_graph, VX_TYPE_FLOAT32, _batch_size);
@@ -44,7 +43,7 @@ void ContrastNode::create_node() {
 
     _node = vxExtRppContrast(_graph->get(), _inputs[0]->handle(), _inputs[0]->get_roi_tensor(), _outputs[0]->handle(), _factor.default_array(), _center.default_array(), input_layout_vx, output_layout_vx,roi_type_vx);
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the contrast (vxExtRppContrast) node failed: " + TOSTR(status))
 }
 

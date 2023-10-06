@@ -20,23 +20,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include <vx_ext_rpp.h>
 #include "node_nop.h"
+#include <vx_ext_rpp.h>
 #include "exception.h"
 
-NopNode::NopNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) :
-        Node(inputs, outputs) {}
+NopNode::NopNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs) : Node(inputs, outputs) {}
 
 void NopNode::create_node() {
-    if(_node)
+    if (_node)
         return;
 
     _node = vxExtRppNop(_graph->get(), _inputs[0]->handle(), _outputs[0]->handle());
 
     vx_status status;
-    if((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
+    if ((status = vxGetStatus((vx_reference)_node)) != VX_SUCCESS)
         THROW("Adding the nop (vxNopNode) node failed: " + TOSTR(status))
-
 }
 
 void NopNode::update_node() {}

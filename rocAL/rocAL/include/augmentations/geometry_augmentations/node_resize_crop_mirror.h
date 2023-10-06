@@ -22,13 +22,13 @@ THE SOFTWARE.
 
 #pragma once
 #include "node_crop.h"
-#include "rocal_api_types.h"
-#include "parameter_vx.h"
-#include "parameter_factory.h"
 #include "parameter_crop_factory.h"
+#include "parameter_factory.h"
+#include "parameter_vx.h"
+#include "rocal_api_types.h"
 
 class ResizeCropMirrorNode : public CropNode {
-public:
+   public:
     ResizeCropMirrorNode(const std::vector<Tensor *> &inputs, const std::vector<Tensor *> &outputs);
     ResizeCropMirrorNode() = delete;
     void init(unsigned int crop_h, unsigned int crop_w, IntParam *mirror,
@@ -40,10 +40,12 @@ public:
     std::shared_ptr<RocalCropParam> get_crop_param() { return _crop_param; }
     vx_array get_mirror() { return _mirror.default_array(); }
     void adjust_out_roi_size();
-protected:
+
+   protected:
     void create_node() override;
     void update_node() override;
-private:
+
+   private:
     std::shared_ptr<RocalCropParam> _crop_param;
     vx_array _dst_roi_width, _dst_roi_height;
     ParameterVX<int> _mirror;
