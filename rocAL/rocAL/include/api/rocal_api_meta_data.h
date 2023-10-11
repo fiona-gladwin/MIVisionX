@@ -284,4 +284,23 @@ extern "C" void ROCAL_API_CALL rocalGetImageId(RocalContext p_context, int* buf)
  */
 extern "C" void ROCAL_API_CALL rocalGetJointsDataPtr(RocalContext p_context, RocalJointsData** joints_data);
 
+/*! \brief initialize the values required for ROI Random crop
+ * \ingroup group_rocal_meta_data
+ * \param [in] rocal_context rocal context
+ * \param [in] crop_shape_batch
+ * \param [in] roi_begin_batch
+ * \param [in] input_shape_batch
+ * \param [in] roi_end_batch
+ */
+extern "C" void ROCAL_API_CALL rocalROIRandomCrop(RocalContext p_context, RocalTensor p_input, int *crop_shape);
+
+/*! \brief get the ROI Random crop values
+ * \ingroup group_rocal_meta_data
+ * \param [in] rocal_context rocal context
+ * \param [in] crop_shape_batch
+ * \param [in] roi_begin_batch
+ * \param [in] input_shape_batch
+ * \param [in] roi_end_batch
+ */
+extern "C" RocalTensor ROCAL_API_CALL rocalGetROIRandomCropValues(RocalContext p_context);
 #endif  // MIVISIONX_ROCAL_API_META_DATA_H

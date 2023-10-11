@@ -108,6 +108,10 @@ int main(int argc, const char **argv) {
         rocalCreateTextFileBasedLabelReader(handle, label_text_file_path);
     rocalCropResizeFixed(handle, decoded_output, 224, 224, true, 0.9, 1.1, 0.1, 0.1);
 
+    int crop_shape[] = {2, 2};
+    rocalROIRandomCrop(handle, decoded_output, crop_shape);
+    RocalTensor crop_output;
+
     if (rocalGetStatus(handle) != ROCAL_OK) {
         std::cout << "JPEG source could not initialize : " << rocalGetErrorMessage(handle) << std::endl;
         return -1;
@@ -162,6 +166,16 @@ int main(int argc, const char **argv) {
         while ((test_case == 0) ? !rocalIsEmpty(handle) : (counter < run_len[test_id])) {
             if (rocalRun(handle) != 0)
                 break;
+
+            std::cout << "printing ROI Random crop outputs:" << std::endl;
+            crop_output = rocalGetROIRandomCropValues(handle);
+            int *crop_begin = static_cast<int *>(crop_output->buffer());
+            for(int i = 0; i < inputBatchSize; i++)
+            {
+                for(int j = 0; j < 2; j++)
+                    std::cout<<crop_begin[i * 2 + j] << " ";
+                std::cout<<std::endl;
+            }
 
             rocalCopyToOutput(handle, mat_input.data, h * w * p);
 
