@@ -1055,3 +1055,9 @@ def box_iou_matcher(*inputs, anchors, criteria=0.5, high_threshold=0.5,
         Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
     Pipeline._current_pipeline._box_iou_matcher = True
     return (box_iou_matcher, [])
+
+def roi_random_crop(*inputs, crop_shape=None):
+
+    # pybind call arguments
+    kwargs_pybind = {"crop_shape": crop_shape}
+    roi_random_crop = b.roiRandomCrop(Pipeline._current_pipeline._handle, *(kwargs_pybind.values()))
