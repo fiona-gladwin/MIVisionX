@@ -1864,6 +1864,21 @@ extern "C"
 	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppSequenceRearrange(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_array pNewOrder, vx_scalar layout);
+
+	/*!
+	 * \brief [Graph] Creates a Tensor ElementExtract function node.
+	 * \ingroup group_amd_rpp
+	 * \param [in] graph The handle to the graph.
+	 * \param [in] pSrc The input tensor in <tt>\ref VX_TYPE_UINT8<tt> format data.
+	 * \param [out] pDst The output tensor in <tt>\ref VX_TYPE_UINT8<tt> format data.
+	 * \param [in] pElementMap The element map in <tt>\ref VX_TYPE_UINT32<tt> containing the list of elements to be extracted from the seqence.
+	 * \param [in] inputLayout The input layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of input tensor.
+	 * \param [in] outputLayout The output layout in <tt>\ref VX_TYPE_INT32</tt> denotes the layout of output tensor.	 * \return <tt> vx_node</tt>.
+	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
+	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
+	 */
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppElementExtract(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_array pElementMap, vx_scalar inputLayout, vx_scalar outputLayout);
+
 #ifdef __cplusplus
 }
 #endif

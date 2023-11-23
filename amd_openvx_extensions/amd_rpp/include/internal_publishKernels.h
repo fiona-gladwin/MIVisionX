@@ -131,6 +131,7 @@ vx_status Contrast_Register(vx_context);
 vx_status Copy_Register(vx_context);
 vx_status Crop_Register(vx_context);
 vx_status CropMirrorNormalize_Register(vx_context);
+vx_status ElementExtract_Register(vx_context);
 vx_status Exposure_Register(vx_context);
 vx_status FishEye_Register(vx_context);
 vx_status Flip_Register(vx_context);
@@ -154,7 +155,6 @@ vx_status SequenceRearrange_Register(vx_context);
 vx_status Snow_Register(vx_context);
 vx_status Vignette_Register(vx_context);
 vx_status WarpAffine_Register(vx_context);
-vx_status SequenceRearrange_Register(vx_context);
 
 // kernel names
 #define VX_KERNEL_RPP_NOPBATCHPD_NAME                           "org.rpp.NopbatchPD"
@@ -250,6 +250,7 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_COPY_NAME                                 "org.rpp.Copy"
 #define VX_KERNEL_RPP_CROP_NAME                                 "org.rpp.Crop"
 #define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                  "org.rpp.CropMirrorNormalize"
+#define VX_KERNEL_RPP_ELEMENTEXTRACT_NAME                       "org.rpp.ElementExtract"
 #define VX_KERNEL_RPP_EXPOSURE_NAME                             "org.rpp.Exposure"
 #define VX_KERNEL_RPP_FISHEYE_NAME                              "org.rpp.FishEye"
 #define VX_KERNEL_RPP_FLIP_NAME                                 "org.rpp.Flip"
@@ -273,11 +274,5 @@ vx_status SequenceRearrange_Register(vx_context);
 #define VX_KERNEL_RPP_PIXELATE_NAME                             "org.rpp.Pixelate"
 #define VX_KERNEL_RPP_VIGNETTE_NAME                             "org.rpp.Vignette"
 #define VX_KERNEL_RPP_WARPAFFINE_NAME                           "org.rpp.WarpAffine"
-#define VX_KERNEL_RPP_BRIGHTNESS_NAME                            "org.rpp.Brightness"
-#define VX_KERNEL_RPP_COPY_NAME                                  "org.rpp.Copy"
-#define VX_KERNEL_RPP_CROPMIRRORNORMALIZE_NAME                   "org.rpp.CropMirrorNormalize"
-#define VX_KERNEL_RPP_NOP_NAME                                   "org.rpp.Nop"
-#define VX_KERNEL_RPP_RESIZE_NAME                                "org.rpp.Resize"
-#define VX_KERNEL_RPP_SEQUENCEREARRANGE_NAME                     "org.rpp.SequenceRearrange"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
