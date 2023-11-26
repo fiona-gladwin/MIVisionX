@@ -99,7 +99,7 @@ static vx_status VX_CALLBACK processElementExtract(vx_node node, const vx_refere
 
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     refreshElementExtract(node, parameters, num, data);
-    unsigned batch_stride = data->pDstDesc->strides.nStride * data->pDstDesc->n / data->elementMapSize;
+    unsigned batch_stride = data->pDstDesc->strides.nStride * data->pDstDesc->n;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL
         // cl_command_queue handle = data->handle->cmdq;
@@ -124,7 +124,7 @@ static vx_status VX_CALLBACK processElementExtract(vx_node node, const vx_refere
                 if (element_index > data->sequenceLength)
                     ERRMSG(VX_ERROR_INVALID_VALUE, "invalid new order value=%d (must be between 0-%d)\n", element_index, data->sequenceLength - 1);
                 auto src_address = static_cast<unsigned char *>(data->pSrc) + src_sequence_start_address + (element_index * data->pSrcDesc->strides.nStride);
-                auto dst_address = static_cast<unsigned char *>(data->pDst) + data->pDstDesc->strides.nStride + (index * batch_stride);
+                auto dst_address = static_cast<unsigned char *>(data->pDst) + sequence_cnt * data->pDstDesc->strides.nStride + (index * batch_stride);
                 hipError_t status = hipMemcpyDtoD(dst_address, src_address, data->pSrcDesc->strides.nStride);
                     if (status != hipSuccess)
                         return VX_FAILURE;
@@ -136,10 +136,10 @@ static vx_status VX_CALLBACK processElementExtract(vx_node node, const vx_refere
             unsigned src_sequence_start_address = sequence_cnt * data->pSrcDesc->strides.nStride * data->sequenceLength;
             for (unsigned index = 0; index < (data->elementMapSize); index++) {
                 unsigned element_index = data->pElementMap[index];
-                if (element_index > data->sequenceLength)
+                                if (element_index > data->sequenceLength)
                     ERRMSG(VX_ERROR_INVALID_VALUE, "invalid new order value=%d (must be between 0-%d)\n", element_index, data->sequenceLength - 1);
                 auto src_address = static_cast<unsigned char *>(data->pSrc) + src_sequence_start_address + (element_index * data->pSrcDesc->strides.nStride);
-                auto dst_address = static_cast<unsigned char *>(data->pDst) + data->pDstDesc->strides.nStride + (index * batch_stride);
+                auto dst_address = static_cast<unsigned char *>(data->pDst) + sequence_cnt * data->pDstDesc->strides.nStride + (index * batch_stride);
                 memcpy(dst_address, src_address, data->pSrcDesc->strides.nStride);
             }
         }
