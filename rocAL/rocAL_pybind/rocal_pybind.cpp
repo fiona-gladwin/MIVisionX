@@ -511,6 +511,10 @@ PYBIND11_MODULE(rocal_pybind, m) {
           py::return_value_policy::reference);
     m.def("mxnetDecoder", &rocalMXNetRecordSourceSingleShard, "Reads file from the source given and decodes it according to the policy only for mxnet records",
           py::return_value_policy::reference);
+    m.def("numpyReaderSource", &rocalNumpyFileSource, "Reads file from the source given and decodes it according to the policy",
+          py::return_value_policy::reference);
+    m.def("numpyReaderSourceShard", &rocalNumpyFileSourceSingleShard, "Reads file from the source given and decodes it according to the shard id and number of shards",
+          py::return_value_policy::reference);
     m.def("rocalResetLoaders", &rocalResetLoaders);
     m.def("videoMetaDataReader", &rocalCreateVideoLabelReader, py::return_value_policy::reference);
     // rocal_api_augmentation.h
