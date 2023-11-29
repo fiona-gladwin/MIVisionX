@@ -178,8 +178,8 @@ static vx_status VX_CALLBACK initializeElementExtract(vx_node node, const vx_ref
     data->pSrcDesc->n = in_tensor_dims[0];
     data->sequenceLength = in_tensor_dims[1];
 
-    data->pDstDesc->n = out_tensor_dims[0];
-    data->elementMapSize = out_tensor_dims[1];
+    data->pDstDesc->n = out_tensor_dims[1];     // Since output tensor is of the format FNHWC for convenience
+    data->elementMapSize = out_tensor_dims[0];
     data->pElementMap = new vx_uint32[data->elementMapSize];
     refreshElementExtract(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
