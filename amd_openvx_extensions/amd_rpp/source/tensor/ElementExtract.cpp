@@ -28,7 +28,7 @@ struct ElementExtractLocalData {
     RppPtr_t pDst;
     vx_uint32 deviceType;
     vx_uint32 sequenceLength;
-    vx_uint32 *pElementMap;
+    vx_uint32 pElementMap;
     vx_uint32 elementMapSize;
     vxTensorLayout inputLayout;
     vxTensorLayout outputLayout;
@@ -42,7 +42,7 @@ struct ElementExtractLocalData {
 
 static vx_status VX_CALLBACK refreshElementExtract(vx_node node, const vx_reference *parameters, vx_uint32 num, ElementExtractLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[2], 0, data->elementMapSize, sizeof(vx_uint32), data->pElementMap, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[2], &data->pElementMap, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_OPENCL, &data->pClSrc, sizeof(data->pClSrc)));
@@ -70,7 +70,9 @@ static vx_status VX_CALLBACK validateElementExtract(vx_node node, const vx_refer
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[5], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
     if (scalar_type != VX_TYPE_UINT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #5 type=%d (must be size)\n", scalar_type);
-
+    STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[2], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
+    if (scalar_type != VX_TYPE_UINT32)
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #2 type=%d (must be size)\n", scalar_type);
     // Check for input tensor
     size_t num_tensor_dims;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_NUMBER_OF_DIMS, &num_tensor_dims, sizeof(num_tensor_dims)));
@@ -81,7 +83,7 @@ static vx_status VX_CALLBACK validateElementExtract(vx_node node, const vx_refer
     size_t tensor_dims[RPP_MAX_TENSOR_DIMS];
     vx_enum tensor_dtype;
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_NUMBER_OF_DIMS, &num_tensor_dims, sizeof(num_tensor_dims)));
-    if (num_tensor_dims != 5) return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: ElementExtract: tensor: #1 dimensions=%lu (must be equal to 5)\n", num_tensor_dims);
+    if (num_tensor_dims != 4) return ERRMSG(VX_ERROR_INVALID_DIMENSION, "validate: ElementExtract: tensor: #1 dimensions=%lu (must be equal to 4)\n", num_tensor_dims);
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_DIMS, &tensor_dims, sizeof(tensor_dims)));
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_DATA_TYPE, &tensor_dtype, sizeof(tensor_dtype)));
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_FIXED_POINT_POSITION, &tensor_fixed_point_position, sizeof(tensor_fixed_point_position)));
@@ -119,29 +121,25 @@ static vx_status VX_CALLBACK processElementExtract(vx_node node, const vx_refere
 #elif ENABLE_HIP
         for (unsigned sequence_cnt = 0; sequence_cnt < data->pSrcDesc->n; sequence_cnt++) {
             unsigned src_sequence_start_address = sequence_cnt * data->pSrcDesc->strides.nStride * data->sequenceLength;
-            for (unsigned index = 0; index < (data->elementMapSize); index++) {
-                unsigned element_index = data->pElementMap[index];
+                unsigned element_index = data->pElementMap;
                 if (element_index > data->sequenceLength)
                     ERRMSG(VX_ERROR_INVALID_VALUE, "invalid new order value=%d (must be between 0-%d)\n", element_index, data->sequenceLength - 1);
                 auto src_address = static_cast<unsigned char *>(data->pSrc) + src_sequence_start_address + (element_index * data->pSrcDesc->strides.nStride);
-                auto dst_address = static_cast<unsigned char *>(data->pDst) + sequence_cnt * data->pDstDesc->strides.nStride + (index * batch_stride);
+                auto dst_address = static_cast<unsigned char *>(data->pDst) + sequence_cnt * data->pDstDesc->strides.nStride;
                 hipError_t status = hipMemcpyDtoD(dst_address, src_address, data->pSrcDesc->strides.nStride);
                     if (status != hipSuccess)
                         return VX_FAILURE;
-            }
         }
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         for (unsigned sequence_cnt = 0; sequence_cnt < data->pSrcDesc->n; sequence_cnt++) {
             unsigned src_sequence_start_address = sequence_cnt * data->pSrcDesc->strides.nStride * data->sequenceLength;
-            for (unsigned index = 0; index < (data->elementMapSize); index++) {
-                unsigned element_index = data->pElementMap[index];
-                                if (element_index > data->sequenceLength)
+                unsigned element_index = data->pElementMap;
+                if (element_index > data->sequenceLength)
                     ERRMSG(VX_ERROR_INVALID_VALUE, "invalid new order value=%d (must be between 0-%d)\n", element_index, data->sequenceLength - 1);
                 auto src_address = static_cast<unsigned char *>(data->pSrc) + src_sequence_start_address + (element_index * data->pSrcDesc->strides.nStride);
-                auto dst_address = static_cast<unsigned char *>(data->pDst) + sequence_cnt * data->pDstDesc->strides.nStride + (index * batch_stride);
+                auto dst_address = static_cast<unsigned char *>(data->pDst) + sequence_cnt * data->pDstDesc->strides.nStride ;
                 memcpy(dst_address, src_address, data->pSrcDesc->strides.nStride);
-            }
         }
     }
     return status;
@@ -159,7 +157,7 @@ static vx_status VX_CALLBACK initializeElementExtract(vx_node node, const vx_ref
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
 
     vx_size in_num_of_dims, out_num_of_dims;
-    size_t in_tensor_dims[RPP_MAX_TENSOR_DIMS], out_tensor_dims[RPP_MAX_TENSOR_DIMS];
+    size_t in_tensor_dims[RPP_MAX_TENSOR_DIMS], out_tensor_dims[RPP_MAX_TENSOR_DIMS - 1];
 
     // Querying for input tensor 
     data->pSrcDesc = new RpptDesc;
@@ -179,8 +177,7 @@ static vx_status VX_CALLBACK initializeElementExtract(vx_node node, const vx_ref
     data->sequenceLength = in_tensor_dims[1];
 
     data->pDstDesc->n = out_tensor_dims[0];
-    data->elementMapSize = out_tensor_dims[1];
-    data->pElementMap = new vx_uint32[data->elementMapSize];
+    data->elementMapSize = 1;
     refreshElementExtract(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -191,7 +188,6 @@ static vx_status VX_CALLBACK initializeElementExtract(vx_node node, const vx_ref
 static vx_status VX_CALLBACK uninitializeElementExtract(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     ElementExtractLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    delete[] data->pElementMap;
     delete data->pSrcDesc;
     delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
@@ -246,7 +242,7 @@ vx_status ElementExtract_Register(vx_context context) {
         STATUS_ERROR_CHECK(vxSetKernelAttribute(kernel, VX_KERNEL_ATTRIBUTE_AMD_QUERY_TARGET_SUPPORT, &query_target_support_f, sizeof(query_target_support_f)));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 0, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 1, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
-        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
+        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));

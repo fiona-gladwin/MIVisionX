@@ -2540,7 +2540,7 @@ VX_API_CALL vx_node VX_API_CALL vxExtRppSequenceRearrange(vx_graph graph, vx_ten
     return node;
 }
 
-VX_API_CALL vx_node VX_API_CALL vxExtRppElementExtract(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_array pElementMap, vx_scalar inputLayout, vx_scalar outputLayout) {
+VX_API_CALL vx_node VX_API_CALL vxExtRppElementExtract(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_scalar pElement, vx_scalar inputLayout, vx_scalar outputLayout) {
     vx_node node = NULL;
     vx_context context = vxGetContext((vx_reference)graph);
     if(vxGetStatus((vx_reference)context) == VX_SUCCESS) {
@@ -2549,7 +2549,7 @@ VX_API_CALL vx_node VX_API_CALL vxExtRppElementExtract(vx_graph graph, vx_tensor
         vx_reference params[] = {
             (vx_reference)pSrc,
             (vx_reference)pDst,
-            (vx_reference)pElementMap,
+            (vx_reference)pElement,
             (vx_reference)inputLayout,
             (vx_reference)outputLayout,
             (vx_reference)deviceType

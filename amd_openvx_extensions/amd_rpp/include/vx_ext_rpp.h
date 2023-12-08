@@ -1877,7 +1877,7 @@ extern "C"
 	 * \returns A node reference <tt>\ref vx_node</tt>. Any possible errors preventing a
 	 * successful creation should be checked using <tt>\ref vxGetStatus</tt>.
 	 */
-	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppElementExtract(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_array pElementMap, vx_scalar inputLayout, vx_scalar outputLayout);
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppElementExtract(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_scalar pElementMap, vx_scalar inputLayout, vx_scalar outputLayout);
 
 #ifdef __cplusplus
 }
