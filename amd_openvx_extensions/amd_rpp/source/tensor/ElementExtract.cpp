@@ -28,7 +28,7 @@ struct ElementExtractLocalData {
     RppPtr_t pDst;
     vx_uint32 deviceType;
     vx_uint32 sequenceLength;
-    vx_uint32 pElementMap;
+    vx_uint32 elementToExtractE;
     vx_uint32 elementMapSize;
     vxTensorLayout inputLayout;
     vxTensorLayout outputLayout;
@@ -42,7 +42,7 @@ struct ElementExtractLocalData {
 
 static vx_status VX_CALLBACK refreshElementExtract(vx_node node, const vx_reference *parameters, vx_uint32 num, ElementExtractLocalData *data) {
     vx_status status = VX_SUCCESS;
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[2], &data->pElementMap, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[2], &data->elementToExtractE, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_OPENCL, &data->pClSrc, sizeof(data->pClSrc)));
@@ -109,7 +109,7 @@ static vx_status VX_CALLBACK processElementExtract(vx_node node, const vx_refere
         //     unsigned src_sequence_start_address = sequence_cnt * data->pSrcDesc->strides.nStride * data->sequenceLength;
         //     unsigned dst_sequence_start_address = sequence_cnt * data->pDstDesc->strides.nStride * data->elementMapSize;
         //     for (unsigned dst_index = 0; dst_index < data->elementMapSize; dst_index++) {
-        //         unsigned src_index = data->pElementMap;
+        //         unsigned src_index = data->elementToExtractE;
         //         if (src_index > data->sequenceLength)
         //             ERRMSG(VX_ERROR_INVALID_VALUE, "invalid new order value=%d (must be between 0-%d)\n", src_index, data->sequenceLength - 1);
         //         auto dst_offset = dst_sequence_start_address + (dst_index * data->pSrcDesc->strides.nStride);
@@ -121,7 +121,7 @@ static vx_status VX_CALLBACK processElementExtract(vx_node node, const vx_refere
 #elif ENABLE_HIP
         for (unsigned sequence_cnt = 0; sequence_cnt < data->pSrcDesc->n; sequence_cnt++) {
             unsigned src_sequence_start_address = sequence_cnt * data->pSrcDesc->strides.nStride * data->sequenceLength;
-                unsigned element_index = data->pElementMap;
+                unsigned element_index = data->elementToExtractE;
                 if (element_index > data->sequenceLength)
                     ERRMSG(VX_ERROR_INVALID_VALUE, "invalid new order value=%d (must be between 0-%d)\n", element_index, data->sequenceLength - 1);
                 auto src_address = static_cast<unsigned char *>(data->pSrc) + src_sequence_start_address + (element_index * data->pSrcDesc->strides.nStride);
@@ -134,7 +134,7 @@ static vx_status VX_CALLBACK processElementExtract(vx_node node, const vx_refere
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         for (unsigned sequence_cnt = 0; sequence_cnt < data->pSrcDesc->n; sequence_cnt++) {
             unsigned src_sequence_start_address = sequence_cnt * data->pSrcDesc->strides.nStride * data->sequenceLength;
-                unsigned element_index = data->pElementMap;
+                unsigned element_index = data->elementToExtractE;
                 if (element_index > data->sequenceLength)
                     ERRMSG(VX_ERROR_INVALID_VALUE, "invalid new order value=%d (must be between 0-%d)\n", element_index, data->sequenceLength - 1);
                 auto src_address = static_cast<unsigned char *>(data->pSrc) + src_sequence_start_address + (element_index * data->pSrcDesc->strides.nStride);
