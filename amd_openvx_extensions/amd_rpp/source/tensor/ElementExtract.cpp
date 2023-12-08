@@ -109,7 +109,7 @@ static vx_status VX_CALLBACK processElementExtract(vx_node node, const vx_refere
         //     unsigned src_sequence_start_address = sequence_cnt * data->pSrcDesc->strides.nStride * data->sequenceLength;
         //     unsigned dst_sequence_start_address = sequence_cnt * data->pDstDesc->strides.nStride * data->elementMapSize;
         //     for (unsigned dst_index = 0; dst_index < data->elementMapSize; dst_index++) {
-        //         unsigned src_index = data->pElementMap[dst_index];
+        //         unsigned src_index = data->pElementMap;
         //         if (src_index > data->sequenceLength)
         //             ERRMSG(VX_ERROR_INVALID_VALUE, "invalid new order value=%d (must be between 0-%d)\n", src_index, data->sequenceLength - 1);
         //         auto dst_offset = dst_sequence_start_address + (dst_index * data->pSrcDesc->strides.nStride);
