@@ -49,6 +49,29 @@ void update_destination_roi(AudioLocalData *data, RpptROI *src_roi, RpptROI *dst
     }
 }
 
+void copy_src_dims_and_update_dst_roi(AudioLocalData *data, RpptROI *srcRoi, RpptROI *dstRoi) {
+    for (unsigned i = 0; i < data->inputTensorDims[0]; i++) {
+        data->augmentationSpecificData->melFilter.pSrcDims[i * 2] = srcRoi[i].xywhROI.roiWidth;
+        data->augmentationSpecificData->melFilter.pSrcDims[i * 2 + 1] = srcRoi[i].xywhROI.roiHeight;
+        dstRoi[i].xywhROI.roiWidth = data->augmentationSpecificData->melFilter.nfilter;
+        dstRoi[i].xywhROI.roiHeight = srcRoi[i].xywhROI.roiHeight;
+    }
+}
+
+void updateDstRoi(AudioLocalData *data, RpptROI *src_roi, RpptROI *dst_roi) {
+    const Rpp32s num_frames = ((data->augmentationSpecificData->spectrogram.nfft / 2) + 1);
+    for (unsigned i = 0; i < data->inputTensorDims[0]; i++) {
+        data->augmentationSpecificData->spectrogram.pSrcLength[i] = static_cast<int>(src_roi[i].xywhROI.roiWidth);
+        if (data->outputLayout == vxTensorLayout::VX_NTF) {
+            dst_roi[i].xywhROI.roiWidth = ((data->augmentationSpecificData->spectrogram.pSrcLength[i] - data->augmentationSpecificData->spectrogram.windowOffset) / data->augmentationSpecificData->spectrogram.windowStep) + 1;
+            dst_roi[i].xywhROI.roiHeight = num_frames;
+        } else if (data->outputLayout == vxTensorLayout::VX_NFT) {
+            dst_roi[i].xywhROI.roiWidth = num_frames;
+            dst_roi[i].xywhROI.roiHeight = ((data->augmentationSpecificData->spectrogram.pSrcLength[i] - data->augmentationSpecificData->spectrogram.windowOffset) / data->augmentationSpecificData->spectrogram.windowStep) + 1;
+        }
+    }
+}
+
 // **************** Initialize function for resample ****************
 void initializeResample(ResampleData data, float quality) {
     int lobes = std::round(0.007 * data.quality * data.quality - 0.09 * data.quality + 3);
@@ -99,6 +122,10 @@ static vx_status VX_CALLBACK refreshAudioNode(vx_node node, const vx_reference *
             data->augmentationSpecificData->toDecibels.pSrcDims[i].width = src_roi[i].xywhROI.roiHeight;
             data->augmentationSpecificData->toDecibels.pSrcDims[i].height = src_roi[i].xywhROI.roiWidth;
         }
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::MEL_FILTER_BANK) {
+        copy_src_dims_and_update_dst_roi(data, src_roi, dst_roi);
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::SPECTROGRAM) {
+        updateDstRoi(data, src_roi, dst_roi);
     }
     return status;
 }
@@ -159,6 +186,12 @@ static vx_status VX_CALLBACK processAudioNode(vx_node node, const vx_reference *
             rpp_status = rppt_down_mixing_host((float *)data->pSrc, data->pSrcDesc, (float *)data->pDst, data->pDstDesc, (Rpp32s *)data->pSrcRoi, false, data->handle->rppHandle);
         } else if (data->audio_augmentation == vxRppAudioAugmentationName::TO_DECIBELS) {
             rpp_status = rppt_to_decibels_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->augmentationSpecificData->toDecibels.pSrcDims, data->augmentationSpecificData->toDecibels.cutOffDB, data->augmentationSpecificData->toDecibels.multiplier, data->augmentationSpecificData->toDecibels.referenceMagnitude, data->handle->rppHandle);
+        } else if (data->audio_augmentation == vxRppAudioAugmentationName::MEL_FILTER_BANK) {
+            rpp_status = rppt_mel_filter_bank_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->augmentationSpecificData->melFilter.pSrcDims, data->augmentationSpecificData->melFilter.freqHigh, data->augmentationSpecificData->melFilter.freqLow,
+                                                   data->augmentationSpecificData->melFilter.melFormula, data->augmentationSpecificData->melFilter.nfilter, data->augmentationSpecificData->melFilter.sampleRate, data->augmentationSpecificData->melFilter.normalize, data->handle->rppHandle);
+        } else if (data->audio_augmentation == vxRppAudioAugmentationName::SPECTROGRAM) {
+            rpp_status = rppt_spectrogram_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->augmentationSpecificData->spectrogram.pSrcLength, data->augmentationSpecificData->spectrogram.centerWindows, data->augmentationSpecificData->spectrogram.reflectPadding,
+                                               data->augmentationSpecificData->spectrogram.pWindowFn, data->augmentationSpecificData->spectrogram.nfft, data->augmentationSpecificData->spectrogram.power, data->augmentationSpecificData->spectrogram.windowLength, data->augmentationSpecificData->spectrogram.windowStep, data->handle->rppHandle);
         }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
@@ -219,6 +252,31 @@ static vx_status VX_CALLBACK initializeAudioNode(vx_node node, const vx_referenc
         data->augmentationSpecificData->toDecibels.cutOffDB = array_values[0];
         data->augmentationSpecificData->toDecibels.multiplier = array_values[1];
         data->augmentationSpecificData->toDecibels.referenceMagnitude = array_values[2];
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::MEL_FILTER_BANK) {
+        float int_values[3];
+        int float_values[3];
+        data->augmentationSpecificData->melFilter.pSrcDims = new Rpp32s[data->pSrcDesc->n * 2];
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, 1, sizeof(int), int_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, 1, sizeof(float), float_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        data->augmentationSpecificData->melFilter.freqLow = float_values[0];
+        data->augmentationSpecificData->melFilter.freqHigh = float_values[1];
+        data->augmentationSpecificData->melFilter.sampleRate = float_values[2];
+        data->augmentationSpecificData->melFilter.melFormula = static_cast<RpptMelScaleFormula>(int_values[0]);
+        data->augmentationSpecificData->melFilter.nfilter = int_values[1];
+        data->augmentationSpecificData->melFilter.normalize = static_cast<bool>(int_values[2]);
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::SPECTROGRAM) {
+        int array_values[6];
+        data->augmentationSpecificData->spectrogram.pSrcLength = new int[data->pSrcDesc->n];
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, 1, sizeof(int), array_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        data->augmentationSpecificData->spectrogram.centerWindows = static_cast<bool>(array_values[0]);
+        data->augmentationSpecificData->spectrogram.reflectPadding = static_cast<bool>(array_values[1]);
+        data->augmentationSpecificData->spectrogram.power = array_values[2];
+        data->augmentationSpecificData->spectrogram.nfft = array_values[3];
+        data->augmentationSpecificData->spectrogram.windowLength = array_values[4];
+        data->augmentationSpecificData->spectrogram.windowStep = array_values[5];
+        data->augmentationSpecificData->spectrogram.windowOffset = (!data->augmentationSpecificData->spectrogram.centerWindows) ? data->augmentationSpecificData->spectrogram.windowLength : 0;
+        data->augmentationSpecificData->spectrogram.pWindowFn = new float[data->augmentationSpecificData->spectrogram.windowLength];
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->augmentationSpecificData->spectrogram.windowLength, sizeof(float), data->augmentationSpecificData->spectrogram.pWindowFn, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     }
 
     refreshAudioNode(node, parameters, num, data);
