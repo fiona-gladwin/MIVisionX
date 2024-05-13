@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+#include "internal_publishKernels.h"
 #include "audio_rpp.h"
 
 struct AudioLocalData {
@@ -27,7 +28,6 @@ struct AudioLocalData {
     Rpp32u deviceType;
     RppPtr_t pSrc;
     RppPtr_t pDst;
-    float quality;
     Rpp32s *pSrcRoi;
     Rpp32s *pDstRoi;
     RpptDescPtr pSrcDesc;
@@ -37,23 +37,28 @@ struct AudioLocalData {
     size_t inputTensorDims[RPP_MAX_TENSOR_DIMS];
     size_t outputTensorDims[RPP_MAX_TENSOR_DIMS];
     vxRppAudioAugmentationName audio_augmentation;
-    AudioAugmentatioData augmentationSpecificData;
+    AudioAugmentationData *augmentationSpecificData;
 };
 
 void update_destination_roi(AudioLocalData *data, RpptROI *src_roi, RpptROI *dst_roi) {
     float scale_ratio;
     for (unsigned i = 0; i < data->pSrcDesc->n; i++) {
-        scale_ratio = (data->pInRateTensor[i] != 0) ? (data->pOutRateTensor[i] / static_cast<float>(data->pInRateTensor[i])) : 0;
+        scale_ratio = (data->augmentationSpecificData->resample.pInRateTensor[i] != 0) ? (data->augmentationSpecificData->resample.pOutRateTensor[i] / static_cast<float>(data->augmentationSpecificData->resample.pInRateTensor[i])) : 0;
         dst_roi[i].xywhROI.roiWidth = static_cast<int>(std::ceil(scale_ratio * src_roi[i].xywhROI.roiWidth));
         dst_roi[i].xywhROI.roiHeight = src_roi[i].xywhROI.roiHeight;
     }
 }
 
+// **************** Initialize function for resample ****************
+void initializeResample(ResampleData data, float quality) {
+    int lobes = std::round(0.007 * data.quality * data.quality - 0.09 * data.quality + 3);
+    int lookupSize = lobes * 64 + 1;
+    windowed_sinc(data.window, lookupSize, lobes);
+}
+
 static vx_status VX_CALLBACK refreshAudioNode(vx_node node, const vx_reference *parameters, vx_uint32 num, AudioLocalData *data) {
     vx_status status = VX_SUCCESS;
     int nDim = 2;  // Num dimensions for audio tensor
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, data->pSrcDesc->n, sizeof(float), data->pInRateTensor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[4], VX_TENSOR_BUFFER_HOST, &data->pOutRateTensor, sizeof(data->pOutRateTensor)));
     void *roi_tensor_ptr_src, *roi_tensor_ptr_dst;
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL || ENABLE_HIP
@@ -68,13 +73,23 @@ static vx_status VX_CALLBACK refreshAudioNode(vx_node node, const vx_reference *
         if (parameters[3])
             STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[3], VX_TENSOR_BUFFER_HOST, &roi_tensor_ptr_dst, sizeof(roi_tensor_ptr_dst)));
     }
-    RpptROI *src_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_src);
-    RpptROI *dst_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_dst);
-    update_destination_roi(data, src_roi, dst_roi);
-    for (unsigned i = 0; i < data->pSrcDesc->n; i++) {
-        data->pSrcRoi[i * nDim] = src_roi[i].xywhROI.roiWidth;
-        data->pSrcRoi[i * nDim + 1] = src_roi[i].xywhROI.roiHeight;
+    if (data->audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[9], 0, 1, sizeof(float), data->augmentationSpecificData->resample.pInRateTensor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[8], VX_TENSOR_BUFFER_HOST, &data->augmentationSpecificData->resample.pOutRateTensor, sizeof(data->augmentationSpecificData->resample.pOutRateTensor)));
+        RpptROI *src_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_src);
+        RpptROI *dst_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_dst);
+        update_destination_roi(data, src_roi, dst_roi);
+        for (unsigned i = 0; i < data->pSrcDesc->n; i++) {
+            data->pSrcRoi[i * nDim] = src_roi[i].xywhROI.roiWidth;
+            data->pSrcRoi[i * nDim + 1] = src_roi[i].xywhROI.roiHeight;
+        }
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::PRE_EMPHASIS_FILTER) {
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[9], 0, 1, sizeof(float), data->augmentationSpecificData->preEmphasis.pPreemphCoeff, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        RpptROI *src_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_src);
+        for (int n = 0; n < data->inputTensorDims[0]; n++)
+            data->augmentationSpecificData->preEmphasis.pSampleSize[n] = src_roi[n].xywhROI.roiWidth * src_roi[n].xywhROI.roiHeight;
     }
+        
     return status;
 }
 
@@ -118,15 +133,19 @@ static vx_status VX_CALLBACK processAudioNode(vx_node node, const vx_reference *
     vx_status return_status = VX_SUCCESS;
     AudioLocalData *data = NULL;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    refreshResample(node, parameters, num, data);
+    refreshAudioNode(node, parameters, num, data);
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL || ENABLE_HIP
         return VX_ERROR_NOT_IMPLEMENTED;
 #endif
     }
     if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        rpp_status = rppt_resample_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc,
-                                        data->pInRateTensor, data->pOutRateTensor, data->pSrcRoi, data->window, data->handle->rppHandle);
+        if (data->audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
+            rpp_status = rppt_resample_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc,
+                                            data->augmentationSpecificData->resample.pInRateTensor, data->augmentationSpecificData->resample.pOutRateTensor, data->pSrcRoi, data->augmentationSpecificData->resample.window, data->handle->rppHandle);
+        } else if (data->audio_augmentation == vxRppAudioAugmentationName::PRE_EMPHASIS_FILTER) {
+            rpp_status = rppt_pre_emphasis_filter_host((float *)data->pSrc, data->pSrcDesc, (float *)data->pDst, data->pDstDesc, (Rpp32s *)data->augmentationSpecificData->preEmphasis.pSampleSize, data->augmentationSpecificData->preEmphasis.pPreemphCoeff, RpptAudioBorderType(data->augmentationSpecificData->preEmphasis.borderType), data->handle->rppHandle);
+        }
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
     return return_status;
@@ -138,14 +157,13 @@ static vx_status VX_CALLBACK initializeAudioNode(vx_node node, const vx_referenc
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
     vx_int32 input_layout, output_layout, aug_enum;
-    // STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[6], &data->quality));
     STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[6], &input_layout));
     STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[7], &output_layout));
     STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[10], &aug_enum));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[11], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
-    audio_augmentation = static_cast<vxRppAudioAugmentationName>(aug_enum);
+    data->audio_augmentation = static_cast<vxRppAudioAugmentationName>(aug_enum);
 
     // Querying for input tensor
     data->pSrcDesc = new RpptDesc;
@@ -163,17 +181,25 @@ static vx_status VX_CALLBACK initializeAudioNode(vx_node node, const vx_referenc
     STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_DATA_TYPE, &output_tensor_dtype, sizeof(output_tensor_dtype)));
     data->pDstDesc->dataType = getRpptDataType(output_tensor_dtype);
     data->pDstDesc->offsetInBytes = 0;
-    fillAudioDescriptionPtrFromDims(data->pDstDesc, data->outputLayout);
+    fillAudioDescriptionPtrFromDims(data->pDstDesc, data->outputTensorDims, data->outputLayout);
 
     if (parameters[2]) data->pSrcRoi = new Rpp32s[data->pSrcDesc->n * 2];
     if (parameters[3]) data->pDstRoi = new Rpp32s[data->pSrcDesc->n * 2];
 
-    if (audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
-        initializeResample()
+    if (data->audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
+        float array_values[1];
+        data->augmentationSpecificData->resample.pInRateTensor = new float[data->pSrcDesc->n];
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, 1, sizeof(float), array_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        data->augmentationSpecificData->resample.quality = array_values[0];
+        initializeResample(data->augmentationSpecificData->resample, data->augmentationSpecificData->resample.quality);
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::PRE_EMPHASIS_FILTER) {
+        data->augmentationSpecificData->preEmphasis.pSampleSize = new unsigned[data->pSrcDesc->n];
+        data->augmentationSpecificData->preEmphasis.pPreemphCoeff = new float[data->pSrcDesc->n];
+        int array_values[1];
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, 1, sizeof(int), array_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        data->augmentationSpecificData->preEmphasis.borderType = array_values[0];
     }
 
-    data->pInRateTensor = new float[data->pSrcDesc->n];
-    refreshResample(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     return VX_SUCCESS;
@@ -183,7 +209,6 @@ static vx_status VX_CALLBACK uninitializeAudioNode(vx_node node, const vx_refere
     AudioLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete[] data->pInRateTensor;
     delete[] data->pSrcRoi;
     delete data->pSrcDesc;
     delete data->pDstDesc;
@@ -212,7 +237,7 @@ vx_status AudioNode_Register(vx_context context) {
     // Add kernel to the context with callbacks
     vx_kernel kernel = vxAddUserKernel(context, "org.rpp.AudioNode",
                                        VX_KERNEL_RPP_AUDIO_NODE,
-                                       processAudio,
+                                       processAudioNode,
                                        12,
                                        validateAudioNode,
                                        initializeAudioNode,

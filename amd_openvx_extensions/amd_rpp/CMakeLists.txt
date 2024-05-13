@@ -124,6 +124,7 @@ list(APPEND SOURCES
         source/image/VignettebatchPD.cpp
         source/image/WarpAffinebatchPD.cpp
         source/image/WarpPerspectivebatchPD.cpp
+        source/tensor/AudioNodes.cpp
         source/tensor/Blend.cpp
         source/tensor/Blur.cpp
         source/tensor/Brightness.cpp

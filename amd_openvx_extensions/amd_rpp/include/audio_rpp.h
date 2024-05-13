@@ -89,20 +89,4 @@ inline void windowed_sinc(RpptResamplingWindow &window, int coeffs, int lobes) {
     window.pScale = _mm_set1_ps(window.scale);
 }
 
-// **************** Initialize function ****************
-void initializeResample(ResampleData *data, vx_reference *parameters, unsigned batchSize) {
-    if (parameters[n]) {
-        data->pInRateTensor = new float[batchSize];
-    }
-    RppPtr_t floatScalarTensor;
-    if (parameters[n]) {
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[4], VX_TENSOR_BUFFER_HOST, &data->floatScalarTensor, sizeof(data->floatScalarTensor)));
-    }
-
-
-    int lobes = std::round(0.007 * data->quality * data->quality - 0.09 * data->quality + 3);
-    int lookupSize = lobes * 64 + 1;
-    windowed_sinc(data->window, lookupSize, lobes);
-}
-
 #endif
