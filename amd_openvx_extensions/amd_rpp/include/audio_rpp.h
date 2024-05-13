@@ -29,7 +29,9 @@ enum vxRppAudioAugmentationName {
     RESAMPLE = 0,
     PRE_EMPHASIS_FILTER = 1,
     DOWNMIX = 2,
-    TO_DECIBELS = 3
+    TO_DECIBELS = 3,
+    MEL_FILTER_BANK = 4,
+    SPECTROGRAM = 5
 };
 
 struct ResampleData {
@@ -52,10 +54,34 @@ struct ToDecibelsData {
     RpptImagePatch *pSrcDims;
 };
 
+struct MelFilterBankData {
+    Rpp32f freqHigh;
+    Rpp32f freqLow;
+    RpptMelScaleFormula melFormula;
+    Rpp32s nfilter;
+    bool normalize;
+    Rpp32f sampleRate;
+    Rpp32s *pSrcDims;
+};
+
+struct SpectrogramData {
+    bool centerWindows;
+    bool reflectPadding;
+    Rpp32s power;
+    Rpp32s nfft;
+    Rpp32s windowLength;
+    Rpp32s windowOffset;
+    Rpp32s windowStep;
+    Rpp32s *pSrcLength;
+    Rpp32f *pWindowFn;
+};
+
 union AudioAugmentationData {
     ResampleData resample;
     PreEmphasisFilterData preEmphasis;
     ToDecibelsData toDecibels;
+    MelFilterBankData melFilter;
+    SpectrogramData spectrogram;
 };
 
 // ********************* Utility functions for Resample *********************
