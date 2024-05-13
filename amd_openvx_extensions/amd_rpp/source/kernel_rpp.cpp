@@ -2796,8 +2796,8 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppAudioNodes(vx_graph graph,
             (vx_reference)floatScalars,
             (vx_reference)inputLayout,
             (vx_reference)outputLayout,
-            (vx_reference)pInRateTensor,
             (vx_reference)pOutRateTensor,
+            (vx_reference)pInRateTensor,
             (vx_reference)augmentationEnum,
             (vx_reference)deviceType};
         node = createNode(graph, VX_KERNEL_RPP_MELFILTERBANK, params, sizeof(params) / sizeof(params[0]));
