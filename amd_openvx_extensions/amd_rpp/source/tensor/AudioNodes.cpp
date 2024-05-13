@@ -100,7 +100,7 @@ static vx_status VX_CALLBACK refreshAudioNode(vx_node node, const vx_reference *
     if (roi_tensor_ptr_src) src_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_src);
     if (roi_tensor_ptr_dst) dst_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_dst);
     if (data->audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
-        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[9], 0, 1, sizeof(float), data->augmentationSpecificData->resample.pInRateTensor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[9], 0, data->pSrcDesc->n, sizeof(float), data->augmentationSpecificData->resample.pInRateTensor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[8], VX_TENSOR_BUFFER_HOST, &data->augmentationSpecificData->resample.pOutRateTensor, sizeof(data->augmentationSpecificData->resample.pOutRateTensor)));
         RpptROI *src_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_src);
         update_destination_roi(data, src_roi, dst_roi);
@@ -109,7 +109,7 @@ static vx_status VX_CALLBACK refreshAudioNode(vx_node node, const vx_reference *
             data->pSrcRoi[i * nDim + 1] = src_roi[i].xywhROI.roiHeight;
         }
     } else if (data->audio_augmentation == vxRppAudioAugmentationName::PRE_EMPHASIS_FILTER) {
-        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[9], 0, 1, sizeof(float), data->augmentationSpecificData->preEmphasis.pPreemphCoeff, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[9], 0, data->pSrcDesc->n, sizeof(float), data->augmentationSpecificData->preEmphasis.pPreemphCoeff, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
         for (int n = 0; n < data->inputTensorDims[0]; n++)
             data->augmentationSpecificData->preEmphasis.pSampleSize[n] = src_roi[n].xywhROI.roiWidth * src_roi[n].xywhROI.roiHeight;
     } else if (data->audio_augmentation == vxRppAudioAugmentationName::DOWNMIX) {
@@ -248,7 +248,7 @@ static vx_status VX_CALLBACK initializeAudioNode(vx_node node, const vx_referenc
     } else if (data->audio_augmentation == vxRppAudioAugmentationName::TO_DECIBELS) {
         data->augmentationSpecificData->toDecibels.pSrcDims = new RpptImagePatch[data->pSrcDesc->n];
         float array_values[3];
-        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, 1, sizeof(float), array_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, 3, sizeof(float), array_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
         data->augmentationSpecificData->toDecibels.cutOffDB = array_values[0];
         data->augmentationSpecificData->toDecibels.multiplier = array_values[1];
         data->augmentationSpecificData->toDecibels.referenceMagnitude = array_values[2];
@@ -256,8 +256,8 @@ static vx_status VX_CALLBACK initializeAudioNode(vx_node node, const vx_referenc
         float int_values[3];
         int float_values[3];
         data->augmentationSpecificData->melFilter.pSrcDims = new Rpp32s[data->pSrcDesc->n * 2];
-        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, 1, sizeof(int), int_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, 1, sizeof(float), float_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, 3, sizeof(int), int_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[5], 0, 3, sizeof(float), float_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
         data->augmentationSpecificData->melFilter.freqLow = float_values[0];
         data->augmentationSpecificData->melFilter.freqHigh = float_values[1];
         data->augmentationSpecificData->melFilter.sampleRate = float_values[2];
@@ -267,7 +267,7 @@ static vx_status VX_CALLBACK initializeAudioNode(vx_node node, const vx_referenc
     } else if (data->audio_augmentation == vxRppAudioAugmentationName::SPECTROGRAM) {
         int array_values[6];
         data->augmentationSpecificData->spectrogram.pSrcLength = new int[data->pSrcDesc->n];
-        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, 1, sizeof(int), array_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[4], 0, 6, sizeof(int), array_values, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
         data->augmentationSpecificData->spectrogram.centerWindows = static_cast<bool>(array_values[0]);
         data->augmentationSpecificData->spectrogram.reflectPadding = static_cast<bool>(array_values[1]);
         data->augmentationSpecificData->spectrogram.power = array_values[2];
