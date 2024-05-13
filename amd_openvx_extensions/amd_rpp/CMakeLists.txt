@@ -168,6 +168,7 @@ list(APPEND SOURCES
         source/tensor/ToDecibels.cpp
         source/tensor/Vignette.cpp
         source/tensor/WarpAffine.cpp
+        source/tensor/AudioNodes.cpp
         source/kernel_rpp.cpp
         source/internal_publishKernels.cpp
     )

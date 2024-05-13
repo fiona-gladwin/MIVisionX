@@ -2027,6 +2027,10 @@ extern "C"
 	 */
 	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppMelFilterBank(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_tensor pDstRoi, vx_scalar freqHigh, vx_scalar freqLow,
 															vx_scalar melFormula, vx_scalar nfilter, vx_scalar normalize, vx_scalar sampleRate, vx_scalar inputLayout, vx_scalar outputLayout);
+	
+	/*! [Graph] Hnadles audio augmentation nodes
+	*/
+	SHARED_PUBLIC vx_node VX_API_CALL vxExtRppAudioNodes(vx_graph graph, vx_tensor pSrc, vx_tensor pDst, vx_tensor pSrcRoi, vx_tensor pDstRoi, vx_array intScalars, vx_array floatScalars, vx_scalar inputLayout, vx_scalar outputLayout, vx_array pInRateTensor, vx_tensor pOutRateTensor, vx_scalar augmentationEnum);
 
 #ifdef __cplusplus
 }
