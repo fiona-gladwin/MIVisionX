@@ -27,7 +27,9 @@ THE SOFTWARE.
 
 enum vxRppAudioAugmentationName {
     RESAMPLE = 0,
-    PRE_EMPHASIS_FILTER = 1
+    PRE_EMPHASIS_FILTER = 1,
+    DOWNMIX = 2,
+    TO_DECIBELS = 3
 };
 
 struct ResampleData {
