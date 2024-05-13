@@ -130,7 +130,7 @@ static vx_status VX_CALLBACK refreshAudioNode(vx_node node, const vx_reference *
     return status;
 }
 
-static vx_status VX_CALLBACK validateAudioNode(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
+static vx_status VX_CALLBACK validateAudioNodes(vx_node node, const vx_reference parameters[], vx_uint32 num, vx_meta_format metas[]) {
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
 
@@ -165,7 +165,7 @@ static vx_status VX_CALLBACK validateAudioNode(vx_node node, const vx_reference 
     return status;
 }
 
-static vx_status VX_CALLBACK processAudioNode(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+static vx_status VX_CALLBACK processAudioNodes(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     RppStatus rpp_status = RPP_SUCCESS;
     vx_status return_status = VX_SUCCESS;
     AudioLocalData *data = NULL;
@@ -198,7 +198,7 @@ static vx_status VX_CALLBACK processAudioNode(vx_node node, const vx_reference *
     return return_status;
 }
 
-static vx_status VX_CALLBACK initializeAudioNode(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+static vx_status VX_CALLBACK initializeAudioNodes(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     AudioLocalData *data = new AudioLocalData;
     memset(data, 0, sizeof(AudioLocalData));
 
@@ -285,7 +285,7 @@ static vx_status VX_CALLBACK initializeAudioNode(vx_node node, const vx_referenc
     return VX_SUCCESS;
 }
 
-static vx_status VX_CALLBACK uninitializeAudioNode(vx_node node, const vx_reference *parameters, vx_uint32 num) {
+static vx_status VX_CALLBACK uninitializeAudioNodes(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     AudioLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
@@ -312,16 +312,16 @@ static vx_status VX_CALLBACK query_target_support(vx_graph graph, vx_node node,
     return VX_SUCCESS;
 }
 
-vx_status AudioNode_Register(vx_context context) {
+vx_status AudioNodes_Register(vx_context context) {
     vx_status status = VX_SUCCESS;
     // Add kernel to the context with callbacks
-    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.AudioNode",
+    vx_kernel kernel = vxAddUserKernel(context, "org.rpp.AudioNodes",
                                        VX_KERNEL_RPP_AUDIONODES,
-                                       processAudioNode,
+                                       processAudioNodes,
                                        12,
-                                       validateAudioNode,
-                                       initializeAudioNode,
-                                       uninitializeAudioNode);
+                                       validateAudioNodes,
+                                       initializeAudioNodes,
+                                       uninitializeAudioNodes);
     ERROR_CHECK_OBJECT(kernel);
     AgoTargetAffinityInfo affinity;
     vxQueryContext(context, VX_CONTEXT_ATTRIBUTE_AMD_AFFINITY, &affinity, sizeof(affinity));

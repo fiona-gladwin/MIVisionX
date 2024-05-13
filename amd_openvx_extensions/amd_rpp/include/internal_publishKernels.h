@@ -303,6 +303,5 @@ vx_status MelFilterBank_Register(vx_context);
 #define VX_KERNEL_RPP_SLICE_NAME                                "org.rpp.Slice"
 #define VX_KERNEL_RPP_NORMALIZE_NAME                            "org.rpp.Normalize"
 #define VX_KERNEL_RPP_MELFILTERBANK_NAME                        "org.rpp.MelFilterBank"
-#define VX_KERNEL_RPP_AUDIONODES_NAME                           "org.rpp.AudioNodes"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
