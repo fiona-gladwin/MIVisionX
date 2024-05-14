@@ -135,10 +135,10 @@ static vx_status VX_CALLBACK validateAudioNodes(vx_node node, const vx_reference
     vx_enum scalar_type;
 
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[6], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
-    if (scalar_type != VX_TYPE_FLOAT32)
+    if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #6 type=%d (must be size)\n", scalar_type);
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[7], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
-    if (scalar_type != VX_TYPE_UINT32)
+    if (scalar_type != VX_TYPE_INT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #7 type=%d (must be size)\n", scalar_type);
 
     // Validate for input parameters
@@ -202,6 +202,7 @@ static vx_status VX_CALLBACK initializeAudioNodes(vx_node node, const vx_referen
     AudioLocalData *data = new AudioLocalData;
     memset(data, 0, sizeof(AudioLocalData));
 
+    data->augmentationSpecificData = new AudioAugmentationData;
     vx_enum input_tensor_dtype, output_tensor_dtype;
     vx_int32 input_layout, output_layout, aug_enum;
     STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[6], &input_layout));

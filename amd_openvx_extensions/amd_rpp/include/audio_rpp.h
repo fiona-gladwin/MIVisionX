@@ -82,6 +82,7 @@ union AudioAugmentationData {
     ToDecibelsData toDecibels;
     MelFilterBankData melFilter;
     SpectrogramData spectrogram;
+    AudioAugmentationData(){ memset(this, 0, sizeof(*this)); }
 };
 
 // ********************* Utility functions for Resample *********************
