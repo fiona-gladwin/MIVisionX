@@ -31,7 +31,8 @@ enum vxRppAudioAugmentationName {
     DOWNMIX = 2,
     TO_DECIBELS = 3,
     MEL_FILTER_BANK = 4,
-    SPECTROGRAM = 5
+    SPECTROGRAM = 5,
+    NON_SILENT_REGION_DETECTION = 6
 };
 
 struct ResampleData {
@@ -76,12 +77,22 @@ struct SpectrogramData {
     Rpp32f *pWindowFn;
 };
 
+struct NonSilentRegionDetectionData {
+    Rpp32s *pDst2;
+    Rpp32f cutOffDB;
+    Rpp32f referencePower;
+    Rpp32s windowLength;
+    Rpp32s resetInterval;
+    Rpp32s *pSrcLength;
+};
+
 union AudioAugmentationData {
     ResampleData resample;
     PreEmphasisFilterData preEmphasis;
     ToDecibelsData toDecibels;
     MelFilterBankData melFilter;
     SpectrogramData spectrogram;
+    NonSilentRegionDetectionData nsr;
     AudioAugmentationData(){ memset(this, 0, sizeof(*this)); }
 };
 
