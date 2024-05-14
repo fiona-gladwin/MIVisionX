@@ -2775,7 +2775,7 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppMelFilterBank(vx_graph graph, vx_tensor
 }
 
 VX_API_ENTRY vx_node VX_API_CALL vxExtRppAudioNodes(vx_graph graph, 
-                                                    vx_tensor pSrc, vx_tensor pDst, 
+                                                    vx_tensor pSrc, vx_tensor pDst, vx_tensor pDst2, 
                                                     vx_tensor pSrcRoi, vx_tensor pDstRoi, 
                                                     vx_array intScalars, vx_array floatScalars,
                                                     vx_scalar inputLayout, vx_scalar outputLayout, 
@@ -2790,6 +2790,7 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppAudioNodes(vx_graph graph,
         vx_reference params[] = {
             (vx_reference)pSrc,
             (vx_reference)pDst,
+            (vx_reference)pDst2,
             (vx_reference)pSrcRoi,
             (vx_reference)pDstRoi,
             (vx_reference)intScalars,
@@ -2800,7 +2801,7 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppAudioNodes(vx_graph graph,
             (vx_reference)pInRateTensor,
             (vx_reference)augmentationEnum,
             (vx_reference)deviceType};
-        node = createNode(graph, VX_KERNEL_RPP_AUDIONODES, params, 12);
+        node = createNode(graph, VX_KERNEL_RPP_AUDIONODES, params, 13);
     }
     return node;
 }
