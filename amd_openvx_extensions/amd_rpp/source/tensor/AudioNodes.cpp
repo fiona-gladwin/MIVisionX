@@ -40,7 +40,8 @@ struct AudioLocalData {
     AudioAugmentationData *augmentationSpecificData;
 };
 
-void update_destination_roi(AudioLocalData *data, RpptROI *src_roi, RpptROI *dst_roi) {
+// **************** Update destination roi's ****************
+void update_dst_roi_resample(AudioLocalData *data, RpptROI *src_roi, RpptROI *dst_roi) {
     float scale_ratio;
     for (unsigned i = 0; i < data->pSrcDesc->n; i++) {
         scale_ratio = (data->augmentationSpecificData->resample.pInRateTensor[i] != 0) ? (data->augmentationSpecificData->resample.pOutRateTensor[i] / static_cast<float>(data->augmentationSpecificData->resample.pInRateTensor[i])) : 0;
@@ -49,7 +50,7 @@ void update_destination_roi(AudioLocalData *data, RpptROI *src_roi, RpptROI *dst
     }
 }
 
-void copy_src_dims_and_update_dst_roi(AudioLocalData *data, RpptROI *srcRoi, RpptROI *dstRoi) {
+void update_dst_roi_mfb(AudioLocalData *data, RpptROI *srcRoi, RpptROI *dstRoi) {
     for (unsigned i = 0; i < data->inputTensorDims[0]; i++) {
         data->augmentationSpecificData->melFilter.pSrcDims[i * 2] = srcRoi[i].xywhROI.roiWidth;
         data->augmentationSpecificData->melFilter.pSrcDims[i * 2 + 1] = srcRoi[i].xywhROI.roiHeight;
@@ -58,7 +59,7 @@ void copy_src_dims_and_update_dst_roi(AudioLocalData *data, RpptROI *srcRoi, Rpp
     }
 }
 
-void updateDstRoi(AudioLocalData *data, RpptROI *src_roi, RpptROI *dst_roi) {
+void update_dst_roi_spectrogram(AudioLocalData *data, RpptROI *src_roi, RpptROI *dst_roi) {
     const Rpp32s num_frames = ((data->augmentationSpecificData->spectrogram.nfft / 2) + 1);
     for (unsigned i = 0; i < data->inputTensorDims[0]; i++) {
         data->augmentationSpecificData->spectrogram.pSrcLength[i] = static_cast<int>(src_roi[i].xywhROI.roiWidth);
@@ -99,13 +100,16 @@ static vx_status VX_CALLBACK refreshAudioNode(vx_node node, const vx_reference *
         if (parameters[4])
             STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[4], VX_TENSOR_BUFFER_HOST, &roi_tensor_ptr_dst, sizeof(roi_tensor_ptr_dst)));
     }
+
     if (roi_tensor_ptr_src) src_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_src);
     if (roi_tensor_ptr_dst) dst_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_dst);
+
+    // **************** Refresh function for the audio augmentations ****************
     if (data->audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
         STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[10], 0, data->pSrcDesc->n, sizeof(float), data->augmentationSpecificData->resample.pInRateTensor, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[9], VX_TENSOR_BUFFER_HOST, &data->augmentationSpecificData->resample.pOutRateTensor, sizeof(data->augmentationSpecificData->resample.pOutRateTensor)));
         RpptROI *src_roi = reinterpret_cast<RpptROI *>(roi_tensor_ptr_src);
-        update_destination_roi(data, src_roi, dst_roi);
+        update_dst_roi_resample(data, src_roi, dst_roi);
         for (unsigned i = 0; i < data->pSrcDesc->n; i++) {
             data->pSrcRoi[i * nDim] = src_roi[i].xywhROI.roiWidth;
             data->pSrcRoi[i * nDim + 1] = src_roi[i].xywhROI.roiHeight;
@@ -125,14 +129,15 @@ static vx_status VX_CALLBACK refreshAudioNode(vx_node node, const vx_reference *
             data->augmentationSpecificData->toDecibels.pSrcDims[i].height = src_roi[i].xywhROI.roiWidth;
         }
     } else if (data->audio_augmentation == vxRppAudioAugmentationName::MEL_FILTER_BANK) {
-        copy_src_dims_and_update_dst_roi(data, src_roi, dst_roi);
+        update_dst_roi_mfb(data, src_roi, dst_roi);
     } else if (data->audio_augmentation == vxRppAudioAugmentationName::SPECTROGRAM) {
-        updateDstRoi(data, src_roi, dst_roi);
+        update_dst_roi_spectrogram(data, src_roi, dst_roi);
     } else if (data->audio_augmentation == vxRppAudioAugmentationName::NON_SILENT_REGION_DETECTION) {
         unsigned *src_roi_ptr = static_cast<unsigned *>(roi_tensor_ptr_src);
         for (unsigned i = 0, j = 0; i < data->inputTensorDims[0]; i++, j += 4)
             data->augmentationSpecificData->nsr.pSrcLength[i] = src_roi_ptr[j + 2];
     }
+
     return status;
 }
 
@@ -197,6 +202,7 @@ static vx_status VX_CALLBACK processAudioNodes(vx_node node, const vx_reference 
         return VX_ERROR_NOT_IMPLEMENTED;
 #endif
     }
+    // **************** rppt_* function calls for the audio augmentations ****************
     if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
         if (data->audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
             rpp_status = rppt_resample_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc,
@@ -257,6 +263,7 @@ static vx_status VX_CALLBACK initializeAudioNodes(vx_node node, const vx_referen
     if (parameters[3]) data->pSrcRoi = new Rpp32s[data->pSrcDesc->n * 2];
     if (parameters[4]) data->pDstRoi = new Rpp32s[data->pSrcDesc->n * 2];
 
+    // **************** Initialize the required variables for audio augmentations ****************
     if (data->audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
         float array_values[1];
         data->augmentationSpecificData->resample.pInRateTensor = new float[data->pSrcDesc->n];
@@ -323,9 +330,26 @@ static vx_status VX_CALLBACK uninitializeAudioNodes(vx_node node, const vx_refer
     AudioLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
-    delete[] data->pSrcRoi;
-    delete data->pSrcDesc;
-    delete data->pDstDesc;
+    if (data->pSrcRoi) delete[] data->pSrcRoi;
+    if (data->pDstRoi) delete[] data->pDstRoi;
+    // **************** uninitialize the variables for audio augmentations ****************
+    if (data->audio_augmentation == vxRppAudioAugmentationName::RESAMPLE) {
+        if (data->augmentationSpecificData->resample.pInRateTensor) delete[] data->augmentationSpecificData->resample.pInRateTensor;
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::PRE_EMPHASIS_FILTER) {
+        if (data->augmentationSpecificData->preEmphasis.pSampleSize) delete[] data->augmentationSpecificData->preEmphasis.pSampleSize;
+        if (data->augmentationSpecificData->preEmphasis.pPreemphCoeff) delete[] data->augmentationSpecificData->preEmphasis.pPreemphCoeff;
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::TO_DECIBELS) {
+        if (data->augmentationSpecificData->toDecibels.pSrcDims) delete[] data->augmentationSpecificData->toDecibels.pSrcDims;
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::MEL_FILTER_BANK) {
+        if (data->augmentationSpecificData->melFilter.pSrcDims) delete[] data->augmentationSpecificData->melFilter.pSrcDims;
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::SPECTROGRAM) {
+        if (data->augmentationSpecificData->spectrogram.pSrcLength) delete[] data->augmentationSpecificData->spectrogram.pSrcLength;
+        if (data->augmentationSpecificData->spectrogram.pWindowFn) delete [] data->augmentationSpecificData->spectrogram.pWindowFn;
+    } else if (data->audio_augmentation == vxRppAudioAugmentationName::NON_SILENT_REGION_DETECTION) {
+        if (data->augmentationSpecificData->nsr.pSrcLength) delete[] data->augmentationSpecificData->nsr.pSrcLength;
+    }
+    if (data->pSrcDesc) delete data->pSrcDesc;
+    if (data->pDstDesc) delete data->pDstDesc;
     delete data;
     return VX_SUCCESS;
 }
@@ -375,7 +399,7 @@ vx_status AudioNodes_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_OPTIONAL));  // Output2
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_OPTIONAL));   // pSrcROI
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_OPTIONAL));   // pDstROI
-        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_OPTIONAL));    // Int csalars
+        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_OPTIONAL));    // Int scalars
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 6, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_OPTIONAL));    // Float scalars
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 7, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));   // input layout
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 8, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));   // output layout
