@@ -1951,9 +1951,14 @@ VX_API_CALL vx_node VX_API_CALL vxExtRppNop(vx_graph graph, vx_tensor pSrc, vx_t
     return node;
 }
 
-VX_API_ENTRY vx_node VX_API_CALL vxExtRppResize(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pDstWidth, vx_array pDstHeight, vx_scalar interpolationType, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType) {
+VX_API_ENTRY vx_node VX_API_CALL vxExtRppResize(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array layouts) {
     vx_node node = NULL;
     vx_context context = vxGetContext((vx_reference)graph);
+    // Layouts vx_layout;
+    // vxCopyArrayRange(layouts, 0, 1, sizeof(Layouts), &vx_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
+    // vx_scalar inputLayout = vx_layout.input_layout;
+    // vx_scalar outputLayout = vx_layout.output_layout;
+    // vx_scalar roiType = vx_layout.roi_type;
     if (vxGetStatus((vx_reference)context) == VX_SUCCESS) {
         vx_uint32 devType = getGraphAffinity(graph);
         vx_scalar deviceType = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &devType);
@@ -1961,14 +1966,9 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppResize(vx_graph graph, vx_tensor pSrc, 
             (vx_reference)pSrc,
             (vx_reference)pSrcRoi,
             (vx_reference)pDst,
-            (vx_reference)pDstWidth,
-            (vx_reference)pDstHeight,
-            (vx_reference)interpolationType,
-            (vx_reference)inputLayout,
-            (vx_reference)outputLayout,
-            (vx_reference)roiType,
+            (vx_reference)layouts,
             (vx_reference)deviceType};
-        node = createNode(graph, VX_KERNEL_RPP_RESIZE, params, 10);
+        node = createNode(graph, VX_KERNEL_RPP_RESIZE, params, 5);
     }
     return node;
 }
