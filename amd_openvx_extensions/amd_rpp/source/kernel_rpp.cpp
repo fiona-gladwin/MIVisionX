@@ -2540,7 +2540,7 @@ VX_API_CALL vx_node VX_API_CALL vxExtRppSequenceRearrange(vx_graph graph, vx_ten
     return node;
 }
 
-VX_API_ENTRY vx_node VX_API_CALL vxExtRppPreemphasisFilter(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pPreemphCoeff, vx_scalar borderType) {
+VX_API_ENTRY vx_node VX_API_CALL vxExtRppPreemphasisFilter(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAdditionalArgs) {
     vx_node node = NULL;
     vx_context context = vxGetContext((vx_reference)graph);
     if (vxGetStatus((vx_reference)context) == VX_SUCCESS) {
@@ -2550,10 +2550,9 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppPreemphasisFilter(vx_graph graph, vx_te
             (vx_reference)pSrc,
             (vx_reference)pSrcRoi,
             (vx_reference)pDst,
-            (vx_reference)pPreemphCoeff,
-            (vx_reference)borderType,
+            (vx_reference)pAdditionalArgs,
             (vx_reference)deviceType};
-        node = createNode(graph, VX_KERNEL_RPP_PREEMPHASISFILTER, params, 6);
+        node = createNode(graph, VX_KERNEL_RPP_PREEMPHASISFILTER, params, 5);
     }
     return node;
 }
