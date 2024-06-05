@@ -20,17 +20,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef _COMMON_DEFS_H_
-#define _COMMON_DEFS_H_
+#ifndef _VX_EXT_RPP_DEFS_H_
+#define _VX_EXT_RPP_DEFS_H_
 
-struct Layouts {
+struct ResizeArgs {
 	vx_scalar input_layout;
 	vx_scalar output_layout;
 	vx_scalar roi_type;
 	vx_array dst_width;
 	vx_array dst_height;
 	vx_scalar interpolation_type;
-	int value;
 };
 
-#endif //_VX_COMMON_DEFS_H_
+#endif //_VX_EXT_RPP_DEFS_H_

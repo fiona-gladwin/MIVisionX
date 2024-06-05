@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 
 #include "internal_publishKernels.h"
-#include "common_defs.h"
+#include "vx_ext_rpp_defs.h"
 
 struct ResizeLocalData {
     vxRppHandle *handle;
@@ -44,10 +44,10 @@ struct ResizeLocalData {
 
 static vx_status VX_CALLBACK refreshResize(vx_node node, const vx_reference *parameters, vx_uint32 num, ResizeLocalData *data) {
     vx_status status = VX_SUCCESS;
-    Layouts vx_layout;
-    vxCopyArrayRange((vx_array)parameters[3], 0, 1, sizeof(Layouts), &vx_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)vx_layout.dst_width, 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pResizeWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)vx_layout.dst_height, 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pResizeHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    ResizeArgs resize_args;
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, 1, sizeof(ResizeArgs), &resize_args, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)resize_args.dst_width, 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pResizeWidth, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)resize_args.dst_height, 0, data->inputTensorDims[0], sizeof(vx_uint32), data->pResizeHeight, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     for (unsigned i = 0; i < data->inputTensorDims[0]; i++) {
         data->pDstImgSize[i].width = data->pResizeWidth[i];
         data->pDstImgSize[i].height = data->pResizeHeight[i];
@@ -136,13 +136,12 @@ static vx_status VX_CALLBACK initializeResize(vx_node node, const vx_reference *
     vx_int32 roi_type, input_layout, output_layout, interpolation_type;
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
-    Layouts vx_layout;
-    vxCopyArrayRange((vx_array)parameters[3], 0, 1, sizeof(Layouts), &vx_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST);
-    std::cerr << "The value in layout : " << vx_layout.value << "\n";
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)vx_layout.input_layout, &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)vx_layout.output_layout, &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)vx_layout.roi_type, &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)vx_layout.interpolation_type, &interpolation_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    ResizeArgs resize_args;
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, 1, sizeof(ResizeArgs), &resize_args, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)resize_args.input_layout, &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)resize_args.output_layout, &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)resize_args.roi_type, &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)resize_args.interpolation_type, &interpolation_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
     data->outputLayout = static_cast<vxTensorLayout>(output_layout);
