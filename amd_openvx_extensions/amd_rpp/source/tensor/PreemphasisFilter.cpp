@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 
 #include "internal_publishKernels.h"
-
+#include "vx_ext_rpp_defs.h"
 struct PreemphasisFilterLocalData {
     vxRppHandle *handle;
     Rpp32u deviceType;
@@ -39,7 +39,10 @@ struct PreemphasisFilterLocalData {
 static vx_status VX_CALLBACK refreshPreemphasisFilter(vx_node node, const vx_reference *parameters, PreemphasisFilterLocalData *data) {
     vx_status status = VX_SUCCESS;
     void *roi_tensor_ptr_src;
-    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->pSrcDesc->n, sizeof(float), data->pPreemphCoeff, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    PreEmphasisFilterArgs preemphasis_args;
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, 1, sizeof(PreEmphasisFilterArgs), &preemphasis_args, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)preemphasis_args.preemphCoeff, 0, data->pSrcDesc->n, sizeof(float), data->pPreemphCoeff, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL || ENABLE_HIP
         return VX_ERROR_NOT_IMPLEMENTED;
@@ -61,7 +64,7 @@ static vx_status VX_CALLBACK validatePreemphasisFilter(vx_node node, const vx_re
     vx_status status = VX_SUCCESS;
     vx_enum scalar_type;
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[4], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
-    if (scalar_type != VX_TYPE_INT32)
+    if (scalar_type != VX_TYPE_UINT32)
         return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Paramter: #4 type=%d (must be size)\n", scalar_type);
 
     // Check for input parameters
@@ -114,8 +117,10 @@ static vx_status VX_CALLBACK initializePreemphasisFilter(vx_node node, const vx_
         memset(data, 0, sizeof(PreemphasisFilterLocalData));
 
         vx_enum input_tensor_datatype, output_tensor_datatype;
-        STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
-        STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)parameters[4], &data->borderType));
+        PreEmphasisFilterArgs preemphasis_args;
+        STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, 1, sizeof(PreEmphasisFilterArgs), &preemphasis_args, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+        STATUS_ERROR_CHECK(vxReadScalarValue((vx_scalar)preemphasis_args.borderType, &data->borderType));
+        STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
         // Querying for input tensor
         data->pSrcDesc = new RpptDesc;
@@ -182,7 +187,7 @@ vx_status PreemphasisFilter_Register(vx_context context) {
     vx_kernel kernel = vxAddUserKernel(context, "org.rpp.PreemphasisFilter",
                                        VX_KERNEL_RPP_PREEMPHASISFILTER,
                                        processPreemphasisFilter,
-                                       6,
+                                       5,
                                        validatePreemphasisFilter,
                                        initializePreemphasisFilter,
                                        uninitializePreemphasisFilter);
@@ -206,7 +211,6 @@ vx_status PreemphasisFilter_Register(vx_context context) {
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 2, VX_OUTPUT, VX_TYPE_TENSOR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 3, VX_INPUT, VX_TYPE_ARRAY, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 4, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
-        PARAM_ERROR_CHECK(vxAddParameterToKernel(kernel, 5, VX_INPUT, VX_TYPE_SCALAR, VX_PARAMETER_STATE_REQUIRED));
         PARAM_ERROR_CHECK(vxFinalizeKernel(kernel));
     }
     if (status != VX_SUCCESS) {
