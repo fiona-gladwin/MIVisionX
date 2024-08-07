@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 #include "internal_publishKernels.h"
+#include "../../../amd_openvx/openvx/ago/ago_internal.h"
 
 struct BrightnessLocalData {
     vxRppHandle *handle;
@@ -49,11 +50,14 @@ static vx_status VX_CALLBACK refreshBrightness(vx_node node, const vx_reference 
 #if ENABLE_OPENCL
         return VX_ERROR_NOT_IMPLEMENTED;
 #elif ENABLE_HIP
+        vx_status check_status = agoDirective(parameters[0], VX_DIRECTIVE_AMD_COPY_TO_HIPMEM);
+        check_status = agoDirective(parameters[1], VX_DIRECTIVE_AMD_COPY_TO_HIPMEM);
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &roi_tensor_ptr, sizeof(roi_tensor_ptr)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
+        // agoDirective
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &roi_tensor_ptr, sizeof(roi_tensor_ptr)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
@@ -120,6 +124,9 @@ static vx_status VX_CALLBACK processBrightness(vx_node node, const vx_reference 
 #if ENABLE_OPENCL
         return_status = VX_ERROR_NOT_IMPLEMENTED;
 #elif ENABLE_HIP
+        std::cerr << "Brightness GPU called";
+        if (data->pSrc == nullptr)
+            std::cerr << "Source is a nullptr\n";
         rpp_status = rppt_brightness_gpu(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc,  data->pAlpha, data->pBeta, data->pSrcRoi, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
@@ -127,6 +134,7 @@ static vx_status VX_CALLBACK processBrightness(vx_node node, const vx_reference 
         rpp_status = rppt_brightness_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->pAlpha, data->pBeta, data->pSrcRoi, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
+    std::cerr << "Brightness call done\n";
     return return_status;
 }
 

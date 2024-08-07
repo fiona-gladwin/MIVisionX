@@ -2720,6 +2720,42 @@ vx_status agoDirective(vx_reference reference, vx_enum directive)
                   }
                 }
             break;
+            case VX_DIRECTIVE_AMD_COPY_TO_HOSTMEM:
+                {
+                  status = VX_ERROR_NOT_SUPPORTED;
+                  auto data = (AgoData *)reference;
+                  auto dataToSync = (data->ref.type == VX_TYPE_IMAGE && data->u.img.isROI) ? data->u.img.roiMasterImage : data;
+                  if (dataToSync->ref.type == VX_TYPE_IMAGE)
+                  if (dataToSync->ref.type == VX_TYPE_IMAGE && dataToSync->numChildren > 0) {
+                      status = VX_ERROR_NOT_ALLOCATED;
+                      for (vx_uint32 plane = 0; plane < dataToSync->numChildren; plane++) {
+                          AgoData * img = dataToSync->children[plane];
+                          if (img) {
+                              if (img->buffer) {
+                                hipError_t err = hipMemcpyDtoH(img->buffer, img->hip_memory + img->gpu_buffer_offset, img->size);
+                                      agoAddLogEntry(NULL, VX_FAILURE, "ERROR: hipMemcpyDtoH failed => %d\n", err);
+                                      return VX_FAILURE;
+                                  }
+                                  img->buffer_sync_flags |= AGO_BUFFER_SYNC_FLAG_DIRTY_SYNCHED;
+                                  status = VX_SUCCESS;
+                              }
+                          }
+                    } else  {
+                        vx_size size = dataToSync->size;
+                        vx_uint8 buf[size];
+                        dataToSync->buffer = buf;
+                        if (size > 0) {
+                            hipError_t err = hipMemcpyDtoH((void*)dataToSync->buffer, dataToSync->hip_memory + dataToSync->gpu_buffer_offset, size);
+                            if (err) {
+                                agoAddLogEntry(NULL, VX_FAILURE, "ERROR: hipMemcpyDtoH(0x%x,%s,%ld,%ld) => %d\n", dataToSync->ref.type, dataToSync->name.c_str(), dataToSync->gpu_buffer_offset, size, err);
+                                return VX_FAILURE;
+                            }
+                        }
+                        dataToSync->buffer_sync_flags |= AGO_BUFFER_SYNC_FLAG_DIRTY_SYNCHED;
+                        status = VX_SUCCESS;
+                    }
+                }
+            break;
 #endif
             case VX_DIRECTIVE_AMD_ENABLE_PROFILE_CAPTURE:
             case VX_DIRECTIVE_AMD_DISABLE_PROFILE_CAPTURE:

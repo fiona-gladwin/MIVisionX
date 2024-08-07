@@ -279,6 +279,8 @@ enum vx_directive_amd_e
     VX_DIRECTIVE_AMD_DISABLE_GPU_FLUSH = VX_ENUM_BASE(VX_ID_AMD, VX_ENUM_DIRECTIVE) + 0x05,
     /*! \brief Data object copy to HIP memory. */
     VX_DIRECTIVE_AMD_COPY_TO_HIPMEM = VX_ENUM_BASE(VX_ID_AMD, VX_ENUM_DIRECTIVE) + 0x02,
+    /*! \brief Data object copy to HOST memory. */
+    VX_DIRECTIVE_AMD_COPY_TO_HOSTMEM = VX_ENUM_BASE(VX_ID_AMD, VX_ENUM_DIRECTIVE) + 0x06
 };
 
 /*! \brief An enumeration of additional memory type imports.
