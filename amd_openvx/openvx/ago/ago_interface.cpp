@@ -2725,7 +2725,6 @@ vx_status agoDirective(vx_reference reference, vx_enum directive)
                   status = VX_ERROR_NOT_SUPPORTED;
                   auto data = (AgoData *)reference;
                   auto dataToSync = (data->ref.type == VX_TYPE_IMAGE && data->u.img.isROI) ? data->u.img.roiMasterImage : data;
-                  if (dataToSync->ref.type == VX_TYPE_IMAGE)
                   if (dataToSync->ref.type == VX_TYPE_IMAGE && dataToSync->numChildren > 0) {
                       status = VX_ERROR_NOT_ALLOCATED;
                       for (vx_uint32 plane = 0; plane < dataToSync->numChildren; plane++) {
