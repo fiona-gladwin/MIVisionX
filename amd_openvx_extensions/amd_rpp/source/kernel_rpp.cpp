@@ -2898,6 +2898,23 @@ void fillGenericDescriptionPtrfromDims(RpptGenericDescPtr &genericDescPtr, vxTen
     genericDescPtr->strides[2] = genericDescPtr->dims[3];
 }
 
+vx_status getDataFromTensor(vx_tensor tensor_param, void **ptr) {
+    std::cerr << "GET DATA FROM TENSOR.....";
+    vx_enum memory_type;
+    STATUS_ERROR_CHECK(vxQueryTensor(tensor_param, VX_TENSOR_MEMORY_TYPE, &memory_type, sizeof(memory_type)));
+    std::cerr << "Mmeory type query failed\n";
+    if (memory_type == vx_memory_type_e::VX_MEMORY_TYPE_HOST) {
+        std::cerr << "HOST memory....\n";
+        STATUS_ERROR_CHECK(vxQueryTensor(tensor_param, VX_TENSOR_BUFFER_HOST, ptr, sizeof(*ptr)));
+    } else if (memory_type == vx_memory_type_amd_e::VX_MEMORY_TYPE_HIP) {
+        std::cerr << "HIP memory....\n";
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)tensor_param, VX_TENSOR_BUFFER_HIP, ptr, sizeof(*ptr)));
+    } else {
+        return VX_ERROR_NOT_SUPPORTED;
+    }
+    return VX_SUCCESS;
+}
+
 // utility functions
 vx_node createNode(vx_graph graph, vx_enum kernelEnum, vx_reference params[], vx_uint32 num)
 {
