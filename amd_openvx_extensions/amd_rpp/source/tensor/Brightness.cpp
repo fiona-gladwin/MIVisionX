@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 #include "internal_publishKernels.h"
+#include "../../../amd_openvx/openvx/ago/ago_internal.h"
 
 struct BrightnessLocalData {
     vxRppHandle *handle;
@@ -48,16 +49,37 @@ static vx_status VX_CALLBACK refreshBrightness(vx_node node, const vx_reference 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL
         return VX_ERROR_NOT_IMPLEMENTED;
-#elif ENABLE_HIP
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &roi_tensor_ptr, sizeof(roi_tensor_ptr)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
 #endif
-    } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &roi_tensor_ptr, sizeof(roi_tensor_ptr)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
     }
+
+    STATUS_ERROR_CHECK(getDataFromTensor((vx_tensor)parameters[1], &roi_tensor_ptr));
+    STATUS_ERROR_CHECK(getDataFromTensor((vx_tensor)parameters[0], &data->pSrc));
+    STATUS_ERROR_CHECK(getDataFromTensor((vx_tensor)parameters[2], &data->pDst));
+    
+// #elif ENABLE_HIP
+//         // vx_status check_status = agoDirective(parameters[0], VX_DIRECTIVE_AMD_COPY_TO_HIPMEM);
+//         // check_status = agoDirective(parameters[1], VX_DIRECTIVE_AMD_COPY_TO_HIPMEM);
+
+//         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &roi_tensor_ptr, sizeof(roi_tensor_ptr)));
+//         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
+//         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
+//         if (data->pSrc == nullptr)
+//             std::cerr << "GPU backend : Source is a nullptr in refresh!!!!!\n";
+// #endif
+//     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
+//         // agoDirective
+//         std::cerr << "CPU affinity....";
+//         // vx_status check_status = agoDirective(parameters[0], VX_DIRECTIVE_AMD_COPY_TO_HOSTMEM);
+//         // check_status = agoDirective(parameters[1], VX_DIRECTIVE_AMD_COPY_TO_HOSTMEM);
+//         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &roi_tensor_ptr, sizeof(roi_tensor_ptr)));
+//         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
+//         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
+//         unsigned char *src_ptr = reinterpret_cast<unsigned char*>(data->pSrc);
+//         for (int i = 0; i < 100; i++) {
+//             std::cerr << (int)src_ptr[i] << " ";
+//         }
+//         std::cerr << "\n";
+//     }
     data->pSrcRoi = reinterpret_cast<RpptROI *>(roi_tensor_ptr);
     if (data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW) {
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'
@@ -120,6 +142,9 @@ static vx_status VX_CALLBACK processBrightness(vx_node node, const vx_reference 
 #if ENABLE_OPENCL
         return_status = VX_ERROR_NOT_IMPLEMENTED;
 #elif ENABLE_HIP
+        std::cerr << "Brightness GPU called";
+        if (data->pSrc == nullptr)
+            std::cerr << "Source is a nullptr\n";
         rpp_status = rppt_brightness_gpu(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc,  data->pAlpha, data->pBeta, data->pSrcRoi, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
@@ -127,6 +152,7 @@ static vx_status VX_CALLBACK processBrightness(vx_node node, const vx_reference 
         rpp_status = rppt_brightness_host(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->pAlpha, data->pBeta, data->pSrcRoi, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
     }
+    std::cerr << "Brightness call done\n";
     return return_status;
 }
 

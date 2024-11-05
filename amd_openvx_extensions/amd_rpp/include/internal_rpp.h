@@ -95,6 +95,7 @@ void fillDescriptionPtrfromDims(RpptDescPtr &descPtr, vxTensorLayout layout, siz
 void fillGenericDescriptionPtrfromDims(RpptGenericDescPtr &genericDescPtr, vxTensorLayout layout, size_t *maxTensorDims);
 void fillAudioDescriptionPtrFromDims(RpptDescPtr &descPtr, size_t *maxTensorDims, vxTensorLayout layout = vxTensorLayout::VX_NHW);
 RpptDataType getRpptDataType(vx_enum dataType);
+vx_status getDataFromTensor(vx_tensor tensor_param, void **ptr);
 
 class Kernellist
 {

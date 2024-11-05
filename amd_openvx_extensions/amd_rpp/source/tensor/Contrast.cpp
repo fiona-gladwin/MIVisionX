@@ -48,16 +48,29 @@ static vx_status VX_CALLBACK refreshContrast(vx_node node, const vx_reference *p
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL
         return VX_ERROR_NOT_IMPLEMENTED;
-#elif ENABLE_HIP
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &roi_tensor_ptr, sizeof(&roi_tensor_ptr)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
 #endif
-    } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &roi_tensor_ptr, sizeof(&roi_tensor_ptr)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
-        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
     }
+    STATUS_ERROR_CHECK(getDataFromTensor((vx_tensor)parameters[0], &data->pSrc));
+    STATUS_ERROR_CHECK(getDataFromTensor((vx_tensor)parameters[2], &data->pDst));
+    STATUS_ERROR_CHECK(getDataFromTensor((vx_tensor)parameters[1], &roi_tensor_ptr));
+
+
+// #elif ENABLE_HIP
+        // STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &roi_tensor_ptr, sizeof(&roi_tensor_ptr)));
+        // STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
+        // STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
+// #endif
+//     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
+//         std::cerr << "CPU Affinity in the contrast.....\n";
+        // STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HOST, &roi_tensor_ptr, sizeof(&roi_tensor_ptr)));
+        // STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HOST, &data->pSrc, sizeof(data->pSrc)));
+        // STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HOST, &data->pDst, sizeof(data->pDst)));
+//         unsigned char *src_ptr = reinterpret_cast<unsigned char*>(data->pSrc);
+//         for (int i = 0; i < 100; i++) {
+//             std::cerr << (int)src_ptr[i] << " ";
+//         }
+//         std::cerr << "\n";    
+//     }
     data->pSrcRoi = reinterpret_cast<RpptROI *>(roi_tensor_ptr);
     if (data->inputLayout == vxTensorLayout::VX_NFHWC || data->inputLayout == vxTensorLayout::VX_NFCHW) {
         unsigned num_of_frames = data->inputTensorDims[1]; // Num of frames 'F'

@@ -1878,11 +1878,20 @@ VX_API_CALL vx_node VX_API_CALL vxExtrppNode_SequenceRearrangebatchPD(vx_graph g
 
 //tensor
 
-VX_API_ENTRY vx_node VX_API_CALL vxExtRppBrightness(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAlpha, vx_array pBeta, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType) {
+VX_API_ENTRY vx_node VX_API_CALL vxExtRppBrightness(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pAlpha, vx_array pBeta, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType, vx_uint32 affinity) {
     vx_node node = NULL;
     vx_context context = vxGetContext((vx_reference)graph);
     if (vxGetStatus((vx_reference)context) == VX_SUCCESS) {
-        vx_uint32 devType = getGraphAffinity(graph);
+        // vx_uint32 devType = getGraphAffinity(graph);
+        vx_uint32 devType; //getGraphAffinity(graph);
+        if(affinity == 0)
+            devType = AGO_TARGET_AFFINITY_CPU;
+        else if(affinity == 2)
+            devType = AGO_TARGET_AFFINITY_GPU;
+        else {
+            std::cerr<<"Affinity needs to be CPU or GPU";
+            exit(0);
+        }
         vx_scalar deviceType = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &devType);
         vx_reference params[] = {
             (vx_reference)pSrc,
@@ -2037,11 +2046,21 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppColorTwist(vx_graph graph, vx_tensor pS
     return node;
 }
 
-VX_API_ENTRY vx_node VX_API_CALL vxExtRppContrast(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pContrastFactor, vx_array pContrastCenter, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType) {
+VX_API_ENTRY vx_node VX_API_CALL vxExtRppContrast(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst, vx_array pContrastFactor, vx_array pContrastCenter, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType, vx_uint32 affinity) {
     vx_node node = NULL;
     vx_context context = vxGetContext((vx_reference)graph);
     if (vxGetStatus((vx_reference)context) == VX_SUCCESS) {
-        vx_uint32 devType = getGraphAffinity(graph);
+        // vx_uint32 devType = getGraphAffinity(graph);
+        vx_uint32 devType; //getGraphAffinity(graph);
+        std::cerr << "CONTRAST AFFINITY : " << affinity << "\n";
+        if(affinity == 0)
+            devType = AGO_TARGET_AFFINITY_CPU;
+        else if(affinity == 2)
+            devType = AGO_TARGET_AFFINITY_GPU;
+        else {
+            std::cerr<<"Affinity needs to be CPU or GPU";
+            exit(0);
+        }
         vx_scalar deviceType = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &devType);
         vx_reference params[] = {
             (vx_reference)pSrc,
@@ -2879,6 +2898,23 @@ void fillGenericDescriptionPtrfromDims(RpptGenericDescPtr &genericDescPtr, vxTen
     genericDescPtr->strides[2] = genericDescPtr->dims[3];
 }
 
+vx_status getDataFromTensor(vx_tensor tensor_param, void **ptr) {
+    std::cerr << "GET DATA FROM TENSOR.....";
+    vx_enum memory_type;
+    STATUS_ERROR_CHECK(vxQueryTensor(tensor_param, VX_TENSOR_MEMORY_TYPE, &memory_type, sizeof(memory_type)));
+    std::cerr << "Mmeory type query failed\n";
+    if (memory_type == vx_memory_type_e::VX_MEMORY_TYPE_HOST) {
+        std::cerr << "HOST memory....\n";
+        STATUS_ERROR_CHECK(vxQueryTensor(tensor_param, VX_TENSOR_BUFFER_HOST, ptr, sizeof(*ptr)));
+    } else if (memory_type == vx_memory_type_amd_e::VX_MEMORY_TYPE_HIP) {
+        std::cerr << "HIP memory....\n";
+        STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)tensor_param, VX_TENSOR_BUFFER_HIP, ptr, sizeof(*ptr)));
+    } else {
+        return VX_ERROR_NOT_SUPPORTED;
+    }
+    return VX_SUCCESS;
+}
+
 // utility functions
 vx_node createNode(vx_graph graph, vx_enum kernelEnum, vx_reference params[], vx_uint32 num)
 {
@@ -2941,17 +2977,17 @@ vx_status createRPPHandle(vx_node node, vxRppHandle **pHandle, Rpp32u batchSize,
         memset(handle, 0, sizeof(*handle));
         handle->count = 1;
         
-        if (deviceType == AGO_TARGET_AFFINITY_GPU) {
-#if ENABLE_OPENCL
-            STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_OPENCL_COMMAND_QUEUE, &handle->cmdq, sizeof(handle->cmdq)));
-            rppCreateWithStreamAndBatchSize(&handle->rppHandle, handle->cmdq, batchSize);
-#elif ENABLE_HIP
+//         if (deviceType == AGO_TARGET_AFFINITY_GPU) {
+// #if ENABLE_OPENCL
+//             STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_OPENCL_COMMAND_QUEUE, &handle->cmdq, sizeof(handle->cmdq)));
+//             rppCreateWithStreamAndBatchSize(&handle->rppHandle, handle->cmdq, batchSize);
+#if ENABLE_HIP
             STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_HIP_STREAM, &handle->hipstream, sizeof(handle->hipstream)));
             rppCreateWithStreamAndBatchSize(&handle->rppHandle, handle->hipstream, batchSize);
 #endif
-        } else if (deviceType == AGO_TARGET_AFFINITY_CPU) {
-            rppCreateWithBatchSize(&handle->rppHandle, batchSize, cpu_num_threads);
-        }
+        // } else if (deviceType == AGO_TARGET_AFFINITY_CPU) {
+        //     rppCreateWithBatchSize(&handle->rppHandle, batchSize, cpu_num_threads);
+        // }
         
         STATUS_ERROR_CHECK(vxSetModuleHandle(node, OPENVX_KHR_RPP, handle));
     }
