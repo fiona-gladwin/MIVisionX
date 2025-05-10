@@ -2800,6 +2800,27 @@ VX_API_ENTRY vx_node VX_API_CALL vxExtRppMelFilterBank(vx_graph graph, vx_tensor
     return node;
 }
 
+VX_API_ENTRY vx_node VX_API_CALL vxExtRppTranspose(vx_graph graph, vx_tensor pSrc, vx_tensor pSrcRoi, vx_tensor pDst,
+                                                   vx_array pPerm, vx_scalar inputLayout, vx_scalar outputLayout, vx_scalar roiType) {
+    vx_node node = NULL;
+    vx_context context = vxGetContext((vx_reference)graph);
+    if (vxGetStatus((vx_reference)context) == VX_SUCCESS) {
+        vx_uint32 devType = getGraphAffinity(graph);
+        vx_scalar deviceType = vxCreateScalar(vxGetContext((vx_reference)graph), VX_TYPE_UINT32, &devType);
+        vx_reference params[] = {
+            (vx_reference)pSrc,
+            (vx_reference)pSrcRoi,
+            (vx_reference)pDst,
+            (vx_reference)pPerm,
+            (vx_reference)inputLayout,
+            (vx_reference)outputLayout,
+            (vx_reference)roiType,
+            (vx_reference)deviceType};
+        node = createNode(graph, VX_KERNEL_RPP_TRANSPOSE, params, 8);
+    }
+    return node;
+}
+
 RpptDataType getRpptDataType(vx_enum vxDataType) {
     switch(vxDataType) {
         case vx_type_e::VX_TYPE_FLOAT32:
@@ -2810,6 +2831,29 @@ RpptDataType getRpptDataType(vx_enum vxDataType) {
             return RpptDataType::I8;
         default:
             return RpptDataType::U8;
+    }
+}
+
+size_t getDataTypeSize(vx_enum vxDataType) {
+    switch (vxDataType) {
+#if defined(AMD_FP16_SUPPORT)
+        case vx_type_e::VX_TYPE_FLOAT16:
+            return sizeof(vx_float16);
+#endif
+        case vx_type_e::VX_TYPE_FLOAT32:
+            return sizeof(vx_float32);
+        case vx_type_e::VX_TYPE_INT8:
+            return sizeof(vx_int8);
+        case vx_type_e::VX_TYPE_INT16:
+            return sizeof(vx_int16);
+        case vx_type_e::VX_TYPE_INT32:
+            return sizeof(vx_int32);
+        case vx_type_e::VX_TYPE_UINT8:
+            return sizeof(vx_uint8);
+        case vx_type_e::VX_TYPE_UINT32:
+            return sizeof(vx_uint32);
+        default:
+            throw std::runtime_error("Invalid datatype.");
     }
 }
 
@@ -2886,55 +2930,70 @@ void fillAudioDescriptionPtrFromDims(RpptDescPtr &descPtr, size_t *maxTensorDims
     }
 }
 
-void fillGenericDescriptionPtrfromDims(RpptGenericDescPtr &dscPtr3D, vxTensorLayout layout, size_t *tensorDims) {
+void fillGenericDescriptionPtrfromDims(RpptGenericDescPtr &genericDescPtr, vxTensorLayout layout, size_t *tensorDims) {
+    if(tensorLayoutMapping.find(layout) != tensorLayoutMapping.end())
+        genericDescPtr->layout = tensorLayoutMapping.at(layout);
+    else
+        throw std::runtime_error("Invalid layout value in fillGenericDescriptionPtrfromDims");
     switch(layout) {
         case vxTensorLayout::VX_NDHWC: {
-            dscPtr3D->numDims = 5;
-            dscPtr3D->layout = RpptLayout::NDHWC;
-            dscPtr3D->dims[0] = tensorDims[0];
-            dscPtr3D->dims[1] = tensorDims[1];
-            dscPtr3D->dims[2] = tensorDims[2];
-            dscPtr3D->dims[3] = tensorDims[3];
-            dscPtr3D->dims[4] = tensorDims[4];
+            genericDescPtr->numDims = 5;
+            genericDescPtr->dims[0] = tensorDims[0];
+            genericDescPtr->dims[1] = tensorDims[1];
+            genericDescPtr->dims[2] = tensorDims[2];
+            genericDescPtr->dims[3] = tensorDims[3];
+            genericDescPtr->dims[4] = tensorDims[4];
 
-            dscPtr3D->strides[0] = dscPtr3D->dims[1] * dscPtr3D->dims[2] * dscPtr3D->dims[3] * dscPtr3D->dims[4];
-            dscPtr3D->strides[1] = dscPtr3D->dims[2] * dscPtr3D->dims[3] * dscPtr3D->dims[4];
-            dscPtr3D->strides[2] = dscPtr3D->dims[3] * dscPtr3D->dims[4];
-            dscPtr3D->strides[3] = dscPtr3D->dims[4];
-            dscPtr3D->strides[4] = 1;
+            genericDescPtr->strides[0] = genericDescPtr->dims[1] * genericDescPtr->dims[2] * genericDescPtr->dims[3] * genericDescPtr->dims[4];
+            genericDescPtr->strides[1] = genericDescPtr->dims[2] * genericDescPtr->dims[3] * genericDescPtr->dims[4];
+            genericDescPtr->strides[2] = genericDescPtr->dims[3] * genericDescPtr->dims[4];
+            genericDescPtr->strides[3] = genericDescPtr->dims[4];
+            genericDescPtr->strides[4] = 1;
             break;
         }
         case vxTensorLayout::VX_NCDHW: {
-            dscPtr3D->numDims = 5;
-            dscPtr3D->layout = RpptLayout::NCDHW;
-            dscPtr3D->dims[0] = tensorDims[0];
-            dscPtr3D->dims[1] = tensorDims[1];
-            dscPtr3D->dims[2] = tensorDims[2];
-            dscPtr3D->dims[3] = tensorDims[3];
-            dscPtr3D->dims[4] = tensorDims[4];
+            genericDescPtr->numDims = 5;
+            genericDescPtr->dims[0] = tensorDims[0];
+            genericDescPtr->dims[1] = tensorDims[1];
+            genericDescPtr->dims[2] = tensorDims[2];
+            genericDescPtr->dims[3] = tensorDims[3];
+            genericDescPtr->dims[4] = tensorDims[4];
 
-            dscPtr3D->strides[0] = dscPtr3D->dims[1] * dscPtr3D->dims[2] * dscPtr3D->dims[3] * dscPtr3D->dims[4];
-            dscPtr3D->strides[1] = dscPtr3D->dims[2] * dscPtr3D->dims[3] * dscPtr3D->dims[4];
-            dscPtr3D->strides[2] = dscPtr3D->dims[3] * dscPtr3D->dims[4];
-            dscPtr3D->strides[3] = dscPtr3D->dims[4];
-            dscPtr3D->strides[4] = 1;
+            genericDescPtr->strides[0] = genericDescPtr->dims[1] * genericDescPtr->dims[2] * genericDescPtr->dims[3] * genericDescPtr->dims[4];
+            genericDescPtr->strides[1] = genericDescPtr->dims[2] * genericDescPtr->dims[3] * genericDescPtr->dims[4];
+            genericDescPtr->strides[2] = genericDescPtr->dims[3] * genericDescPtr->dims[4];
+            genericDescPtr->strides[3] = genericDescPtr->dims[4];
+            genericDescPtr->strides[4] = 1;
+            break;
+        }
+        case vxTensorLayout::VX_NHWC:
+        case vxTensorLayout::VX_NCHW: {
+            genericDescPtr->numDims = 4;
+            genericDescPtr->dims[0] = tensorDims[0];
+            genericDescPtr->dims[1] = tensorDims[1];
+            genericDescPtr->dims[2] = tensorDims[2];
+            genericDescPtr->dims[3] = tensorDims[3];
+            genericDescPtr->strides[0] = genericDescPtr->dims[1] * genericDescPtr->dims[2] * genericDescPtr->dims[3];
+            genericDescPtr->strides[1] = genericDescPtr->dims[2] * genericDescPtr->dims[3];
+            genericDescPtr->strides[2] = genericDescPtr->dims[3];
+            genericDescPtr->strides[3] = 1;
             break;
         }
         case vxTensorLayout::VX_NHW:
         case vxTensorLayout::VX_NFT:
         case vxTensorLayout::VX_NTF: {
-            dscPtr3D->layout = tensorLayoutMapping.at(layout);
-            dscPtr3D->dims[0] = tensorDims[0];
-            dscPtr3D->dims[1] = tensorDims[1];
-            dscPtr3D->dims[2] = tensorDims[2];
-            dscPtr3D->dims[3] = 1;
-            if(dscPtr3D->dims[2] == 1)
-                dscPtr3D->numDims = 2;
+            genericDescPtr->dims[0] = tensorDims[0];
+            genericDescPtr->dims[1] = tensorDims[1];
+            genericDescPtr->dims[2] = tensorDims[2];
+            genericDescPtr->dims[3] = 1;
+            if(genericDescPtr->dims[2] == 1)
+                genericDescPtr->numDims = 2;
             else
-                dscPtr3D->numDims = 3;
-            dscPtr3D->strides[0] = dscPtr3D->dims[1] * dscPtr3D->dims[2] * dscPtr3D->dims[3];
-            dscPtr3D->strides[1] = dscPtr3D->dims[2] * dscPtr3D->dims[3];
-            dscPtr3D->strides[2] = dscPtr3D->dims[3];
+                genericDescPtr->numDims = 3;
+            genericDescPtr->strides[0] = genericDescPtr->dims[1] * genericDescPtr->dims[2] * genericDescPtr->dims[3];
+            genericDescPtr->strides[1] = genericDescPtr->dims[2] * genericDescPtr->dims[3];
+            genericDescPtr->strides[2] = genericDescPtr->dims[3];
+            break;
         }
         default: {
             throw std::runtime_error("Invalid layout value in fillGenericDescriptionPtrfromDims.");
@@ -3007,13 +3066,13 @@ vx_status createRPPHandle(vx_node node, vxRppHandle **pHandle, Rpp32u batchSize,
         if (deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL
             STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_OPENCL_COMMAND_QUEUE, &handle->cmdq, sizeof(handle->cmdq)));
-            rppCreateWithStreamAndBatchSize(&handle->rppHandle, handle->cmdq, batchSize);
+            rppCreate(&handle->rppHandle, batchSize, 0, handle->cmdq, RppBackend::RPP_OCL_BACKEND);
 #elif ENABLE_HIP
             STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_ATTRIBUTE_AMD_HIP_STREAM, &handle->hipstream, sizeof(handle->hipstream)));
-            rppCreateWithStreamAndBatchSize(&handle->rppHandle, handle->hipstream, batchSize);
+            rppCreate(&handle->rppHandle, batchSize, 0, handle->hipstream, RppBackend::RPP_HIP_BACKEND);
 #endif
         } else if (deviceType == AGO_TARGET_AFFINITY_CPU) {
-            rppCreateWithBatchSize(&handle->rppHandle, batchSize, cpu_num_threads);
+            rppCreate(&handle->rppHandle, batchSize, cpu_num_threads, NULL, RppBackend::RPP_HOST_BACKEND);
         }
         
         STATUS_ERROR_CHECK(vxSetModuleHandle(node, OPENVX_KHR_RPP, handle));
@@ -3027,10 +3086,10 @@ vx_status releaseRPPHandle(vx_node node, vxRppHandle *handle, Rpp32u deviceType)
     if (handle->count == 0) {
         if(deviceType == AGO_TARGET_AFFINITY_GPU) {
 #if ENABLE_OPENCL || ENABLE_HIP
-            rppDestroyGPU(handle->rppHandle);
+            rppDestroy(handle->rppHandle);
 #endif   
         } else if (deviceType == AGO_TARGET_AFFINITY_CPU) {
-            rppDestroyHost(handle->rppHandle);
+            rppDestroy(handle->rppHandle);
         }
 
         delete handle;
