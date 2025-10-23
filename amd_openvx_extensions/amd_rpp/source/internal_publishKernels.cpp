@@ -182,6 +182,7 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(MedianFilter_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(WarpPerspective_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Threshold_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Erase_Register));
     return status;
 }
 
