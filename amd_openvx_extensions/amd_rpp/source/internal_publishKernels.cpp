@@ -183,6 +183,9 @@ vx_status get_kernels_to_publish()
     STATUS_ERROR_CHECK(ADD_KERNEL(WarpPerspective_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Threshold_Register));
     STATUS_ERROR_CHECK(ADD_KERNEL(Erase_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Erode_Register));
+    STATUS_ERROR_CHECK(ADD_KERNEL(Dilate_Register));
+
     return status;
 }
 
