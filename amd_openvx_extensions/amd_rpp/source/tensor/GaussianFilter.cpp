@@ -43,10 +43,9 @@ static vx_status VX_CALLBACK refreshGaussianFilter(vx_node node, const vx_refere
     vx_status status = VX_SUCCESS;
     void *roi_tensor_ptr = nullptr;
 
+    STATUS_ERROR_CHECK(vxCopyArrayRange((vx_array)parameters[3], 0, data->pSrcDesc->n, sizeof(Rpp32f), data->pStdDev, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
-#if ENABLE_OPENCL
-        return VX_ERROR_NOT_IMPLEMENTED;
-#elif ENABLE_HIP
+#if ENABLE_HIP
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[1], VX_TENSOR_BUFFER_HIP, &roi_tensor_ptr, sizeof(roi_tensor_ptr)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[0], VX_TENSOR_BUFFER_HIP, &data->pSrc, sizeof(data->pSrc)));
         STATUS_ERROR_CHECK(vxQueryTensor((vx_tensor)parameters[2], VX_TENSOR_BUFFER_HIP, &data->pDst, sizeof(data->pDst)));
@@ -134,9 +133,7 @@ static vx_status VX_CALLBACK processGaussianFilter(vx_node node, const vx_refere
     STATUS_ERROR_CHECK(refreshGaussianFilter(node, parameters, num, data));
 
     if (data->deviceType == AGO_TARGET_AFFINITY_GPU) {
-#if ENABLE_OPENCL
-        return_status = VX_ERROR_NOT_IMPLEMENTED;
-#elif ENABLE_HIP
+#if ENABLE_HIP
         rpp_status = rppt_gaussian_filter_gpu(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc,
                                               data->pStdDev, data->kernelSize,
                                               data->pSrcRoi, data->roiType, data->handle->rppHandle);
