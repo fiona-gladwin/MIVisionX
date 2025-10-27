@@ -68,28 +68,38 @@ list(APPEND SOURCES
         source/tensor/Blur.cpp
         source/tensor/Brightness.cpp
         source/tensor/ColorTemperature.cpp
+        source/tensor/ColorCast.cpp
         source/tensor/ColorTwist.cpp
         source/tensor/Contrast.cpp
         source/tensor/Copy.cpp
         source/tensor/Crop.cpp
         source/tensor/CropMirrorNormalize.cpp
+        source/tensor/Dilate.cpp
         source/tensor/Downmix.cpp
+        source/tensor/Erase.cpp
+        source/tensor/Erode.cpp
         source/tensor/Exposure.cpp
         source/tensor/FishEye.cpp
         source/tensor/Flip.cpp
         source/tensor/Fog.cpp
         source/tensor/GammaCorrection.cpp
+        source/tensor/GaussianFilter.cpp
         source/tensor/Glitch.cpp
+        source/tensor/GridMask.cpp
         source/tensor/Hue.cpp
         source/tensor/Jitter.cpp
         source/tensor/LensCorrection.cpp
         source/tensor/Log1p.cpp
+        source/tensor/Magnitude.cpp
+        source/tensor/MedianFilter.cpp
         source/tensor/MelFilterBank.cpp
         source/tensor/Noise.cpp
         source/tensor/NonSilentRegionDetection.cpp
+        source/tensor/NonLinearBlend.cpp
         source/tensor/Nop.cpp
         source/tensor/Normalize.cpp
         source/tensor/Rotate.cpp
+        source/tensor/Phase.cpp
         source/tensor/Pixelate.cpp
         source/tensor/PreemphasisFilter.cpp
         source/tensor/Rain.cpp
@@ -104,9 +114,11 @@ list(APPEND SOURCES
         source/tensor/Spectrogram.cpp
         source/tensor/TensorAddTensor.cpp
         source/tensor/TensorMulScalar.cpp
+        source/tensor/Threshold.cpp
         source/tensor/ToDecibels.cpp
         source/tensor/Vignette.cpp
         source/tensor/WarpAffine.cpp
+        source/tensor/WarpPerspective.cpp
         source/tensor/Slice.cpp
         source/tensor/Transpose.cpp
         source/kernel_rpp.cpp
