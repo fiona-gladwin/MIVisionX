@@ -325,11 +325,11 @@ vx_status Phase_Register(vx_context);
 #define VX_KERNEL_RPP_GAUSSIAN_FILTER_NAME                      "org.rpp.GaussianFilter"
 #define VX_KERNEL_RPP_MEDIAN_FILTER_NAME                        "org.rpp.MedianFilter"
 #define VX_KERNEL_RPP_WARP_PERSPECTIVE_NAME                     "org.rpp.WarpPerspective"
-#define VX_KERNEL_RPP_THRESHOLD                                 "org.rpp.Threshold"
-#define VX_KERNEL_RPP_ERASE                                     "org.rpp.Erase"
-#define VX_KERNEL_RPP_ERODE                                     "org.rpp.Erode"
-#define VX_KERNEL_RPP_DILATE                                    "org.rpp.Dilate"
-#define VX_KERNEL_RPP_MAGNITUDE                                 "org.rpp.Magnitude"
-#define VX_KERNEL_RPP_PHASE                                     "org.rpp.Phase"
+#define VX_KERNEL_RPP_THRESHOLD_NAME                            "org.rpp.Threshold"
+#define VX_KERNEL_RPP_ERASE_NAME                                "org.rpp.Erase"
+#define VX_KERNEL_RPP_ERODE_NAME                                "org.rpp.Erode"
+#define VX_KERNEL_RPP_DILATE_NAME                               "org.rpp.Dilate"
+#define VX_KERNEL_RPP_MAGNITUDE_NAME                            "org.rpp.Magnitude"
+#define VX_KERNEL_RPP_PHASE_NAME                                "org.rpp.Phase"
 
 #endif //_AMDVX_EXT__PUBLISH_KERNELS_H_
