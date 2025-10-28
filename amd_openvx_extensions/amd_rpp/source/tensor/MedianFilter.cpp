@@ -76,8 +76,8 @@ static vx_status VX_CALLBACK validateMedianFilter(vx_node node, const vx_referen
 
     // kernelSize
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[3], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
-    if (scalar_type != VX_TYPE_INT32)
-        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #3 type=%d (must be int32 kernelSize)\n", scalar_type);
+    if (scalar_type != VX_TYPE_UINT32)
+        return ERRMSG(VX_ERROR_INVALID_TYPE, "validate: Parameter: #3 type=%d (must be uint32 kernelSize)\n", scalar_type);
 
     // borderType
     STATUS_ERROR_CHECK(vxQueryScalar((vx_scalar)parameters[4], VX_SCALAR_TYPE, &scalar_type, sizeof(scalar_type)));
@@ -156,18 +156,16 @@ static vx_status VX_CALLBACK initializeMedianFilter(vx_node node, const vx_refer
     memset(data, 0, sizeof(MedianFilterLocalData));
 
     vx_enum input_tensor_dtype, output_tensor_dtype;
-    vx_int32 roi_type, input_layout, output_layout;
-    vx_int32 kernel_size_i32, border_type_i32;
+    vx_int32 roi_type, input_layout, output_layout, border_type_i32;
 
     // Read scalars: kernelSize, borderType, layouts, roiType, deviceType
-    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[3], &kernel_size_i32, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
+    STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[3], &data->kernelSize, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[4], &border_type_i32, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[5], &input_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[6], &output_layout, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[7], &roi_type, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
     STATUS_ERROR_CHECK(vxCopyScalar((vx_scalar)parameters[8], &data->deviceType, VX_READ_ONLY, VX_MEMORY_TYPE_HOST));
 
-    data->kernelSize = static_cast<Rpp32u>(kernel_size_i32);
     data->borderType = static_cast<RpptImageBorderType>(border_type_i32);
     data->roiType = static_cast<RpptRoiType>(roi_type);
     data->inputLayout = static_cast<vxTensorLayout>(input_layout);
