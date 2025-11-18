@@ -120,7 +120,7 @@ static vx_status VX_CALLBACK processBrightness(vx_node node, const vx_reference 
 #if ENABLE_OPENCL
         return_status = VX_ERROR_NOT_IMPLEMENTED;
 #elif ENABLE_HIP
-        rpp_status = rppt_brightness_gpu(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc,  data->pAlpha, data->pBeta, data->pSrcRoi, data->roiType, data->handle->rppHandle);
+        rpp_status = rppt_brightness_gpu(data->pSrc, data->pSrcDesc, data->pDst, data->pDstDesc, data->pAlpha, data->pBeta, data->pSrcRoi, data->roiType, data->handle->rppHandle);
         return_status = (rpp_status == RPP_SUCCESS) ? VX_SUCCESS : VX_FAILURE;
 #endif
     } else if (data->deviceType == AGO_TARGET_AFFINITY_CPU) {
@@ -162,8 +162,13 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
     data->pDstDesc->offsetInBytes = 0;
     fillDescriptionPtrfromDims(data->pDstDesc, data->outputLayout, data->ouputTensorDims);
 
+#if ENABLE_HIP
+    hipHostMalloc(&data->pAlpha, data->pSrcDesc->n * sizeof(float));
+    hipHostMalloc(&data->pBeta, data->pSrcDesc->n * sizeof(float));
+#else
     data->pAlpha = new vx_float32[data->pSrcDesc->n];
     data->pBeta = new vx_float32[data->pSrcDesc->n];
+#endif
     refreshBrightness(node, parameters, num, data);
     STATUS_ERROR_CHECK(createRPPHandle(node, &data->handle, data->pSrcDesc->n, data->deviceType));
     STATUS_ERROR_CHECK(vxSetNodeAttribute(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
@@ -173,8 +178,13 @@ static vx_status VX_CALLBACK initializeBrightness(vx_node node, const vx_referen
 static vx_status VX_CALLBACK uninitializeBrightness(vx_node node, const vx_reference *parameters, vx_uint32 num) {
     BrightnessLocalData *data;
     STATUS_ERROR_CHECK(vxQueryNode(node, VX_NODE_LOCAL_DATA_PTR, &data, sizeof(data)));
-    delete[] data->pAlpha;
-    delete[] data->pBeta;
+#if ENABLE_HIP
+    if (data->pAlpha != nullptr)  hipHostFree(data->pAlpha);
+    if (data->pBeta != nullptr)  hipHostFree(data->pBeta);
+#else
+    if (data->pSampleSize) delete[] data->pAlpha;
+    if (data->pBeta) delete[] data->pBeta;
+#endif
     delete data->pSrcDesc;
     delete data->pDstDesc;
     STATUS_ERROR_CHECK(releaseRPPHandle(node, data->handle, data->deviceType));
